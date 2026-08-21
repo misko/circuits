@@ -1,0 +1,5 @@
+R-LEN  copper_length_audit — usb-controlled-debug-hub-2a-v1
+  declaration: projects/usb-controlled-debug-hub-2a-v1/03_src/rules/nets.yaml
+  board:       projects/usb-controlled-debug-hub-2a-v1/06_build/release_staging/v0.1.0-2026-08-21/source/usb_controlled_debug_hub_2a.kicad_pcb
+  N-A: no `length_match:` block in 03_src/rules/nets.yaml — this board declares no net whose purpose is phase.
+  0 group(s) graded / 0 declared, 0 member path(s) measured / 0

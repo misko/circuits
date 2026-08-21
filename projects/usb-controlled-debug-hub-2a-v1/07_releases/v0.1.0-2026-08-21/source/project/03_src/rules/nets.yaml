@@ -1,0 +1,116 @@
+fab_tier: jlc_4layer_advanced
+default_clearance: 0.15mm
+default_track_width: 0.18mm
+
+# The selected fine-pitch packages contain 0.15 mm land-to-land gaps. This is
+# the package/fabrication clearance, not the USB field target: route.yaml keeps
+# every USB differential wave at 0.30 mm clearance outside its terminal lands.
+
+# Package-local discontinuities are bounded by named permissive rule areas in
+# floorplan.yaml. The board-wide 2 A width floor resumes at each area boundary.
+scoped_floors:
+  - {zone: pwr1_output_launch, nets: [VBUS1_SW], min_width: 0.30mm, why: "The TPS2557 output land is exactly 0.30 mm wide; this bounded package escape reaches the local bulk capacitor before the full 0.80 mm 2 A branch resumes."}
+  - {zone: pwr2_output_launch, nets: [VBUS2_SW], min_width: 0.30mm, why: "Channel-2 translation of the measured TPS2557 package output launch."}
+  - {zone: pwr3_output_launch, nets: [VBUS3_SW], min_width: 0.30mm, why: "Channel-3 translation of the measured TPS2557 package output launch."}
+  - {zone: pwr4_output_launch, nets: [VBUS4_SW], min_width: 0.30mm, why: "Channel-4 translation of the measured TPS2557 package output launch."}
+  - {zone: pwr1_input_drop, nets: [P5V_A_PROTECTED], min_width: 0.30mm, why: "Bounded capacitor-pad dogbone into the bank-A B.Cu distributor; the 1.5 mm aggregate bank geometry resumes outside this 0.50 mm launch."}
+  - {zone: pwr2_input_drop, nets: [P5V_A_PROTECTED], min_width: 0.30mm, why: "Channel-2 translation of the bounded bank-A capacitor dogbone."}
+  - {zone: pwr3_input_drop, nets: [P5V_B_PROTECTED], min_width: 0.30mm, why: "Channel-3 bounded capacitor dogbone into the bank-B B.Cu distributor."}
+  - {zone: pwr4_input_drop, nets: [P5V_B_PROTECTED], min_width: 0.30mm, why: "Channel-4 translation of the bounded bank-B capacitor dogbone."}
+  - {zone: pd_raw_contact_neck, nets: [VBUS_PD_RAW], min_width: 0.50mm, why: "The short connector-edge neck joins two USB-C VBUS contact islands around the intervening SBU escape; it is not the 3 A trunk."}
+  - {zone: pd_tvs_launch, nets: [VBUS_PD], min_width: 0.30mm, why: "The TVS centre land is 0.375 mm wide; a bounded pad-width launch reaches the 1.0 mm fused-input spine."}
+  - {zone: pd_vdd_tap_f, nets: [VBUS_PD], min_width: 0.18mm, why: "High-impedance PD-controller VDD bias tap, top-layer package escape only."}
+  - {zone: pd_vdd_tap_b, nets: [VBUS_PD], min_width: 0.18mm, why: "High-impedance PD-controller VDD bias tap on B.Cu; it carries no contract current."}
+  - {zone: pd_vbus_tap, nets: [VBUS_PD], min_width: 0.18mm, why: "PD-controller VBUS sense tap, not the protected input trunk."}
+  - {zone: pd_uv_tap, nets: [VBUS_PD], min_width: 0.18mm, why: "Input-eFuse UV divider tap, intentionally high impedance."}
+  - {zone: pd_pin13_tap_f, nets: [VBUS_PD], min_width: 0.30mm, why: "Package-local VBUS pin-13 escape around adjacent NC/GND lands."}
+  - {zone: pd_pin13_tap_b, nets: [VBUS_PD], min_width: 0.30mm, why: "Package-local VBUS pin-13 return to the fused-input zone; not a series 3 A path."}
+  - {zone: pd_output_cap_tap, nets: [VBUS_PD_PROTECTED], min_width: 0.45mm, why: "Protected-input bypass capacitors attach through a short decoupling spur; the 0.45 mm package approach preserves the exact NC-pad clearance and contract current remains on the zone/via trunk."}
+  - {zone: pd_output_neck, nets: [VBUS_PD_PROTECTED], min_width: 0.80mm, why: "Bounded input-eFuse output-land neck into the broad protected trunk."}
+  - {zone: buck_a_input_zone_neck, nets: [VBUS_PD_PROTECTED], min_width: 0.80mm, why: "Bank-A converter input-zone neck between trunk and bypass island."}
+  - {zone: buck_a_vin_land_neck, nets: [VBUS_PD_PROTECTED], min_width: 0.50mm, why: "Bank-A VIN package-land neck; broad copper resumes outside the land field."}
+  - {zone: buck_b_input_zone_neck, nets: [VBUS_PD_PROTECTED], min_width: 0.80mm, why: "Bank-B translation of the converter input-zone neck."}
+  - {zone: buck_b_vin_land_neck, nets: [VBUS_PD_PROTECTED], min_width: 0.50mm, why: "Bank-B translation of the VIN package-land neck."}
+  - {zone: buck_a_enable_tap, nets: [VBUS_PD_PROTECTED], min_width: 0.18mm, why: "High-impedance bank-A enable-divider tap."}
+  - {zone: buck_b_enable_tap, nets: [VBUS_PD_PROTECTED], min_width: 0.18mm, why: "High-impedance bank-B enable-divider tap."}
+  - {zone: bank_a_bulk_link, nets: [P5V_A_PROTECTED], min_width: 1.00mm, why: "Short outer-layer aggregate-output-to-bulk-reservoir link; parallel zone copper carries the 4.1 A bank current."}
+  - {zone: bank_b_bulk_link, nets: [P5V_B_PROTECTED], min_width: 1.00mm, why: "Bank-B translation of the short bulk-reservoir link."}
+  - {zone: management_vbus_branch, nets: [P5V_A_PROTECTED], min_width: 0.30mm, why: "Declared <=0.1 A management-VBUS branch, electrically downstream of bank A but not part of either 2 A port path."}
+  - {zone: pwr2_input_pin_neck, nets: [P5V_A_PROTECTED], min_width: 0.30mm, why: "Port-2 eFuse input package-land neck into its protected-bank bypass island."}
+  - {zone: pwr3_input_pin_neck, nets: [P5V_B_PROTECTED], min_width: 0.30mm, why: "Port-3 eFuse input package-land neck into its protected-bank bypass island."}
+  - {zone: bank_a_agg_input_neck, nets: [P5V_BANK_A], min_width: 0.30mm, why: "Bounded U_AGG_A input-pin escape into the 1.5 mm bank-A output pour; the adjacent 0.5 mm-pitch control land prevents trunk width at the package."}
+  - {zone: bank_b_agg_input_neck, nets: [P5V_BANK_B], min_width: 0.30mm, why: "Bank-B translation of the bounded aggregate-switch input-pin escape."}
+  - {zone: bank_a_feedback_tap, nets: [P5V_BANK_A], min_width: 0.25mm, why: "High-impedance bank-A feedback-divider tap outside the 4.1 A delivery path."}
+  - {zone: bank_b_feedback_tap, nets: [P5V_BANK_B], min_width: 0.25mm, why: "Bank-B translation of the high-impedance feedback-divider tap."}
+  - {zone: buck_a_switch_land_neck, nets: [SW_A], min_width: 0.30mm, why: "Bounded package-local closure between the bank-A switch land and its adjacent filled switch island; broad copper resumes immediately outside the land field."}
+  - {zone: buck_b_switch_land_neck, nets: [SW_B], min_width: 0.30mm, why: "Bank-B translation of the bounded package-local switch-land closure."}
+
+classes:
+  PWR_PD:
+    intent: "20 V / <=3 A negotiated input trunk; broad copper and short protection/converter branches"
+    nets: [VBUS_PD_RAW, VBUS_PD, VBUS_PD_PROTECTED]
+    current: "3 A maximum contract"
+    pour_fed: >
+      Exact filled-board measurement after the clean route/stitch replay:
+      VBUS_PD_RAW has 20.665 mm2 F.Cu, VBUS_PD has 87.541 mm2 F.Cu, and
+      VBUS_PD_PROTECTED has 207.455 mm2 F.Cu plus 511.515 mm2 B.Cu.  The
+      protected 3 A layer transition is an eight-via 0.46/0.20 mm bank with a
+      1.50 mm B.Cu bridge; each converter-input branch uses six 0.46/0.20 mm
+      vias and 2.00 mm B.Cu.  Narrow package and sensing launches are bounded
+      by the named scoped-width rules and are not credited as the trunk.
+    min_width: 1.0mm
+    clearance: 0.15mm
+    routing: "source-owned pours plus short component necks"
+    verify: "post-route resistance, temperature and transient-path audit"
+
+  PWR_5V_BANK:
+    intent: "independent regulated/protected two-port banks"
+    nets: [P5V_BANK_A, P5V_A_PROTECTED, P5V_BANK_B, P5V_B_PROTECTED]
+    current: "4.1 A bank A; 4.0 A bank B continuous"
+    pour_fed: >
+      Exact filled-board measurement after the clean route/stitch replay:
+      bank A has 160.477 mm2 P5V_BANK_A F.Cu plus 237.330 mm2 F.Cu and
+      486.898 mm2 B.Cu of P5V_A_PROTECTED; bank B has 160.588 mm2
+      P5V_BANK_B F.Cu plus 166.032 mm2 F.Cu and 455.500 mm2 B.Cu of
+      P5V_B_PROTECTED.  Each 2 A USB branch crosses its USB corridor on a
+      3.00 mm In1 bridge with two four-via 0.46/0.20 mm banks.  Short
+      component-pad, feedback, and management taps are bounded by named
+      scoped-width rules and are not credited as aggregate bank trunks.
+    min_width: 1.5mm
+    clearance: 0.15mm
+    routing: "pours with multiple vias; no single narrow trunk credited"
+    verify: "realized-copper ampacity and hot four-wire first article"
+
+  PWR_PORT_2A:
+    intent: "one independently switched USB-A VBUS branch"
+    nets: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW]
+    current: "2.0 A continuous each"
+    min_width: 0.8mm
+    clearance: 0.15mm
+    routing: "short direct pour/track to connector"
+    verify: "<=100 mOhm complete protected path budget and 2 A thermal test"
+
+  USB_HS:
+    intent: "USB 2.0 High-Speed differential data; geometry solved from final JLC stackup"
+    nets: [UP_HUB_P, UP_HUB_N, P1_HUB_P, P1_HUB_N, P1_PORT_P, P1_PORT_N, P2_HUB_P, P2_HUB_N, P2_PORT_P, P2_PORT_N, P3_HUB_P, P3_HUB_N, P3_PORT_P, P3_PORT_N, P4_HUB_P, P4_HUB_N, P4_PORT_P, P4_PORT_N, MGMT_P, MGMT_N]
+    current: "signal"
+    min_width: 0.15mm
+    clearance: 0.15mm
+    routing: "90 ohm differential, continuous In1 GND reference, no stubs"
+    verify: "critical-route inventory, differential geometry and reference-plane gates"
+
+  SWITCH_NODE:
+    intent: "three local buck switch nodes; minimize area and isolate from USB/feedback"
+    nets: [SW_A, SW_B, SW_3V3]
+    current: "6 A pulsed worst case"
+    pour_fed: >
+      Exact filled-board measurement after the clean route/stitch replay:
+      the two 6 A bank-converter switch islands are 30.577 mm2 (SW_A) and
+      30.589 mm2 (SW_B) on F.Cu; the 3.3 V converter island is 14.636 mm2
+      (SW_3V3) on F.Cu.  These are local manufacturer-precedent islands from
+      switch lands to inductors; the 0.80 mm class width is a routed-copper
+      backstop, not the credited pulse-current cross-section.
+    min_width: 0.8mm
+    clearance: 0.15mm
+    routing: "local manufacturer-precedent copper islands only"
+    verify: "placement adjacency, hot-loop and source-owned zone checks"

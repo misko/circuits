@@ -1,0 +1,66 @@
+schema: 2
+default: complexity_weighted
+module_support_threshold: 10
+
+selections:
+  - function: hardware-configured USB-C PD sink negotiation
+    part: CH224K
+    implementation: bare_ic
+    rationale: >-
+      A hardware-strapped sink keeps the 15 V power inlet firmware-free and
+      makes the fuse, surge clamp, UV/OV protection and inrush path directly
+      inspectable on this board.
+    support_refs:
+      [J_POWER, F_PD, D_PD_TVS, R_PD_VDD, C_PD_VDD, R_PD_VBUS,
+       C_PD_IN_HF, U_PD_IN, R_PD_UV_TOP_HI, R_PD_UV_TOP_LO,
+       R_PD_UV_MID, R_PD_OV_BOT, R_PD_IN_ILIM, C_PD_IN_DVDT]
+    exception:
+      decision_rationale: >-
+        A trigger module would hide or duplicate the connector, attach
+        capacitance and protection boundary that this design must rate and
+        test as one delivery path.
+      evidence: >-
+        ADR-0001 fixes the separate USB-C data and 15 V PD power domains and
+        the protected dual-buck architecture; the exact CH224K and input-stage
+        reference circuits are captured in the part dossiers and design math.
+      modules_considered:
+        - part: generic CH224K USB-C PD trigger module
+          rejected_because: Its module-owned connector and output capacitance prevent verification of this board's exact attach and protection path.
+          evidence: WCH CH224K V2.1 application circuit compared with ADR-0001.
+        - part: fixed-voltage USB-C PD trigger cable
+          rejected_because: It cannot provide the required JLC-assembled board-edge connector and exact fuse/TVS/eFuse chain.
+          evidence: Power boundary and first-article requirements in ADR-0001.
+      adr: 01_docs/decisions/0001-2a-four-port-power-architecture.md
+
+  - function: seven-port USB 2.0 high-speed hub and per-port power policy
+    part: USB2517I-JZX
+    implementation: bare_ic
+    rationale: >-
+      The design needs four raw downstream USB pairs, an internal management
+      device, and individual PRTPWR/OCS control. Off-the-shelf modules expose
+      the wrong topology and do not permit the four inline disconnect cells.
+    support_refs:
+      [Y_HUB, R_XTAL, R_RBIAS, C_XTAL1, C_XTAL2,
+       C_HUB_A1, C_HUB_A2, C_HUB_A3, C_HUB_A4, C_HUB_A_BULK,
+       C_HUB_CR_HF, C_HUB_CR_BULK, C_HUB_DD, C_HUB_PLL,
+       C_HUB_18, C_HUB_18PLL, R_HUB_RESET, C_HUB_RESET,
+       R_VBUS_TOP, R_VBUS_BOT, R_CFG0, R_CFG1, R_CFG2,
+       R_NONREM1, R_NONREM0, R_SWAP1, R_SWAP2, R_SWAP3,
+       R_SWAP4, R_SWAP5, R_SWAP6, R_SWAP7, R_GANG,
+       R_BOOST0, R_BOOST1, R_DIS6P, R_DIS6N, R_DIS7P, R_DIS7N]
+    exception:
+      decision_rationale: >-
+        The bare IC preserves four externally switchable ports plus the
+        internal control device on one upstream link while retaining direct
+        access to every data and power disconnect cell.
+      evidence: >-
+        Microchip USB2517I data, hardware checklist and evaluation-board
+        architecture are captured by the USB2517I-JZX dossier and ADR-0001.
+      modules_considered:
+        - part: Microchip EVB-USB2517
+          rejected_because: Fixed evaluation-board connectors and power topology do not expose the required inline disconnect cells.
+          evidence: Microchip EVB-USB2517 official architecture.
+        - part: four-port USB 2.0 hub module
+          rejected_because: It cannot also host the internal management USB function while retaining four external ports.
+          evidence: "CITED: USB topology and five-function requirement in ADR-0001."
+      adr: 01_docs/decisions/0001-2a-four-port-power-architecture.md

@@ -1,0 +1,1204 @@
+# Source-owned route contract for usb-controlled-debug-hub-2a-v1.
+#
+#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py \
+#       prep 03_src/route.yaml
+#   ~/gits/KiCadRoutingTools/.venv/bin/python \
+#       ../../skills/kicad-pcb/scripts/route_and_stitch_generic.py route 03_src/route.yaml
+#   /usr/bin/python3 ... import 03_src/route.yaml
+#   /usr/bin/python3 ... quick  03_src/route.yaml   # loop tool: seconds-fast
+#       unconnected + clearance/track_width verdict, pre-stitch (exit 1 dirty)
+#   /usr/bin/python3 ... stitch 03_src/route.yaml
+#
+# 150x115 mm, four-layer. GND is not field-routed; the F/B pours, inner
+# reference plane, explicit local returns, and stitch vias own it.
+
+project:
+  name: usb_controlled_debug_hub_2a
+  board: 04_kicad/usb_controlled_debug_hub_2a.kicad_pcb
+  build_dir: 06_build/route
+
+# Process contract consumed by kicad-pcb/scripts/pcb_flow.py.  Geometry tools
+# ignore this block.  It makes stage ownership, deterministic/stochastic
+# copper, and wall-time expectations explicit before an expensive route begins.
+flow:
+  heartbeat_s: 10
+  # Fail-closed independent evidence before the first route. The initial
+  # schematic/placement build stops until these exact-artifact witnesses exist.
+  pre_route_reviews:
+    board: 04_kicad/usb_controlled_debug_hub_2a.kicad_pcb
+    netlist: 06_build/netlists/usb_controlled_debug_hub_2a.net
+    topology: 08_reviews/pre-route_topology.md
+    schematic_pdf: 03_tscircuit/build/schematic.pdf
+    schematic_render: 08_reviews/pre-route_schematic_render.md
+    pin: 08_reviews/pre-route_pin.md
+    layout: 08_reviews/pre-route_layout.md
+    render: 08_reviews/pre-route_render.md
+    a_render: 06_build/pre_route/twin_overlay.md
+  # Single-board defaults: this config, 03_src/rebuild_all.sh, 06_build/.
+  # An ADR-0007 multi-board project instead keeps this file at
+  # 03_src/<board>/route.yaml and MUST uncomment board-scoped paths/inputs:
+  # paths:
+  #   board_id: cook_loadcell
+  #   state_dir: 06_build/cook_loadcell
+  #   rebuild: 03_src/cook_loadcell/rebuild_all.sh
+  #   journal: 01_docs/journal/routing_cook_loadcell.md
+  # inputs:
+  #   include: [03_src/cook_loadcell,
+  #             03_tscircuit/src/cook_loadcell.tsx,
+  #             03_tscircuit/manifest-cook_loadcell.yaml]
+  #   parts: [02_parts/MPN_A, 02_parts/MPN_B]
+  #   tools: []  # extra shared/external producers beyond conductor defaults
+  owner:
+    stage: routing
+    files: [03_src/route.yaml, 03_src/floorplan.yaml,
+            03_src/route/final.kicad_pcb]
+  copper:
+    deterministic: [prep.seed_stubs, taps.connections, stitch.seed_stubs,
+                    route.final]
+    stochastic: [route.waves]
+  budgets_s:
+    tscircuit_deps: 30
+    tscircuit_build: 60
+    escape_packages: 30
+    escape_lands: 120
+    tier_preflight: 15
+    grind: 900
+    rebuild: 1200
+    layout_drc: 120
+  # Hard stop conditions are separate from performance budgets. A timed stage
+  # is killed as a process group and leaves its last heartbeat in 06_build/.
+  timeouts_s:
+    default: 600
+    source_schema_governance: 60
+    adr_bound_governance: 60
+    # Schematic autorouting can become combinatorial. Projects may raise this
+    # with measured evidence, but the canonical starting point is bounded.
+    tscircuit_deps: 120
+    tscircuit_build: 180
+    route_wave: 900
+    route_race: 2400
+    route_evaluate: 180
+    route_import: 300
+    stitch: 900
+    rebuild: 1500
+    layout_drc: 180
+  blockers: []
+
+prep:
+  out: r0.kicad_pcb
+  keepouts:
+    # User.2 owns only board-mechanical exclusions. Critical component escape
+    # corridors are declared below and are not inherited from another board.
+    layers: [User.2, User.3]
+    mounting_holes: {radius: 3.0}      # M3 screw head + margin
+    edge_band: 0.7                     # KRT has no edge concept; dru floor 0.3
+    rects:
+      # RBIAS owns this narrow inner-layer vertical corridor. Through-vias on
+      # unrelated nets span In1.Cu and must not pierce the analog route even
+      # when their outer-layer clearances look legal.
+      - {x0: 81.35, y0: 48.40, x1: 82.65, y1: 54.60, layer: User.3}
+  seed_stubs: &deterministic_seed_stubs
+    clearance: 0.15
+    via: {size: 0.46, drill: 0.20}
+    stubs:
+      - {net: GND, why: "CH224K exposed pad receives two explicit filled/capped thermal vias in addition to any incidental stitch via; its dossier requires at least two same-net plane returns", vias: [[41.0,117.3],[41.0,118.7]]}
+      - {net: GND, why: "TPS259827 input-eFuse exposed pad 21 receives two explicit Type-VII thermal returns independent of heuristic pad rescue", vias: [[51.2,117.0],[52.6,117.0]]}
+      - {net: VBUS_PD_PROTECTED, why: "PD eFuse output to protected B.Cu trunk", vias: [[58.0,120.0],[58.8,120.0],[59.6,120.0],[60.4,120.0],[58.0,120.8],[58.8,120.8],[59.6,120.8],[60.4,120.8]]}
+      - {net: VBUS_PD_PROTECTED, why: "protected trunk to bank-A buck input island", vias: [[84.8,118.8],[85.6,118.8],[86.4,118.8],[87.2,118.8],[84.8,119.6],[85.6,119.6],[86.4,119.6],[87.2,119.6]]}
+      - {net: VBUS_PD_PROTECTED, why: "protected trunk to bank-B buck input island", vias: [[128.8,118.8],[129.6,118.8],[130.4,118.8],[131.2,118.8],[128.8,119.6],[129.6,119.6],[130.4,119.6],[131.2,119.6]]}
+      - {net: P5V_A_PROTECTED, why: "bank-A aggregate output to protected B.Cu distributor", vias: [[109.0,108.2],[109.8,108.2],[110.6,108.2],[111.4,108.2],[109.0,109.0],[109.8,109.0],[110.6,109.0],[111.4,109.0]]}
+      - {net: P5V_A_PROTECTED, why: "bank-A distributor to port-1 switch input island", vias: [[45.6,53.2],[46.4,53.2],[45.6,54.4],[46.4,54.4]]}
+      - {net: P5V_A_PROTECTED, why: "bank-A distributor to port-2 switch input island", vias: [[73.6,53.2],[74.4,53.2],[73.6,54.4],[74.4,54.4]]}
+      - {net: P5V_B_PROTECTED, why: "bank-B aggregate output to protected B.Cu distributor", vias: [[153.0,108.2],[153.8,108.2],[154.6,108.2],[155.4,108.2],[153.0,109.0],[153.8,109.0],[154.6,109.0],[155.4,109.0]]}
+      - {net: P5V_B_PROTECTED, why: "bank-B distributor to port-3 switch input island", vias: [[101.6,53.2],[102.4,53.2],[101.6,54.4],[102.4,54.4]]}
+      - {net: P5V_B_PROTECTED, why: "bank-B distributor to port-4 switch input island", vias: [[129.6,53.2],[130.4,53.2],[129.6,54.4],[130.4,54.4]]}
+
+      # The B.Cu port distributors are crossed by fixed USB pairs.  Preserve
+      # the pairs' adjacent In2 GND reference and bridge only the severed
+      # distributor necks on In1, with four-via banks at both ends.  Each
+      # bridge carries one 2 A branch, not the combined 4.1 A bank current.
+      - {net: P5V_A_PROTECTED, why: "port-1 distributor crosses the P1 USB corridor on In1 without cutting its In2 reference",
+         segments: [{layer: In1.Cu, width: 3.00, pts: [[63.0000,54.6000],[69.0000,64.4000]]}],
+         vias: [[62.6000,54.2000],[63.4000,54.2000],[62.6000,55.0000],[63.4000,55.0000],
+                [68.6000,64.0000],[69.4000,64.0000],[68.6000,64.8000],[69.4000,64.8000]]}
+      - {net: P5V_A_PROTECTED, why: "port-2 distributor crosses the P1 USB corridor on In1 without cutting its In2 reference",
+         segments: [{layer: In1.Cu, width: 1.50, pts: [[74.0000,54.4000],[72.0000,57.0000]]},
+                    {layer: In1.Cu, width: 3.00, pts: [[72.0000,57.0000],[70.0000,66.0000]]}],
+         vias: [[69.6000,65.6000],[70.4000,65.6000],[69.6000,66.4000],[70.4000,66.4000]]}
+      - {net: P5V_B_PROTECTED, why: "port-3 distributor crosses the P4 USB corridor on In1 without cutting its In2 reference",
+         segments: [{layer: In1.Cu, width: 3.00, pts: [[113.4000,54.4000],[139.8000,64.4000]]}],
+         vias: [[113.0000,54.0000],[113.8000,54.0000],[113.0000,54.8000],[113.8000,54.8000],
+                [139.4000,64.0000],[140.2000,64.0000],[139.4000,64.8000],[140.2000,64.8000]]}
+      - {net: P5V_B_PROTECTED, why: "port-3 local input island crosses its USB/control corridor on In1 before signal routing spends the channel",
+         segments: [{layer: In1.Cu, width: 2.00, pts: [[101.0000,56.0000],[105.0000,56.0000],[106.5000,57.0000],
+                                                        [109.0000,57.0000],[111.0000,56.0000],[115.0000,56.0000]]}],
+         vias: [[101.0000,56.0000],[102.0000,56.0000],[103.0000,56.0000],
+                [111.0000,56.0000],[113.0000,56.0000],[114.0000,56.0000],[115.0000,56.0000]]}
+
+      # A filled zone is not an authenticated conductor until its realized
+      # islands are connected.  These deterministic copper spines join the
+      # dense package/contact islands before any field router is allowed to
+      # spend the surrounding corridors.  The broad sections use the adopted
+      # PWR_INPUT/PWR_BANK floors; package-neck exceptions are separately
+      # bounded in floorplan.yaml + rules/nets.yaml.
+      - {net: VBUS_PD_PROTECTED, why: "package neck joins the input-eFuse output island to the protected trunk island",
+         segments: [{layer: F.Cu, width: 0.80, pts: [[57.2471,113.9218],[57.7782,114.4529]]}]}
+      - {net: VBUS_PD_PROTECTED, why: "bank-A input island necks join trunk, bypass capacitors, and buck VIN land",
+         segments: [{layer: F.Cu, width: 0.80, pts: [[85.6794,116.4896],[86.2104,117.0206]]},
+                    {layer: F.Cu, width: 0.50, pts: [[90.1280,115.3247],[90.7171,114.5066]]}]}
+      - {net: VBUS_PD_PROTECTED, why: "bank-B input island necks join trunk, bypass capacitors, and buck VIN land",
+         segments: [{layer: F.Cu, width: 0.80, pts: [[129.6794,116.4896],[130.2104,117.0206]]},
+                    {layer: F.Cu, width: 0.50, pts: [[134.1280,115.3247],[134.7171,114.5066]]}]}
+      - {net: VBUS_PD_PROTECTED, why: "input-eFuse output island crosses to the protected B.Cu trunk through an eight-via 3 A boundary",
+         segments: [{layer: B.Cu, width: 1.50, pts: [[58.4000,114.8000],[60.0000,114.8000],[60.0000,115.6000],
+                                                        [58.4000,115.6000],[59.2000,116.4000],[58.4000,116.4000],
+                                                        [59.2000,116.4000],[60.4000,120.0000]]}],
+         vias: [[58.4000,114.8000],[59.2000,114.8000],[60.0000,114.8000],
+                [58.4000,115.6000],[59.2000,115.6000],[60.0000,115.6000],
+                [58.4000,116.4000],[59.2000,116.4000]]}
+      - {net: VBUS_PD_PROTECTED, why: "bank-A converter input island crosses to its B.Cu trunk landing through a six-via boundary",
+         segments: [{layer: B.Cu, width: 2.00, pts: [[84.4000,115.4000],[86.0000,115.4000],[86.0000,116.2000],[84.4000,116.2000],[85.6000,118.8000]]},
+                    {layer: B.Cu, width: 2.00, pts: [[84.4000,115.4000],[84.4000,112.5000],[86.0000,112.5000]]}],
+         vias: [[84.4000,115.4000],[85.2000,115.4000],[86.0000,115.4000],
+                [84.4000,116.2000],[85.2000,116.2000],[86.0000,116.2000],
+                [84.4000,112.5000],[85.2000,112.5000],[86.0000,112.5000]]}
+      - {net: VBUS_PD_PROTECTED, why: "bank-B converter input island crosses to its B.Cu trunk landing through a six-via boundary",
+         segments: [{layer: B.Cu, width: 2.00, pts: [[128.4000,115.4000],[130.0000,115.4000],[130.0000,116.2000],[128.4000,116.2000],[129.6000,118.8000]]},
+                    {layer: B.Cu, width: 2.00, pts: [[128.4000,115.4000],[128.4000,112.5000],[130.0000,112.5000]]}],
+         vias: [[128.4000,115.4000],[129.2000,115.4000],[130.0000,115.4000],
+                [128.4000,116.2000],[129.2000,116.2000],[130.0000,116.2000],
+                [128.4000,112.5000],[129.2000,112.5000],[130.0000,112.5000]]}
+      - {net: P5V_A_PROTECTED, why: "bank-A protected output reaches its bulk reservoir on B.Cu without slicing the P5V_BANK_A input pour",
+         segments: [{layer: B.Cu, width: 1.50, pts: [[111.4000,109.0000],[122.0000,120.4000]]}],
+         vias: [[121.2000,119.6000],[122.0000,119.6000],[122.8000,119.6000],
+                [121.2000,120.4000],[122.0000,120.4000],[122.8000,120.4000],
+                [121.2000,121.2000],[122.0000,121.2000]]}
+      - {net: P5V_B_PROTECTED, why: "bank-B aggregate output island reaches its bulk reservoir",
+         segments: [{layer: F.Cu, width: 1.00, pts: [[162.4984,109.1614],[163.1264,109.5732]]}]}
+      - {net: SW_A, why: "bank-A buck switch land reaches the inductor without relying on two touching pour fragments",
+         segments: [{layer: F.Cu, width: 0.30, pts: [[89.2000,118.1000],[89.8000,119.5000]]}]}
+      - {net: SW_B, why: "bank-B translation of the explicit buck switch-node closure",
+         segments: [{layer: F.Cu, width: 0.30, pts: [[133.2000,118.1000],[133.8000,119.5000]]}]}
+      - {net: VBUS_PD, why: "PD-input pin 6 crosses below its UV-sense trace through a three-via filled/capped boundary at each end",
+         via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 2.00, pts: [[48.4000,117.3250],[49.6000,117.3250],[49.6000,114.7250],[48.4000,114.7250]]}],
+         vias: [[48.4000,117.3250],[49.0000,117.3250],[49.6000,117.3250],
+                [48.4000,114.7250],[49.0000,114.7250],[49.6000,114.7250]]}
+
+      # Package-local power closures and low-current divider/enable taps.  A
+      # pour-group count alone cannot prove these pad centres are served, so
+      # every DRC-visible endpoint is made explicit before routing.
+      - {net: VBUS_PD_PROTECTED, why: "protected-input capacitor pair reaches the eFuse output island",
+         segments: [{layer: F.Cu, width: 0.45, pts: [[48.0000,111.4700],[52.0000,111.4700],[56.5000,111.4700],[56.5000,114.7200],[54.9700,114.7200]]}]}
+      - {net: VBUS_PD_PROTECTED, pin: R_BUCK_A_EN_TOP.1, why: "bank-A enable divider taps the protected trunk",
+         segments: [{layer: F.Cu, width: 0.18, pts: [[86.4900,125.5000],[86.4900,124.5000]]}], vias: [[86.4900,124.5000]]}
+      - {net: VBUS_PD_PROTECTED, pin: R_BUCK_B_EN_TOP.1, why: "bank-B enable divider taps the protected trunk",
+         segments: [{layer: F.Cu, width: 0.18, pts: [[130.4900,125.5000],[130.4900,124.5000]]}], vias: [[130.4900,124.5000]]}
+      - {net: P5V_A_PROTECTED, why: "management-VBUS branch takes only its declared 0.1 A allocation from bank A",
+         segments: [{layer: B.Cu, width: 0.30, pts: [[48.2700,56.5200],[44.5000,68.5000]]},
+                    {layer: F.Cu, width: 0.30, pts: [[44.5000,68.5000],[40.0000,68.5000],[39.7200,72.0000]]},
+                    {layer: F.Cu, width: 0.30, pts: [[39.7200,72.0000],[38.5000,72.0000],[38.5000,74.0000],[42.0000,74.0000],[42.0000,72.3250],[43.5500,72.3250]]},
+                    {layer: F.Cu, width: 0.30, pts: [[42.0000,72.3250],[42.0000,71.6750],[43.5500,71.6750]]}],
+         vias: [[44.5000,68.5000]]}
+      - {net: P5V_A_PROTECTED, pin: U_PWR2.5, why: "port-2 eFuse input land reaches its local protected-bank bypass island",
+         segments: [{layer: F.Cu, width: 0.30, pts: [[75.7700,54.0000],[75.7700,56.5200]]}]}
+      - {net: P5V_B_PROTECTED, pin: U_PWR3.5, why: "port-3 eFuse input land reaches its local protected-bank bypass island",
+         segments: [{layer: F.Cu, width: 0.30, pts: [[103.7700,54.0000],[103.7700,56.5200]]}]}
+      - {net: VBUS_PD, why: "fused-input bypass island returns to the main VBUS_PD pour on B.Cu without cutting the dense PD-controller escapes",
+         segments: [{layer: B.Cu, width: 1.00, pts: [[33.5000,113.5000],[45.2300,116.1300]]}],
+         vias: [[45.2300,116.1300]]}
+      - {net: VBUS_PD, why: "TVS VBUS lands share a short surge spine into the fused-input zone",
+         segments: [{layer: F.Cu, width: 0.30, pts: [[35.0000,126.1125],[35.0000,125.0000]]},
+                    {layer: F.Cu, width: 1.00, pts: [[35.0000,125.0000],[35.0000,120.0000]]}]}
+      - {net: VBUS_PD, pin: R_PD_VDD.1,
+         segments: [{layer: F.Cu, width: 0.18, pts: [[37.5375,131.0000],[37.5000,129.0000]]},
+                    {layer: B.Cu, width: 0.18, pts: [[37.5000,129.0000],[33.5000,113.5000]]}],
+         vias: [[37.5000,129.0000],[33.5000,113.5000]]}
+      - {net: VBUS_PD, pin: R_PD_VBUS.1, segments: [{layer: F.Cu, width: 0.18, pts: [[34.9900,122.5000],[35.0000,120.0000]]}]}
+      - {net: VBUS_PD, pin: R_PD_UV_TOP_HI.1, segments: [{layer: F.Cu, width: 0.18, pts: [[46.4900,126.5000],[44.0000,124.0000],[40.0000,120.0000]]}]}
+      - {net: VBUS_PD, pin: U_PD_IN.13, why: "right-side VBUS sense/supply land loops around adjacent GND/NC pins into the fused-input zone",
+         segments: [{layer: F.Cu, width: 0.30, pts: [[54.9700,118.6250],[58.0000,118.6250]]},
+                    {layer: B.Cu, width: 0.30, pts: [[58.0000,118.6250],[55.5000,113.0000]]}],
+         vias: [[58.0000,118.6250],[55.5000,113.0000]]}
+      - {net: VBUS_PD_RAW, why: "upper USB-C VBUS contact island skirts the intervening SBU escape at the connector's open right edge",
+         segments: [{layer: F.Cu, width: 0.50, pts: [[29.0000,120.4000],[29.5000,120.4000],[29.5000,119.0000]]}]}
+      # Each port eFuse output is a narrow 0.30 x 2.40 mm land boxed by its
+      # control/ILIM pads.  Neck at pad width until outside the package, then
+      # widen to the 0.80 mm port-power rule and terminate on the local bulk
+      # capacitor.  The general power wave owns only the open-field remainder.
+      - {net: VBUS1_SW, pin: U_PWR1.6, segments: [{layer: F.Cu, width: 0.30, pts: [[48.2600,54.0000],[48.2600,55.5000],[49.5000,56.0000]]},{layer: F.Cu, width: 0.80, pts: [[49.5000,56.0000],[53.0250,56.0000]]}]}
+      - {net: VBUS2_SW, pin: U_PWR2.6, segments: [{layer: F.Cu, width: 0.30, pts: [[76.2600,54.0000],[76.2600,55.5000],[77.5000,56.0000]]},{layer: F.Cu, width: 0.80, pts: [[77.5000,56.0000],[81.0250,56.0000]]}]}
+      - {net: VBUS3_SW, pin: U_PWR3.6, segments: [{layer: F.Cu, width: 0.30, pts: [[104.2600,54.0000],[104.2600,55.5000],[105.5000,56.0000]]},{layer: F.Cu, width: 0.80, pts: [[105.5000,56.0000],[109.0250,56.0000]]}]}
+      - {net: VBUS4_SW, pin: U_PWR4.6, segments: [{layer: F.Cu, width: 0.30, pts: [[132.2600,54.0000],[132.2600,55.5000],[133.5000,56.0000]]},{layer: F.Cu, width: 0.80, pts: [[133.5000,56.0000],[137.0250,56.0000]]}]}
+
+      # USB-C contact fields are too dense for a field router to enter from a
+      # pad-centred grid cell.  These are exact, family-proven connector
+      # escapes: J_DATA is coordinate-identical to v2; J_POWER and U_PD are
+      # the same cell translated +13.00 mm in Y.  Open-field routing begins
+      # only after the complete contact-field paths below.
+      - {net: DATA_CC1, pin: J_DATA.A5, segments: [{layer: F.Cu, width: 0.18, pts: [[27.3200,55.7500],[32.3000,55.7500],[32.3000,53.0000],[34.0000,52.5100]]}]}
+      - {net: DATA_CC2, pin: J_DATA.B5, segments: [{layer: F.Cu, width: 0.18, pts: [[27.3200,58.7500],[30.0000,58.7500],[30.0000,62.0000],[33.5000,63.5100]]}]}
+      - net: USB_UP_VBUS
+        pin: J_DATA.A4
+        segments:
+          - {layer: F.Cu, width: 0.30, pts: [[27.3200,54.6000],[29.0000,54.6000],[29.0000,51.0000]]}
+          - {layer: F.Cu, width: 0.30, pts: [[27.3200,59.4000],[28.0000,59.4000]]}
+          - {layer: B.Cu, width: 0.30, pts: [[28.0000,59.4000],[29.5000,60.5000],[29.5000,64.5000],[39.0000,64.5000],[39.0000,63.5100]]}
+          - {layer: F.Cu, width: 0.30, pts: [[29.5000,64.5000],[29.4000,64.6000],[24.3000,64.6000],[21.4000,61.7000],[21.4000,61.5000],[21.3000,61.4000],[21.3000,52.4000],[21.8000,51.9000],[22.5000,51.9000],[23.3000,51.1000],[28.9000,51.1000],[29.0000,51.0000]]}
+          - {layer: F.Cu, width: 0.30, pts: [[39.0000,63.5100],[38.0000,63.5100]]}
+        vias: [[28.0000,59.4000],[29.5000,64.5000],[39.0000,63.5100]]
+      - net: PD_CC1
+        pin: J_POWER.A5
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[27.3200,116.7500],[28.5000,116.7500]]}
+          - {layer: In2.Cu, width: 0.18, pts: [[28.5000,116.7500],[37.0000,117.0000]]}
+          - {layer: F.Cu, width: 0.18, pts: [[37.0000,117.0000],[38.0000,117.0000]]}
+        vias: [[28.5000,116.7500],[37.0000,117.0000]]
+      - net: PD_CC2
+        pin: J_POWER.B5
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[27.3200,119.7500],[28.5000,119.7500]]}
+          - {layer: In1.Cu, width: 0.18, pts: [[28.5000,119.7500],[33.5000,119.7500],[37.0000,115.3000]]}
+          - {layer: F.Cu, width: 0.18, pts: [[37.0000,115.3000],[37.2500,116.0000],[38.0000,116.0000]]}
+        vias: [[28.5000,119.7500],[37.0000,115.3000]]
+
+      # The crystal and non-USB hub pins form one boxed QFN escape cluster.
+      # Promote only the measured package-local exits from the v2 family;
+      # the remaining wave still owns all open-field connections.
+      - {net: XTAL1, pin: U_HUB.61, segments: [{layer: F.Cu, width: 0.18, pts: [[90.7500,60.5875],[90.7500,57.2000],[89.0000,57.2000],[87.4000,56.3500]]}]}
+      - {net: XTAL1, pin: R_XTAL.1, segments: [{layer: F.Cu, width: 0.18, pts: [[82.9900,52.0000],[83.7000,52.7000],[84.5000,52.7000],[85.5000,53.7000],[85.5000,54.5000],[86.9000,55.9000],[87.4000,56.3500]]}]}
+      - {net: XTAL2, pin: U_HUB.60, segments: [{layer: F.Cu, width: 0.18, pts: [[91.2500,60.5875],[91.2500,56.3000],[89.6000,54.6500]]}]}
+      - {net: HUB_CFG0, pin: U_HUB.41, segments: [{layer: F.Cu, width: 0.18, pts: [[97.4125,64.7500],[96.8500,64.7500]]}], vias: [[96.8500,64.7500]]}
+      - {net: HUB_CFG0, pin: R_CFG0.1, segments: [{layer: F.Cu, width: 0.18, pts: [[104.4900,66.5000],[103.8000,66.5000]]}], vias: [[103.8000,66.5000]]}
+      - {net: HUB_NONREM1, pin: U_HUB.40, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[97.4125,65.2500]]}
+      - {net: HUB_NONREM1, pin: R_NONREM1.1, segments: [{layer: F.Cu, width: 0.18, pts: [[104.4900,68.0000],[103.8000,68.0000]]}], vias: [[103.8000,68.0000]]}
+      - {net: HUB_CFG1, pin: U_HUB.42, segments: [{layer: F.Cu, width: 0.15, pts: [[97.4125,64.2500],[97.9000,64.2500]]}], vias: [[97.9000,64.2500]]}
+      # RESET is the second genuinely boxed east-edge pad. A source-owned
+      # filled/capped transition here prevents the router from inventing an
+      # undersized 0.25/0.15 mm via inside the land.
+      - {net: HUB_RESET_N, pin: U_HUB.43, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[97.4125,63.7500]]}
+      - {net: HUB_RESET_N, pin: C_HUB_RESET.1, segments: [{layer: F.Cu, width: 0.18, pts: [[83.5200,70.0000],[83.5200,69.1000]]}], vias: [[83.5200,69.1000]]}
+      - {net: HUB_CFG2, pin: U_HUB.13, segments: [{layer: F.Cu, width: 0.15, pts: [[88.5875,67.2500],[87.4000,67.2500],[87.4000,67.6000]]}], vias: [[87.4000,67.6000]]}
+      - {net: HUB_BOOST0, pin: U_HUB.50, segments: [{layer: F.Cu, width: 0.18, pts: [[96.2500,60.5875],[96.2500,60.1000]]}], vias: [[96.2500,60.1000]]}
+      - {net: HUB_DIS6_N, pin: U_HUB.53, segments: [{layer: F.Cu, width: 0.18, pts: [[94.7500,60.5875],[94.7500,59.5500]]}], vias: [[94.7500,59.5500]]}
+      - {net: HUB_DIS6_N, pin: R_DIS6N.2, segments: [{layer: F.Cu, width: 0.18, pts: [[118.4900,70.0000],[117.8000,69.3100]]}]}
+      - {net: HUB_DIS6_P, pin: U_HUB.54, segments: [{layer: F.Cu, width: 0.18, pts: [[94.2500,60.5875],[94.2500,59.9000]]}], vias: [[94.2500,59.9000]]}
+      - {net: HUB_DIS7_N, pin: U_HUB.55, segments: [{layer: F.Cu, width: 0.18, pts: [[93.7500,60.5875],[93.7500,59.5500]]}], vias: [[93.7500,59.5500]]}
+      - {net: HUB_DIS7_P, pin: U_HUB.56, segments: [{layer: F.Cu, width: 0.18, pts: [[93.2500,60.5875],[93.2500,59.9000]]}], vias: [[93.2500,59.9000]]}
+      - {net: HUB_PRTPWR4, pin: U_HUB.20, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[90.7500,69.4125]]}
+      - {net: HUB_OCS4_N, pin: U_HUB.21, segments: [{layer: F.Cu, width: 0.18, pts: [[91.2500,69.4125],[91.2500,70.3000]]}], vias: [[91.2500,70.3000]]}
+      - {net: HUB_OCS3_N, pin: U_HUB.22, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[91.7500,69.4125]]}
+      - {net: HUB_OCS1_N, pin: U_HUB.28, segments: [{layer: F.Cu, width: 0.18, pts: [[94.7500,69.4125],[94.7500,69.0000],[94.4500,68.7000],[92.8500,68.7000],[92.4500,68.3000],[91.9000,68.3000],[91.7500,68.4500]]}], vias: [[91.7500,68.4500]]}
+      - {net: HUB_OCS2_N, pin: U_HUB.27, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[94.2500,69.4125]]}
+      - {net: HUB_OCS2_N, pin: U_PWR1.4, segments: [{layer: F.Cu, width: 0.18, pts: [[47.0900,54.9000],[47.0900,55.7000]]}], vias: [[47.0900,55.7000]]}
+      - {net: HUB_OCS5_N, pin: U_HUB.35, segments: [{layer: F.Cu, width: 0.18, pts: [[97.4125,67.7500],[98.2000,67.7500]]}], vias: [[98.2000,67.7500]]}
+      - {net: HUB_PRTPWR2, pin: U_HUB.26, segments: [{layer: F.Cu, width: 0.18, pts: [[93.7500,69.4125],[93.7500,71.5000],[94.0000,71.7500],[95.4000,72.0000]]}], vias: [[95.4000,72.0000]]}
+      - {net: HUB_PRTPWR3, pin: U_HUB.23, segments: [{layer: F.Cu, width: 0.18, pts: [[92.2500,69.4125],[92.2500,68.8500]]}], vias: [[92.2500,68.8500]]}
+      - {net: HUB_VDD18, pin: U_HUB.25, segments: [{layer: F.Cu, width: 0.18, pts: [[93.2500,69.4125],[93.2500,70.1500],[92.5000,70.9200],[92.0000,70.9200]]}]}
+      # Pin 45 is boxed between the VBUS-sense and 3V3 escapes. Use the same
+      # explicit selective Type-VII 0.46/0.20 mm process as U_HUB.64; this is
+      # source-owned manufacturing intent, never a router-created via-in-pad.
+      - net: HUB_NONREM0
+        pin: U_HUB.45
+        via: {size: 0.46, drill: 0.20}
+        segments:
+          - {layer: B.Cu, width: 0.15, pts: [[97.4125,62.7500],[96.0000,63.2000],[95.8000,66.3000],[98.7400,66.3000],[98.7400,64.0000]]}
+        vias: [[97.4125,62.7500],[98.7400,64.0000]]
+      - {net: HUB_SWAP2, pin: U_HUB.49, segments: [{layer: F.Cu, width: 0.15, pts: [[96.7500,60.5875],[96.7500,59.7500]]}], vias: [[96.7500,59.7500]]}
+      # Pin 47 is trapped between BOOST1 and the wide pin-46 rail escape.
+      - {net: HUB_SWAP3, pin: U_HUB.47, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[97.4125,61.7500]]}
+      - {net: HUB_SWAP3, pin: R_SWAP3.1, segments: [{layer: F.Cu, width: 0.18, pts: [[113.5100,62.0000],[114.2000,62.0000]]}], vias: [[114.2000,62.0000]]}
+      - {net: HUB_SWAP1, pin: U_HUB.51, segments: [{layer: F.Cu, width: 0.18, pts: [[95.7500,60.5875],[95.7500,59.7500]]}], vias: [[95.7500,59.7500]]}
+      - {net: HUB_GANG, pin: U_HUB.34, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[97.4125,68.2500]]}
+      - {net: HUB_PRTPWR5, pin: U_HUB.30, segments: [{layer: F.Cu, width: 0.18, pts: [[95.7500,69.4125],[95.7500,70.3000]]}], vias: [[95.7500,70.3000]]}
+      # Pin 31 is boxed between adjacent hub-control exits; keep its required
+      # layer transition explicit under the selective filled/capped process.
+      - {net: HUB_SWAP5, pin: U_HUB.31, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[96.2500,69.4125]]}
+      - {net: HUB_GANG, pin: R_GANG.1, segments: [{layer: F.Cu, width: 0.18, pts: [[104.4900,69.5000],[103.7000,69.5000]]}], vias: [[103.7000,69.5000]]}
+      - {net: HUB_SWAP4, pin: U_HUB.33, segments: [{layer: F.Cu, width: 0.18, pts: [[97.4125,68.7500],[97.4000,69.3000],[97.6000,69.5000],[97.6000,70.0000]]}], vias: [[97.6000,70.0000]]}
+      - {net: HUB_SWAP4, pin: R_SWAP4.1, segments: [{layer: F.Cu, width: 0.18, pts: [[104.4900,71.0000],[103.7000,71.0000]]}], vias: [[103.7000,71.0000]]}
+      - {net: GND, pin: R_SWAP4.2, why: "the dense hub escape field pinches this pad into a real F.Cu pour island; bind it explicitly to the inner ground plane instead of relying on refill geometry",
+         segments: [{layer: F.Cu, width: 0.30, pts: [[105.5100,71.0000],[107.7000,71.1000]]}],
+         vias: [[107.7000,71.1000]]}
+      # Pin 15 is boxed on the west QFN edge; authorize the same selective
+      # filled/capped 0.46/0.20 mm transition used by the other trapped hub
+      # configuration lands.  The generic router may not substitute 0.25/0.15.
+      - {net: HUB_SWAP7, pin: U_HUB.15, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[88.5875,68.2500]]}
+
+      # The generic final wave previously completed connectivity by dropping
+      # vias directly into these fine-pitch lands.  Own the package-local
+      # dogbones here so the router starts in open field and cannot silently
+      # turn an ordinary assembly into an unplanned via-fill process.  These
+      # are ordinary off-pad 0.46/0.20 mm transitions, not selective VIPs.
+      - {net: HUB_BOOST1, pin: R_BOOST1.1, segments: [{layer: F.Cu, width: 0.18, pts: [[98.7900,61.2500],[98.1000,61.2500]]}], vias: [[98.1000,61.2500]]}
+      - {net: I2C_SDA, pin: R_I2C_SDA.2, segments: [{layer: F.Cu, width: 0.18, pts: [[81.0100,74.0000],[81.8000,74.0000]]}], vias: [[81.8000,74.0000]]}
+      - {net: I2C_SDA, pin: U_CTRL.9, segments: [{layer: F.Cu, width: 0.18, pts: [[76.8625,77.3000],[78.0000,77.3000]]}], vias: [[78.0000,77.3000]]}
+      - {net: I2C_SDA, pin: U_EXP.13, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[119.5000,79.5750],[117.9000,79.5750]]}], vias: [[117.9000,79.5750]]}
+      - {net: VBUS_CTRL, pin: R_I2C_SCL.1, segments: [{layer: F.Cu, width: 0.18, pts: [[79.9900,71.0000],[79.2000,71.0000]]}], vias: [[79.2000,71.0000]]}
+      - {net: VBUS_CTRL, pin: R_I2C_SDA.1, segments: [{layer: F.Cu, width: 0.18, pts: [[79.9900,74.0000],[79.2000,74.0000]]}], vias: [[79.2000,74.0000]]}
+      - net: VBUS_CTRL
+        pin: U_CTRL.1
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[71.1375,74.0500],[69.2800,74.0500],[69.2800,73.2000]]}
+        vias: [[69.2800,73.2000]]
+      - {net: VBUS_CTRL, pin: R_CTRL_RESET.1, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[78.9900,79.5000]]}
+      - {net: VBUS_CTRL, pin: R_EXP_RESET.1, segments: [{layer: F.Cu, width: 0.18, pts: [[129.4900,79.0000],[128.7000,79.0000]]}], vias: [[128.7000,79.0000]]}
+      - {net: VBUS_CTRL, pin: C_EXP_VDD.1, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[115.5200,77.0000]]}
+      - {net: VBUS_CTRL, pin: C_PWR_CTRL_OUT.1, segments: [{layer: F.Cu, width: 0.18, pts: [[49.5200,73.0000],[49.5200,74.0000]]}], vias: [[49.5200,74.0000]]}
+      - {net: CTRL_RESET_N, pin: U_CTRL.4, why: "join the controller reset pad directly to the promoted reset route; no layer transition is needed",
+         segments: [{layer: F.Cu, width: 0.18, pts: [[71.1375,76.0000],[71.8000,76.1000]]}], vias: []}
+      - {net: CTRL_VUSB_3V3, pin: U_CTRL.11, segments: [{layer: F.Cu, width: 0.18, pts: [[76.8625,76.0000],[78.0000,76.0000],[79.8200,75.8000]]}], vias: []}
+      - {net: EXP_RESET_N, pin: U_EXP.18, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000,78.2750],[128.0000,78.2750],[128.5000,80.0000],[130.5100,80.0000],[130.5100,79.0000]]}], vias: []}
+      - {net: PWR_EN1, pin: R_PWR_EN1.1, segments: [{layer: F.Cu, width: 0.18, pts: [[50.0000,63.5100],[49.2000,63.5100]]}], vias: [[49.2000,63.5100]]}
+      - {net: PWR_EN1, pin: U_AND_DATA.1, segments: [{layer: F.Cu, width: 0.18, pts: [[117.1375,84.0500],[115.4000,84.0500]]}], vias: [[115.4000,84.0500]]}
+      - {net: PWR_EN1, pin: U_AND_PWR.3, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[101.1375,85.3500],[99.8000,85.3500]]}], vias: [[99.8000,85.3500]]}
+      - {net: PWR_EN2, pin: U_AND_DATA.4, segments: [{layer: F.Cu, width: 0.18, pts: [[117.1375,86.0000],[116.0000,86.0000]]}], vias: [[116.0000,86.0000]]}
+      - {net: PWR_EN2, pin: U_AND_PWR.6, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[101.1375,87.3000],[99.8000,87.3000]]}], vias: [[99.8000,87.3000]]}
+      - {net: PWR_EN2, pin: R_PWR_EN2.1, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[70.4900,50.0000],[70.4900,49.2000]]}], vias: [[70.4900,49.2000]]}
+      - {net: DATA_CMD2, pin: U_AND_DATA.5, segments: [{layer: F.Cu, width: 0.18, pts: [[117.1375,86.6500],[115.4000,86.6500]]}], vias: [[115.4000,86.6500]]}
+      - {net: DATA_OK2, pin: U_AND_DATA.6, segments: [{layer: F.Cu, width: 0.18, pts: [[117.1375,87.3000],[116.0000,87.3000]]}], vias: [[116.0000,87.3000]]}
+      - {net: DATA_OK2, why: "complete source-owned route around the port-3 power bridge; fixed 0.46/0.20 transitions avoid the router via-nudge fallback",
+         segments: [{layer: F.Cu, width: 0.18, pts: [[88.4900,48.0000],[89.2000,47.3000],[98.8000,47.3000],[100.2000,48.7000],
+                                                        [105.4000,48.7000],[105.9000,49.2000],[105.9000,52.7000],[106.9000,53.7000],
+                                                        [106.9000,55.1000],[107.0000,55.2000]]},
+                    {layer: B.Cu, width: 0.18, pts: [[107.0000,55.2000],[109.5000,58.5000]]},
+                    {layer: F.Cu, width: 0.18, pts: [[109.5000,58.5000],[110.9000,59.7000],[123.7000,59.7000],[125.6000,61.6000],
+                                                        [125.6000,66.1000],[129.1000,69.6000],[129.1000,70.4000],[128.8000,70.7000],
+                                                        [127.3000,70.7000],[126.9000,71.1000],[125.6000,71.1000],[121.6000,75.1000],
+                                                        [122.3000,75.8000]]},
+                    {layer: B.Cu, width: 0.18, pts: [[122.3000,75.8000],[122.3000,79.6000],[119.2000,82.7000],[116.0000,87.3000]]},
+                    {layer: In2.Cu, width: 0.18, pts: [[85.1000,44.0000],[86.9000,45.8000]]},
+                    {layer: F.Cu, width: 0.18, pts: [[86.9000,45.8000],[88.8000,47.7000]]}],
+         vias: [[107.0000,55.2000],[109.5000,58.5000],[122.3000,75.8000],[119.2000,82.7000],[86.9000,45.8000]]}
+      - {net: PWR_EN4, pin: U_AND_PWR.11, segments: [{layer: F.Cu, width: 0.18, pts: [[106.8625,86.0000],[108.0000,86.0000]]}], vias: [[108.0000,86.0000]]}
+      - {net: PWR_EN4, pin: U_PWR4.1, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[131.0900,53.1000],[131.0900,52.3000]]}, {layer: In2.Cu, width: 0.18, pts: [[131.0900,52.3000],[126.4900,49.2000]]}, {layer: F.Cu, width: 0.18, pts: [[126.4900,49.2000],[126.4900,50.0000]]}], vias: [[131.0900,52.3000],[126.4900,49.2000]]}
+      - {net: PWR_EN4, pin: U_AND_DATA.12, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[122.8625,85.3500]]}
+      - {net: PWR_EN3, pin: U_PWR3.1, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[103.0900,53.1000],[103.0900,52.3000]]}, {layer: In2.Cu, width: 0.18, pts: [[103.0900,52.3000],[98.4900,49.2000]]}, {layer: F.Cu, width: 0.18, pts: [[98.4900,49.2000],[98.4900,50.0000]]}], vias: [[103.0900,52.3000],[98.4900,49.2000]]}
+      - {net: PWR_EN3, pin: U_AND_DATA.9, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[122.8625,87.3000]]}
+      - {net: PWR_EN3, pin: U_AND_PWR.8, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[106.8625,87.9500],[108.2000,87.9500]]}], vias: [[108.2000,87.9500]]}
+      - {net: DATA_CMD4, pin: U_AND_DATA.13, segments: [{layer: F.Cu, width: 0.18, pts: [[122.8625,84.7000],[124.0000,84.7000]]}], vias: [[124.0000,84.7000]]}
+      - {net: DATA_OK4, pin: U_AND_DATA.11, segments: [{layer: F.Cu, width: 0.18, pts: [[122.8625,86.0000],[124.0000,86.0000]]}, {layer: In2.Cu, width: 0.18, pts: [[124.0000,86.0000],[124.8000,86.0000]]}], vias: [[124.0000,86.0000]]}
+      - {net: DATA_OK4, pin: R_DATA_OK4.1, segments: [{layer: F.Cu, width: 0.18, pts: [[119.9900,48.0000],[119.2000,48.0000]]}, {layer: In2.Cu, width: 0.18, pts: [[119.2000,48.0000],[121.2000,47.7000],[127.3000,47.7000],[132.0000,52.4000],[132.0000,55.5000],[131.5000,56.0000],[131.5000,79.3000],[124.8000,86.0000]]}], vias: [[119.2000,48.0000]]}
+      - {net: DATA_OK4, pin: Q_DATA4.1, segments: [{layer: F.Cu, width: 0.18, pts: [[121.5000,44.0000],[120.7000,44.8000],[120.7000,47.2000],[119.9900,48.0000]]}], vias: []}
+      - {net: P5V_BANK_A, pin: U_AGG_A.16, segments: [{layer: F.Cu, width: 0.30, pts: [[114.7500,111.0000],[114.7500,112.5000]]}], vias: []}
+      - {net: P5V_BANK_A, pin: R_FB_A_TOP.1, segments: [{layer: F.Cu, width: 0.25, pts: [[95.4900,125.5000],[94.5000,125.5000],[94.5000,123.0000],[99.8000,123.0000]]}], vias: []}
+      - {net: P5V_BANK_B, pin: U_AGG_B.16, segments: [{layer: F.Cu, width: 0.30, pts: [[158.7500,111.0000],[158.7500,112.5000]]}], vias: []}
+      - {net: P5V_BANK_B, pin: R_FB_B_TOP.1, segments: [{layer: F.Cu, width: 0.25, pts: [[139.4900,125.5000],[138.5000,125.5000],[138.5000,123.0000],[143.8000,123.0000]]}], vias: []}
+      - {net: DATA_OE2_N, pin: U_DATA2.10, via: {size: 0.46, drill: 0.20}, segments: [{layer: B.Cu, width: 0.18, pts: [[84.7500,37.9000],[84.8000,37.9000],[88.0000,41.1000]]}, {layer: F.Cu, width: 0.18, pts: [[88.0000,41.1000],[88.0000,45.0000]]}, {layer: F.Cu, width: 0.18, pts: [[88.0000,41.1000],[89.5000,39.6000],[89.5100,35.0000]]}], vias: [[88.0000,41.1000]]}
+      - {net: DATA_CMD4, pin: U_EXP.28, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000,71.7750],[128.0000,71.7750]]}], vias: [[128.0000,71.7750]]}
+      - {net: PD_VDD, pin: C_PD_VDD.1, segments: [{layer: F.Cu, width: 0.18, pts: [[46.0200,121.0000],[45.2000,121.0000]]}], vias: [[45.2000,121.0000]]}
+      # Complete the crystal return entirely on F.Cu. A generic late wave can
+      # otherwise escape this compact cluster using undersized fallback vias.
+      - net: XTAL2
+        pin: R_XTAL.2
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[84.0100,52.0000],[84.4000,51.5000],[84.4000,50.8000],[87.4000,49.5000],[88.0200,50.0000],[89.6000,51.5800],[89.6000,54.6500]]}
+        vias: []
+      - {net: DATA_OE3_N, pin: U_DATA3.10, segments: [{layer: B.Cu, width: 0.18, pts: [[112.7500,37.9000],[112.7500,36.8000]]}], vias: [[112.7500,36.8000]]}
+      - {net: PWR_CMD2, pin: R_PWR_CMD2.1, segments: [{layer: F.Cu, width: 0.18, pts: [[113.4900,92.0000],[112.7000,92.0000]]}], vias: [[112.7000,92.0000]]}
+      - {net: PWR_CMD2, pin: U_AND_PWR.5, segments: [{layer: F.Cu, width: 0.18, pts: [[101.1375,86.6500],[100.0000,86.6500]]}], vias: [[100.0000,86.6500]]}
+      - {net: DATA_CMD2, pin: R_DATA_CMD2.1, segments: [{layer: F.Cu, width: 0.18, pts: [[113.4900,96.0000],[112.7000,96.0000]]}], vias: [[112.7000,96.0000]]}
+      - {net: PWR_CMD1, pin: R_PWR_CMD1.1, segments: [{layer: F.Cu, width: 0.18, pts: [[107.4900,92.0000],[106.7000,92.0000]]}], vias: [[106.7000,92.0000]]}
+      - {net: PWR_CMD1, pin: U_AND_PWR.2, segments: [{layer: F.Cu, width: 0.18, pts: [[101.1375,84.7000],[100.0000,84.7000]]}], vias: [[100.0000,84.7000]]}
+      - {net: PWR_CMD4, pin: U_AND_PWR.13, segments: [{layer: F.Cu, width: 0.18, pts: [[106.8625,84.7000],[108.0000,84.7000]]}], vias: [[108.0000,84.7000]]}
+      - {net: DATA_OK2, pin: Q_DATA2.1, segments: [{layer: F.Cu, width: 0.18, pts: [[86.0000,44.0000],[85.1000,44.0000]]}], vias: [[85.1000,44.0000]]}
+      - {net: DATA_OK1, pin: Q_DATA1.1, segments: [{layer: F.Cu, width: 0.18, pts: [[61.0000,44.0000],[60.1000,44.0000]]}], vias: [[60.1000,44.0000]]}
+      - {net: DATA_OK1, pin: R_DATA_OK1.1, segments: [{layer: F.Cu, width: 0.18, pts: [[63.4900,48.0000],[62.7000,48.0000]]}], vias: [[62.7000,48.0000]]}
+      - {net: DATA_OK1, pin: U_AND_DATA.3, segments: [{layer: F.Cu, width: 0.18, pts: [[117.1375,85.3500],[115.4000,85.3500]]}], vias: [[115.4000,85.3500]]}
+      - {net: ILIM3, pin: U_PWR3.9, segments: [{layer: F.Cu, width: 0.18, pts: [[104.9100,53.7700],[106.0000,53.7700]]}], vias: [[106.0000,53.7700]]}
+      - {net: ILIM1, pin: U_PWR1.9, segments: [{layer: F.Cu, width: 0.18, pts: [[48.9100,53.7700],[49.5000,53.7700],[50.5000,53.3000]]}], vias: [[50.5000,53.3000]]}
+      - {net: ILIM2, pin: U_PWR2.9, segments: [{layer: F.Cu, width: 0.18, pts: [[76.9100,53.7700],[78.0000,53.7700]]}], vias: [[78.0000,53.7700]]}
+      - {net: ILIM4, pin: U_PWR4.9, segments: [{layer: F.Cu, width: 0.18, pts: [[132.9100,53.7700],[133.5000,53.7700],[134.5000,53.3000]]}], vias: [[134.5000,53.3000]]}
+      - {net: HUB_SWAP7, pin: R_SWAP7.1, segments: [{layer: F.Cu, width: 0.18, pts: [[53.4900,85.0000],[52.7000,85.0000]]}], vias: [[52.7000,85.0000]]}
+      - {net: HUB_SWAP6, pin: R_SWAP6.1, segments: [{layer: F.Cu, width: 0.18, pts: [[49.4900,85.0000],[48.7000,85.0000]]}], vias: [[48.7000,85.0000]]}
+      - {net: HUB_SWAP5, pin: R_SWAP5.1, segments: [{layer: F.Cu, width: 0.18, pts: [[45.4900,85.0000],[44.7000,85.0000]]}], vias: [[44.7000,85.0000]]}
+      - {net: ILIM_CTRL, pin: U_PWR_CTRL.5, segments: [{layer: F.Cu, width: 0.18, pts: [[46.4500,72.9750],[47.4000,72.9750]]}], vias: [[47.4000,72.9750]]}
+      - {net: PWR_CMD3, pin: R_PWR_CMD3.1, segments: [{layer: F.Cu, width: 0.18, pts: [[123.4900,92.0000],[122.7000,92.0000]]}], vias: [[122.7000,92.0000]]}
+      - {net: I2C_SCL, pin: R_I2C_SCL.2, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[81.0100,71.0000]]}
+      - {net: I2C_SCL, pin: U_EXP.12, segments: [{layer: F.Cu, width: 0.18, pts: [[119.5000,78.9250],[118.0000,78.9250]]}], vias: [[118.0000,78.9250]]}
+      - {net: PWR_EN2, pin: U_PWR2.1, segments: [{layer: F.Cu, width: 0.18, pts: [[75.0900,53.1000],[75.0900,52.3000]]}], vias: [[75.0900,52.3000]]}
+      - {net: DATA_OK3, pin: R_DATA_OK3.1, segments: [{layer: F.Cu, width: 0.18, pts: [[97.4900,48.0000],[96.7000,48.0000]]}], vias: [[96.7000,48.0000]]}
+      - {net: DATA_CMD1, pin: U_AND_DATA.2, segments: [{layer: F.Cu, width: 0.18, pts: [[117.1375,84.7000],[116.0000,84.7000]]}], vias: [[116.0000,84.7000]]}
+      - {net: PWR_CMD2, pin: U_EXP.22, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000,75.6750],[128.0000,75.6750]]}], vias: [[128.0000,75.6750]]}
+      - {net: PWR_CMD3, pin: U_EXP.23, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000,75.0250],[129.0000,75.0250]]}], vias: [[129.0000,75.0250]]}
+      - {net: PWR_CMD4, pin: U_EXP.24, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000,74.3750],[128.0000,74.3750]]}], vias: [[128.0000,74.3750]]}
+      - {net: DATA_CMD1, pin: U_EXP.25, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000,73.7250],[129.0000,73.7250]]}], vias: [[129.0000,73.7250]]}
+      - {net: DATA_CMD2, pin: U_EXP.26, segments: [{layer: F.Cu, width: 0.18, pts: [[126.5000,73.0750],[128.0000,73.0750]]}], vias: [[128.0000,73.0750]]}
+      - {net: HUB_SWAP2, pin: R_SWAP2.1, segments: [{layer: F.Cu, width: 0.18, pts: [[109.4900,70.0000],[108.8000,70.0000]]}], vias: [[108.8000,70.0000]]}
+      - {net: HUB_SWAP1, pin: R_SWAP1.1, segments: [{layer: F.Cu, width: 0.18, pts: [[115.4900,70.0000],[114.8000,70.8000]]}], vias: [[114.8000,70.8000]]}
+      - {net: HUB_SWAP6, pin: U_HUB.17, segments: [{layer: F.Cu, width: 0.18, pts: [[89.2500,69.4125],[88.8500,69.5500],[88.4000,69.8000],[88.4000,70.5000],[87.9000,70.5000],[87.8000,70.4000],[86.1500,70.4000],[86.0000,70.5500],[86.0000,70.6000],[85.8500,70.7500],[85.8500,71.3000],[85.1500,72.0000]]}]}
+      - {net: HUB_VBUS_SENSE, pin: U_HUB.44, segments: [{layer: F.Cu, width: 0.18, pts: [[97.4125,63.2500],[98.0500,63.2500],[98.1500,63.3500]]}], vias: [[98.1500,63.3500]]}
+      - net: RBIAS
+        pin: U_HUB.63
+        segments:
+          - {layer: F.Cu, width: 0.15, pts: [[89.7500,60.5875],[89.7500,59.5000],[90.2000,59.5000],[90.2000,58.0000],[88.0000,58.0000]]}
+          - {layer: In1.Cu, width: 0.15, pts: [[88.0000,58.0000],[89.0000,56.0000],[89.0000,55.0000],[91.0000,53.0000],[91.0000,50.0000]]}
+          - {layer: F.Cu, width: 0.15, pts: [[91.0000,50.0000],[93.4900,52.0000]]}
+        vias: [[88.0000,58.0000],[91.0000,50.0000]]
+      # Keep 3V3 layer transitions out of fine-pitch component lands. These
+      # short exits end in open field using the board's 0.46/0.20 mm family;
+      # the dedicated power_3v3 wave owns the complete shared rail.
+      - net: 3V3_MAIN
+        pin: U_HUB.64
+        # This one pad is boxed by the adjacent RBIAS/crystal/USB launch
+        # cluster. It deliberately uses the board's selective Type-VII
+        # filled-and-capped 0.46/0.20 mm process; never treat it as an ordinary
+        # open via-in-pad or silently substitute the tier-minimum via family.
+        via: {size: 0.46, drill: 0.20}
+        segments:
+          - {layer: In2.Cu, width: 0.25, pts: [[89.2500,60.5875],[90.0000,59.0000],[90.0000,57.0000],[80.0000,52.0000],[80.0000,45.0000],[86.1000,42.1000]]}
+        vias: [[89.2500,60.5875]]
+      # Pin 24 is boxed by the accepted VDD18/PRTPWR3 exits. Keep its required
+      # layer transition explicit and on the selective filled/capped list.
+      - {net: 3V3_MAIN, pin: U_HUB.24, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[92.7500,69.4125]]}
+      - net: 3V3_MAIN
+        pin: U_HUB.46
+        segments:
+          - {layer: F.Cu, width: 0.20, pts: [[97.4125,62.2500],[98.0000,62.2500]]}
+          - {layer: F.Cu, width: 0.40, pts: [[98.0000,62.2500],[100.8000,62.2500],[101.5200,62.0000]]}
+          - {layer: F.Cu, width: 0.20, pts: [[101.5200,62.0000],[101.5200,65.0000]]}
+        # C_HUB_A_BULK.1 is boxed by the hub rail and adjacent ground land;
+        # this source-owned transition is part of the selective filled/capped
+        # process, not a router-created ordinary open via.
+        vias: [[101.5200,62.0000]]
+      # C_HUB_CR_HF.1 shares the closed hub-core rail with U_HUB.46 and has
+      # no stable off-pad escape: cycle pruning correctly removes a dangling
+      # dogbone and the router otherwise recreates a via in the land. Own this
+      # one transition as selective Type-VII filled/capped manufacturing intent.
+      - {net: 3V3_MAIN, pin: C_HUB_CR_HF.1, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[101.5200,65.0000]]}
+      - net: 3V3_MAIN
+        pin: U_HUB.5
+        segments:
+          - {layer: F.Cu, width: 0.20, pts: [[88.5875,63.2500],[87.7000,63.2500]]}
+          - {layer: B.Cu, width: 0.25, pts: [[87.7000,63.2500],[87.7000,65.7500]]}
+          - {layer: F.Cu, width: 0.20, pts: [[87.7000,65.7500],[88.5875,65.7500]]}
+        vias: [[87.7000,63.2500],[87.7000,65.7500]]
+      - net: 3V3_MAIN
+        pin: U_HUB.52
+        segments:
+          - {layer: F.Cu, width: 0.20, pts: [[95.2500,60.5875],[95.2500,59.0000],[95.5200,59.0000]]}
+        vias: [[95.5200,59.0000]]
+      - net: 3V3_MAIN
+        pin: C_HUB_A4.1
+        segments:
+          - {layer: F.Cu, width: 0.20, pts: [[98.5200,59.0000],[98.5200,58.2000],[97.5000,58.2000]]}
+        vias: [[97.5000,58.2000]]
+      - {net: 3V3_MAIN, pin: C_HUB_A2.1, segments: [{layer: F.Cu, width: 0.20, pts: [[95.5200,55.0000],[94.7000,55.0000]]}], vias: [[94.7000,55.0000]]}
+      # Give the boxed PLL bypass pad a legal same-layer launch.  The shared
+      # 3V3 wave owns the rest of the path; without this short launch it falls
+      # back to a forbidden via-in-pad escape.
+      - {net: 3V3_MAIN, pin: C_HUB_PLL.1, via: {size: 0.46, drill: 0.20},
+         segments: [{layer: F.Cu, width: 0.25, pts: [[89.5200,71.0000],[88.8000,71.7000]]}],
+         vias: [[88.8000,71.7000]]}
+      # Escape the crystal-rail bulk capacitor before the shared-rail router.
+      # The upstream USB pair boxes the pad on F.Cu, so make this a complete
+      # pad-to-pad source connection to R_SWAP1 rather than a prunable branch.
+      - net: 3V3_MAIN
+        pin: C_HUB_CR_BULK.1
+        segments:
+          - {layer: F.Cu, width: 0.20, pts: [[101.5200,68.0000],[100.8000,68.8000]]}
+        vias: [[100.8000,68.8000]]
+      - {net: 3V3_MAIN, pin: R_SWAP1.2, segments: [{layer: F.Cu, width: 0.20, pts: [[116.5100,70.0000],[117.2000,70.0000]]}], vias: [[117.2000,70.0000]]}
+      - {net: 3V3_MAIN, pin: U_DATA2.1, segments: [{layer: B.Cu, width: 0.35, pts: [[84.7500,42.1000],[86.1000,42.1000]]}], vias: [[86.1000,42.1000]]}
+      - {net: 3V3_MAIN, pin: C_DATA2.1, segments: [{layer: F.Cu, width: 0.25, pts: [[84.5200,35.0000],[83.5000,35.0000],[82.0000,36.5000],[82.0000,42.1000],[86.1000,42.1000]]}]}
+      - {net: 3V3_MAIN, pin: U_DATA3.1, segments: [{layer: B.Cu, width: 0.35, pts: [[112.7500,42.1000],[114.1000,42.1000]]}], vias: [[114.1000,42.1000]]}
+      - {net: 3V3_MAIN, pin: U_DATA4.1, segments: [{layer: B.Cu, width: 0.35, pts: [[133.0000,42.1000],[134.3500,42.1000]]}], vias: [[134.3500,42.1000]]}
+      - {net: 3V3_MAIN, pin: R_HUB_RESET.1, segments: [{layer: F.Cu, width: 0.20, pts: [[83.4900,67.0000],[82.8000,67.0000]]}], vias: [[82.8000,67.0000]]}
+      - {net: 3V3_MAIN, pin: R_NONREM0.1, segments: [{layer: F.Cu, width: 0.20, pts: [[99.7600,64.0000],[100.4500,64.0000]]}], vias: [[100.4500,64.0000]]}
+      - {net: 3V3_MAIN, pin: R_DIS6N.1, segments: [{layer: F.Cu, width: 0.20, pts: [[119.5100,70.0000],[120.2000,70.0000]]}], vias: [[120.2000,70.0000]]}
+      # The shunt protectors are lane-aligned to the revised USB-A footprint.
+      # Only the connector-to-shunt legs are deterministic; the coupled wave
+      # owns each shunt-to-switch turn after seeing the complete obstacle map.
+      - {net: P1_PORT_P, pin: J_PORT1.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[54.0000,28.5100],[54.0500,30.5625]]}]}
+      - {net: P1_PORT_N, pin: J_PORT1.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[56.0000,28.5100],[55.9500,30.5625]]}]}
+      - {net: P2_PORT_P, pin: J_PORT2.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[82.0000,28.5100],[82.0500,30.5625]]}]}
+      - {net: P2_PORT_N, pin: J_PORT2.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[84.0000,28.5100],[83.9500,30.5625]]}]}
+      - {net: P3_PORT_P, pin: J_PORT3.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[110.0000,28.5100],[110.0500,30.5625]]}]}
+      - {net: P3_PORT_N, pin: J_PORT3.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[112.0000,28.5100],[111.9500,30.5625]]}]}
+      - {net: P4_PORT_P, pin: J_PORT4.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[138.0000,28.5100],[138.0500,30.5625]]}]}
+      - {net: P4_PORT_N, pin: J_PORT4.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[140.0000,28.5100],[139.9500,30.5625]]}]}
+      - {net: P1_PORT_P, pin: U_ESD1.1, segments: [{layer: B.Cu, width: 0.2332, pts: [[54.0500,30.5625],[54.0500,34.0000],[54.7500,36.0000],[54.7500,37.9000]]}]}
+      - {net: P1_PORT_N, pin: U_ESD1.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[55.9500,30.5625],[55.9500,34.0000],[55.2500,36.0000],[55.2500,37.9000]]}]}
+      - {net: P2_PORT_P, pin: U_ESD2.1, segments: [{layer: B.Cu, width: 0.2332, pts: [[82.0500,30.5625],[82.0500,34.0000],[82.7500,36.0000],[82.7500,37.9000]]}]}
+      - {net: P2_PORT_N, pin: U_ESD2.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[83.9500,30.5625],[83.9500,34.0000],[83.2500,36.0000],[83.2500,37.9000]]}]}
+      - {net: P3_PORT_P, pin: U_ESD3.1, segments: [{layer: B.Cu, width: 0.2332, pts: [[110.0500,30.5625],[110.0500,34.0000],[110.7500,36.0000],[110.7500,37.9000]]}]}
+      - {net: P3_PORT_N, pin: U_ESD3.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[111.9500,30.5625],[111.9500,34.0000],[111.2500,36.0000],[111.2500,37.9000]]}]}
+      - {net: P4_PORT_P, pin: U_ESD4.1, segments: [{layer: B.Cu, width: 0.2332, pts: [[138.0500,30.5625],[138.0500,34.0000],[137.3500,36.0000],[131.0000,36.0000],[131.0000,37.9000]]}]}
+      - {net: P4_PORT_N, pin: U_ESD4.2, segments: [{layer: B.Cu, width: 0.2332, pts: [[139.9500,30.5625],[139.9500,34.5000],[139.2500,36.5000],[131.5000,36.5000],[131.5000,37.9000]]}]}
+      # Complete family-proven USB-C contact cluster. This version leaves the
+      # F.Cu lanes needed by CC1/CC2 and upstream-VBUS, while retaining the
+      # board's manufacturable 0.46/0.20 mm via family.
+      - net: UP_HUB_N
+        pin: J_DATA.B7
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[27.3200,56.2500],[26.5000,56.2500],[26.5000,57.2500],[27.3200,57.2500],[29.0000,57.2500]]}
+          - {layer: B.Cu, width: 0.2332, pts: [[29.0000,57.2500],[29.5625,57.9500],[31.5000,57.9500],[33.0000,58.4000]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[33.0000,58.4000],[34.0000,57.6916],[35.0000,57.6916],[36.0000,58.5000]]}
+          - {layer: B.Cu, width: 0.2332, pts: [[36.0000,58.5000],[38.0000,56.8000]]}
+        vias: [[29.0000,57.2500],[33.0000,58.4000],[36.0000,58.5000],[38.0000,56.8000]]
+      - net: UP_HUB_P
+        pin: J_DATA.A6
+        segments:
+          - {layer: F.Cu, width: 0.18, pts: [[27.3200,57.7500],[28.2000,57.7500]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[27.3200,56.7500],[28.2000,56.7500]]}
+          - {layer: B.Cu, width: 0.2332, pts: [[28.2000,57.7500],[28.2000,56.7500],[29.5625,56.0500],[31.5000,56.0500],[33.0000,56.4000]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[33.0000,56.4000],[34.0000,57.3084],[35.0000,57.3084],[38.0000,57.3000]]}
+        vias: [[28.2000,57.7500],[28.2000,56.7500],[33.0000,56.4000]]
+      # The 0.30 mm-wide VIN lands cannot accept a barrel.  Their adjacent
+      # input capacitors provide legal selective Type-VII dogbone sites into
+      # the long B.Cu bank distributors; emit these before signals so the
+      # router preserves the four power drops.
+      - {net: P5V_A_PROTECTED, pin: C_PWR1_IN.1, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.30, pts: [[47.7700,56.5200],[48.2700,56.5200]]}], vias: [[48.2700,56.5200]]}
+      - {net: P5V_A_PROTECTED, pin: C_PWR2_IN.1, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.30, pts: [[75.7700,56.5200],[76.2700,56.5200]]}], vias: [[76.2700,56.5200]]}
+      - {net: P5V_B_PROTECTED, pin: C_PWR3_IN.1, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.30, pts: [[103.7700,56.5200],[104.2700,56.5200]]}], vias: [[104.2700,56.5200]]}
+      - {net: P5V_B_PROTECTED, pin: C_PWR4_IN.1, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.30, pts: [[131.7700,56.5200],[132.2700,56.5200]]}], vias: [[132.2700,56.5200]]}
+
+      # Compact-placement GND closures.  The ordinary 0.60/0.30 stitch via
+      # cannot fit these package-local sites after signal routing; use the
+      # board's declared selective Type-VII 0.46/0.20 process directly in the
+      # land.  These are source geometry, not stochastic A* output.
+      - {net: GND, pin: U_PWR1.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[47.0900,53.7700],[45.9900,53.7700]]}], vias: [[45.9900,53.7700]]}
+      - {net: GND, pin: U_PWR1.8, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[48.9100,54.2300],[49.8000,54.2300]]}], vias: [[49.8000,54.2300]]}
+      - {net: GND, pin: R_BOOST1.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[99.8100,61.2500],[99.4640,61.4500]]}], vias: [[99.4640,61.4500]]}
+      - {net: GND, pin: U_PWR3.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[103.0900,53.7700],[101.9900,53.7700]]}], vias: [[101.9900,53.7700]]}
+      - {net: GND, pin: U_PWR3.8, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[104.9100,54.2300],[105.6340,54.4240]]}], vias: [[105.6340,54.4240]]}
+      - {net: GND, pin: C_CTRL_VUSB.2, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[80.7800,75.8000]]}
+      - {net: GND, pin: C_AND_PWR.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[109.4800,84.0000],[109.1800,83.4800]]}], vias: [[109.1800,83.4800]]}
+      - {net: GND, pin: C_HUB_A4.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[99.4800,59.0000],[99.8800,59.0000]]}], vias: [[99.8800,59.0000]]}
+      - {net: GND, pin: C_PD_VDD.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[46.9800,121.0000],[47.4500,121.1710]]}], vias: [[47.4500,121.1710]]}
+      - {net: GND, pin: U_PWR4.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[131.0900,53.7700],[129.9900,53.7700]]}], vias: [[129.9900,53.7700]]}
+      - {net: GND, pin: U_PWR4.8, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[132.9100,54.2300],[133.8000,54.2300]]}], vias: [[133.8000,54.2300]]}
+      - {net: GND, why: "join both ground lands of each dense port eFuse below the package instead of relying on separate local pour islands",
+         segments: [{layer: B.Cu, width: 0.30, pts: [[45.9900,53.7700],[49.8000,54.2300]]},
+                    {layer: B.Cu, width: 0.30, pts: [[101.9900,53.7700],[105.6340,54.4240]]},
+                    {layer: B.Cu, width: 0.30, pts: [[129.9900,53.7700],[133.8000,54.2300]]}], vias: []}
+      - {net: GND, pin: U_EXP.10, why: "promoted two-layer expander ground escape crosses below the occupied 3V3 corridor",
+         via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.30, pts: [[119.5000,77.6250],[117.5500,76.3700]]},
+                    {layer: F.Cu, width: 0.30, pts: [[117.5500,76.3700],[116.4800,77.0000]]}],
+         vias: [[119.5000,77.6250],[117.5500,76.3700]]}
+      - {net: GND, pin: U_AND_PWR.7, why: "filled/capped via-in-pad binds the isolated gate ground land directly to the full-stack return",
+         via: {size: 0.46, drill: 0.20}, segments: [], vias: [[101.4000,87.9500]]}
+      - {net: GND, pin: C_HUB_A3.2, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[96.4800,59.0000]]}
+      - {net: GND, why: "bind the bounded In2 ground island below the hub/control escape field to the full-stack ground planes",
+         via: {size: 0.46, drill: 0.20}, segments: [], vias: [[96.5000,64.1000]]}
+      - {net: GND, pin: Y_HUB.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[89.6000,56.3500],[90.0000,56.3500]]}], vias: [[90.0000,56.3500]]}
+      - {net: GND, pin: C_HUB_18PLL.2, via: {size: 0.46, drill: 0.20}, segments: [], vias: [[93.9800,58.5000]]}
+      - {net: GND, pin: U_PWR2.8, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[76.9100,54.2300],[77.6340,54.4240]]}], vias: [[77.6340,54.4240]]}
+      - {net: GND, pin: C_HUB_DD.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.18, pts: [[87.4800,71.0000],[87.9800,71.0000]]}], vias: [[87.9800,71.0000]]}
+      - {net: GND, pin: U_DATA2.2, via: {size: 0.46, drill: 0.20}, segments: [{layer: B.Cu, width: 0.18, pts: [[84.2500,42.1000],[84.2500,41.2000]]}], vias: [[84.2500,41.2000]]}
+      - {net: GND, pin: U_DATA2.5, via: {size: 0.46, drill: 0.20}, segments: [{layer: B.Cu, width: 0.18, pts: [[82.7500,42.1000],[82.6460,42.6910]]}], vias: [[82.6460,42.6910]]}
+      - {net: GND, pin: U_DATA1.2, why: "escape the bottom-side mux return straight outward between its adjacent signal lands",
+         via: {size: 0.46, drill: 0.20}, segments: [{layer: B.Cu, width: 0.18, pts: [[56.2500,42.1000],[56.2500,43.4000]]}], vias: [[56.2500,43.4000]]}
+      - {net: GND, pin: U_DATA3.2, why: "bank-B translation of the mux return closure",
+         via: {size: 0.46, drill: 0.20}, segments: [{layer: B.Cu, width: 0.18, pts: [[112.2500,42.1000],[112.2500,43.4000]]}], vias: [[112.2500,43.4000]]}
+      - {net: GND, pin: U_DATA4.2, why: "outer-port mux return closure to the adjacent realized ground via",
+         via: {size: 0.46, drill: 0.20}, segments: [{layer: B.Cu, width: 0.18, pts: [[132.5000,42.1000],[132.5000,43.4000]]}], vias: [[132.5000,43.4000]]}
+      - {net: GND, pin: U_DATA4.5, why: "the moved outer-port mux ground land needs an explicit second B.Cu return because the local pour can form only one thermal spoke",
+         via: {size: 0.60, drill: 0.30}, segments: [{layer: B.Cu, width: 0.18, pts: [[131.0000,42.1000],[130.5400,43.4000]]}], vias: [[130.5400,43.4000]]}
+      - {net: GND, pin: C_HUB_RESET.2, via: {size: 0.46, drill: 0.20},
+         segments: [], vias: [[84.4800,70.0000]]}
+      - {net: GND, pin: C_HUB_PLL.2, via: {size: 0.46, drill: 0.20},
+         segments: [{layer: F.Cu, width: 0.18, pts: [[90.4800,71.0000],[90.4800,71.6000]]}], vias: [[90.4800,71.6000]]}
+      - {net: GND, pin: R_PWR_CMD2.2, via: {size: 0.46, drill: 0.20},
+         segments: [], vias: [[114.5100,92.0000]]}
+      - {net: GND, pin: U_BUCK_A.3, why: "escape the converter ground land outward, clear of the adjacent feedback land",
+         via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.30, pts: [[87.6400,117.2500],[87.1000,117.2500]]}], vias: [[87.1000,117.2500]]}
+      - {net: GND, pin: U_BUCK_B.3, why: "bank-B translation of the converter ground closure",
+         via: {size: 0.46, drill: 0.20}, segments: [{layer: F.Cu, width: 0.30, pts: [[131.6400,117.2500],[131.1000,117.2500]]}], vias: [[131.1000,117.2500]]}
+      - {net: GND, pin: U_ESD2.3, via: {size: 0.46, drill: 0.20}, segments: [{layer: B.Cu, width: 0.18, pts: [[83.0000,32.4375],[83.4000,32.4380]]}], vias: [[83.4000,32.4380]]}
+      - {net: GND, why: "USB-C DATA protector/transition return", vias: [[30.9000,54.9000],[30.9000,59.1000]]}
+      # The long upstream corridor below is the collision-clean result of the
+      # bounded coupled search, promoted into the source contract because the
+      # router's generic cycle cleanup otherwise mistakes the connector's two
+      # distinct mirrored contacts for an internally redundant branch.
+      - {net: UP_HUB_P, why: "reviewed coupled upstream P leg from ESD runway to hub runway",
+         segments: [{layer: F.Cu, width: 0.2332, pts: [[38.000,57.300],[38.767,57.242],[45.721,57.192],[50.221,61.692],[73.421,61.692],[84.821,73.092],[95.779,73.092],[100.692,68.179],[100.692,67.579],[102.079,66.192],[103.079,66.192],[103.692,65.579],[103.692,61.421],[98.779,56.508],[92.521,56.508],[91.808,57.221],[91.808,58.034],[91.750,58.800]]}]}
+      - {net: UP_HUB_N, why: "reviewed coupled upstream N leg from ESD runway to hub runway",
+         segments: [{layer: F.Cu, width: 0.2332, pts: [[38.000,56.800],[38.766,56.858],[46.100,56.700],[50.379,61.308],[73.579,61.308],[84.979,72.708],[95.621,72.708],[100.308,68.021],[100.308,67.421],[101.921,65.808],[102.921,65.808],[103.308,65.421],[103.308,61.579],[98.621,56.892],[92.679,56.892],[92.192,57.379],[92.192,58.034],[92.250,58.800]]}]}
+      # The management pair is boxed by the controller bypass/I2C cluster and
+      # the already-prioritized hub-port escapes.  Three bounded coupled-router
+      # attempts plateaued, so this complete, source-owned F.Cu corridor adapts
+      # the proven debug-hub family geometry to this board's smaller-pitch
+      # MCP2221 package.  P/N remain ordered and parallel at 0.3832-mm centres
+      # through the narrow hub-side channel, with equal-width paired chamfers.
+      - net: MGMT_P
+        pin: U_CTRL.13
+        via: {size: 0.46, drill: 0.20}
+        segments:
+          - {layer: F.Cu, width: 0.2332, pts: [[76.8625,74.7000],[78.0000,74.7000]]}
+          - {layer: B.Cu, width: 0.2332, pts: [[78.0000,74.7000],[78.0000,64.3000]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[78.0000,64.3000],[80.1084,64.3084],[80.3000,64.1168],[80.3000,58.0116],[80.5416,57.7700],[85.6314,57.7700],[85.8230,57.9616],[85.8230,61.1168],[86.0146,61.3084],[86.5000,61.3084],[87.3000,61.3084],[87.8000,61.2500],[88.5875,61.2500]]}
+        vias: [[78.0000,74.7000],[78.0000,64.3000]]
+      - net: MGMT_N
+        pin: U_CTRL.12
+        via: {size: 0.46, drill: 0.20}
+        segments:
+          - {layer: F.Cu, width: 0.2332, pts: [[76.8625,75.3500],[78.6500,75.3500]]}
+          - {layer: B.Cu, width: 0.2332, pts: [[78.6500,75.3500],[78.6500,64.9500]]}
+          - {layer: F.Cu, width: 0.2332, pts: [[78.6500,64.9500],[79.1916,64.6916],[80.5584,64.6916],[80.7500,64.5000],[80.7500,58.3616],[80.9416,58.1700],[85.1416,58.1700],[85.3332,58.3616],[85.3332,61.5000],[85.5248,61.6916],[86.5000,61.6916],[87.3000,61.6916],[87.8000,61.7500],[88.5875,61.7500]]}
+        vias: [[78.6500,75.3500],[78.6500,64.9500]]
+      # Package-local hub-side runways. The TSSOP/QFN terminal pitches admit
+      # the 0.2332 mm trace only under the 0.15 mm package clearance; the
+      # coupled router resumes after these short runways at 0.30 mm field
+      # clearance.
+      - {net: P1_HUB_P, pin: U_DATA1.4, segments: [{layer: B.Cu, width: 0.2332, pts: [[55.2500,42.1000],[55.2500,44.5000]]}]}
+      - {net: P1_HUB_N, pin: U_DATA1.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[55.7500,42.1000],[55.7500,44.5000]]}]}
+      - {net: P1_HUB_P, why: "family-proven P1 route compatible with the complete USB cluster", via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.2332, pts: [[55.2500,44.5000],[55.2500,45.0000],[59.1000,45.0000],[60.2000,45.0000],[60.7000,44.9416],[62.620637,44.9416],[62.7584,45.079363],[62.7584,46.520637],[60.5584,48.720637],[60.5584,49.129363],[71.620637,60.1916],[81.5000,60.1916],[81.5000,60.4550]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[81.5000,60.4550],[81.5000,60.1916],[82.870637,60.1916],[84.2584,61.579363],[84.2584,61.929363],[85.020637,62.6916],[85.7336,62.6916],[86.5000,62.6920]]}],
+         vias: [[81.5000,60.4550]]}
+      - {net: P1_HUB_N, why: "family-proven P1 route compatible with the complete USB cluster", via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.2332, pts: [[55.7500,44.5000],[59.1000,44.5000],[60.2000,44.5000],[60.7000,44.5584],[62.779363,44.5584],[63.1416,44.920637],[63.1416,46.679363],[60.9416,48.879363],[60.9416,48.970637],[71.779363,59.8084],[81.5000,59.8084],[81.5000,59.5450]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[81.5000,59.5450],[81.5000,59.8084],[83.029363,59.8084],[84.6416,61.420637],[84.6416,61.770637],[85.179363,62.3084],[85.7336,62.3084],[86.5000,62.3080]]}],
+         vias: [[81.5000,59.5450]]}
+      - {net: P2_HUB_P, pin: U_DATA2.4, segments: [{layer: B.Cu, width: 0.2332, pts: [[83.2500,42.1000],[83.2500,44.5000]]}]}
+      - {net: P2_HUB_N, pin: U_DATA2.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[83.7500,42.1000],[83.7500,44.5000]]}]}
+      - {net: P2_HUB_P, why: "family-proven P2 route compatible with the complete USB cluster", via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.2332, pts: [[83.2500,44.5000],[83.2500,45.0000],[84.1000,45.0000],[85.2000,45.0000],[85.7000,44.9416],[87.270637,44.9416],[87.6084,45.279363],[87.6084,47.020637],[86.3084,48.320637],[86.3084,49.329363],[89.8084,52.829363],[89.8084,53.170637],[89.5584,53.420637],[89.5584,54.270637],[82.5084,61.320637],[82.5084,61.570637],[81.1084,62.970637],[81.1084,63.379363],[81.470637,63.7416],[82.4000,63.7416],[82.4000,64.0050]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[82.4000,64.0050],[82.4000,63.7416],[83.479363,63.7416],[83.779363,63.4416],[84.470637,63.4416],[84.870637,63.8416],[85.270637,63.8416],[85.620637,64.1916],[86.5000,64.1920]]}],
+         vias: [[82.4000,64.0050]]}
+      - {net: P2_HUB_N, why: "family-proven P2 route compatible with the complete USB cluster", via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.2332, pts: [[83.7500,44.5000],[84.1000,44.5000],[85.2000,44.5000],[85.7000,44.5584],[87.429363,44.5584],[87.9916,45.120637],[87.9916,47.179363],[86.6916,48.479363],[86.6916,49.170637],[90.1916,52.670637],[90.1916,53.329363],[89.9416,53.579363],[89.9416,54.429363],[82.8916,61.479363],[82.8916,61.729363],[81.4916,63.129363],[81.4916,63.220637],[81.629363,63.3584],[82.4000,63.3584],[82.4000,63.0950]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[82.4000,63.0950],[82.4000,63.3584],[83.320637,63.3584],[83.620637,63.0584],[84.629363,63.0584],[85.029363,63.4584],[85.429363,63.4584],[85.779363,63.8084],[86.5000,63.8080]]}],
+         vias: [[82.4000,63.0950]]}
+      - {net: P3_HUB_P, pin: U_DATA3.4, segments: [{layer: B.Cu, width: 0.2332, pts: [[111.2500,42.1000],[111.2500,44.5000]]}]}
+      - {net: P3_HUB_N, pin: U_DATA3.3, segments: [{layer: B.Cu, width: 0.2332, pts: [[111.7500,42.1000],[111.7500,44.5000]]}]}
+      # P3 uses the family-proven bottom-layer corridor, adapted only at the
+      # switch end for this board's x-position.  Unlike the earlier stochastic
+      # candidate, it does not cross the deterministic management pair on F.Cu.
+      - {net: P3_HUB_P, why: "family-proven P3 bottom corridor compatible with management route", via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.2332, pts: [[111.2500,44.5000],[111.2500,44.0584],[108.0000,44.0584],[108.0000,45.0000]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[108.0000,45.0000],[108.0000,49.0000]]},
+                    {layer: B.Cu, width: 0.2332, pts: [[108.0000,49.0000],[97.9584,48.470637],[93.0084,53.420637],[93.0084,54.920637],[83.5084,64.420637],[83.5084,64.829363],[83.870637,65.1916],[84.8000,65.1916],[84.8000,65.4550]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[84.8000,65.4550],[84.8000,65.1916],[85.7336,65.1916],[86.5000,65.1920]]}],
+         vias: [[108.0000,45.0000],[108.0000,49.0000],[84.8000,65.4550]]}
+      - {net: P3_HUB_N, why: "family-proven P3 bottom corridor compatible with management route", via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.2332, pts: [[111.7500,44.5000],[112.2000,44.5000],[112.2000,44.9000],[108.5000,44.9000],[108.5000,45.5000]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[108.5000,45.5000],[108.5000,49.5000]]},
+                    {layer: B.Cu, width: 0.2332, pts: [[108.5000,49.5000],[109.0000,50.0000],[98.5000,50.0000],[93.6000,54.9000],[93.6000,55.4000],[86.1000,62.9000],[84.2000,64.8000],[84.8000,64.8084],[84.8000,64.5450]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[84.8000,64.5450],[84.8000,64.8084],[85.7336,64.8084],[86.5000,64.8080]]}],
+         vias: [[108.5000,45.5000],[108.5000,49.5000],[84.8000,64.5450]]}
+      # P4 takes the family-proven outer B.Cu corridor around the complete
+      # hub/control cluster.  It is longer than the tempting straight edge
+      # lane, but it is the route that coexists with the source-owned P3 and
+      # management pairs.  Only the switch-end extension changes here.
+      - {net: P4_HUB_P, pin: U_DATA4.4, via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.2332, pts: [[131.5000,42.1000],[131.5000,44.0000],[123.9000,44.0000],[122.8000,44.0000],[122.3000,44.0584],[121.0336,44.0584],[120.570637,44.0584],[120.0584,44.570637],[120.0584,44.970637],[119.7584,45.270637],[119.7584,46.679363],[122.2584,49.179363],[122.2584,49.270637],[117.9584,53.570637],[117.9584,53.979363],[124.2942,60.3152],[124.2942,60.4566],[124.2235,60.5273],[124.2235,60.6687],[124.3649,60.6687],[124.4356,60.5980],[124.5770,60.5980],[124.5770,60.7394],[124.5063,60.8101],[124.5063,60.9515],[124.6477,60.9515],[124.7185,60.8808],[124.8599,60.8808],[125.7084,61.7294],[125.7084,62.129363],[127.5084,63.929363],[127.5084,64.470637],[126.070637,65.9084],[111.570637,65.9084],[105.770637,71.7084],[105.120637,71.7084],[98.8290,78.0000],[93.5210,78.0000],[91.229363,75.7084],[85.6416,70.120637],[85.6416,68.0500],[85.9050,68.0500]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[85.9050,68.0500],[85.6416,68.0500],[85.6416,66.829363],[85.779363,66.6916],[86.5000,66.6920]]}],
+         vias: [[85.9050,68.0500]]}
+      - {net: P4_HUB_N, pin: U_DATA4.3, via: {size: 0.46, drill: 0.20},
+         segments: [{layer: B.Cu, width: 0.2332, pts: [[132.0000,42.1000],[132.0000,44.5000],[123.9000,44.5000],[122.8000,44.5000],[122.3000,44.4416],[121.0336,44.4416],[120.729363,44.4416],[120.4416,44.729363],[120.4416,45.129363],[120.1416,45.429363],[120.1416,46.520637],[122.6416,49.020637],[122.6416,49.429363],[118.3416,53.729363],[118.3416,53.820637],[126.0916,61.570637],[126.0916,61.970637],[127.8916,63.770637],[127.8916,64.629363],[126.229363,66.2916],[111.729363,66.2916],[105.929363,72.0916],[105.279363,72.0916],[98.9870,78.3840],[93.3630,78.3840],[91.070637,76.0916],[85.2584,70.279363],[85.2584,68.0500],[84.9950,68.0500]]},
+                    {layer: F.Cu, width: 0.2332, pts: [[84.9950,68.0500],[85.2584,68.0500],[85.2584,66.670637],[85.620637,66.3084],[86.5000,66.3080]]}],
+         vias: [[84.9950,68.0500]]}
+      - {net: P1_HUB_N, pin: U_HUB.3, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,62.2500],[87.8000,62.2500],[87.3000,62.3084],[86.5000,62.3084]]}]}
+      - {net: P1_HUB_P, pin: U_HUB.4, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,62.7500],[87.8000,62.7500],[87.3000,62.6916],[86.5000,62.6916]]}]}
+      - {net: P2_HUB_N, pin: U_HUB.6, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,63.7500],[87.8000,63.7500],[87.3000,63.8084],[86.5000,63.8084]]}]}
+      - {net: P2_HUB_P, pin: U_HUB.7, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,64.2500],[87.8000,64.2500],[87.3000,64.1916],[86.5000,64.1916]]}]}
+      - {net: P3_HUB_N, pin: U_HUB.8, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,64.7500],[87.8000,64.7500],[87.3000,64.8084],[86.5000,64.8084]]}]}
+      - {net: P3_HUB_P, pin: U_HUB.9, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,65.2500],[87.8000,65.2500],[87.3000,65.1916],[86.5000,65.1916]]}]}
+      - {net: P4_HUB_N, pin: U_HUB.11, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,66.2500],[87.8000,66.2500],[87.3000,66.3084],[86.5000,66.3084]]}]}
+      - {net: P4_HUB_P, pin: U_HUB.12, segments: [{layer: F.Cu, width: 0.2332, pts: [[88.5875,66.7500],[87.8000,66.7500],[87.3000,66.6916],[86.5000,66.6916]]}]}
+      - {net: UP_HUB_P, pin: U_HUB.59, segments: [{layer: F.Cu, width: 0.2332, pts: [[91.7500,60.5875],[91.7500,58.8000]]}]}
+      - {net: UP_HUB_N, pin: U_HUB.58, segments: [{layer: F.Cu, width: 0.2332, pts: [[92.2500,60.5875],[92.2500,58.8000]]}]}
+  waves:
+    exclude: ["GND", "unconnected-*", SW_3V3,
+              VBUS_PD_RAW, VBUS_PD, VBUS_PD_PROTECTED,
+              SW_A, P5V_BANK_A, P5V_A_PROTECTED,
+              SW_B, P5V_BANK_B, P5V_B_PROTECTED]
+    groups:
+      usb_upstream: [UP_HUB_P, UP_HUB_N]
+      # Reserve the longest outer-port corridor before the three interior
+      # hub pairs.  Treating all four as one stochastic wave repeatedly left
+      # P4 behind otherwise-valid P1..P3 copper.
+      usb_hub_edge: [P4_HUB_P, P4_HUB_N]
+      usb_hub_left: [P1_HUB_P, P1_HUB_N]
+      usb_hub_ports: [P2_HUB_P, P2_HUB_N, P3_HUB_P, P3_HUB_N]
+      usb_port_segments: [P1_PORT_P, P1_PORT_N, P2_PORT_P, P2_PORT_N,
+                          P3_PORT_P, P3_PORT_N, P4_PORT_P, P4_PORT_N]
+      usb_management: [MGMT_P, MGMT_N]
+      port_power: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW]
+      # Reserve the four hub-control nets whose QFN exits share the narrow
+      # north-side channel. Routing them before the generic remainder prevents
+      # low-priority GPIO/config copper from boxing in their package vias.
+      # Keep each congested hub escape wave bounded.  A single 30-net cleanup
+      # pass proved it could silently prune source-owned bank-A bridge copper;
+      # three independently graded waves route the same set while preserving
+      # every prepared power segment and via under P-ROUTEBASE.
+      hub_control_core: [HUB_BOOST0, HUB_VBUS_SENSE, HUB_NONREM0,
+                         HUB_CFG0, HUB_CFG2, HUB_NONREM1, HUB_SWAP1,
+                         HUB_SWAP2, HUB_SWAP3, HUB_SWAP4]
+      hub_control_config: [HUB_SWAP5, HUB_SWAP6, HUB_SWAP7, HUB_GANG,
+                           HUB_VDD18, HUB_DIS6_N, HUB_DIS7_P, HUB_DIS7_N,
+                           HUB_DIS6_P, HUB_VDD18PLL]
+      hub_control_ports: [HUB_CFG1, HUB_RESET_N, HUB_OCS1_N, HUB_OCS2_N,
+                          HUB_OCS3_N, HUB_OCS4_N, HUB_OCS5_N, HUB_PRTPWR1,
+                          HUB_PRTPWR2, HUB_PRTPWR3, HUB_PRTPWR4, HUB_PRTPWR5]
+      # The shared 3V3 rail has 43 pads, including four tightly boxed hub
+      # supply/bypass lands. Give it the next complete-board pass while the
+      # local hub channels are still open; generic GPIO fanout follows it.
+      power_3v3: [3V3_MAIN]
+      control_bus: [ILIM_CTRL, VBUS_CTRL, I2C_SDA, I2C_SCL,
+                    CTRL_RESET_N, CTRL_VUSB_3V3, EXP_RESET_N, ILIM2, ILIM3]
+      power_commands: [PWR_CMD1, PWR_CMD2, PWR_CMD3, PWR_CMD4]
+      power_enable1: [PWR_EN1]
+      power_enable2: [PWR_EN2]
+      power_enable3: [PWR_EN3]
+      power_enable4: [PWR_EN4]
+      data_ok1: [DATA_OK1]
+      data_ok2: [DATA_OK2]
+      data_ok3: [DATA_OK3]
+      data_ok4: [DATA_OK4]
+      data_cmd1: [DATA_CMD1]
+      data_cmd2: [DATA_CMD2]
+      data_cmd3: [DATA_CMD3]
+      data_cmd4: [DATA_CMD4]
+      remaining: rest
+
+route:
+  # The exact reviewed chain is source-promoted at route.final. Rebuilds must
+  # consume that immutable route instead of whichever build candidate happens
+  # to remain under 06_build/route/.
+  import_source: promoted
+  krt: ~/gits/KiCadRoutingTools
+  # Cheap topology/ownership decisions happen before KRT. This is N-A on an
+  # ordinary point-to-point board; many-pad pour/wide nets and shared critical
+  # corridors require the progressive route.ownership declarations below.
+  ownership_preflight: {mode: enforce}
+  ownership:
+    nets:
+      VBUS_PD_RAW: {topology: pour, owner: zone, allow_generic_router: false, why: "local receptacle-to-fuse copper is source-authored as a power zone"}
+      VBUS_PD: {topology: pour, owner: zone, allow_generic_router: false, why: "post-fuse PD input copper is source-authored as a power zone"}
+      VBUS_PD_PROTECTED: {topology: pour, owner: zone, allow_generic_router: false, why: "protected 20 V distribution is source-authored as linked F/B power zones"}
+      P5V_BANK_A: {topology: pour, owner: zone, allow_generic_router: false, why: "bank-A converter output is source-authored as a local power zone"}
+      P5V_A_PROTECTED: {topology: pour, owner: zone, allow_generic_router: false, why: "bank-A two-port distributor is source-authored as linked F/B power zones"}
+      P5V_BANK_B: {topology: pour, owner: zone, allow_generic_router: false, why: "bank-B converter output is source-authored as a local power zone"}
+      P5V_B_PROTECTED: {topology: pour, owner: zone, allow_generic_router: false, why: "bank-B two-port distributor is source-authored as linked F/B power zones"}
+  # Every promoted wave is regraded under r0's exact .kicad_pro/.kicad_dru in
+  # a fresh, relocatable workspace. Candidate-owned sidecars are never rule
+  # authority. Existing projects opt in explicitly; new projects start safe.
+  candidate_grade: {mode: enforce}
+  # Re-running a stochastic search is allowed only while the unresolved
+  # denominator or semantic finding/frontier changes. Coordinates and file
+  # hashes are deliberately not novelty.
+  exploration_guard:
+    mode: enforce
+    plateau_attempts: 2
+    max_attempts: 5
+    max_novel_signatures: 3
+    max_operation_amplification: 8
+  # Progressive-disclosure examples (uncomment only when applicable):
+  # ownership:
+  #   multipad_threshold: 8
+  #   nets:
+  #     VBUS_PROTECTED:
+  #       topology: wide_trunk
+  #       owner: prep.seed_stubs
+  #       why: reviewed high-current trunk with named package launches
+  #   corridors:
+  #     oscillator_escape:
+  #       claim_order: [crystal, usb, control]
+  #       why: single-layer crystal owns the only legal package escape
+  # REQUIRED decision. Fill one row per USB/RF/timing-critical pair, or leave
+  # [] and replace no_critical_routes with a specific true reason.
+  preflight_critical_pairs:
+    - {name: UP_HUB, p: UP_HUB_P, n: UP_HUB_N, wave: usb_upstream, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P1_HUB, p: P1_HUB_P, n: P1_HUB_N, wave: usb_hub_left, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P2_HUB, p: P2_HUB_P, n: P2_HUB_N, wave: usb_hub_ports, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P3_HUB, p: P3_HUB_P, n: P3_HUB_N, wave: usb_hub_ports, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P4_HUB, p: P4_HUB_P, n: P4_HUB_N, wave: usb_hub_edge, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+    - {name: P1_PORT, p: P1_PORT_P, n: P1_PORT_N, wave: usb_port_segments, allowed_layers: [B.Cu], no_vias: true}
+    - {name: P2_PORT, p: P2_PORT_P, n: P2_PORT_N, wave: usb_port_segments, allowed_layers: [B.Cu], no_vias: true}
+    - {name: P3_PORT, p: P3_PORT_P, n: P3_PORT_N, wave: usb_port_segments, allowed_layers: [B.Cu], no_vias: true}
+    - {name: P4_PORT, p: P4_PORT_P, n: P4_PORT_N, wave: usb_port_segments, allowed_layers: [B.Cu], no_vias: true}
+    - {name: MGMT, p: MGMT_P, n: MGMT_N, wave: usb_management, allowed_layers: [F.Cu, B.Cu], no_vias: false}
+  critical_branch_allowlist:
+    - {net: UP_HUB_P, at: [28.2000, 56.7500], layer: B.Cu, degree: 3,
+       why: "the two reversible USB-C D+ contacts merge here before the single upstream path"}
+  no_critical_routes: null
+  # - {name: USB_UP, p: USB_UP_P, n: USB_UP_N, wave: usb,
+  #    allowed_layers: [F.Cu], no_vias: true}
+  # Routability is an admission contract, not a router. It closes physical
+  # lane order, series/shunt USB topology and the complete high-current path
+  # before stochastic routing begins.
+  routability:
+    require_topology: true
+    require_connector_lanes: true
+    require_series_power_paths: true
+    layer_roles: {F.Cu: signal, In1.Cu: reference_plane,
+                  In2.Cu: mixed_signal_pour, B.Cu: signal}
+    class_layers:
+      usb_hs: [F.Cu, B.Cu]
+      low_speed: [F.Cu, In2.Cu, B.Cu]
+    connector_lanes:
+      - {ref: J_DATA, lanes: [{pad: A6, net: UP_HUB_P}, {pad: A7, net: UP_HUB_N}, {pad: B6, net: UP_HUB_P}, {pad: B7, net: UP_HUB_N}], why: "both reversible USB-C rows preserve D+/D- identity"}
+      - {ref: J_PORT1, lanes: [{pad: "2", net: P1_PORT_N}, {pad: "3", net: P1_PORT_P}], why: "USB-A port 1 physical D-/D+ order"}
+      - {ref: J_PORT2, lanes: [{pad: "2", net: P2_PORT_N}, {pad: "3", net: P2_PORT_P}], why: "USB-A port 2 physical D-/D+ order"}
+      - {ref: J_PORT3, lanes: [{pad: "2", net: P3_PORT_N}, {pad: "3", net: P3_PORT_P}], why: "USB-A port 3 physical D-/D+ order"}
+      - {ref: J_PORT4, lanes: [{pad: "2", net: P4_PORT_N}, {pad: "3", net: P4_PORT_P}], why: "USB-A port 4 physical D-/D+ order"}
+    topology:
+      - {ref: U_ESD_UP, part_mpn: PESD2USB5UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [UP_HUB], why: "upstream connector clamp lands directly on the continuous pair"}
+      - {ref: U_ESD1, part_mpn: PESD2USB5UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [P1_PORT], why: "port-1 clamp lands directly on the continuous pair"}
+      - {ref: U_ESD2, part_mpn: PESD2USB5UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [P2_PORT], why: "port-2 clamp lands directly on the continuous pair"}
+      - {ref: U_ESD3, part_mpn: PESD2USB5UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [P3_PORT], why: "port-3 clamp lands directly on the continuous pair"}
+      - {ref: U_ESD4, part_mpn: PESD2USB5UX-TR, kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"], pairs: [P4_PORT], why: "port-4 clamp lands directly on the continuous pair"}
+      - {ref: U_DATA1, part_mpn: FSUSB42MUX, kind: series_directional, signal_pads: ["3", "4", "6", "7"], common_signal_pads: ["3", "4"], selected_signal_pads: ["6", "7"], unused_signal_pads: ["8", "9"], pairs: [P1_HUB, P1_PORT], why: "port-1 common and selected switch banks are explicit; unused bank remains copper-free"}
+      - {ref: U_DATA2, part_mpn: FSUSB42MUX, kind: series_directional, signal_pads: ["3", "4", "6", "7"], common_signal_pads: ["3", "4"], selected_signal_pads: ["6", "7"], unused_signal_pads: ["8", "9"], pairs: [P2_HUB, P2_PORT], why: "port-2 common and selected switch banks are explicit; unused bank remains copper-free"}
+      - {ref: U_DATA3, part_mpn: FSUSB42MUX, kind: series_directional, signal_pads: ["3", "4", "6", "7"], common_signal_pads: ["3", "4"], selected_signal_pads: ["6", "7"], unused_signal_pads: ["8", "9"], pairs: [P3_HUB, P3_PORT], why: "port-3 common and selected switch banks are explicit; unused bank remains copper-free"}
+      - {ref: U_DATA4, part_mpn: FSUSB42MUX, kind: series_directional, signal_pads: ["3", "4", "6", "7"], common_signal_pads: ["3", "4"], selected_signal_pads: ["6", "7"], unused_signal_pads: ["8", "9"], pairs: [P4_HUB, P4_PORT], why: "port-4 common and selected switch banks are explicit; unused bank remains copper-free"}
+    series_power_paths:
+      - {id: port1, transitions: [{kind: copper, from: J_POWER.A4, to: F_PD.1}, {kind: component, from: F_PD.1, to: F_PD.2}, {kind: copper, from: F_PD.2, to: U_PD_IN.1}, {kind: component, from: U_PD_IN.1, to: U_PD_IN.18}, {kind: copper, from: U_PD_IN.18, to: U_BUCK_A.8}, {kind: component, from: U_BUCK_A.8, to: U_BUCK_A.6}, {kind: copper, from: U_BUCK_A.6, to: L_BUCK_A.1}, {kind: component, from: L_BUCK_A.1, to: L_BUCK_A.2}, {kind: copper, from: L_BUCK_A.2, to: U_AGG_A.1}, {kind: component, from: U_AGG_A.1, to: U_AGG_A.17}, {kind: copper, from: U_AGG_A.17, to: U_PWR1.5}, {kind: component, from: U_PWR1.5, to: U_PWR1.6}, {kind: copper, from: U_PWR1.6, to: J_PORT1.1}], why: "complete port-1 path crosses fuse, input protection, buck, aggregate eFuse and per-port eFuse"}
+      - {id: port2, transitions: [{kind: copper, from: U_AGG_A.17, to: U_PWR2.5}, {kind: component, from: U_PWR2.5, to: U_PWR2.6}, {kind: copper, from: U_PWR2.6, to: J_PORT2.1}], why: "bank-A branch to port 2 cannot bypass its per-port eFuse"}
+      - {id: port3, transitions: [{kind: copper, from: U_PD_IN.18, to: U_BUCK_B.8}, {kind: component, from: U_BUCK_B.8, to: U_BUCK_B.6}, {kind: copper, from: U_BUCK_B.6, to: L_BUCK_B.1}, {kind: component, from: L_BUCK_B.1, to: L_BUCK_B.2}, {kind: copper, from: L_BUCK_B.2, to: U_AGG_B.1}, {kind: component, from: U_AGG_B.1, to: U_AGG_B.17}, {kind: copper, from: U_AGG_B.17, to: U_PWR3.5}, {kind: component, from: U_PWR3.5, to: U_PWR3.6}, {kind: copper, from: U_PWR3.6, to: J_PORT3.1}], why: "bank-B port-3 path crosses buck, aggregate eFuse and per-port eFuse"}
+      - {id: port4, transitions: [{kind: copper, from: U_AGG_B.17, to: U_PWR4.5}, {kind: component, from: U_PWR4.5, to: U_PWR4.6}, {kind: copper, from: U_PWR4.6, to: J_PORT4.1}], why: "bank-B branch to port 4 cannot bypass its per-port eFuse"}
+  # race: 3      # KRT is stochastic — run N wave-chains CONCURRENTLY in
+  #   isolated temp dirs (06_build/route/race/cN), import each candidate
+  #   into a copy of the track-free board, evaluate each with `quick`, and
+  #   promote the MEASURED best: fewest routed-net unconnected, tie-break
+  #   fewest copper violations. Per-candidate numbers + the choice land in
+  #   06_build/route/race_log.json (auditable, never vibes). CLI --race N
+  #   overrides. Candidates see ROUTE_RACE_CANDIDATE in their environment.
+  # kicad_python: /usr/bin/python3   # interpreter race uses for import+quick
+  common:
+    layers: [F.Cu, B.Cu]
+    # via_size / via_drill / clearance may be OMITTED: with a nets.yaml
+    # fab_tier declared they default to that tier's published floors
+    # (min_via_diameter / min_via_drill / min_space, fab_tiers.yaml).
+    # Explicit values below the tier floor are a hard error naming the tier
+    # — the clean-room 3S board routed 0.6/0.3 template vias on a tier whose
+    # floor was 0.45/0.3 and only DRC noticed (drill_out_of_range x2).
+    via_size: 0.46
+    via_drill: 0.20
+    fab_tier: advanced
+    no_stub_layer_swap: true
+    keepout: true
+    keepout_layer: User.2
+    # 0.21 not 0.15: 0.6/0.3 vias at 0.15 pack drills to ~0.45 < the 0.5
+    # hole-to-hole fab floor; 0.21 forces centres to 0.81 -> drill gap 0.51
+    clearance: 0.15
+    hole_to_hole_clearance: 0.25
+    # ---- OPTIONAL, per-wave or common. Both blocks are REAL KRT capability
+    # this driver could not express until 2026-07-29, which cost pluto-rx2-8way
+    # a hand-routed chain it then (correctly) refused to promote.
+    #
+    # LENGTH MATCHING IS SINGLE-ENDED AND INTER-NET. KRT matches a GROUP of
+    # ordinary nets against each other, not just diff-pair P/N. MEASURED on the
+    # nine-arm AoA star: `length_match_group: ['ANT*', RX2_OUT]` with
+    # tolerance 0.15 printed "8 nets (0 diff pairs, 8 single-ended),
+    # target=19.83mm" and took the group spread 2.237 -> 1.1586 mm (29.5 ->
+    # 15.28 deg at 6 GHz), 11/11 routed, min_clearance_used 0.2 — no clearance
+    # relaxation. The residual IS the tolerance passed in.
+    # A flat list is ONE group; a list of lists is several.
+    # length_match_group: ['ANT*', RX2_OUT]
+    # length_match_tolerance: 0.15    # mm of acceptable in-group variance
+    # meander_amplitude: 1.0          # meander height perpendicular to trace
+    #
+    # NECK-DOWN is the answer to a launch whose vendor land cannot carry the
+    # impedance width (PE42482A-X: 0.60 x 0.30 land at 0.50 pitch leaves
+    # 0.350 mm to the GND land edge, a 0.36 mm trace needs 0.380 — deficit
+    # 0.030). Relaxing clearance instead detunes the microstrip the width was
+    # derived from; narrowing near the pad does not.
+    # neckdown_length: 2.5            # mm of narrow track from the target pad
+    # neckdown_taper_length: 0.5      # mm of stepped narrow->wide taper (0=abrupt)
+  waves:
+    # Placement-stage route contracts only. Width/gap remain provisional until
+    # the JLC order-time 90-ohm differential solve is captured.
+    - {name: usb_port_segments, engine: diff, group: usb_port_segments,
+       track_width: 0.2332, clearance: 0.30, diff_pair_gap: 0.15,
+       layers: [B.Cu], length_match_group: [[P1_PORT_P, P1_PORT_N], [P2_PORT_P, P2_PORT_N],
+       [P3_PORT_P, P3_PORT_N], [P4_PORT_P, P4_PORT_N]], length_match_tolerance: 0.50,
+       max_iterations: 800000, max_probe_iterations: 60000, max_ripup: 40}
+    - {name: usb_hub_edge, engine: diff, group: usb_hub_edge,
+       track_width: 0.2332, clearance: 0.30, diff_pair_gap: 0.15,
+       layers: [F.Cu, B.Cu], length_match_group: [[P4_HUB_P, P4_HUB_N]],
+       length_match_tolerance: 0.50, max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 60}
+    - {name: usb_hub_left, engine: diff, group: usb_hub_left,
+       track_width: 0.2332, clearance: 0.30, diff_pair_gap: 0.15,
+       layers: [F.Cu, B.Cu], length_match_group: [[P1_HUB_P, P1_HUB_N]],
+       length_match_tolerance: 0.50, max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 60}
+    - {name: usb_hub_ports, engine: diff, group: usb_hub_ports,
+       track_width: 0.2332, clearance: 0.30, diff_pair_gap: 0.15,
+       layers: [F.Cu, B.Cu], length_match_group: [[P2_HUB_P, P2_HUB_N],
+       [P3_HUB_P, P3_HUB_N]], length_match_tolerance: 0.50,
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 60}
+    - {name: usb_upstream, engine: diff, group: usb_upstream,
+       track_width: 0.2332, clearance: 0.30, diff_pair_gap: 0.15,
+       layers: [F.Cu, B.Cu], length_match_group: [[UP_HUB_P, UP_HUB_N]],
+       length_match_tolerance: 0.50, max_iterations: 800000,
+       max_probe_iterations: 60000, max_ripup: 40}
+    - {name: usb_management, engine: diff, group: usb_management,
+       track_width: 0.2332, clearance: 0.30, diff_pair_gap: 0.15,
+       layers: [F.Cu, B.Cu], length_match_group: [[MGMT_P, MGMT_N]],
+       length_match_tolerance: 0.50, max_iterations: 800000,
+       max_probe_iterations: 60000, max_ripup: 40}
+    - {name: port_power, engine: single, group: port_power, track_width: 0.80,
+       layers: [F.Cu], max_iterations: 600000,
+       max_probe_iterations: 40000, max_ripup: 30}
+    - {name: hub_control_core, engine: single, group: hub_control_core,
+       track_width: 0.18, layers: [F.Cu, B.Cu, In2.Cu],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: hub_control_config, engine: single, group: hub_control_config,
+       track_width: 0.18, layers: [F.Cu, B.Cu, In2.Cu],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: hub_control_ports, engine: single, group: hub_control_ports,
+       track_width: 0.18, layers: [F.Cu, B.Cu, In2.Cu],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: power_3v3, engine: single, group: power_3v3, track_width: 0.25,
+       via_size: 0.46, via_drill: 0.20, layers: [F.Cu, B.Cu, In2.Cu], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 50}
+    - {name: control_bus, engine: single, group: control_bus,
+       track_width: 0.18, layers: [F.Cu, B.Cu, In2.Cu],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: power_commands, engine: single, group: power_commands,
+       track_width: 0.18, layers: [F.Cu, B.Cu, In2.Cu],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: power_enable1, engine: single, group: power_enable1,
+       track_width: 0.18, layers: [F.Cu, B.Cu, In2.Cu],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: power_enable2, engine: single, group: power_enable2,
+       track_width: 0.18, layers: [F.Cu, In2.Cu], layer_costs: [1000, 1],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: power_enable3, engine: single, group: power_enable3,
+       track_width: 0.18, layers: [F.Cu, In2.Cu], layer_costs: [1000, 1],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: power_enable4, engine: single, group: power_enable4,
+       track_width: 0.18, layers: [F.Cu, In2.Cu], layer_costs: [1000, 1],
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 0}
+    - {name: data_ok1, engine: single, group: data_ok1,
+       track_width: 0.18, via_size: 0.46, via_drill: 0.20,
+       layers: [F.Cu, In2.Cu], layer_costs: [1000, 1], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 0}
+    - {name: data_ok2, engine: single, group: data_ok2,
+       track_width: 0.18, via_size: 0.46, via_drill: 0.20,
+       layers: [F.Cu, B.Cu, In2.Cu], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 0}
+    - {name: data_ok3, engine: single, group: data_ok3,
+       track_width: 0.18, via_size: 0.46, via_drill: 0.20,
+       layers: [F.Cu, B.Cu, In2.Cu], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 0}
+    - {name: data_ok4, engine: single, group: data_ok4,
+       track_width: 0.18, via_size: 0.46, via_drill: 0.20,
+       layers: [F.Cu, In2.Cu], layer_costs: [1000, 1], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 0}
+    - {name: data_cmd1, engine: single, group: data_cmd1,
+       track_width: 0.18, via_size: 0.46, via_drill: 0.20,
+       layers: [F.Cu, B.Cu, In2.Cu], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 0}
+    - {name: data_cmd2, engine: single, group: data_cmd2,
+       track_width: 0.18, via_size: 0.46, via_drill: 0.20,
+       layers: [F.Cu, B.Cu, In2.Cu], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 0}
+    - {name: data_cmd3, engine: single, group: data_cmd3,
+       track_width: 0.18, via_size: 0.46, via_drill: 0.20,
+       layers: [F.Cu, B.Cu, In2.Cu], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 0}
+    - {name: data_cmd4, engine: single, group: data_cmd4,
+       track_width: 0.18, via_size: 0.46, via_drill: 0.20,
+       layers: [F.Cu, B.Cu, In2.Cu], max_iterations: 1200000,
+       max_probe_iterations: 80000, max_ripup: 0}
+    - {name: remaining, engine: single, group: remaining, track_width: 0.25,
+       via_size: 0.46, via_drill: 0.20,
+       max_iterations: 1200000, max_probe_iterations: 80000, max_ripup: 50}
+  # Populated only after a measured route candidate is reviewed and promoted.
+  final: 03_src/route/final.kicad_pcb
+
+# OPTIONAL A-VIA contract for a board whose power path is forced through a
+# layer-transition bank. Rectangles must tightly bound the physical series
+# boundary; arbitrary same-net stitching is not proof that current crosses it.
+# Use a published finished-hole basis, give fill material zero credit, and
+# retain loaded first-article thermal validation.
+via_ampacity:
+  source: "IPC-2152 conservative screening basis; validate temperature on the loaded first article"
+  method: "sum conservative 10 C-rise capacity by finished hole; no fill credit"
+  temperature_rise_c: 10
+  capacity_by_finished_hole_mm: {0.20: 0.55, 0.30: 0.84}
+  transfers:
+    - {name: pd_output_to_trunk, net: VBUS_PD_PROTECTED, rect: [57.5,119.5,60.9,121.3], minimum_vias: 8, required_continuous_a: 3.0, why: "all negotiated input current enters the shared protected B.Cu trunk here"}
+    - {name: trunk_to_buck_a, net: VBUS_PD_PROTECTED, rect: [84.4,118.4,87.6,120.0], minimum_vias: 8, required_continuous_a: 1.5, why: "bank-A converter input transition"}
+    - {name: trunk_to_buck_b, net: VBUS_PD_PROTECTED, rect: [128.4,118.4,131.6,120.0], minimum_vias: 8, required_continuous_a: 1.5, why: "bank-B converter input transition"}
+    - {name: bank_a_output_to_distributor, net: P5V_A_PROTECTED, rect: [108.6,107.8,111.8,109.4], minimum_vias: 8, required_continuous_a: 4.1, why: "aggregate bank-A output crosses to the two-port distributor"}
+    - {name: bank_a_port1_drop, net: P5V_A_PROTECTED, rect: [45.2,52.8,46.8,54.8], minimum_vias: 4, required_continuous_a: 2.0, why: "port-1 switch input island transition"}
+    - {name: bank_a_port2_drop, net: P5V_A_PROTECTED, rect: [73.2,52.8,74.8,54.8], minimum_vias: 4, required_continuous_a: 2.0, why: "port-2 switch input island transition"}
+    - {name: bank_b_output_to_distributor, net: P5V_B_PROTECTED, rect: [152.6,107.8,155.8,109.4], minimum_vias: 8, required_continuous_a: 4.0, why: "aggregate bank-B output crosses to the two-port distributor"}
+    - {name: bank_b_port3_drop, net: P5V_B_PROTECTED, rect: [101.2,52.8,102.8,54.8], minimum_vias: 4, required_continuous_a: 2.0, why: "port-3 switch input island transition"}
+    - {name: bank_b_port4_drop, net: P5V_B_PROTECTED, rect: [129.2,52.8,130.8,54.8], minimum_vias: 4, required_continuous_a: 2.0, why: "port-4 switch input island transition"}
+
+# TAPS (canon M8 promotion: cook-hub u7 taps, then usb-pwr-hub-3s
+# route_taps.py). NAMED connections KRT cannot thread — pour-fed sense pins,
+# boxed-in connector pads, plane drops. Runs AFTER `import`, BEFORE `stitch`
+# (pours fill around the tap copper):
+#   /usr/bin/python3 .../route_and_stitch_generic.py taps 03_src/route.yaml
+# Strategy 1: same-layer direct/L/Z join; strategy 2: stub -> via ->
+# hop_layer join -> via -> stub. EVERY emitted segment/via is verified
+# against the live board's exact copper (pcb_toolkit); an unroutable tap is
+# a hard error, never a silent skip (a skipped tap resurfaces only as a DRC
+# unconnected item after fill). `plane: true` ends at a via AT the `to`
+# point (a point inside the net's inner plane, merged by the fill).
+#
+# A long pour-net pin tap's corridor is ORDER-fragile (KRT hugs the escape-
+# field lane edges). `reattempt` re-routes the WHOLE tap set longest-first
+# (most-constrained-first) on a fresh board when a tap fails — BOUNDED by
+# max_retries (default 2) and progress-gated, so it terminates and escalates
+# rather than spinning (the v1.1 U1 pour-pin recurrence, canon M8). A tap
+# still stuck after the bound is structurally fragile — promote it to a
+# deterministic stitch.seed_stubs (below), or fix placement (D-ADJ).
+#
+# taps:
+#   clearance: 0.15
+#   via: {size: 0.6, drill: 0.3}     # tier-derived when omitted
+#   reattempt: {max_retries: 2}      # bounded longest-first re-route on fail
+#   connections:
+#     - {net: VCC,  from: U1.4,  to: C8.1,         width: 0.3}
+#     - {net: CC1,  from: J5.A5, to: R10.2,        width: 0.25,
+#        layer: F.Cu, hop_layer: B.Cu}
+#     - {net: 5V,   from: R6.1,  to: [41.0, 46.5], width: 0.3, plane: true}
+
+stitch:
+  clearance: 0.15
+  # spacing 0.85 center-to-center = 0.55mm drill-edge gap > the 0.5mm
+  # hole-to-hole floor (0.62 gave 0.32mm and a stochastic route tripped it)
+  # via size/drill may be OMITTED with a declared fab_tier (tier floors are
+  # the default); explicit sub-floor values are a hard error naming the tier.
+  # The same floors gate normalize_vias, hole_to_hole.shrink_to and the
+  # astar_fallback via pin (whose 0.45/0.2 toolkit default was below a
+  # 2-layer standard board's floors — crow-array-pod incident).
+  via: {size: 0.46, drill: 0.20, spacing: 0.85, pth_margin: 0.25}
+  keepin: {inset: 0.8}
+  # seed_stubs runs FIRST (before fill so the pour flows around the stub
+  # copper); unify_zone_priorities runs after the last fill, before
+  # heal_islands (it needs filled zones to check for pour fragmentation).
+  # Every pass emits the same 0.46/0.20 mm family, and the final promotion
+  # makes the complete realized family Type VII before the fabrication gate.
+  passes: [seed_stubs, dedupe_vias, normalize_vias, drop_micro_fragments,
+           drop_dangling, split_t_junctions, reload, hole_to_hole, pad_rescue,
+           stub_fallback, dedupe_vias, stitch_grid, fill, island_rescue,
+           fill, prune_stitch_dangling, drop_dangling, fresh_reload,
+           unify_zone_priorities, heal_islands, protect_via_family, gate]
+  # Replay the one authoritative pre-route seed bank after importing an
+  # already accepted chain.  The emitter is idempotent: copper embedded in
+  # the chain is skipped, while newly source-authored closures are checked
+  # against the exact imported route and added (or refused) explicitly.
+  seed_stubs: *deterministic_seed_stubs
+  # DETERMINISTIC POUR-FED PIN SEED STUBS (canon M8: usb-hub-3s
+  # plan_seed_stubs.py + add_seed_stubs.py). The pour-fed nets that leave a
+  # dense IC pin row and weave across the escape field to their pour island —
+  # KRT excludes them, taps are too short to thread. Runs BEFORE fill (the
+  # pour bonds the pin around the stub copper). Each stub is EXPLICIT geometry
+  # verified against the live board's exact copper with collision REFUSAL
+  # (refuse whole, never shave), declares the `pin` (REF.PAD) it serves (the
+  # pass proves the copper reaches it), and is idempotent. Plan the coordinates
+  # against the FROZEN promoted chain (a maze router like plan_seed_stubs.py),
+  # not by hand — re-plan if the chain is re-promoted. Omit or leave empty on
+  # boards without pour-fed-pin opens.
+  #   seed_stubs:
+  #     clearance: 0.13                  # tighter than stitch clearance
+  #     via: {size: 0.25, drill: 0.15}   # tier-derived when omitted
+  #     stubs:
+  #       - {net: LX1, pin: U1.18,
+  #          segments: [{layer: F.Cu, width: 0.25, pts: [[60.6,70.9],[57.6,71.9]]}],
+  #          vias: [[57.6,71.9]]}
+  # SAME-NET ZONE PRIORITY UNIFY (canon M8: usb-hub-3s v1.0 "P3-union", v1.1
+  # re-learn). Two pours of the SAME net overlapping at the SAME priority make
+  # KiCad report `zones_intersect` ("intersecting zones must have distinct
+  # priorities"). The pass bumps the smaller zone to a distinct higher priority
+  # so the union NESTS legally (same net => identical copper), refills, and
+  # re-verifies. A CROSS-net overlap is a SHORT and is REFUSED (escalate to
+  # shorting_items — never a mechanical bump). `min_bbox` skips slivers.
+  unify_zone_priorities: {min_bbox: 0.8}
+  dedupe_vias: {radius: 0.5, metric: box}
+  normalize_vias: {below_width: 0.24, size: 0.25, drill: 0.15}
+  drop_micro_fragments: {max_length: 0.12, require_free_end: true}
+  # KRT overshoot tails (one wave left a 0.7mm S_MINUS stub -> track_dangling)
+  drop_dangling: {max_length: 1.2, tol: 0.05, sweeps: 4}
+  # KRT T-junctions: a stub end landing MID-BODY is continuous copper
+  # but unanchored, so KiCad reports track_dangling. Split, never delete.
+  split_t_junctions: {tol: 0.05}
+  hole_to_hole: {min_gap: 0.25, mode: nudge, prefer_keep: [GND]}
+  pad_rescue:
+    net: GND                  # single-plane form (2-layer boards)
+    # 4-LAYER / TWO INNER PLANES (In1=GND, In2=VIN): rescue BOTH plane-nets'
+    # pads, not one. Use `nets` (per-pad via to EACH plane) instead of `net`:
+    #   nets:
+    #     - {net: GND, layer: In1.Cu}
+    #     - {net: VIN, layer: In2.Cu}
+    # or auto-detect every solid inner-plane pour:  auto: true
+    via_in_pad: true          # B.Cu is a solid GND pour under the whole board
+    served_within: 1.6
+    rings: [0.75, 0.95, 1.2, 1.6, 2.1, 2.7]
+    stub_width: 0.3
+    # GAP-B SUB-FLOOR SCOPING (default ON): each adjacent-via+stub is a plane
+    # drop, not a trunk, so it is exempted from the netclass ampacity floor by
+    # a named rule area (`pad_rescue_stubs`) + a relaxed insideArea track_width
+    # rule appended to the board's .kicad_dru (KiCad last-match precedence).
+    # Set `stub_scope: false` to disable, or tune it:
+    #   stub_scope: {area_name: pad_rescue_stubs, min_track_width: 0.3,
+    #                layers: [F.Cu, B.Cu]}
+    # NOTE: if your generate_rules-LAST rewrites .kicad_dru, it must preserve
+    # (or re-emit) the pad_rescue_stubs rule, else the exemption is lost.
+    # NON-FATAL: a pad whose via sites are blocked by a B.Cu track underneath
+    # is still served by top-pour thermal spokes at fill. The DRC unconnected
+    # gate is the arbiter.
+    # NOTE: a pad already served by its footprint's OWN thermal via grid
+    # (same-net PTH pads inside the SMD pad outline — HTSSOP/QFN EPs) is
+    # SKIPPED automatically: a rescue via stacked on the grid is a
+    # hole_to_hole clash (3S clean-room cleanup_vias.py part 1 incident).
+    require: none
+  stub_fallback: {net: GND, min_dist: 0.2, max_dist: 8.0, width: 0.3}
+  # `layers` may constrain the search to one or two reviewed corridors; this
+  # is substantially faster than searching the whole default F/B space.  The
+  # A* via pin inherits a matching stitch.via.tiers hole_to_copper value, or
+  # it may declare one explicitly.
+  # A* is a bounded last resort for a small named residual, never the default
+  # continuation after direct rescue. Larger residuals stop immediately for
+  # explicit dogbones instead of spending minutes in a silent local search.
+  astar_fallback: {net: GND, width: 0.30, window: 3.0, attempts: 3,
+                   max_pending: 8, budget_s: 30,
+                   layers: [F.Cu, B.Cu],
+                   via: {size: 0.46, drill: 0.20}}
+  stitch_grid:
+    net: GND
+    x: [24, 74, 8]
+    y: [24, 64, 8]
+    # OUT of the guarded analog rect — the bridge corner stays quiet
+    avoid: [{x0: 20.0, y0: 26.0, x1: 44.0, y1: 58.0, margin: 1.0}]
+  island_rescue: {min_bbox: 0.8, layers: [F.Cu, B.Cu], require: all}
+  # POUR-ISLAND AUTO-HEAL (after the last fill): a same-net zone that FILLS
+  # as >=2 disconnected islands is the DRC unconnected class "Zone [X] <->
+  # Zone [X]" — the v4 usb-hub-3s tail was 4/7 exactly this (LX1/LX2/VIN_S/
+  # VBUSA3 priority-2 F.Cu pours sliced by escape tracks, 2026-07-21), each
+  # bridged by hand before this pass existed. heal_islands groups each pour
+  # net's islands with pcbnew connectivity, bridges the narrowest
+  # collision-clear gap with a track at the NET-CLASS width (zone-min-width
+  # fallback) or a via through a shared same-net plane (every segment/via
+  # pcb_toolkit-verified, taps discipline), then REFILLS and RE-VERIFIES:
+  # a heal that does not reduce the island count is a hard error, a healed
+  # board re-runs as a no-op (idempotent), and different nets are never
+  # bridged. `layers` limits which copper layers are inspected (default:
+  # all); min_bbox skips slivers (those are isolated_copper -> escalate).
+  # Dense USB/control copper splits several long high-current distributors.
+  # Sample enough of each exact filled outline to find a legal same-net
+  # bridge; every candidate still passes the normal collision/net guards and
+  # the post-refill group-count reduction remains mandatory.
+  heal_islands: {min_bbox: 0.2, sample_step: 0.4,
+                 max_gap_candidates: 400, clear_rescue_failures: true,
+                 via: {size: 0.46, drill: 0.20}}
+  # Gerbers cannot carry KiCad's per-via fill/cap flags.  Promote the complete
+  # 0.20 mm drill family after every geometry-changing pass so the native
+  # board, release census, and fabricator drill-family selector all describe
+  # the same IPC-4761 Type-VII population.  The distinct 0.30 mm family stays
+  # ordinary and must never inherit this process.
+  protect_via_family:
+    via: {size: 0.46, drill: 0.20}
+    via_protection: {capping: yes, filling: yes}
+    min: 1
+  # EPILOGUE (recommended for 4-layer/plane boards): after the final fill,
+  # prune vias THE STITCHER ITSELF emitted that ended up with same-net copper
+  # on <2 layers — the `via_dangling` DRC class. Tests the FILLED polys
+  # (via_janitor only credits zone OUTLINES, so a via in a fill void passes
+  # janitor and still dangles — 3S clean-room cleanup_vias.py stray-via
+  # deletions). Never touches imported-route or footprint vias. Add it to
+  # `passes` after the last `fill`:
+  #   passes: [..., fill, island_rescue, fill, prune_stitch_dangling, gate]
+  prune_stitch_dangling: {tol: 0.05, min_layers: 2, scope: all}

@@ -1,0 +1,9 @@
+{
+  "board": "projects/usb-controlled-debug-hub-2a-v1/06_build/release_staging/v0.1.0-2026-08-21/source/usb_controlled_debug_hub_2a.kicad_pcb",
+  "checks": {},
+  "config": "projects/usb-controlled-debug-hub-2a-v1/03_src/rules/nets.yaml",
+  "reason": "reference_plane_checks not declared",
+  "schema": 1,
+  "scope": "projected foreign tracks/vias; not a field solve or full zone proof",
+  "verdict": "N-A"
+}

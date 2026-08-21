@@ -1,0 +1,16 @@
+P-FACT: 29/50 part.yaml declare an `asserts:` block; 15/29 assertion(s) REACHED A COMPARISON against projects/usb-controlled-debug-hub-2a-v1/06_build/release_staging/v0.1.0-2026-08-21 (14 unreached; refdes<->LCSC read from bom.csv)
+  P-FACT-UNREACHED: value assert: 0297004.WXNV: no refdes carries lcsc (undeclared in sourcing:) — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: 1935161: no refdes carries lcsc C3819953 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: 292304-1: no refdes carries lcsc C86462 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: 3568: no refdes carries lcsc (undeclared in sourcing:) — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: C3225X7R1C226KT000N: no refdes carries lcsc C342660 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: CL05B104KO5NNNC: no refdes carries lcsc C1525 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: CL10A106KP8NNNC: no refdes carries lcsc C19702 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: CX3225SB24000H0FLJCC: no refdes carries lcsc C1985204 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: KH-AF90DIP-112: no refdes carries lcsc C503996 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: MCP2221A-I/SL: no refdes carries lcsc C640876 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: RC0402FR-07100KL: no refdes carries lcsc C60491 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: RC0402FR-0710KL: no refdes carries lcsc C60490 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: RC0402FR-07165KL: no refdes carries lcsc C327368 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+  P-FACT-UNREACHED: value assert: RC0402FR-074K7L: no refdes carries lcsc C105871 — bom.csv names 50 code(s) and this is not one of them — an assertion that grades nothing is not a pass
+P-FACT OK — 15/29 assertions graded, 14 UNREACHED and listed above (a partial denominator: use --strict to make it block)

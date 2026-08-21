@@ -1,0 +1,48 @@
+schema: 1
+service: "JLCPCB double-sided SMT assembly plus post-through-hole assembly for two USB-C receptacles; four 3 A USB-A receptacles are fitted manually or by consignment"
+sides: [top, bottom]
+fiducials: "three top-side global fiducials; exact positions belong to floorplan"
+build_quantity: 5
+
+pcb_process: "JLC four-layer advanced; selective Type VII fill/cap required by TPS259827 split-pad via-in-pad lands"
+via_process:
+  ipc_4761: type_vii_filled_and_capped
+  fill_material: copper_paste
+  selection: drill_family_order_selector
+  source: "03_src/floorplan.yaml thermal_vias plus 03_src/route.yaml stitch.protect_via_family over the realized routed board"
+  protected_geometry: {via_diameter_mm: 0.46, drill_mm: 0.20}
+  fabricator_selector:
+    kind: drill_family
+    protected_drill_mm: 0.20
+    ordinary_drill_mm: [0.30]
+  ordinary_vias: "0.30 mm reserved ordinary family; expected final count is zero"
+  uploader_confirmation_required: true
+  order_remark: >-
+    Fill and copper-cap the complete 0.20 mm drill family: the v0.1.0 exact
+    routed-board census is 578 protected 0.46/0.20 mm vias and zero ordinary
+    vias. The 0.30 mm ordinary family is reserved but absent. Confirm the 578/0
+    counts and this selective drill-family process before payment.
+
+through_hole:
+  process: "JLCPCB mixed-technology/post-through-hole connector assembly"
+  refs: [J_DATA, J_POWER]
+  evidence: >-
+    J_DATA and J_POWER have SMT signal contacts plus plated retention lands.
+    The uploader preview must retain exact code, side, rotation, contact
+    population and retention lands for both refs.
+
+not_assembled:
+  - refs: [J_PORT1, J_PORT2, J_PORT3, J_PORT4]
+    reason: process_incompatible
+    on_bom: false
+    twin_body:
+      source: board
+    evidence: >-
+      The exact GCT USB1130-15-A is required for its documented 3 A contact
+      rating. Its JLC catalogue line did not meet the +200 stock-surplus rule;
+      authorized-distributor public stock exceeded the rule on 2026-08-20.
+    disposition: >-
+      Procure and hand-fit four exact USB1130-15-A receptacles after PCBA, or
+      consign the same MPN to JLCPCB. Verify seating, pin continuity, shell
+      joints and orientation before powered test.
+exempt_prefixes: [H, TP, FID, MH]

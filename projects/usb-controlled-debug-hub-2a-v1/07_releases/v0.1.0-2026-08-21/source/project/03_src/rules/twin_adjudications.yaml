@@ -1,0 +1,36 @@
+# USB controlled debug hub 2 A — evidence-backed JLC twin dispositions.
+#
+# These rows select representation or resolve a manufacturer-vs-catalog land
+# disagreement. They do not alter CPL coordinates, rotations, pin mappings,
+# or the fabricated footprint.
+
+- lcsc: C17700166
+  refs: [L_BUCK_A, L_BUCK_B]
+  status: PAD-MISMATCH
+  why: >-
+    Sunlord's exact MWSA-S catalog revision 2025-05-29 p.2 specifies the
+    MWSA0804S recommended land as I=2.75 mm pad width, J=4.00 mm inner gap,
+    and H=5.50 mm pad height. The source footprint implements 2.75 x 5.50 mm
+    pads at +/-3.375 mm. JLC/EasyEDA C17700166 instead uses 2.10 x 5.50 mm
+    pads at +/-3.90 mm; that catalog land is deliberately rejected for the
+    exact MWSA0804S-3R3MT while its package body remains useful twin evidence.
+
+- lcsc: C17700166
+  refs: [L_BUCK_A, L_BUCK_B]
+  status: PAD-GEOM
+  why: >-
+    Same manufacturer-backed disposition as the C17700166 PAD-MISMATCH row:
+    the exact Sunlord recommended land, not the JLC library land, owns the PCB.
+
+- lcsc: C165948
+  refs: [J_DATA, J_POWER]
+  status: MODEL-REG
+  render_model_source: native
+  why: >-
+    The exact catalog land fit is 0.00 mm at the measured 0-degree LCSC
+    rotation, but the catalog body's mating-side support is 2.00 mm behind
+    the approved HRO TYPE-C-31-M-12 mating plane. Retain the source-owned
+    exact manufacturer STEP whose SHA and datums are bound by
+    model_registration.yaml. Catalog pad correspondence and rotation remain
+    independently graded; this changes no footprint, pin, placement, or CPL
+    value.
