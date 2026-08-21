@@ -1,0 +1,56 @@
+schema: 1
+
+paths:
+  - name: VBUS_PD_20V
+    source_operating_max_V: 21.0
+    source_tolerance_included: true
+    source_boundary_evidence: >-
+      The accepted source is a standards-compliant USB-C PD source after a
+      successful 20 V fixed-PDO contract. The 21.0 V maximum charges a +5%
+      steady-state source allowance. Lower/default PDOs do not enable the
+      high-current converters.
+    voltage_margin_pct: 4.76
+    admitted_transient:
+      claim: >-
+        TVS2200 is a secondary hot-plug/ESD/surge clamp, not a sustained
+        overvoltage regulator. First article must capture attachment and fault
+        waveforms at the input eFuse and converter pads within the exact 8/20 us
+        envelope.
+      input_damping: "connector/cable impedance plus a <=1uF directly exposed 50V X7R input capacitor; both converter input banks remain behind the input eFuse during attach"
+    tvs:
+      part: TVS2200DRVR
+      standoff_V: 22.0
+      clamp_max_V: 28.35
+      waveform_duration_ms: 0.020
+      waveform: 8/20 us
+      peak_current_max_A: 35
+      peak_power_max_W: 992.25
+      evidence: "TI TVS2200 SLVSED5C: maximum 28.35 V clamp at 35 A, 8/20 us, VIN=22 V and 125 C"
+    exposed:
+      - ref: U_PD_IN
+        part: TPS16630PWPR
+        domain: directly_tvs_clamped_input
+        bounded_max_V: 28.35
+        recommended_max_V: 60
+        absolute_max_V: 67
+        evidence: "TI TPS1663 SLVSET9G: 4.5-60 V recommended operation, 67 V IN/P_IN absolute maximum and 75 V IN/P_IN 10 ms transient absolute maximum"
+    protected_downstream:
+      switch: U_PD_IN
+      behavior: programmable_ovp_cutoff
+      candidate_uvlo_rising_V: 17.00
+      candidate_ovp_rising_V: 23.52
+      candidate_divider: {R1_series: [910k, 22k], R1_total: 932k, R2: 20k, R3: 51k, tolerance_pct: 1}
+      requirements: >-
+        Before schematic freeze, machine-check independent resistor tolerance,
+        the TPS16630 1.176-1.224 V OVP/UVLO thresholds and +/-150 nA pin
+        leakage. The maximum OVP trip plus turn-off response must keep both
+        TPS56637 converters below 28 V recommended operation; 20 V +5% must
+        stay enabled and 15 V +5% must remain disabled.
+      members:
+        - {ref: "U_BUCK_A,U_BUCK_B", part: TPS56637RPAR, recommended_max_V: 28, absolute_max_V: 32}
+        - {ref: U_3V3, part: AP63203QWU-7, recommended_max_V: 32, absolute_max_V: 35}
+
+no_surge_exposed_paths: >-
+  J_DATA VBUS is sense-only and D+/D- use low-capacitance USB ESD arrays. The
+  four external USB-A power outputs are downstream of regulated 5 V and their
+  port eFuses; their load-dump/short envelopes are owned by power_tree.yaml.

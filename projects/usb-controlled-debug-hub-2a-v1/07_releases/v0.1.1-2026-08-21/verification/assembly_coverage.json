@@ -1,0 +1,25 @@
+{
+ "target": "projects/usb-controlled-debug-hub-2a-v1/06_build/release_staging/v0.1.1-2026-08-21",
+ "summary": {
+  "board": 190,
+  "cpl": 179,
+  "datum_max_mm": 0.0,
+  "datum_max_ref": "Y_HUB",
+  "datum_graded": 179,
+  "unpopulated": 11,
+  "declared": 4,
+  "consigned": 0,
+  "exempt_prefixes": [
+   "H",
+   "TP",
+   "FID",
+   "MH"
+  ],
+  "sides": {
+   "top": 170,
+   "bottom": 9
+  },
+  "unexplained": []
+ },
+ "fails": []
+}

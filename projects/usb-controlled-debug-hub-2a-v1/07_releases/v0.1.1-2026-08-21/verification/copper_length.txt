@@ -1,0 +1,27 @@
+R-LEN  copper_length_audit — usb-controlled-debug-hub-2a-v1
+  declaration: /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-2a-v1/03_src/rules/nets.yaml
+  board:       /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-2a-v1/06_build/release_staging/v0.1.1-2026-08-21/source/project/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb
+  MEASURED: track centrelines + arc centrelines + via barrels. NOT measured: pad-entry copper (so every absolute is a LOWER BOUND), and via barrels without a declared stackup_mm.
+  [PASS     ] UPSTREAM  ADR-0004  topology=tree  spread=0.4802 mm  ceiling=0.5
+      = 2.932 ps, 6.33 deg at 6 GHz (6.105000 ps/mm, 13.190000 deg/mm derived)
+      OCTILINEAR FLOOR (pads alone, no copper): spread 0.2929 mm = 3.86 deg at 6 GHz, moves=octilinear
+  [PASS     ] MANAGEMENT  ADR-0004  topology=chain  spread=0.0553 mm  ceiling=0.5
+      = 0.337 ps, 0.73 deg at 6 GHz (6.105000 ps/mm, 13.190000 deg/mm derived)
+      OCTILINEAR FLOOR (pads alone, no copper): spread 0.1500 mm = 1.98 deg at 6 GHz, moves=octilinear
+  [PASS     ] PORT1_E2E  ADR-0004  topology=chain  spread=1.0000 mm  ceiling=1.0
+      = 6.105 ps, 13.19 deg at 6 GHz (6.105000 ps/mm, 13.190000 deg/mm derived)
+      OCTILINEAR FLOOR (pads alone, no copper): spread 1.5320 mm = 20.21 deg at 6 GHz, moves=octilinear
+      octilinear: floor spread 1.5320 mm (20.21 deg at 6 GHz) exceeds max_spread_mm 1.0: shortest member N >= 47.2382 mm, longest P >= 48.7702 mm. An octilinear router (KRT moves in 8 directions, so the shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) cannot do better — accepted because `elongation: meander` is declared and route.yaml carries a length_match_group, so the short members are deliberately lengthened. The realized spread below is the check that the elongation actually happened.
+  [PASS     ] PORT2_E2E  ADR-0004  topology=chain  spread=1.0000 mm  ceiling=1.0
+      = 6.105 ps, 13.19 deg at 6 GHz (6.105000 ps/mm, 13.190000 deg/mm derived)
+      OCTILINEAR FLOOR (pads alone, no copper): spread 1.3284 mm = 17.52 deg at 6 GHz, moves=octilinear
+      octilinear: floor spread 1.3284 mm (17.52 deg at 6 GHz) exceeds max_spread_mm 1.0: shortest member N >= 37.1402 mm, longest P >= 38.4686 mm. An octilinear router (KRT moves in 8 directions, so the shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) cannot do better — accepted because `elongation: meander` is declared and route.yaml carries a length_match_group, so the short members are deliberately lengthened. The realized spread below is the check that the elongation actually happened.
+  [PASS     ] PORT3_E2E  ADR-0004  topology=chain  spread=0.7953 mm  ceiling=1.0
+      = 4.855 ps, 10.49 deg at 6 GHz (6.105000 ps/mm, 13.190000 deg/mm derived)
+      OCTILINEAR FLOOR (pads alone, no copper): spread 0.3284 mm = 4.33 deg at 6 GHz, moves=octilinear
+  [PASS     ] PORT4_E2E  ADR-0004  topology=chain  spread=0.0394 mm  ceiling=1.0
+      = 0.241 ps, 0.52 deg at 6 GHz (6.105000 ps/mm, 13.190000 deg/mm derived)
+      OCTILINEAR FLOOR (pads alone, no copper): spread 1.7929 mm = 23.65 deg at 6 GHz, moves=octilinear
+      octilinear: floor spread 1.7929 mm (23.65 deg at 6 GHz) exceeds max_spread_mm 1.0: shortest member P >= 65.2520 mm, longest N >= 67.0449 mm. An octilinear router (KRT moves in 8 directions, so the shortest pad-to-pad copper is max(dx,dy)+0.4142*min(dx,dy)) cannot do better — accepted because `elongation: meander` is declared and route.yaml carries a length_match_group, so the short members are deliberately lengthened. The realized spread below is the check that the elongation actually happened.
+  6 group(s) graded / 6 declared, 12 member path(s) measured / 12, 0 UNREACHED
+  PASS R-LEN usb-controlled-debug-hub-2a-v1

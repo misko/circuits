@@ -1,0 +1,305 @@
+{
+  "applicability": "APPLICABLE",
+  "board_sha256": "f18e044265bfde24b67fa58a35cb43d2a53fe6831077a47f5c04114c4e4c0a7f",
+  "contract": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-2a-v1/06_build/release_staging/v0.1.1-2026-08-21/source/project/03_src/rules/model_registration.yaml",
+  "contract_sha256": "5c94e112f89ba1387894a28938729d782f1ab5317d871f9b59c283ae007a4761",
+  "kind": "connector-datum-receipt-v1",
+  "measurements": [
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "HRO TYPE-C-31-M-12 Rev A exact drawing and C165948 STEP: local +Y runs from the contact-row origin to the USB-C mating mouth at +3.65 mm",
+      "catalog_to_source_footprint_transform": {
+        "catalog_pad_centroid_mm": [
+          0.0,
+          -2.47
+        ],
+        "rotation_deg": 0,
+        "source_pad_centroid_mm": [
+          2.220446049250313e-16,
+          -3.6700000000000017
+        ]
+      },
+      "fab_bbox_local_mm": [
+        -4.52,
+        -3.7,
+        4.52,
+        3.7
+      ],
+      "fab_mating_support_mm": 3.7,
+      "group": "usb_c_hro_type_c_31_m_12",
+      "mating_plane_offset_mm": 3.65,
+      "mating_support_delta_mm": 0.0,
+      "native_model_actual_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+      "native_model_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+      "ref": "J_DATA",
+      "representation_source": "native",
+      "tolerance_mm": 0.65,
+      "vendor_bbox_local_mm": null,
+      "vendor_model_sha256": "0457a14076c3c2f9d16ed2a995ac1f248173ab9ac1c200f99988a33d97d111b5",
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          180.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "GCT USB1130 Revision E drawing: local +Y runs from the contact row toward the USB-A mating mouth; the source footprint places the PCB edge/mating datum at local +5.72 mm",
+      "catalog_to_source_footprint_transform": null,
+      "fab_bbox_local_mm": [
+        -7.13,
+        -3.95,
+        7.13,
+        5.77
+      ],
+      "fab_mating_support_mm": 5.77,
+      "group": "usb_a_gct_usb1130_15_a",
+      "mating_plane_offset_mm": 5.72,
+      "mating_support_delta_mm": 0.0,
+      "native_model_actual_sha256": "0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6",
+      "native_model_sha256": "0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6",
+      "ref": "J_PORT1",
+      "representation_source": "native-manual",
+      "tolerance_mm": 0.35,
+      "vendor_bbox_local_mm": null,
+      "vendor_model_sha256": null,
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "GCT USB1130 Revision E drawing: local +Y runs from the contact row toward the USB-A mating mouth; the source footprint places the PCB edge/mating datum at local +5.72 mm",
+      "catalog_to_source_footprint_transform": null,
+      "fab_bbox_local_mm": [
+        -7.13,
+        -3.95,
+        7.13,
+        5.77
+      ],
+      "fab_mating_support_mm": 5.77,
+      "group": "usb_a_gct_usb1130_15_a",
+      "mating_plane_offset_mm": 5.72,
+      "mating_support_delta_mm": 0.0,
+      "native_model_actual_sha256": "0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6",
+      "native_model_sha256": "0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6",
+      "ref": "J_PORT2",
+      "representation_source": "native-manual",
+      "tolerance_mm": 0.35,
+      "vendor_bbox_local_mm": null,
+      "vendor_model_sha256": null,
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "GCT USB1130 Revision E drawing: local +Y runs from the contact row toward the USB-A mating mouth; the source footprint places the PCB edge/mating datum at local +5.72 mm",
+      "catalog_to_source_footprint_transform": null,
+      "fab_bbox_local_mm": [
+        -7.13,
+        -3.95,
+        7.13,
+        5.77
+      ],
+      "fab_mating_support_mm": 5.77,
+      "group": "usb_a_gct_usb1130_15_a",
+      "mating_plane_offset_mm": 5.72,
+      "mating_support_delta_mm": 0.0,
+      "native_model_actual_sha256": "0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6",
+      "native_model_sha256": "0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6",
+      "ref": "J_PORT3",
+      "representation_source": "native-manual",
+      "tolerance_mm": 0.35,
+      "vendor_bbox_local_mm": null,
+      "vendor_model_sha256": null,
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "GCT USB1130 Revision E drawing: local +Y runs from the contact row toward the USB-A mating mouth; the source footprint places the PCB edge/mating datum at local +5.72 mm",
+      "catalog_to_source_footprint_transform": null,
+      "fab_bbox_local_mm": [
+        -7.13,
+        -3.95,
+        7.13,
+        5.77
+      ],
+      "fab_mating_support_mm": 5.77,
+      "group": "usb_a_gct_usb1130_15_a",
+      "mating_plane_offset_mm": 5.72,
+      "mating_support_delta_mm": 0.0,
+      "native_model_actual_sha256": "0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6",
+      "native_model_sha256": "0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6",
+      "ref": "J_PORT4",
+      "representation_source": "native-manual",
+      "tolerance_mm": 0.35,
+      "vendor_bbox_local_mm": null,
+      "vendor_model_sha256": null,
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    },
+    {
+      "access_axis_local": [
+        0.0,
+        1.0
+      ],
+      "authority": "HRO TYPE-C-31-M-12 Rev A exact drawing and C165948 STEP: local +Y runs from the contact-row origin to the USB-C mating mouth at +3.65 mm",
+      "catalog_to_source_footprint_transform": {
+        "catalog_pad_centroid_mm": [
+          0.0,
+          -2.47
+        ],
+        "rotation_deg": 0,
+        "source_pad_centroid_mm": [
+          2.220446049250313e-16,
+          -3.6700000000000017
+        ]
+      },
+      "fab_bbox_local_mm": [
+        -4.52,
+        -3.7,
+        4.52,
+        3.7
+      ],
+      "fab_mating_support_mm": 3.7,
+      "group": "usb_c_hro_type_c_31_m_12",
+      "mating_plane_offset_mm": 3.65,
+      "mating_support_delta_mm": 0.0,
+      "native_model_actual_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+      "native_model_sha256": "f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e",
+      "ref": "J_POWER",
+      "representation_source": "native",
+      "tolerance_mm": 0.65,
+      "vendor_bbox_local_mm": null,
+      "vendor_model_sha256": "0457a14076c3c2f9d16ed2a995ac1f248173ab9ac1c200f99988a33d97d111b5",
+      "vendor_model_transform": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rotation": [
+          0.0,
+          0.0,
+          180.0
+        ],
+        "scale": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "refs_declared": [
+    "J_DATA",
+    "J_PORT1",
+    "J_PORT2",
+    "J_PORT3",
+    "J_PORT4",
+    "J_POWER"
+  ],
+  "refs_graded": [
+    "J_DATA",
+    "J_PORT1",
+    "J_PORT2",
+    "J_PORT3",
+    "J_PORT4",
+    "J_POWER"
+  ],
+  "schema": 1,
+  "verdict": "PASS"
+}

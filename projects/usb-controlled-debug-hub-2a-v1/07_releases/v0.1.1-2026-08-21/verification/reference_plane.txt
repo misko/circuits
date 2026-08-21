@@ -1,0 +1,143 @@
+{
+  "board": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-2a-v1/06_build/release_staging/v0.1.1-2026-08-21/source/project/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb",
+  "checks": {
+    "USB_BCU_OVER_IN2": {
+      "foreign_track_count": 79,
+      "foreign_via_count": 395,
+      "min_track_clearance_mm": 0.3,
+      "min_via_clearance_mm": 0.15,
+      "nearest_foreign_track": {
+        "clearance_mm": 0.3434,
+        "kind": "track",
+        "obstacle": {
+          "end_mm": [
+            79.2,
+            75.2
+          ],
+          "layer": "In2.Cu",
+          "net": "I2C_SDA",
+          "start_mm": [
+            80.4,
+            74.0
+          ],
+          "width_mm": 0.18
+        },
+        "signal": {
+          "end_mm": [
+            78.65,
+            64.95
+          ],
+          "layer": "B.Cu",
+          "net": "MGMT_N",
+          "start_mm": [
+            78.65,
+            75.35
+          ],
+          "width_mm": 0.2332
+        }
+      },
+      "nearest_foreign_via": {
+        "clearance_mm": 0.1534,
+        "kind": "via",
+        "obstacle": {
+          "at_mm": [
+            77.5,
+            71.0
+          ],
+          "diameter_mm": 0.46,
+          "net": "HUB_OCS1_N"
+        },
+        "signal": {
+          "end_mm": [
+            78.0,
+            64.3
+          ],
+          "layer": "B.Cu",
+          "net": "MGMT_P",
+          "start_mm": [
+            78.0,
+            74.7
+          ],
+          "width_mm": 0.2332
+        }
+      },
+      "reference_layer": "In2.Cu",
+      "reference_net": "GND",
+      "signal_layer": "B.Cu",
+      "signal_track_count": 210,
+      "verdict": "PASS",
+      "violations": []
+    },
+    "USB_FCU_OVER_IN1": {
+      "foreign_track_count": 20,
+      "foreign_via_count": 395,
+      "min_track_clearance_mm": 0.3,
+      "min_via_clearance_mm": 0.15,
+      "nearest_foreign_track": {
+        "clearance_mm": 0.788376,
+        "kind": "track",
+        "obstacle": {
+          "end_mm": [
+            70.2918,
+            64.6871
+          ],
+          "layer": "In1.Cu",
+          "net": "P5V_A_PROTECTED",
+          "start_mm": [
+            72.0,
+            57.0
+          ],
+          "width_mm": 3.0
+        },
+        "signal": {
+          "end_mm": [
+            84.821,
+            73.092
+          ],
+          "layer": "F.Cu",
+          "net": "UP_HUB_P",
+          "start_mm": [
+            73.421,
+            61.692
+          ],
+          "width_mm": 0.2332
+        }
+      },
+      "nearest_foreign_via": {
+        "clearance_mm": 0.1534,
+        "kind": "via",
+        "obstacle": {
+          "at_mm": [
+            79.8,
+            58.8
+          ],
+          "diameter_mm": 0.46,
+          "net": "HUB_OCS3_N"
+        },
+        "signal": {
+          "end_mm": [
+            80.3,
+            58.012
+          ],
+          "layer": "F.Cu",
+          "net": "MGMT_P",
+          "start_mm": [
+            80.3,
+            64.117
+          ],
+          "width_mm": 0.2332
+        }
+      },
+      "reference_layer": "In1.Cu",
+      "reference_net": "GND",
+      "signal_layer": "F.Cu",
+      "signal_track_count": 147,
+      "verdict": "PASS",
+      "violations": []
+    }
+  },
+  "config": "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-2a-v1/03_src/rules/nets.yaml",
+  "schema": 1,
+  "scope": "projected foreign tracks/vias; not a field solve or full zone proof",
+  "verdict": "PASS"
+}

@@ -1,0 +1,4 @@
+JLCPCB VIA PROCESS — GENERATED; DO NOT RE-TYPE
+Source: /home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-2a-v1/03_src/rules/assembly.yaml
+Order remark: Fill and copper-cap the complete 0.20 mm drill family: the v0.1.0 exact routed-board census is 578 protected 0.46/0.20 mm vias and zero ordinary vias. The 0.30 mm ordinary family is reserved but absent. Confirm the 578/0 counts and this selective drill-family process before payment.
+Uploader confirmation required: YES

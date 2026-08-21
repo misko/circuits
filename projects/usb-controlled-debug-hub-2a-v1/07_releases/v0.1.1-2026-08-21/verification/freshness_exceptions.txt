@@ -1,0 +1,8 @@
+# v0.1.1 is a routed-copper and assembly-export-safety correction. The
+# electrical component set, values, source codes, placement coordinates,
+# rotations, sides and order notes are intentionally unchanged from v0.1.0.
+fab/bom.csv reason: no component, value, MPN, LCSC code or designator changed
+fab/bom_echo_gate.txt reason: the exact unchanged BOM produces the same uploader echo worklist
+fab/cpl.csv reason: no placement coordinate, rotation, side or package changed; the USB-A parts were already deliberately omitted by assembly.yaml and now also carry a source-owned board exclusion attribute
+fab/order_notes.txt reason: stackup and selective-via process wording is unchanged; only the realized via census changed and is carried by the exact verification receipt and ORDER_README
+fab/rotation_human_gate.txt reason: no single-channel part identity, rotation, side or designator changed

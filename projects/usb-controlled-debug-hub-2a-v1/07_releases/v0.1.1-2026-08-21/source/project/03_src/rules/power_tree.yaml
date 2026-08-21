@@ -1,0 +1,243 @@
+schema: 1
+source_type: usb_c_pd_20v_hardware_sink_dual_local_5v_regulators
+off_control: "unplug USB-C POWER; USB-C DATA VBUS is detector-only and cannot energize the board"
+input_trunk_class: PWR_PD
+ir_floor_mohm: 90
+
+fault_envelopes:
+  - name: bank A two external ports plus management VBUS
+    normal_continuous_A: 4.1
+    service_peak_A: 5.392
+    service_peak_max_ms: 1.5
+    downstream_limits:
+      - name: two external TPS259470A outputs
+        count: 2
+        simultaneous_count: 2
+        worst_high_each_A: 2.646
+        programmer_refs: [R_ILIM1, R_ILIM2]
+        evidence: "TI TPS25947 1.65k characterized row scaled conservatively: 2970..3630 A-ohm; stocked 1.40k 1%/100ppm/C over 100C gives 2.080..2.646 A"
+      - name: captive management VBUS
+        count: 1
+        simultaneous_count: 1
+        worst_high_each_A: 0.1
+        evidence_refs: [USB2517I-JZX]
+        evidence: "commissioned internal control load allocation; no external connector is fed by VBUS_CTRL"
+    upstream:
+      continuous_rating_A: 6.0
+      peak_rating_A: 6.3
+      evidence: "TPS56637 is rated 6 A continuous with a 6.3 A minimum valley-current limit"
+      overload_qualification_max_ms: 7.0
+      overload_qualification_evidence: "C_AGG_A_TIMER bounds the aggregate breaker interval to <=6.65 ms; first article qualifies the exact bank at 5.7756 A for 7 ms"
+    aggregate_breaker:
+      programmer_ref: R_AGG_A_ILIM
+      threshold_model: {equation: inverse_resistance_with_offset, coefficient_worst_low_A_ohm: 1308, coefficient_worst_high_A_ohm: 1698, current_offset_A: 0, programmer_tcr_ppm_per_C: 100, programmer_temperature_excursion_C: 100}
+      expected_threshold_worst_low_A: 4.274509804
+      expected_threshold_worst_high_A: 5.775510204
+      threshold_calculation_tolerance_A: 0.000001
+      minimum_normal_margin_A: 0.15
+      minimum_fault_coordination_margin_A: 0.35
+      response: latch_off
+      threshold_evidence: "TI TPS25980 300-ohm row charged for 1% and 100ppm/C over 100C; minimum clears 4.1 A service by 174.5 mA, maximum clears the 5.392 A downstream envelope by 383.5 mA and remains 524.5 mA below converter valley limit"
+      reset_evidence: "RETRY_DLY grounded selects latch-off; cycling USB-C POWER intentionally resets the bank"
+      timer:
+        capacitor_ref: C_AGG_A_TIMER
+        capacitance_nominal_nF: 6.8
+        tolerance_pct: 5
+        temperature_minus_pct: 0.3
+        temperature_plus_pct: 0.3
+        dc_bias_minus_pct: 0
+        aging_minus_pct: 0
+        comparator_delta_min_V: 0.7
+        comparator_delta_max_V: 1.3
+        discharge_current_min_uA: 1.4
+        discharge_current_max_uA: 2.8
+        evidence: "C0G capacitor plus TI TPS25980 ITIMER voltage/current extrema"
+        startup:
+          model: slew_limited_output_bank
+          capacitor_ref: C_AGG_A_DVDT
+          capacitance_nominal_nF: 3.3
+          tolerance_pct: 5
+          temperature_minus_pct: 0.3
+          temperature_plus_pct: 0.3
+          dc_bias_minus_pct: 0
+          aging_minus_pct: 0
+          slew_coefficient_pF_V_per_ms: 4600
+          output_capacitance_max_uF: 289.26
+          expected_inrush_max_A: 0.426
+          calculation_tolerance_A: 0.001
+          evidence: "one 180uF polymer at +20%, three 22uF ceramics at +10%, and 0.66uF local HF maximum; TI TPS25980 dVdt equation"
+  - name: bank B two external ports
+    normal_continuous_A: 4.0
+    service_peak_A: 5.292
+    service_peak_max_ms: 1.5
+    downstream_limits:
+      - name: two external TPS259470A outputs
+        count: 2
+        simultaneous_count: 2
+        worst_high_each_A: 2.646
+        programmer_refs: [R_ILIM3, R_ILIM4]
+        evidence: "TI TPS25947 1.65k characterized row scaled conservatively: 2970..3630 A-ohm; stocked 1.40k 1%/100ppm/C over 100C gives 2.080..2.646 A"
+    upstream:
+      continuous_rating_A: 6.0
+      peak_rating_A: 6.3
+      evidence: "TPS56637 is rated 6 A continuous with a 6.3 A minimum valley-current limit"
+      overload_qualification_max_ms: 7.0
+      overload_qualification_evidence: "C_AGG_B_TIMER bounds the aggregate breaker interval to <=6.65 ms; first article qualifies the exact bank at 5.7756 A for 7 ms"
+    aggregate_breaker:
+      programmer_ref: R_AGG_B_ILIM
+      threshold_model: {equation: inverse_resistance_with_offset, coefficient_worst_low_A_ohm: 1308, coefficient_worst_high_A_ohm: 1698, current_offset_A: 0, programmer_tcr_ppm_per_C: 100, programmer_temperature_excursion_C: 100}
+      expected_threshold_worst_low_A: 4.274509804
+      expected_threshold_worst_high_A: 5.775510204
+      threshold_calculation_tolerance_A: 0.000001
+      minimum_normal_margin_A: 0.15
+      minimum_fault_coordination_margin_A: 0.35
+      response: latch_off
+      threshold_evidence: "TI TPS25980 300-ohm row charged for 1% and 100ppm/C over 100C; minimum clears 4.0 A service, maximum clears the 5.292 A downstream envelope by 483.5 mA and remains 524.5 mA below converter valley limit"
+      reset_evidence: "RETRY_DLY grounded selects latch-off; cycling USB-C POWER intentionally resets the bank"
+      timer:
+        capacitor_ref: C_AGG_B_TIMER
+        capacitance_nominal_nF: 6.8
+        tolerance_pct: 5
+        temperature_minus_pct: 0.3
+        temperature_plus_pct: 0.3
+        dc_bias_minus_pct: 0
+        aging_minus_pct: 0
+        comparator_delta_min_V: 0.7
+        comparator_delta_max_V: 1.3
+        discharge_current_min_uA: 1.4
+        discharge_current_max_uA: 2.8
+        evidence: "C0G capacitor plus TI TPS25980 ITIMER voltage/current extrema"
+        startup:
+          model: slew_limited_output_bank
+          capacitor_ref: C_AGG_B_DVDT
+          capacitance_nominal_nF: 3.3
+          tolerance_pct: 5
+          temperature_minus_pct: 0.3
+          temperature_plus_pct: 0.3
+          dc_bias_minus_pct: 0
+          aging_minus_pct: 0
+          slew_coefficient_pF_V_per_ms: 4600
+          output_capacitance_max_uF: 289.26
+          expected_inrush_max_A: 0.426
+          calculation_tolerance_A: 0.001
+          evidence: "one 180uF polymer at +20%, three 22uF ceramics at +10%, and 0.66uF local HF maximum; TI TPS25980 dVdt equation"
+
+rails:
+  - name: P5V_BANK_A
+    stage: conversion
+    vin_min: 19.0
+    vin_max: 21.0
+    vout_min: 5.01464
+    vout_max: 5.18565
+    iout_max_A: 4.1
+    converter: TPS56637RPAR
+    eff: 0.90
+    external_output: false
+    feedback: {vref_min: 0.591, vref_max: 0.609, r_top_ohm: 75000, r_top_tol_pct: 0.1, r_bottom_ohm: 10000, r_bottom_tol_pct: 0.1, r_top_tcr_ppm_per_C: 25, r_bottom_tcr_ppm_per_C: 25, resistor_temperature_delta_C: 0}
+    margin: 0.05
+    steady_state_ceiling_V: 5.25
+    steady_state_variation_high_mV: 50
+    steady_state_variation_basis: engineering_allocation
+    steady_state_variation_evidence: "50 mV reserved above the 5.18565 V feedback corner for ripple and load release; first article must capture all-port release"
+  - name: P5V_BANK_B
+    stage: conversion
+    vin_min: 19.0
+    vin_max: 21.0
+    vout_min: 5.01464
+    vout_max: 5.18565
+    iout_max_A: 4.0
+    converter: TPS56637RPAR
+    eff: 0.90
+    external_output: false
+    feedback: {vref_min: 0.591, vref_max: 0.609, r_top_ohm: 75000, r_top_tol_pct: 0.1, r_bottom_ohm: 10000, r_bottom_tol_pct: 0.1, r_top_tcr_ppm_per_C: 25, r_bottom_tcr_ppm_per_C: 25, resistor_temperature_delta_C: 0}
+    margin: 0.05
+    steady_state_ceiling_V: 5.25
+    steady_state_variation_high_mV: 50
+    steady_state_variation_basis: engineering_allocation
+    steady_state_variation_evidence: "50 mV reserved above the 5.18565 V feedback corner for ripple and load release; first article must capture all-port release"
+  - name: 3V3_MAIN
+    stage: conversion
+    vin_min: 19.0
+    vin_max: 21.0
+    vout_min: 3.27
+    vout_max: 3.33
+    iout_max_A: 0.60
+    converter: AP63203QWU-7
+    eff: 0.85
+    external_output: false
+  - name: VBUS1_SW
+    input_parent: P5V_BANK_A
+    stage: distribution
+    vin_min: 4.965
+    vin_max: 5.25
+    vout_min: 4.965
+    vout_max: 5.25
+    iout_max_A: 2.0
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports_2a
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 90
+    ir_budget_components_mohm:
+      protection_switch: {value: 49.5, basis: maximum, evidence: "TPS259470A 45 mOhm catalog maximum plus TPS259827O 4.5 mOhm maximum at 125 C"}
+      pcb_copper_vias_joints: {value: 10.5, basis: budgeted_max, evidence: "pre-layout allocation; four-wire first-article measurement and post-route resistance extraction required"}
+      mated_power_contacts: {value: 30, basis: qualified_max, evidence: "GCT USB1130 Revision E maximum initial contact resistance"}
+    margin: 0.18
+    distribution: {series_devices: [TPS259827ONRGET, TPS259470ARPWR], path_resistance_max_mohm: 90, current_limit_min_A: 2.080, current_limit_max_A: 2.646, reverse_current_policy: "TPS259470A true reverse-current blocking at all times"}
+  - name: VBUS2_SW
+    input_parent: P5V_BANK_A
+    stage: distribution
+    vin_min: 4.965
+    vin_max: 5.25
+    vout_min: 4.965
+    vout_max: 5.25
+    iout_max_A: 2.0
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports_2a
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 90
+    ir_budget_components_mohm:
+      protection_switch: {value: 49.5, basis: maximum, evidence: "TPS259470A 45 mOhm catalog maximum plus TPS259827O 4.5 mOhm maximum at 125 C"}
+      pcb_copper_vias_joints: {value: 10.5, basis: budgeted_max, evidence: "pre-layout allocation; four-wire first-article measurement and post-route resistance extraction required"}
+      mated_power_contacts: {value: 30, basis: qualified_max, evidence: "GCT USB1130 Revision E maximum initial contact resistance"}
+    margin: 0.18
+    distribution: {series_devices: [TPS259827ONRGET, TPS259470ARPWR], path_resistance_max_mohm: 90, current_limit_min_A: 2.080, current_limit_max_A: 2.646, reverse_current_policy: "TPS259470A true reverse-current blocking at all times"}
+  - name: VBUS3_SW
+    input_parent: P5V_BANK_B
+    stage: distribution
+    vin_min: 4.965
+    vin_max: 5.25
+    vout_min: 4.965
+    vout_max: 5.25
+    iout_max_A: 2.0
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports_2a
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 90
+    ir_budget_components_mohm:
+      protection_switch: {value: 49.5, basis: maximum, evidence: "TPS259470A 45 mOhm catalog maximum plus TPS259827O 4.5 mOhm maximum at 125 C"}
+      pcb_copper_vias_joints: {value: 10.5, basis: budgeted_max, evidence: "pre-layout allocation; four-wire first-article measurement and post-route resistance extraction required"}
+      mated_power_contacts: {value: 30, basis: qualified_max, evidence: "GCT USB1130 Revision E maximum initial contact resistance"}
+    margin: 0.18
+    distribution: {series_devices: [TPS259827ONRGET, TPS259470ARPWR], path_resistance_max_mohm: 90, current_limit_min_A: 2.080, current_limit_max_A: 2.646, reverse_current_policy: "TPS259470A true reverse-current blocking at all times"}
+  - name: VBUS4_SW
+    input_parent: P5V_BANK_B
+    stage: distribution
+    vin_min: 4.965
+    vin_max: 5.25
+    vout_min: 4.965
+    vout_max: 5.25
+    iout_max_A: 2.0
+    eff: 0.99
+    external_output: true
+    claim_id: usb_downstream_ports_2a
+    load_uv_threshold: 4.75
+    ir_budget_mohm: 90
+    ir_budget_components_mohm:
+      protection_switch: {value: 49.5, basis: maximum, evidence: "TPS259470A 45 mOhm catalog maximum plus TPS259827O 4.5 mOhm maximum at 125 C"}
+      pcb_copper_vias_joints: {value: 10.5, basis: budgeted_max, evidence: "pre-layout allocation; four-wire first-article measurement and post-route resistance extraction required"}
+      mated_power_contacts: {value: 30, basis: qualified_max, evidence: "GCT USB1130 Revision E maximum initial contact resistance"}
+    margin: 0.18
+    distribution: {series_devices: [TPS259827ONRGET, TPS259470ARPWR], path_resistance_max_mohm: 90, current_limit_min_A: 2.080, current_limit_max_A: 2.646, reverse_current_policy: "TPS259470A true reverse-current blocking at all times"}
