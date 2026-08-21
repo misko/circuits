@@ -1,179 +1,48 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Copy into a new project's
-# 03_src/rules/ and replace the values — the KEYS are the contract.
-#
-# PCBA IS THE DELIVERABLE (see pcb-design/SKILL.md). This file is the ONE
-# machine-readable home for "who gets placed, and why not". The ASSEMBLY gate
-# battery reads it:
-#   A-POP   — the population set is DECLARED, not emergent:
-#             {board footprints} − {CPL designators} MUST equal `not_assembled`
-#             (`assembly_coverage.py <proj>`)
-#   A-STOCK — a release seals only against stock evidence that PASSES, or a
-#             `sourcing_plan:` entry naming the measured stock and its date
-#             (`release_freshness_check.py <release_dir>` check (e))
-#   A-ROT   — PLANNED, held 2026-07-25: every CPL rotation MEASURED, never
-#             inherited. Held because `jlc_twin.xform()` has a handedness bug
-#             that NEGATED every reported offset (see design-policies.md
-#             "Assembly"). This file will supply the not-assembled set so
-#             coded-but-unplaced parts are still checked when it lands.
-#
-# WHY THIS FILE EXISTS. Before it, "not assembled" was a SENTENCE in the release
-# MANIFEST that no code read, and the two artifacts disagreed in the field:
-#   - cooksense v1.1 sealed with 13 CPL placement rows whose BOM line has a
-#     BLANK LCSC. Its MANIFEST declares 12 of them not_assembled (the 13th,
-#     J_TC, is declared nowhere) — so JLC was told to PLACE 12 parts the
-#     manifest says are not assembled, and to source a part with no code.
-#   - the cooksense interposer v1.0 sealed with a blank-LCSC BOM row whose refs
-#     are ALSO on the CPL, no not_assembled line at all, and a disposition that
-#     is PROSE telling a human to delete rows before uploading. Every gate green.
-# An unpopulated part is a DEFECT WITH A DECISION RECORD, never a free outcome.
-#
-# THE MANIFEST `not_assembled:` LINE IS GENERATED FROM THIS FILE. Never hand-write
-# it in two places — that is how the two drifted apart in the first place.
+schema: 1
+service: "JLCPCB double-sided SMT assembly plus post-through-hole assembly for two USB-C receptacles; four 3 A USB-A receptacles are fitted manually or by consignment"
+sides: [top, bottom]
+fiducials: "three top-side global fiducials; exact positions belong to floorplan"
+build_quantity: 5
 
-# ---- SERVICE DECLARATION (required; declaration-only until the capability
-# reference is fetched — do NOT gate on numbers written from memory) ----------
-service: standard          # JLC assembly service tier, as ORDERED
-sides: [top, bottom]       # inherited functional density; placement must justify every bottom-side part
-                           # COST and process decision, not a layout convenience.
-fiducials: none            # `none` + the fab's own statement, or a count/type.
-                           # JLC adds fiducials for SMT orders on their rails;
-                           # LOCAL fiducials beside <=0.4mm-pitch parts are YOUR
-                           # job and cannot be added later. Silence is not allowed:
-                           # state `none` deliberately or declare what you placed.
-build_quantity: 5          # quantity-expanded JLC PCBA checks bind to this
+pcb_process: "JLC four-layer advanced; selective Type VII fill/cap required by TPS259827 split-pad via-in-pad lands"
+via_process:
+  ipc_4761: type_vii_filled_and_capped
+  fill_material: copper_paste
+  selection: drill_family_order_selector
+  source: "03_src/floorplan.yaml thermal_vias plus 03_src/route.yaml stitch.protect_via_family over the realized routed board"
+  protected_geometry: {via_diameter_mm: 0.46, drill_mm: 0.20}
+  fabricator_selector:
+    kind: drill_family
+    protected_drill_mm: 0.20
+    ordinary_drill_mm: [0.30]
+  ordinary_vias: "0.30 mm reserved ordinary family; expected final count is zero"
+  uploader_confirmation_required: true
+  order_remark: >-
+    Fill and copper-cap the complete 0.20 mm drill family: the v0.1.0 exact
+    routed-board census is 578 protected 0.46/0.20 mm vias and zero ordinary
+    vias. The 0.30 mm ordinary family is reserved but absent. Confirm the 578/0
+    counts and this selective drill-family process before payment.
 
-# ---- SELECTIVE VIA-IN-PAD PROCESS (required when any via centre is in an SMT
-# land, or any board via carries native fill/cap flags) ----------------------
-# Electrical DRC deliberately permits same-net overlap; it does NOT approve an
-# open barrel beneath solder paste. `via_process_check.py` independently scans
-# the exact final board, requires every via-in-pad site filled+capped, and
-# refuses native KiCad protection flags unless the order contract can select a
-# drill family disjoint from ordinary vias. Do not rely on item flags alone:
-# Gerber/drill outputs do not carry them to the fabricator.
-# pcb_process: "JLC advanced; selective filled/capped via-in-pad"
-# via_process:
-#   ipc_4761: type_vii_filled_and_capped
-#   fill_material: copper_paste
-#   selection: item_level_source_plus_drill_family_order_selector
-#   source: "03_src/floorplan.yaml thermal_vias.protection"
-#   protected_geometry: {via_diameter_mm: 0.45, drill_mm: 0.25}
-#   fabricator_selector:
-#     kind: drill_family
-#     protected_drill_mm: 0.25
-#     ordinary_drill_mm: [0.20, 0.30]
-#   ordinary_vias: "ordinary drill families inherit board defaults; no fill/cap"
-#   order_remark: >-
-#     Fill and copper-cap the complete 0.25 mm drill family only. Do not fill
-#     or cap ordinary 0.20 mm or 0.30 mm drill routing/stitching vias.
-#   uploader_confirmation_required: true
+through_hole:
+  process: "JLCPCB mixed-technology/post-through-hole connector assembly"
+  refs: [J_DATA, J_POWER]
+  evidence: >-
+    J_DATA and J_POWER have SMT signal contacts plus plated retention lands.
+    The uploader preview must retain exact code, side, rotation, contact
+    population and retention lands for both refs.
 
-# ---- NOT ASSEMBLED (the population set) ------------------------------------
-# Every ref here MUST also carry FP_EXCLUDE_FROM_POS_FILES on the board, so it
-# leaves the CPL. Declaring it here but leaving it on the CPL is a FAIL: the
-# declaration and the machine instruction must agree.
-#
-# `reason:` is a CLOSED VOCABULARY — if none fits, the honest answer is that the
-# part should be re-specified to a placeable one:
-#   not_in_catalog  JLC does not carry it. `evidence:` = the catalog query + result.
-#   consign         YOU ship the part, JLC PLACES it. NOTE: consigned parts are
-#                   POPULATED — they stay ON the CPL and belong in `consigned:`
-#                   below, NOT here. Listing a consigned part as not_assembled
-#                   conflates a sourcing class with a population class.
-#   user_supplied   fitted by the end user after delivery (fuse element, jumper).
-#   dnp_by_design   footprint deliberately unstuffed (option strap, alt-BOM).
-#   mechanical      no electrical function (standoff, shield can pad).
-#   test_point      probe pad with no part.
-#
-# `evidence:` must be a DATED MEASUREMENT, not a rationale. "hand-solder" is a
-# sourcing wall you PROVE you hit — a searched-and-absent catalog result — not a
-# style preference.
-#
-# OPTIONAL per entry: `lcsc:` — the code of a part that IS in the catalog but
-# is deliberately not placed (a user-fitted fuse element, a DNP option strap).
-# `jlc_twin --assembly` reads it and checks/renders those bodies, which is what
-# `--also REF=LCSC` used to be hand-typed for. One home, no drift.
-#
-# OPTIONAL per entry: `on_bom: false` — the part leaves the ASSEMBLY BOM as well
-# as the CPL. Default is true: not being PLACED and not being SOURCED are
-# different decisions, and most unplaced parts still ship with the order.
-# `export_jlc_package.py` reads it and drops the row; a ref that is both
-# `on_bom: false` and on the CPL BLOCKS the export (exit 4), because that is
-# the dangerous inversion — JLC told to place a part with no line to source it.
-#
-#   USE IT when JLC is asked NEITHER to place NOR to source the part: you supply
-#   it and hand-solder it. A row JLC cannot match (blank LCSC, or a consign-only
-#   placeholder code at stock 0) stalls the WHOLE upload at its BOM/CPL matcher —
-#   crow-mic-pod-v2 v1.0 shipped MK1 with its MPN *and* LCSC both empty.
-#   DO NOT USE IT when the part ships with the order and is merely hand-fitted:
-#   usb-hub-3s-v3's F1 fuse HOLDER is `user_supplied`, coded, stocked, and STAYS
-#   on the BOM (only the fuse ELEMENT is bought locally).
-#   That contrast is why this is its own key and NOT inferred from `reason:` —
-#   both boards say `user_supplied` and want opposite BOM answers.
-#
-#   HISTORY: crow-mic-pod-v2 v1.1 made this removal by EDITING fab/bom.csv, so
-#   the sealed BOM was not reproducible from source (canon M3) — re-running the
-#   exporter put both rows straight back. The key landed at v1.3 (2026-07-27).
 not_assembled:
-  # - refs: [K_U1, K_U2, K_U3]
-  #   reason: not_in_catalog
-  #   evidence: "LCSC search 'DIP05-1A72-12L' 2026-07-24 -> 0 results; Standex
-  #              reed relay, DO-NOT-SUBSTITUTE per part.yaml (contact rating is
-  #              the safety argument). JLC parts library queried same day."
-  #   disposition: "hand-soldered at integration; ORDER_README section 3 lists them"
-  # - refs: [F1]
-  #   reason: user_supplied
-  #   lcsc: C5249699
-  #   evidence: "10A MINI blade fuse ELEMENT is user-fitted; the HOLDER (C5249699)
-  #              IS assembled. Checked 2026-07-23."
-  #   disposition: "purchasing list ships the element loose"
-  # - refs: [H1, H2, H3, H4]
-  #   reason: mechanical
-  #   evidence: "M3 mounting holes, no footprint pads with nets (board 2026-07-24)"
-  #   disposition: "n/a"
-  # - refs: [TP1, TP2]
-  #   reason: test_point
-  #   evidence: "bare probe pads, no part (board 2026-07-24)"
-  #   disposition: "n/a"
-
-# ---- CONSIGNED (you supply, JLC PLACES — these stay ON the CPL) -------------
-# A consigned part is ASSEMBLED. It needs the same rotation rigor as any other
-# placed part — more, in fact: crow-recorder-central-v2 v1.2 shipped its
-# CONSIGNED 0.4mm-pitch TQFP-128 at CPL 270 when the twin measured 90 (180 deg
-# off), and consigned parts are the ones you cannot cheaply replace.
-#
-# `msl:` is REQUIRED for consigned parts and for any part with an exposed pad:
-# JLC cannot bake what they do not know is moisture-sensitive. Read it from the
-# datasheet (a fourth datasheet read, budgeted at part selection) and cite it.
-# crow-recorder-central v1.0 shipped a consigned MSL-3 XU316 with zero MSL text
-# in the order paperwork while its own part.yaml recorded "MSL 3, 168h floor life".
-consigned:
-  # - refs: [U1]
-  #   lcsc: C6938291
-  #   msl: "MSL 3, 168h floor life (XMOS XU316 ds v2.0.0 sec.15.2, read 2026-07-23)"
-  #   evidence: "supplied from stock on hand, 5 pcs, 2026-07-24"
-  #   disposition: "ORDER_README section 1b: ship with the order, bake if floor
-  #                 life exceeded; JLC places"
-
-# ---- SOURCING PLAN (justifies a non-OK stock line at seal time) -------------
-# A-STOCK fails on any coded, placed line whose stock evidence is not OK unless
-# it appears here with a MEASURED number and a date. Five sealed releases in this
-# fleet shipped stock evidence whose last line says FAIL — including one with the
-# board's own CPU at stock 0 — because nothing ever read the verdict.
-sourcing_plan:
-  # - lcsc: C6938291
-  #   measured_stock: 0
-  #   measured_on: 2026-07-24
-  #   plan: "consigned from stock on hand (see consigned: U1); JLC stock
-  #          irrelevant for this line"
-  # - lcsc: C2939728
-  #   measured_stock: 120
-  #   measured_on: 2026-07-24
-  #   plan: "120 >= 5 boards x 1; single-source, no alternate qualified — accept
-  #          for this build, qualify an alternate before any volume order"
-
-# ---- EXEMPT REFDES CLASSES -------------------------------------------------
-# Refdes prefixes whose absence from the CPL is expected and needs no per-ref
-# entry above. DECLARED, never hardcoded in the checker: hardcoding an exemption
-# is how the refdes-on-silk waiver became an inherited defect across three boards.
-# Keep this list SHORT and justify additions in the project's assembly ADR.
+  - refs: [J_PORT1, J_PORT2, J_PORT3, J_PORT4]
+    reason: process_incompatible
+    on_bom: false
+    twin_body:
+      source: board
+    evidence: >-
+      The exact GCT USB1130-15-A is required for its documented 3 A contact
+      rating. Its JLC catalogue line did not meet the +200 stock-surplus rule;
+      authorized-distributor public stock exceeded the rule on 2026-08-20.
+    disposition: >-
+      Procure and hand-fit four exact USB1130-15-A receptacles after PCBA, or
+      consign the same MPN to JLCPCB. Verify seating, pin continuity, shell
+      joints and orientation before powered test.
 exempt_prefixes: [H, TP, FID, MH]

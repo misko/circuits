@@ -52,6 +52,14 @@ C58827: {mpn: 0402WGF2103TCE, value: "210k", verified: "2026-08-18 JLC exact-cod
 C163486: {mpn: RC0402FR-07187KL, value: "187k", verified: "2026-08-18 LCSC exact-code product page and JLC exact-code stock check: YAGEO RC0402FR-07187KL, 187kOhm +/-1%, 0402, catalog stock 6092. Selected as the largest value inside TI TPS2557's recommended 20k-187k ILIM range; catalog stock is necessary but not an order allocation."}
 C23071: {mpn: 0603WAF5901T5E, value: "5.9k", verified: "2026-08-18 JLC exact-code API row captured in usb-controlled-debug-hub-v2 power_hardening_candidates_report.csv: UNI-ROYAL 0603WAF5901T5E, 5.9k, 0603, stock 70175. Ordering field 5901 independently decodes to 5.90kOhm."}
 
+# USB controlled debug hub 2 A architecture values. Public exact-code JLC
+# product pages were cross-checked by the live catalog stock probe on
+# 2026-08-20; these records are value identity, not PCBA allocation evidence.
+C107229: {mpn: RC0402FR-0751KL, value: "51k", verified: "2026-08-20 JLC exact-code product page: YAGEO RC0402FR-0751KL, 51k +/-1%, 0402; live catalog probe stock 715573, MOQ 1."}
+C178086: {mpn: RCT031K4FLF, value: "1.4k", verified: "2026-08-20 JLC exact-code product page: HKR RCT031K4FLF, 1.4k +/-1% +/-100ppm/C, 0603; live catalog probe stock 19068, MOQ 1."}
+C352384: {mpn: AECR0402F910KK9, value: "910k", verified: "2026-08-20 JLC exact-code product page: RESI AECR0402F910KK9, 910k +/-1% +/-100ppm/C, 0402; live catalog probe stock 22, MOQ 1."}
+C25800: {mpn: 0402WGF9103TCE, value: "910k", verified: "2026-08-20 JLC public catalogue exact-code query: UNI-ROYAL 0402WGF9103TCE, 910k +/-1%, 0402; live stock 42065. Selected to replace low-stock C352384 before footprint freeze."}
+
 C1523: {mpn: 0402B102K500NT, value: "1nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C1525: {mpn: CL05B104KO5NNNC, value: "100nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}
 C1538: {mpn: 0402B472K500NT, value: "4.7nF", verified: "2026-07-23 JLC catalog (selectSmtComponentList describe)"}

@@ -30,7 +30,7 @@ created by this project.
 | G4 | USB-C DATA carries USB 2.0 upstream data but cannot power or back-power the board | inherited v2 safety contract | pending parity |
 | G5 | USB-C POWER carries power/PD only and requires a 20 V, 3 A fixed PDO | D2 | architecture candidate |
 | G6 | Preserve already-purchased/high-cost v2 parts unless a measured rating, sourcing or topology incompatibility forces a change | user directive | reuse audit in progress |
-| G7 | JLCPCB PCBA target; early exact-part, allocation, MOQ and surplus-cost gates precede placement | user history + pipeline | pending preliminary BOM |
+| G7 | JLCPCB PCBA target; fresh exact-code public stock must clear required quantity +200 before placement; final uploader allocation/economics remain mandatory | user directive + D6 | pre-layout accepted |
 | G8 | Generate no firmware, descriptor image or host utility | standing user directive | locked |
 
 ## Spec tensions
@@ -67,15 +67,20 @@ None — this board does not mate to hardware this repository did not design.
 
 | Function | Candidate disposition |
 |---|---|
-| USB2517I hub, MCP2221A management bridge, MCP23017 expander | reuse unchanged, re-run exact pin/topology gates |
-| Four FSUSB42 data switches, logic interlocks and USB ESD | reuse unchanged unless exact sourcing gate fails |
+| USB2517I hub, MCP2221A management bridge, MCP23017 expander | retain function; use the higher-stock MCP2221A-I/ST package and re-run exact pin/topology gates |
+| Four FSUSB42 data switches, logic interlocks and USB ESD | retain topology; use the higher-stock pin-compatible PESD2USB5UX-TR array |
 | CH224K PD controller and TYPE-C-31-M-12 receptacles | reuse; change hardware strap to 20 V and re-prove input network |
 | TPS56637RPAR + MWSA0804S-3R3MT | reuse as two identical 6 A cells; one cell per two-port bank |
 | TPS259470ARPWR port eFuses | reuse; change ILIM programming for a guaranteed >2 A service threshold below the 3 A connector rating |
-| TPS259804ONRGER aggregate eFuse | reuse one per 5 V bank; thresholds and timers must be re-derived |
+| TPS259827ONRGET aggregate eFuse | use the pin-compatible, higher-stock no-OVLO circuit-breaker variant on each 5 V bank; thresholds and timers are independently re-derived |
 | AP63203QWU-7 3.3 V supply | reuse; leading topology moves its input to the negotiated 20 V rail to keep control load off the 5 V port banks |
 | KH-AF90DIP-112 USB-A | do not reuse for a 2 A claim; no authoritative current rating |
 | TVS1800 and the 15 V input divider | incompatible with 20 V; replace only this protection boundary |
+
+All machine-assembled exact codes must pass the pre-layout public-stock floor
+`stock >= quantity-five requirement + 200`. Manual/consigned exact parts need
+separate authorized-distributor evidence and remain subject to order-time
+allocation or physical procurement.
 
 ## Log
 
@@ -102,6 +107,11 @@ None — this board does not mate to hardware this repository did not design.
   already require this tier.
 - **A1 — build quantity (2026-08-20).** Use five boards for early JLC quantity,
   MOQ and surplus-cost checks until the user supplies the actual order count.
+- **D6 — public-catalog pre-layout acceptance (2026-08-20).** The user accepts
+  the fresh 50/50 `required + 200` public-stock check as sufficient to begin
+  footprint/floorplan work. This does not authorize procurement or replace
+  final uploader allocation/economics/BOM-echo review; the board remains
+  DO-NOT-ORDER until those order-time gates close (ADR 0003).
 
 ## Decision register
 
@@ -112,3 +122,4 @@ None — this board does not mate to hardware this repository did not design.
 | D3 | GCT USB1130-15-A replaces unrated KH-AF90DIP-112 | rating boundary | ADR 0001 |
 | D4 | Re-open 20 V input protection | rating boundary | ADR 0001 |
 | D5 | JLC four-layer advanced starting tier | retained package escape | ADR 0001 |
+| D6 | Accept exact-code `required + 200` public stock for pre-layout only | explicit user directive | ADR 0003 |

@@ -1,0 +1,17 @@
+mpn: CL05B104KO5NNNC
+manufacturer: Samsung Electro-Mechanics
+type: ceramic_capacitor
+value: 100n
+status: active
+datasheet: {doc_id: CL05B104KO5NNNC-SPEC, revision: "generated product specification", url: "https://product.samsungsem.com/mlcc/CL05B104KO5NNNC.do", local: CL05B104KO5NNNC-spec.pdf, sha256: 4f5a2dcf3dcb4c183cd55320ac4b1b050bbc89f066a0ce86353ece3e56294afd, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Capacitor_SMD:C_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact Samsung dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {capacitance: 100nF, tolerance: 10pct, rated_voltage: 16V, dielectric: X7R, dimensions_mm: [1.0, 0.5]}
+gotchas: ["This exact row is the standard local high-frequency bypass and port-output high-frequency capacitor. Place each instance at its named IC or connector-side supply node."]
+verified: "Exact Samsung product specification p.1 checked for MPN, 100nF, 16V, X7R, tolerance and 0402 dimensions on 2026-08-14."
+layout: {source: "selected IC manufacturer checklists and datasheets", reviewed: 2026-08-15, notes: ["Close the local power-pin loop before signal escape; keep port-output instances at their TPS2557 or receptacle load node."]}
+sourcing: {lcsc: C1525, alternates: []}
+asserts:
+  - {assert: value, equals: 100n, why: "High-frequency bypass value is part of the reviewed support network."}

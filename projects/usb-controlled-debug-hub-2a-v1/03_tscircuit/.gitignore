@@ -1,0 +1,4 @@
+dist/
+.tscircuit/
+node_modules/
+tsx_build/

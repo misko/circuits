@@ -1,0 +1,1707 @@
+ERC report (2026-08-20T11:23:01, Encoding UTF8)
+Report includes: Errors, Warnings, Exclusions
+
+***** Sheet /
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(31.75 mm, 162.56 mm): Symbol #PWR67 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(31.75 mm, 165.10 mm): Symbol #PWR68 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(31.75 mm, 167.64 mm): Symbol #PWR69 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(39.37 mm, 351.79 mm): Symbol #PWR139 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(39.37 mm, 354.33 mm): Symbol #PWR140 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(39.37 mm, 367.03 mm): Symbol #PWR141 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(39.37 mm, 369.57 mm): Symbol #PWR142 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(39.37 mm, 372.11 mm): Symbol #PWR143 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SON'
+    ; warning
+    @(41.91 mm, 166.37 mm): Symbol D_PD_TVS [SYM_D_PD_TVS]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(41.91 mm, 166.37 mm): Symbol D_PD_TVS [SYM_D_PD_TVS]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(41.91 mm, 317.50 mm): Symbol R_PWR_EN1 [SYM_R_PWR_EN1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(41.91 mm, 317.50 mm): Symbol R_PWR_EN1 [SYM_R_PWR_EN1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(43.18 mm, 107.95 mm): Symbol C_HUB_DD [SYM_C_HUB_DD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(43.18 mm, 107.95 mm): Symbol C_HUB_DD [SYM_C_HUB_DD]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(43.18 mm, 262.89 mm): Symbol R_DIS6P [SYM_R_DIS6P]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(43.18 mm, 262.89 mm): Symbol R_DIS6P [SYM_R_DIS6P]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_TO_SOT_SMD'
+    ; warning
+    @(43.18 mm, 403.86 mm): Symbol U_ESD4 [SYM_U_ESD4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(43.18 mm, 403.86 mm): Symbol U_ESD4 [SYM_U_ESD4]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(44.45 mm, 134.62 mm): Symbol C_PORT2_HF [SYM_C_PORT2_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(44.45 mm, 134.62 mm): Symbol C_PORT2_HF [SYM_C_PORT2_HF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(44.45 mm, 290.83 mm): Symbol R_ILIM_CTRL [SYM_R_ILIM_CTRL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(44.45 mm, 290.83 mm): Symbol R_ILIM_CTRL [SYM_R_ILIM_CTRL]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(46.99 mm, 26.67 mm): Symbol C_AGG_A_DVDT [SYM_C_AGG_A_DVDT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(46.99 mm, 26.67 mm): Symbol C_AGG_A_DVDT [SYM_C_AGG_A_DVDT]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(46.99 mm, 209.55 mm): Symbol R_AGG_A_ILIM [SYM_R_AGG_A_ILIM]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(46.99 mm, 209.55 mm): Symbol R_AGG_A_ILIM [SYM_R_AGG_A_ILIM]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(49.53 mm, 81.28 mm): Symbol C_CTRL_VUSB [SYM_C_CTRL_VUSB]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(49.53 mm, 81.28 mm): Symbol C_CTRL_VUSB [SYM_C_CTRL_VUSB]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(49.53 mm, 236.22 mm): Symbol R_CTRL_RESET [SYM_R_CTRL_RESET]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(49.53 mm, 236.22 mm): Symbol R_CTRL_RESET [SYM_R_CTRL_RESET]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(49.53 mm, 359.41 mm): Symbol U_AGG_A [SYM_U_AGG_A]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(49.53 mm, 359.41 mm): Symbol U_AGG_A [SYM_U_AGG_A]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(52.07 mm, 167.64 mm): Symbol #PWR70 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(52.07 mm, 317.50 mm): Symbol #PWR127 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub'
+    ; warning
+    @(53.34 mm, 53.34 mm): Symbol C_BANK_B_POLY [SYM_C_BANK_B_POLY]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(53.34 mm, 53.34 mm): Symbol C_BANK_B_POLY [SYM_C_BANK_B_POLY]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(53.34 mm, 107.95 mm): Symbol #PWR39 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(53.34 mm, 402.59 mm): Symbol #PWR173 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(55.88 mm, 134.62 mm): Symbol #PWR53 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(55.88 mm, 290.83 mm): Symbol #PWR119 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(59.69 mm, 26.67 mm): Symbol #FLG01 [PWR_FLAG]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(59.69 mm, 26.67 mm): Symbol #PWR01 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(59.69 mm, 209.55 mm): Symbol #PWR93 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(59.69 mm, 344.17 mm): Symbol #PWR144 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(59.69 mm, 374.65 mm): Symbol #PWR145 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(60.96 mm, 81.28 mm): Symbol #PWR24 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(67.31 mm, 53.34 mm): Symbol #PWR14 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(96.52 mm, 317.50 mm): Symbol R_PWR_EN2 [SYM_R_PWR_EN2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(96.52 mm, 317.50 mm): Symbol R_PWR_EN2 [SYM_R_PWR_EN2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(100.33 mm, 107.95 mm): Symbol C_HUB_PLL [SYM_C_HUB_PLL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(100.33 mm, 107.95 mm): Symbol C_HUB_PLL [SYM_C_HUB_PLL]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Fuse'
+    ; warning
+    @(100.33 mm, 162.56 mm): Symbol F_PD [SYM_F_PD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(100.33 mm, 162.56 mm): Symbol F_PD [SYM_F_PD]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_TO_SOT_SMD'
+    ; warning
+    @(101.60 mm, 403.86 mm): Symbol U_ESD_UP [SYM_U_ESD_UP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(101.60 mm, 403.86 mm): Symbol U_ESD_UP [SYM_U_ESD_UP]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(102.87 mm, 262.89 mm): Symbol R_DIS7N [SYM_R_DIS7N]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(102.87 mm, 262.89 mm): Symbol R_DIS7N [SYM_R_DIS7N]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(105.41 mm, 134.62 mm): Symbol C_PORT3_BULK [SYM_C_PORT3_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(105.41 mm, 134.62 mm): Symbol C_PORT3_BULK [SYM_C_PORT3_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(106.68 mm, 317.50 mm): Symbol #PWR128 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(107.95 mm, 290.83 mm): Symbol R_NONREM0 [SYM_R_NONREM0]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(107.95 mm, 290.83 mm): Symbol R_NONREM0 [SYM_R_NONREM0]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(110.49 mm, 107.95 mm): Symbol #PWR40 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(111.76 mm, 81.28 mm): Symbol C_DATA1 [SYM_C_DATA1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(111.76 mm, 81.28 mm): Symbol C_DATA1 [SYM_C_DATA1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(111.76 mm, 351.79 mm): Symbol #PWR146 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(111.76 mm, 354.33 mm): Symbol #PWR147 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(111.76 mm, 367.03 mm): Symbol #PWR148 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(111.76 mm, 369.57 mm): Symbol #PWR149 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(111.76 mm, 372.11 mm): Symbol #PWR150 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(111.76 mm, 402.59 mm): Symbol #PWR174 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(113.03 mm, 26.67 mm): Symbol C_AGG_A_IN [SYM_C_AGG_A_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(113.03 mm, 26.67 mm): Symbol C_AGG_A_IN [SYM_C_AGG_A_IN]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(114.30 mm, 209.55 mm): Symbol R_AGG_B_ILIM [SYM_R_AGG_B_ILIM]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(114.30 mm, 209.55 mm): Symbol R_AGG_B_ILIM [SYM_R_AGG_B_ILIM]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(115.57 mm, 236.22 mm): Symbol R_DATA_CMD1 [SYM_R_DATA_CMD1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(115.57 mm, 236.22 mm): Symbol R_DATA_CMD1 [SYM_R_DATA_CMD1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(118.11 mm, 134.62 mm): Symbol #PWR54 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(119.38 mm, 53.34 mm): Symbol C_BST [SYM_C_BST]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(119.38 mm, 53.34 mm): Symbol C_BST [SYM_C_BST]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(120.65 mm, 81.28 mm): Symbol #PWR25 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(121.92 mm, 359.41 mm): Symbol U_AGG_B [SYM_U_AGG_B]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(121.92 mm, 359.41 mm): Symbol U_AGG_B [SYM_U_AGG_B]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(124.46 mm, 26.67 mm): Symbol #PWR02 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(127.00 mm, 209.55 mm): Symbol #PWR94 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(127.00 mm, 236.22 mm): Symbol #PWR104 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(132.08 mm, 344.17 mm): Symbol #PWR151 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(132.08 mm, 374.65 mm): Symbol #PWR152 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(152.40 mm, 162.56 mm): Symbol #PWR71 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(152.40 mm, 180.34 mm): Symbol #PWR72 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(152.40 mm, 182.88 mm): Symbol #PWR73 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(152.40 mm, 317.50 mm): Symbol R_PWR_EN3 [SYM_R_PWR_EN3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(152.40 mm, 317.50 mm): Symbol R_PWR_EN3 [SYM_R_PWR_EN3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(152.40 mm, 425.45 mm): Symbol #PWR175 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(161.29 mm, 107.95 mm): Symbol C_HUB_RESET [SYM_C_HUB_RESET]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(161.29 mm, 107.95 mm): Symbol C_HUB_RESET [SYM_C_HUB_RESET]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(161.29 mm, 172.72 mm): Symbol J_DATA [SYM_J_DATA]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(161.29 mm, 172.72 mm): Symbol J_DATA [SYM_J_DATA]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(161.29 mm, 262.89 mm): Symbol R_DIS7P [SYM_R_DIS7P]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(161.29 mm, 262.89 mm): Symbol R_DIS7P [SYM_R_DIS7P]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(161.29 mm, 419.10 mm): Symbol U_EXP [SYM_U_EXP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(161.29 mm, 419.10 mm): Symbol U_EXP [SYM_U_EXP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(162.56 mm, 317.50 mm): Symbol #PWR129 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(166.37 mm, 81.28 mm): Symbol C_DATA2 [SYM_C_DATA2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(166.37 mm, 81.28 mm): Symbol C_DATA2 [SYM_C_DATA2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(166.37 mm, 134.62 mm): Symbol C_PORT3_HF [SYM_C_PORT3_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(166.37 mm, 134.62 mm): Symbol C_PORT3_HF [SYM_C_PORT3_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(170.18 mm, 177.80 mm): Symbol #PWR74 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(170.18 mm, 180.34 mm): Symbol #PWR75 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(170.18 mm, 402.59 mm): Symbol #PWR176 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(170.18 mm, 405.13 mm): Symbol #PWR177 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(170.18 mm, 407.67 mm): Symbol #PWR178 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(171.45 mm, 53.34 mm): Symbol C_BST_A [SYM_C_BST_A]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(171.45 mm, 53.34 mm): Symbol C_BST_A [SYM_C_BST_A]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(171.45 mm, 290.83 mm): Symbol R_NONREM1 [SYM_R_NONREM1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(171.45 mm, 290.83 mm): Symbol R_NONREM1 [SYM_R_NONREM1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(172.72 mm, 107.95 mm): Symbol #PWR41 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(175.26 mm, 81.28 mm): Symbol #PWR26 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(177.80 mm, 134.62 mm): Symbol #PWR55 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(177.80 mm, 209.55 mm): Symbol R_BOOST0 [SYM_R_BOOST0]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(177.80 mm, 209.55 mm): Symbol R_BOOST0 [SYM_R_BOOST0]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(177.80 mm, 236.22 mm): Symbol R_DATA_CMD2 [SYM_R_DATA_CMD2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(177.80 mm, 236.22 mm): Symbol R_DATA_CMD2 [SYM_R_DATA_CMD2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(177.80 mm, 359.41 mm): Symbol #PWR153 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(180.34 mm, 26.67 mm): Symbol C_AGG_A_TIMER [SYM_C_AGG_A_TIMER]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(180.34 mm, 26.67 mm): Symbol C_AGG_A_TIMER [SYM_C_AGG_A_TIMER]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(181.61 mm, 290.83 mm): Symbol #PWR120 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(187.96 mm, 209.55 mm): Symbol #PWR95 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(189.23 mm, 236.22 mm): Symbol #PWR105 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(189.23 mm, 351.79 mm): Symbol U_AND_DATA [SYM_U_AND_DATA]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(189.23 mm, 351.79 mm): Symbol U_AND_DATA [SYM_U_AND_DATA]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(194.31 mm, 26.67 mm): Symbol #PWR03 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(207.01 mm, 317.50 mm): Symbol R_PWR_EN4 [SYM_R_PWR_EN4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(207.01 mm, 317.50 mm): Symbol R_PWR_EN4 [SYM_R_PWR_EN4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(217.17 mm, 317.50 mm): Symbol #PWR130 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(220.98 mm, 81.28 mm): Symbol C_DATA3 [SYM_C_DATA3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(220.98 mm, 81.28 mm): Symbol C_DATA3 [SYM_C_DATA3]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(222.25 mm, 53.34 mm): Symbol C_BST_B [SYM_C_BST_B]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(222.25 mm, 53.34 mm): Symbol C_BST_B [SYM_C_BST_B]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(223.52 mm, 165.10 mm): Symbol J_PORT1 [SYM_J_PORT1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(223.52 mm, 165.10 mm): Symbol J_PORT1 [SYM_J_PORT1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(223.52 mm, 262.89 mm): Symbol R_EXP_RESET [SYM_R_EXP_RESET]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(223.52 mm, 262.89 mm): Symbol R_EXP_RESET [SYM_R_EXP_RESET]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_DFN_QFN'
+    ; warning
+    @(226.06 mm, 443.23 mm): Symbol U_HUB [SYM_U_HUB]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(226.06 mm, 443.23 mm): Symbol U_HUB [SYM_U_HUB]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(227.33 mm, 134.62 mm): Symbol C_PORT4_BULK [SYM_C_PORT4_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(227.33 mm, 134.62 mm): Symbol C_PORT4_BULK [SYM_C_PORT4_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(229.87 mm, 81.28 mm): Symbol #PWR27 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(232.41 mm, 107.95 mm): Symbol C_MAIN_IN [SYM_C_MAIN_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(232.41 mm, 107.95 mm): Symbol C_MAIN_IN [SYM_C_MAIN_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(234.95 mm, 481.33 mm): Symbol #PWR179 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(236.22 mm, 162.56 mm): Symbol #PWR76 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(236.22 mm, 165.10 mm): Symbol #PWR77 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(236.22 mm, 290.83 mm): Symbol R_PD_IN_ILIM [SYM_R_PD_IN_ILIM]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(236.22 mm, 290.83 mm): Symbol R_PD_IN_ILIM [SYM_R_PD_IN_ILIM]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(240.03 mm, 134.62 mm): Symbol #PWR56 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(240.03 mm, 209.55 mm): Symbol R_BOOST1 [SYM_R_BOOST1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(240.03 mm, 209.55 mm): Symbol R_BOOST1 [SYM_R_BOOST1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(240.03 mm, 236.22 mm): Symbol R_DATA_CMD3 [SYM_R_DATA_CMD3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(240.03 mm, 236.22 mm): Symbol R_DATA_CMD3 [SYM_R_DATA_CMD3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(241.30 mm, 359.41 mm): Symbol #PWR154 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(242.57 mm, 107.95 mm): Symbol #PWR42 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(248.92 mm, 26.67 mm): Symbol C_AGG_B_DVDT [SYM_C_AGG_B_DVDT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(248.92 mm, 26.67 mm): Symbol C_AGG_B_DVDT [SYM_C_AGG_B_DVDT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(248.92 mm, 290.83 mm): Symbol #PWR121 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(250.19 mm, 209.55 mm): Symbol #PWR96 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(251.46 mm, 236.22 mm): Symbol #PWR106 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(251.46 mm, 351.79 mm): Symbol U_AND_PWR [SYM_U_AND_PWR]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(251.46 mm, 351.79 mm): Symbol U_AND_PWR [SYM_U_AND_PWR]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(259.08 mm, 317.50 mm): Symbol R_RBIAS [SYM_R_RBIAS]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(259.08 mm, 317.50 mm): Symbol R_RBIAS [SYM_R_RBIAS]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(261.62 mm, 26.67 mm): Symbol #PWR04 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(267.97 mm, 317.50 mm): Symbol #PWR131 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(275.59 mm, 81.28 mm): Symbol C_DATA4 [SYM_C_DATA4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(275.59 mm, 81.28 mm): Symbol C_DATA4 [SYM_C_DATA4]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(283.21 mm, 262.89 mm): Symbol R_FB_A_BOT [SYM_R_FB_A_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(283.21 mm, 262.89 mm): Symbol R_FB_A_BOT [SYM_R_FB_A_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(284.48 mm, 81.28 mm): Symbol #PWR28 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(288.29 mm, 53.34 mm): Symbol C_BUCK_A_IN1 [SYM_C_BUCK_A_IN1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(288.29 mm, 53.34 mm): Symbol C_BUCK_A_IN1 [SYM_C_BUCK_A_IN1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(288.29 mm, 134.62 mm): Symbol C_PORT4_HF [SYM_C_PORT4_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(288.29 mm, 134.62 mm): Symbol C_PORT4_HF [SYM_C_PORT4_HF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(288.29 mm, 165.10 mm): Symbol J_PORT2 [SYM_J_PORT2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(288.29 mm, 165.10 mm): Symbol J_PORT2 [SYM_J_PORT2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(294.64 mm, 262.89 mm): Symbol #PWR112 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_TO_SOT_SMD'
+    ; warning
+    @(297.18 mm, 405.13 mm): Symbol U_MAIN [SYM_U_MAIN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(297.18 mm, 405.13 mm): Symbol U_MAIN [SYM_U_MAIN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(299.72 mm, 134.62 mm): Symbol #PWR57 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(299.72 mm, 290.83 mm): Symbol R_PD_OV_BOT [SYM_R_PD_OV_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(299.72 mm, 290.83 mm): Symbol R_PD_OV_BOT [SYM_R_PD_OV_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(300.99 mm, 53.34 mm): Symbol #PWR15 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(300.99 mm, 107.95 mm): Symbol C_MAIN_OUT1 [SYM_C_MAIN_OUT1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(300.99 mm, 107.95 mm): Symbol C_MAIN_OUT1 [SYM_C_MAIN_OUT1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(300.99 mm, 162.56 mm): Symbol #PWR78 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(300.99 mm, 165.10 mm): Symbol #PWR79 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(302.26 mm, 236.22 mm): Symbol R_DATA_CMD4 [SYM_R_DATA_CMD4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(302.26 mm, 236.22 mm): Symbol R_DATA_CMD4 [SYM_R_DATA_CMD4]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(304.80 mm, 209.55 mm): Symbol R_BUCK_A_EN_BOT [SYM_R_BUCK_A_EN_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(304.80 mm, 209.55 mm): Symbol R_BUCK_A_EN_BOT [SYM_R_BUCK_A_EN_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(307.34 mm, 402.59 mm): Symbol #PWR180 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(311.15 mm, 290.83 mm): Symbol #PWR122 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(311.15 mm, 349.25 mm): Symbol #PWR155 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(312.42 mm, 107.95 mm): Symbol #PWR43 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(312.42 mm, 317.50 mm): Symbol R_SWAP1 [SYM_R_SWAP1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(312.42 mm, 317.50 mm): Symbol R_SWAP1 [SYM_R_SWAP1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(313.69 mm, 236.22 mm): Symbol #PWR107 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(314.96 mm, 26.67 mm): Symbol C_AGG_B_IN [SYM_C_AGG_B_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(314.96 mm, 26.67 mm): Symbol C_AGG_B_IN [SYM_C_AGG_B_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(320.04 mm, 209.55 mm): Symbol #PWR97 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(321.31 mm, 349.25 mm): Symbol U_BUCK_A [SYM_U_BUCK_A]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(321.31 mm, 349.25 mm): Symbol U_BUCK_A [SYM_U_BUCK_A]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(326.39 mm, 26.67 mm): Symbol #PWR05 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(331.47 mm, 351.79 mm): Symbol #PWR156 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(331.47 mm, 354.33 mm): Symbol #PWR157 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(332.74 mm, 81.28 mm): Symbol C_EXP_VDD [SYM_C_EXP_VDD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(332.74 mm, 81.28 mm): Symbol C_EXP_VDD [SYM_C_EXP_VDD]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(340.36 mm, 262.89 mm): Symbol R_FB_A_TOP [SYM_R_FB_A_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(340.36 mm, 262.89 mm): Symbol R_FB_A_TOP [SYM_R_FB_A_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(342.90 mm, 81.28 mm): Symbol #PWR29 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(353.06 mm, 165.10 mm): Symbol J_PORT3 [SYM_J_PORT3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(353.06 mm, 165.10 mm): Symbol J_PORT3 [SYM_J_PORT3]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(354.33 mm, 134.62 mm): Symbol C_PWR1_IN [SYM_C_PWR1_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(354.33 mm, 134.62 mm): Symbol C_PWR1_IN [SYM_C_PWR1_IN]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(359.41 mm, 290.83 mm): Symbol R_PD_UV_MID [SYM_R_PD_UV_MID]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(359.41 mm, 290.83 mm): Symbol R_PD_UV_MID [SYM_R_PD_UV_MID]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(360.68 mm, 107.95 mm): Symbol C_MAIN_OUT2 [SYM_C_MAIN_OUT2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(360.68 mm, 107.95 mm): Symbol C_MAIN_OUT2 [SYM_C_MAIN_OUT2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(364.49 mm, 134.62 mm): Symbol #PWR58 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(364.49 mm, 236.22 mm): Symbol R_DATA_OE1 [SYM_R_DATA_OE1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(364.49 mm, 236.22 mm): Symbol R_DATA_OE1 [SYM_R_DATA_OE1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(365.76 mm, 162.56 mm): Symbol #PWR80 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(365.76 mm, 165.10 mm): Symbol #PWR81 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(368.30 mm, 317.50 mm): Symbol R_SWAP2 [SYM_R_SWAP2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(368.30 mm, 317.50 mm): Symbol R_SWAP2 [SYM_R_SWAP2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(368.30 mm, 408.94 mm): Symbol U_PD [SYM_U_PD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(368.30 mm, 408.94 mm): Symbol U_PD [SYM_U_PD]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(369.57 mm, 53.34 mm): Symbol C_BUCK_A_IN2 [SYM_C_BUCK_A_IN2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(369.57 mm, 53.34 mm): Symbol C_BUCK_A_IN2 [SYM_C_BUCK_A_IN2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(372.11 mm, 107.95 mm): Symbol #PWR44 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(377.19 mm, 317.50 mm): Symbol #PWR132 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(377.19 mm, 407.67 mm): Symbol #PWR181 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(377.19 mm, 412.75 mm): Symbol #PWR182 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(382.27 mm, 26.67 mm): Symbol C_AGG_B_TIMER [SYM_C_AGG_B_TIMER]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(382.27 mm, 26.67 mm): Symbol C_AGG_B_TIMER [SYM_C_AGG_B_TIMER]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(382.27 mm, 53.34 mm): Symbol #PWR16 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(383.54 mm, 209.55 mm): Symbol R_BUCK_A_EN_TOP [SYM_R_BUCK_A_EN_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(383.54 mm, 209.55 mm): Symbol R_BUCK_A_EN_TOP [SYM_R_BUCK_A_EN_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(387.35 mm, 349.25 mm): Symbol #PWR158 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(392.43 mm, 81.28 mm): Symbol C_HUB_18 [SYM_C_HUB_18]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(392.43 mm, 81.28 mm): Symbol C_HUB_18 [SYM_C_HUB_18]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(396.24 mm, 26.67 mm): Symbol #PWR06 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(397.51 mm, 349.25 mm): Symbol U_BUCK_B [SYM_U_BUCK_B]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(397.51 mm, 349.25 mm): Symbol U_BUCK_B [SYM_U_BUCK_B]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(398.78 mm, 262.89 mm): Symbol R_FB_B_BOT [SYM_R_FB_B_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(398.78 mm, 262.89 mm): Symbol R_FB_B_BOT [SYM_R_FB_B_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(402.59 mm, 81.28 mm): Symbol #PWR30 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(407.67 mm, 351.79 mm): Symbol #PWR159 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(407.67 mm, 354.33 mm): Symbol #PWR160 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(410.21 mm, 262.89 mm): Symbol #PWR113 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(416.56 mm, 165.10 mm): Symbol J_PORT4 [SYM_J_PORT4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(416.56 mm, 165.10 mm): Symbol J_PORT4 [SYM_J_PORT4]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(425.45 mm, 317.50 mm): Symbol R_SWAP3 [SYM_R_SWAP3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(425.45 mm, 317.50 mm): Symbol R_SWAP3 [SYM_R_SWAP3]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(426.72 mm, 134.62 mm): Symbol C_PWR2_IN [SYM_C_PWR2_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(426.72 mm, 134.62 mm): Symbol C_PWR2_IN [SYM_C_PWR2_IN]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(426.72 mm, 290.83 mm): Symbol R_PD_UV_TOP_HI [SYM_R_PD_UV_TOP_HI]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(426.72 mm, 290.83 mm): Symbol R_PD_UV_TOP_HI [SYM_R_PD_UV_TOP_HI]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(429.26 mm, 107.95 mm): Symbol C_PD_IN1 [SYM_C_PD_IN1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(429.26 mm, 107.95 mm): Symbol C_PD_IN1 [SYM_C_PD_IN1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(429.26 mm, 162.56 mm): Symbol #PWR82 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(429.26 mm, 165.10 mm): Symbol #PWR83 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(429.26 mm, 236.22 mm): Symbol R_DATA_OE2 [SYM_R_DATA_OE2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(429.26 mm, 236.22 mm): Symbol R_DATA_OE2 [SYM_R_DATA_OE2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(429.26 mm, 422.91 mm): Symbol #PWR183 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(434.34 mm, 317.50 mm): Symbol #PWR133 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(436.88 mm, 134.62 mm): Symbol #PWR59 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(439.42 mm, 107.95 mm): Symbol #PWR45 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(439.42 mm, 415.29 mm): Symbol U_PD_IN [SYM_U_PD_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(439.42 mm, 415.29 mm): Symbol U_PD_IN [SYM_U_PD_IN]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(444.50 mm, 53.34 mm): Symbol C_BUCK_A_OUT1 [SYM_C_BUCK_A_OUT1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(444.50 mm, 53.34 mm): Symbol C_BUCK_A_OUT1 [SYM_C_BUCK_A_OUT1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(448.31 mm, 26.67 mm): Symbol C_AND_DATA [SYM_C_AND_DATA]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(448.31 mm, 26.67 mm): Symbol C_AND_DATA [SYM_C_AND_DATA]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(449.58 mm, 402.59 mm): Symbol #PWR184 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(449.58 mm, 425.45 mm): Symbol #PWR185 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(449.58 mm, 427.99 mm): Symbol #PWR186 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(455.93 mm, 81.28 mm): Symbol C_HUB_18PLL [SYM_C_HUB_18PLL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(455.93 mm, 81.28 mm): Symbol C_HUB_18PLL [SYM_C_HUB_18PLL]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(455.93 mm, 262.89 mm): Symbol R_FB_B_TOP [SYM_R_FB_B_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(455.93 mm, 262.89 mm): Symbol R_FB_B_TOP [SYM_R_FB_B_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(458.47 mm, 53.34 mm): Symbol #PWR17 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(459.74 mm, 26.67 mm): Symbol #PWR07 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(461.01 mm, 209.55 mm): Symbol R_BUCK_B_EN_BOT [SYM_R_BUCK_B_EN_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(461.01 mm, 209.55 mm): Symbol R_BUCK_B_EN_BOT [SYM_R_BUCK_B_EN_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(467.36 mm, 81.28 mm): Symbol #PWR31 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(468.63 mm, 351.79 mm): Symbol U_CTRL [SYM_U_CTRL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(468.63 mm, 351.79 mm): Symbol U_CTRL [SYM_U_CTRL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(471.17 mm, 162.56 mm): Symbol #PWR84 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(471.17 mm, 180.34 mm): Symbol #PWR85 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(471.17 mm, 182.88 mm): Symbol #PWR86 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(476.25 mm, 209.55 mm): Symbol #PWR98 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(477.52 mm, 359.41 mm): Symbol #PWR161 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(480.06 mm, 172.72 mm): Symbol J_POWER [SYM_J_POWER]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(480.06 mm, 172.72 mm): Symbol J_POWER [SYM_J_POWER]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(482.60 mm, 317.50 mm): Symbol R_SWAP4 [SYM_R_SWAP4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(482.60 mm, 317.50 mm): Symbol R_SWAP4 [SYM_R_SWAP4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(488.95 mm, 177.80 mm): Symbol #PWR87 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(488.95 mm, 180.34 mm): Symbol #PWR88 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(491.49 mm, 317.50 mm): Symbol #PWR134 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(492.76 mm, 236.22 mm): Symbol R_DATA_OE3 [SYM_R_DATA_OE3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(492.76 mm, 236.22 mm): Symbol R_DATA_OE3 [SYM_R_DATA_OE3]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(497.84 mm, 134.62 mm): Symbol C_PWR3_IN [SYM_C_PWR3_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(497.84 mm, 134.62 mm): Symbol C_PWR3_IN [SYM_C_PWR3_IN]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(502.92 mm, 290.83 mm): Symbol R_PD_UV_TOP_LO [SYM_R_PD_UV_TOP_LO]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(502.92 mm, 290.83 mm): Symbol R_PD_UV_TOP_LO [SYM_R_PD_UV_TOP_LO]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(502.92 mm, 405.13 mm): Symbol #PWR187 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(505.46 mm, 107.95 mm): Symbol C_PD_IN2 [SYM_C_PD_IN2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(505.46 mm, 107.95 mm): Symbol C_PD_IN2 [SYM_C_PD_IN2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(506.73 mm, 26.67 mm): Symbol C_AND_PWR [SYM_C_AND_PWR]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(506.73 mm, 26.67 mm): Symbol C_AND_PWR [SYM_C_AND_PWR]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(508.00 mm, 134.62 mm): Symbol #PWR60 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(513.08 mm, 407.67 mm): Symbol U_PWR1 [SYM_U_PWR1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(513.08 mm, 407.67 mm): Symbol U_PWR1 [SYM_U_PWR1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(514.35 mm, 53.34 mm): Symbol C_BUCK_A_OUT2 [SYM_C_BUCK_A_OUT2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(514.35 mm, 53.34 mm): Symbol C_BUCK_A_OUT2 [SYM_C_BUCK_A_OUT2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(515.62 mm, 107.95 mm): Symbol #PWR46 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(515.62 mm, 262.89 mm): Symbol R_GANG [SYM_R_GANG]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(515.62 mm, 262.89 mm): Symbol R_GANG [SYM_R_GANG]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(516.89 mm, 26.67 mm): Symbol #PWR08 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(519.43 mm, 81.28 mm): Symbol C_HUB_A1 [SYM_C_HUB_A1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(519.43 mm, 81.28 mm): Symbol C_HUB_A1 [SYM_C_HUB_A1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(521.97 mm, 346.71 mm): Symbol #PWR162 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(521.97 mm, 354.33 mm): Symbol #PWR163 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(523.24 mm, 407.67 mm): Symbol #PWR188 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(524.51 mm, 262.89 mm): Symbol #PWR114 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(528.32 mm, 53.34 mm): Symbol #PWR18 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(529.59 mm, 81.28 mm): Symbol #PWR32 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(530.86 mm, 349.25 mm): Symbol U_DATA1 [SYM_U_DATA1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(530.86 mm, 349.25 mm): Symbol U_DATA1 [SYM_U_DATA1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(538.48 mm, 209.55 mm): Symbol R_BUCK_B_EN_TOP [SYM_R_BUCK_B_EN_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(538.48 mm, 209.55 mm): Symbol R_BUCK_B_EN_TOP [SYM_R_BUCK_B_EN_TOP]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(539.75 mm, 317.50 mm): Symbol R_SWAP5 [SYM_R_SWAP5]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(539.75 mm, 317.50 mm): Symbol R_SWAP5 [SYM_R_SWAP5]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(541.02 mm, 162.56 mm): Symbol L_BUCK_A [SYM_L_BUCK_A]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(541.02 mm, 162.56 mm): Symbol L_BUCK_A [SYM_L_BUCK_A]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(548.64 mm, 317.50 mm): Symbol #PWR135 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(556.26 mm, 236.22 mm): Symbol R_DATA_OE4 [SYM_R_DATA_OE4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(556.26 mm, 236.22 mm): Symbol R_DATA_OE4 [SYM_R_DATA_OE4]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(570.23 mm, 134.62 mm): Symbol C_PWR4_IN [SYM_C_PWR4_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(570.23 mm, 134.62 mm): Symbol C_PWR4_IN [SYM_C_PWR4_IN]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(574.04 mm, 290.83 mm): Symbol R_PD_VBUS [SYM_R_PD_VBUS]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(574.04 mm, 290.83 mm): Symbol R_PD_VBUS [SYM_R_PD_VBUS]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(575.31 mm, 26.67 mm): Symbol C_BANK_A_BULK [SYM_C_BANK_A_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(575.31 mm, 26.67 mm): Symbol C_BANK_A_BULK [SYM_C_BANK_A_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(575.31 mm, 405.13 mm): Symbol #PWR189 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(576.58 mm, 81.28 mm): Symbol C_HUB_A2 [SYM_C_HUB_A2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(576.58 mm, 81.28 mm): Symbol C_HUB_A2 [SYM_C_HUB_A2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(576.58 mm, 107.95 mm): Symbol C_PD_IN_DVDT [SYM_C_PD_IN_DVDT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(576.58 mm, 107.95 mm): Symbol C_PD_IN_DVDT [SYM_C_PD_IN_DVDT]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(576.58 mm, 262.89 mm): Symbol R_HUB_RESET [SYM_R_HUB_RESET]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(576.58 mm, 262.89 mm): Symbol R_HUB_RESET [SYM_R_HUB_RESET]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(580.39 mm, 134.62 mm): Symbol #PWR61 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(580.39 mm, 346.71 mm): Symbol #PWR164 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(580.39 mm, 354.33 mm): Symbol #PWR165 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(585.47 mm, 407.67 mm): Symbol U_PWR2 [SYM_U_PWR2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(585.47 mm, 407.67 mm): Symbol U_PWR2 [SYM_U_PWR2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(586.74 mm, 81.28 mm): Symbol #PWR33 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(589.28 mm, 26.67 mm): Symbol #PWR09 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(589.28 mm, 53.34 mm): Symbol C_BUCK_B_IN1 [SYM_C_BUCK_B_IN1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(589.28 mm, 53.34 mm): Symbol C_BUCK_B_IN1 [SYM_C_BUCK_B_IN1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(589.28 mm, 107.95 mm): Symbol #PWR47 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(589.28 mm, 349.25 mm): Symbol U_DATA2 [SYM_U_DATA2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(589.28 mm, 349.25 mm): Symbol U_DATA2 [SYM_U_DATA2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(595.63 mm, 317.50 mm): Symbol R_SWAP6 [SYM_R_SWAP6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(595.63 mm, 317.50 mm): Symbol R_SWAP6 [SYM_R_SWAP6]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(595.63 mm, 407.67 mm): Symbol #PWR190 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(601.98 mm, 53.34 mm): Symbol #PWR19 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(603.25 mm, 162.56 mm): Symbol L_BUCK_B [SYM_L_BUCK_B]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(603.25 mm, 162.56 mm): Symbol L_BUCK_B [SYM_L_BUCK_B]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(604.52 mm, 317.50 mm): Symbol #PWR136 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(609.60 mm, 209.55 mm): Symbol R_CC1 [SYM_R_CC1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(609.60 mm, 209.55 mm): Symbol R_CC1 [SYM_R_CC1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(618.49 mm, 209.55 mm): Symbol #PWR99 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(618.49 mm, 236.22 mm): Symbol R_DATA_OK1 [SYM_R_DATA_OK1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(618.49 mm, 236.22 mm): Symbol R_DATA_OK1 [SYM_R_DATA_OK1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(629.92 mm, 236.22 mm): Symbol #PWR108 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(633.73 mm, 81.28 mm): Symbol C_HUB_A3 [SYM_C_HUB_A3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(633.73 mm, 81.28 mm): Symbol C_HUB_A3 [SYM_C_HUB_A3]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(636.27 mm, 290.83 mm): Symbol R_PD_VDD [SYM_R_PD_VDD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(636.27 mm, 290.83 mm): Symbol R_PD_VDD [SYM_R_PD_VDD]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(638.81 mm, 107.95 mm): Symbol C_PD_IN_HF [SYM_C_PD_IN_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(638.81 mm, 107.95 mm): Symbol C_PD_IN_HF [SYM_C_PD_IN_HF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(638.81 mm, 262.89 mm): Symbol R_I2C_SCL [SYM_R_I2C_SCL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(638.81 mm, 262.89 mm): Symbol R_I2C_SCL [SYM_R_I2C_SCL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(640.08 mm, 346.71 mm): Symbol #PWR166 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(640.08 mm, 354.33 mm): Symbol #PWR167 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(643.89 mm, 81.28 mm): Symbol #PWR34 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(646.43 mm, 134.62 mm): Symbol C_PWR_CTRL_IN [SYM_C_PWR_CTRL_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(646.43 mm, 134.62 mm): Symbol C_PWR_CTRL_IN [SYM_C_PWR_CTRL_IN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(646.43 mm, 405.13 mm): Symbol #PWR191 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(648.97 mm, 349.25 mm): Symbol U_DATA3 [SYM_U_DATA3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(648.97 mm, 349.25 mm): Symbol U_DATA3 [SYM_U_DATA3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(650.24 mm, 107.95 mm): Symbol #PWR48 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(651.51 mm, 26.67 mm): Symbol C_BANK_A_HF [SYM_C_BANK_A_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(651.51 mm, 26.67 mm): Symbol C_BANK_A_HF [SYM_C_BANK_A_HF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(652.78 mm, 317.50 mm): Symbol R_SWAP7 [SYM_R_SWAP7]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(652.78 mm, 317.50 mm): Symbol R_SWAP7 [SYM_R_SWAP7]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(656.59 mm, 407.67 mm): Symbol U_PWR3 [SYM_U_PWR3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(656.59 mm, 407.67 mm): Symbol U_PWR3 [SYM_U_PWR3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(660.40 mm, 134.62 mm): Symbol #PWR62 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub'
+    ; warning
+    @(660.40 mm, 162.56 mm): Symbol L_MAIN [SYM_L_MAIN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(660.40 mm, 162.56 mm): Symbol L_MAIN [SYM_L_MAIN]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(661.67 mm, 317.50 mm): Symbol #PWR137 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(662.94 mm, 26.67 mm): Symbol #PWR10 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(664.21 mm, 209.55 mm): Symbol R_CC2 [SYM_R_CC2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(664.21 mm, 209.55 mm): Symbol R_CC2 [SYM_R_CC2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(666.75 mm, 407.67 mm): Symbol #PWR192 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(670.56 mm, 53.34 mm): Symbol C_BUCK_B_IN2 [SYM_C_BUCK_B_IN2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(670.56 mm, 53.34 mm): Symbol C_BUCK_B_IN2 [SYM_C_BUCK_B_IN2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(673.10 mm, 209.55 mm): Symbol #PWR100 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(678.18 mm, 236.22 mm): Symbol R_DATA_OK2 [SYM_R_DATA_OK2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(678.18 mm, 236.22 mm): Symbol R_DATA_OK2 [SYM_R_DATA_OK2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(683.26 mm, 53.34 mm): Symbol #PWR20 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(689.61 mm, 236.22 mm): Symbol #PWR109 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(690.88 mm, 81.28 mm): Symbol C_HUB_A4 [SYM_C_HUB_A4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(690.88 mm, 81.28 mm): Symbol C_HUB_A4 [SYM_C_HUB_A4]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(693.42 mm, 290.83 mm): Symbol R_PWR_CMD1 [SYM_R_PWR_CMD1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(693.42 mm, 290.83 mm): Symbol R_PWR_CMD1 [SYM_R_PWR_CMD1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(694.69 mm, 107.95 mm): Symbol C_PD_VDD [SYM_C_PD_VDD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(694.69 mm, 107.95 mm): Symbol C_PD_VDD [SYM_C_PD_VDD]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(698.50 mm, 262.89 mm): Symbol R_I2C_SDA [SYM_R_I2C_SDA]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(698.50 mm, 262.89 mm): Symbol R_I2C_SDA [SYM_R_I2C_SDA]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(698.50 mm, 346.71 mm): Symbol #PWR168 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(698.50 mm, 354.33 mm): Symbol #PWR169 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(701.04 mm, 81.28 mm): Symbol #PWR35 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(704.85 mm, 107.95 mm): Symbol #PWR49 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(704.85 mm, 290.83 mm): Symbol #PWR123 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SO'
+    ; warning
+    @(707.39 mm, 349.25 mm): Symbol U_DATA4 [SYM_U_DATA4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(707.39 mm, 349.25 mm): Symbol U_DATA4 [SYM_U_DATA4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(708.66 mm, 165.10 mm): Symbol #PWR89 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub'
+    ; warning
+    @(717.55 mm, 163.83 mm): Symbol Q_DATA1 [SYM_Q_DATA1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(717.55 mm, 163.83 mm): Symbol Q_DATA1 [SYM_Q_DATA1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(717.55 mm, 317.50 mm): Symbol R_VBUS_BOT [SYM_R_VBUS_BOT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(717.55 mm, 317.50 mm): Symbol R_VBUS_BOT [SYM_R_VBUS_BOT]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(718.82 mm, 209.55 mm): Symbol R_CFG0 [SYM_R_CFG0]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(718.82 mm, 209.55 mm): Symbol R_CFG0 [SYM_R_CFG0]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(718.82 mm, 405.13 mm): Symbol #PWR193 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(720.09 mm, 134.62 mm): Symbol C_PWR_CTRL_OUT [SYM_C_PWR_CTRL_OUT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(720.09 mm, 134.62 mm): Symbol C_PWR_CTRL_OUT [SYM_C_PWR_CTRL_OUT]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(727.71 mm, 209.55 mm): Symbol #PWR101 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub'
+    ; warning
+    @(728.98 mm, 26.67 mm): Symbol C_BANK_A_POLY [SYM_C_BANK_A_POLY]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(728.98 mm, 26.67 mm): Symbol C_BANK_A_POLY [SYM_C_BANK_A_POLY]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(728.98 mm, 317.50 mm): Symbol #PWR138 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub_2a'
+    ; warning
+    @(728.98 mm, 407.67 mm): Symbol U_PWR4 [SYM_U_PWR4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(728.98 mm, 407.67 mm): Symbol U_PWR4 [SYM_U_PWR4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(734.06 mm, 134.62 mm): Symbol #PWR63 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(739.14 mm, 236.22 mm): Symbol R_DATA_OK3 [SYM_R_DATA_OK3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(739.14 mm, 236.22 mm): Symbol R_DATA_OK3 [SYM_R_DATA_OK3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(739.14 mm, 407.67 mm): Symbol #PWR194 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(742.95 mm, 26.67 mm): Symbol #PWR11 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(745.49 mm, 53.34 mm): Symbol C_BUCK_B_OUT1 [SYM_C_BUCK_B_OUT1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(745.49 mm, 53.34 mm): Symbol C_BUCK_B_OUT1 [SYM_C_BUCK_B_OUT1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(750.57 mm, 81.28 mm): Symbol C_HUB_A_BULK [SYM_C_HUB_A_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(750.57 mm, 81.28 mm): Symbol C_HUB_A_BULK [SYM_C_HUB_A_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(750.57 mm, 236.22 mm): Symbol #PWR110 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(751.84 mm, 107.95 mm): Symbol C_PORT1_BULK [SYM_C_PORT1_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(751.84 mm, 107.95 mm): Symbol C_PORT1_BULK [SYM_C_PORT1_BULK]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(751.84 mm, 262.89 mm): Symbol R_ILIM1 [SYM_R_ILIM1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(751.84 mm, 262.89 mm): Symbol R_ILIM1 [SYM_R_ILIM1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(753.11 mm, 290.83 mm): Symbol R_PWR_CMD2 [SYM_R_PWR_CMD2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(753.11 mm, 290.83 mm): Symbol R_PWR_CMD2 [SYM_R_PWR_CMD2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(759.46 mm, 53.34 mm): Symbol #PWR21 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(760.73 mm, 262.89 mm): Symbol #PWR115 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(763.27 mm, 81.28 mm): Symbol #PWR36 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(764.54 mm, 107.95 mm): Symbol #PWR50 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(764.54 mm, 290.83 mm): Symbol #PWR124 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_TO_SOT_SMD'
+    ; warning
+    @(767.08 mm, 345.44 mm): Symbol U_ESD1 [SYM_U_ESD1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(767.08 mm, 345.44 mm): Symbol U_ESD1 [SYM_U_ESD1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(768.35 mm, 165.10 mm): Symbol #PWR90 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(773.43 mm, 209.55 mm): Symbol R_CFG1 [SYM_R_CFG1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(773.43 mm, 209.55 mm): Symbol R_CFG1 [SYM_R_CFG1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub'
+    ; warning
+    @(777.24 mm, 163.83 mm): Symbol Q_DATA2 [SYM_Q_DATA2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(777.24 mm, 163.83 mm): Symbol Q_DATA2 [SYM_Q_DATA2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(777.24 mm, 344.17 mm): Symbol #PWR170 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(782.32 mm, 209.55 mm): Symbol #PWR102 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(788.67 mm, 134.62 mm): Symbol C_PWR_CTRL_OUT_HF [SYM_C_PWR_CTRL_OUT_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(788.67 mm, 134.62 mm): Symbol C_PWR_CTRL_OUT_HF [SYM_C_PWR_CTRL_OUT_HF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(789.94 mm, 317.50 mm): Symbol R_VBUS_TOP [SYM_R_VBUS_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(789.94 mm, 317.50 mm): Symbol R_VBUS_TOP [SYM_R_VBUS_TOP]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(791.21 mm, 402.59 mm): Symbol #PWR195 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(798.83 mm, 236.22 mm): Symbol R_DATA_OK4 [SYM_R_DATA_OK4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(798.83 mm, 236.22 mm): Symbol R_DATA_OK4 [SYM_R_DATA_OK4]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(800.10 mm, 262.89 mm): Symbol R_ILIM2 [SYM_R_ILIM2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(800.10 mm, 262.89 mm): Symbol R_ILIM2 [SYM_R_ILIM2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_SON'
+    ; warning
+    @(802.64 mm, 407.67 mm): Symbol U_PWR_CTRL [SYM_U_PWR_CTRL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(802.64 mm, 407.67 mm): Symbol U_PWR_CTRL [SYM_U_PWR_CTRL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(805.18 mm, 134.62 mm): Symbol #PWR64 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(808.99 mm, 26.67 mm): Symbol C_BANK_B_BULK [SYM_C_BANK_B_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(808.99 mm, 26.67 mm): Symbol C_BANK_B_BULK [SYM_C_BANK_B_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(808.99 mm, 262.89 mm): Symbol #PWR116 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(810.26 mm, 236.22 mm): Symbol #PWR111 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(812.80 mm, 107.95 mm): Symbol C_PORT1_HF [SYM_C_PORT1_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(812.80 mm, 107.95 mm): Symbol C_PORT1_HF [SYM_C_PORT1_HF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(812.80 mm, 290.83 mm): Symbol R_PWR_CMD3 [SYM_R_PWR_CMD3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(812.80 mm, 290.83 mm): Symbol R_PWR_CMD3 [SYM_R_PWR_CMD3]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(814.07 mm, 53.34 mm): Symbol C_BUCK_B_OUT2 [SYM_C_BUCK_B_OUT2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(814.07 mm, 53.34 mm): Symbol C_BUCK_B_OUT2 [SYM_C_BUCK_B_OUT2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(814.07 mm, 410.21 mm): Symbol #PWR196 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(815.34 mm, 81.28 mm): Symbol C_HUB_CR_BULK [SYM_C_HUB_CR_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(815.34 mm, 81.28 mm): Symbol C_HUB_CR_BULK [SYM_C_HUB_CR_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(822.96 mm, 26.67 mm): Symbol #PWR12 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(824.23 mm, 107.95 mm): Symbol #PWR51 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(824.23 mm, 290.83 mm): Symbol #PWR125 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(826.77 mm, 165.10 mm): Symbol #PWR91 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_TO_SOT_SMD'
+    ; warning
+    @(826.77 mm, 345.44 mm): Symbol U_ESD2 [SYM_U_ESD2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(826.77 mm, 345.44 mm): Symbol U_ESD2 [SYM_U_ESD2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(828.04 mm, 53.34 mm): Symbol #PWR22 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(828.04 mm, 209.55 mm): Symbol R_CFG2 [SYM_R_CFG2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(828.04 mm, 209.55 mm): Symbol R_CFG2 [SYM_R_CFG2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(829.31 mm, 81.28 mm): Symbol #PWR37 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub'
+    ; warning
+    @(835.66 mm, 163.83 mm): Symbol Q_DATA3 [SYM_Q_DATA3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(835.66 mm, 163.83 mm): Symbol Q_DATA3 [SYM_Q_DATA3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(836.93 mm, 209.55 mm): Symbol #PWR103 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(836.93 mm, 344.17 mm): Symbol #PWR171 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(849.63 mm, 134.62 mm): Symbol C_XTAL1 [SYM_C_XTAL1]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(849.63 mm, 134.62 mm): Symbol C_XTAL1 [SYM_C_XTAL1]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(849.63 mm, 262.89 mm): Symbol R_ILIM3 [SYM_R_ILIM3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(849.63 mm, 262.89 mm): Symbol R_ILIM3 [SYM_R_ILIM3]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(850.90 mm, 317.50 mm): Symbol R_XTAL [SYM_R_XTAL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(850.90 mm, 317.50 mm): Symbol R_XTAL [SYM_R_XTAL]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(854.71 mm, 405.13 mm): Symbol #PWR197 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(857.25 mm, 236.22 mm): Symbol R_DIS6N [SYM_R_DIS6N]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(857.25 mm, 236.22 mm): Symbol R_DIS6N [SYM_R_DIS6N]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(858.52 mm, 134.62 mm): Symbol #PWR65 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(858.52 mm, 262.89 mm): Symbol #PWR117 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Crystal'
+    ; warning
+    @(863.60 mm, 403.86 mm): Symbol Y_HUB [SYM_Y_HUB]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(863.60 mm, 403.86 mm): Symbol Y_HUB [SYM_Y_HUB]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(872.49 mm, 290.83 mm): Symbol R_PWR_CMD4 [SYM_R_PWR_CMD4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(872.49 mm, 290.83 mm): Symbol R_PWR_CMD4 [SYM_R_PWR_CMD4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(872.49 mm, 405.13 mm): Symbol #PWR198 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(873.76 mm, 107.95 mm): Symbol C_PORT2_BULK [SYM_C_PORT2_BULK]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(873.76 mm, 107.95 mm): Symbol C_PORT2_BULK [SYM_C_PORT2_BULK]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(877.57 mm, 81.28 mm): Symbol C_HUB_CR_HF [SYM_C_HUB_CR_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(877.57 mm, 81.28 mm): Symbol C_HUB_CR_HF [SYM_C_HUB_CR_HF]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(880.11 mm, 53.34 mm): Symbol C_CTRL_VDD [SYM_C_CTRL_VDD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(880.11 mm, 53.34 mm): Symbol C_CTRL_VDD [SYM_C_CTRL_VDD]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(883.92 mm, 290.83 mm): Symbol #PWR126 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(885.19 mm, 26.67 mm): Symbol C_BANK_B_HF [SYM_C_BANK_B_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(885.19 mm, 26.67 mm): Symbol C_BANK_B_HF [SYM_C_BANK_B_HF]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(885.19 mm, 165.10 mm): Symbol #PWR92 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Package_TO_SOT_SMD'
+    ; warning
+    @(885.19 mm, 345.44 mm): Symbol U_ESD3 [SYM_U_ESD3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(885.19 mm, 345.44 mm): Symbol U_ESD3 [SYM_U_ESD3]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(886.46 mm, 107.95 mm): Symbol #PWR52 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(889.00 mm, 81.28 mm): Symbol #PWR38 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(891.54 mm, 53.34 mm): Symbol #PWR23 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'usb_controlled_debug_hub'
+    ; warning
+    @(894.08 mm, 163.83 mm): Symbol Q_DATA4 [SYM_Q_DATA4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(894.08 mm, 163.83 mm): Symbol Q_DATA4 [SYM_Q_DATA4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(895.35 mm, 344.17 mm): Symbol #PWR172 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(896.62 mm, 26.67 mm): Symbol #PWR13 [GND]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Capacitor_SMD'
+    ; warning
+    @(897.89 mm, 134.62 mm): Symbol C_XTAL2 [SYM_C_XTAL2]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(897.89 mm, 134.62 mm): Symbol C_XTAL2 [SYM_C_XTAL2]
+[footprint_link_issues]: The current configuration does not include the footprint library 'Resistor_SMD'
+    ; warning
+    @(897.89 mm, 262.89 mm): Symbol R_ILIM4 [SYM_R_ILIM4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(897.89 mm, 262.89 mm): Symbol R_ILIM4 [SYM_R_ILIM4]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(906.78 mm, 134.62 mm): Symbol #PWR66 [GND]
+[lib_symbol_issues]: The current configuration does not include the symbol library 'elt'
+    ; warning
+    @(906.78 mm, 262.89 mm): Symbol #PWR118 [GND]
+
+ ** ERC messages: 565  Errors 0  Warnings 565
+
+ ** Ignored checks:
+    - Global label only appears once in the schematic
+    - Four connection points are joined together
+    - SPICE model issue
+    - Assigned footprint doesn't match footprint filters

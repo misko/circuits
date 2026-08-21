@@ -2,7 +2,7 @@ mpn: TPS259804ONRGER
 manufacturer: Texas Instruments
 type: aggregate_latchoff_circuit_breaker_efuse
 value: TPS259804ONRGER
-status: active
+status: superseded_candidate
 datasheet:
   doc_id: SLVSFR1A
   revision: "revised June 2026"
@@ -55,9 +55,9 @@ limits:
   response: circuit_breaker_latchoff
 gotchas:
   - "The complete TPS259804O suffix matters: 4 selects the fixed 16.9V OVLO family and O selects circuit-breaker response. RETRY_DLY tied to GND selects latch-off."
-  - "The predecessor's 300 ohm aggregate setting is not inherited. Each two-port bank requires a fresh normal-load, port-fault, TPS56637 current-limit and timer coordination proof."
-  - "C_AGG_TIMER=6.8nF C0G, Delta-VITIMER=0.7..1.3V and IITIMER=1.4..2.8uA give a charged 1.61..6.65ms blanking interval."
-  - "C_AGG_DVDT=3.3nF C0G and TI CdVdt(pF)=4600/SR(V/ms) give about 1.394V/ms nominal slew and about 0.351A into the declared 251.86uF maximum effective bank."
+  - "The predecessor's 300 ohm aggregate setting is not inherited without proof. This project independently closes each two-port bank against normal load, port-fault, TPS56637 current limit and timer timing."
+  - "C_AGG_A_TIMER/C_AGG_B_TIMER=6.8nF C0G, Delta-VITIMER=0.7..1.3V and IITIMER=1.4..2.8uA give a charged 1.61..6.65ms blanking interval."
+  - "C_AGG_A_DVDT/C_AGG_B_DVDT=3.3nF C0G and TI CdVdt(pF)=4600/SR(V/ms) bound each declared 289.26uF maximum bank to 0.426A startup inrush."
   - "Tie EN/UVLO directly to IN for this 5V-only stage. Tie RETRY_DLY, NRETRY and LDSTRT to GND; leave IMON and open-drain PG unconnected."
 verified: "CITED: TI SLVSFR1A device-information row for TPS259804O, RGE top view and pin table pp.4-6, absolute/electrical limits and 300-ohm ILIM row pp.8-15, programming equations and RGE0024M drawing/example land pp.21-30 and 51-53; independently re-read 2026-08-19. Exact JLC/LCSC C2878936 identifies TPS259804ONRGER and supplied the source-owned native STEP."
 sourcing:
@@ -67,13 +67,7 @@ sourcing:
 layout:
   source: "TI SLVSFR1A layout section and RGE0024M package drawing 4223975/B"
   reviewed: "2026-08-19"
-  keep_short:
-    - {net: P5V_REG, anchor_pins: ["1", "2", "3", "25"], partner_refs: [C_AGG_IN], max_span_mm: 3.5, why: "single low-inductance aggregate input bypass beside the primary IN bank and IN PowerPAD; pin 16 is locally joined to pad 25 so the bypass path does not cross the switched OUT bank"}
-  adjacency:
-    - {refdes: [U_AGG, R_AGG_ILIM], max_mm: 4.0, why: "quiet ILIM programming loop"}
-    - {refdes: [U_AGG, C_AGG_TIMER], max_mm: 4.0, why: "fault-timer capacitor local to ITIMER and GND"}
-    - {refdes: [U_AGG, C_AGG_DVDT], max_mm: 4.0, why: "slew capacitor local to dVdt and GND"}
-  notes: ["Use every IN and OUT perimeter land", "keep split IN/GND PowerPAD copper electrically separate", "fill and copper-cap all nine 0.20mm via-in-pad holes", "route ILIM/ITIMER/dVdt away from switching copper"]
+  notes: ["This candidate is not instantiated on this board; U_AGG_A/B use TPS259827ONRGET and that selected dossier owns their measurable placement budgets.", "Use every IN and OUT perimeter land", "keep split IN/GND PowerPAD copper electrically separate", "fill and copper-cap all nine 0.20mm via-in-pad holes", "route ILIM/ITIMER/dVdt away from switching copper"]
 layout_refs:
   - {tier: 1, reached: true, artifact: "TI SLVSFR1A layout section and RGE0024M drawing/example land", why: "manufacturer authority fixes pin use, split thermal lands, nine optional via sites and support-component placement"}
   - {tier: 2, reached: true, artifact: "Exact JLC C2878936 EasyEDA footprint and native STEP fetched 2026-08-19", why: "assembly-vendor CAD independently checks package body, pin numbering and split exposed-land dimensions"}

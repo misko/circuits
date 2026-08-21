@@ -1857,6 +1857,96 @@ def main():
                                   + mrotz.get(ref, 0.0)) % 360
                 fp.Models().push_back(m)
 
+        # A deliberately manual-installed connector can still be an exact,
+        # source-owned finished-product representation.  Previously
+        # ``twin_body: {source: board}`` mounted and counted that body, but
+        # P-MATE-REG only emitted receipts from the catalog-substitution loop
+        # above.  The same connector therefore passed native registration,
+        # orientation, and NO-BODY, then failed as "not graded" solely because
+        # it was intentionally absent from the CPL.  Bind the retained native
+        # model identity and transform here; file-supplied bodies remain
+        # fail-closed until they gain an equivalent explicit datum contract.
+        local_connector_refs = sorted(set(local_bodies) & set(connector_contracts))
+        for ref in local_connector_refs:
+            contract = connector_contracts[ref]
+            source_fp = by_ref.get(ref)
+            mounted_fp = tb.FindFootprintByReference(ref)
+            source_models = list(source_fp.Models()) if source_fp else []
+            mounted_models = list(mounted_fp.Models()) if mounted_fp else []
+            native_resolved = (resolve_model(
+                source_models[0].m_Filename, kicad_env(args.board), args.board)
+                if len(source_models) == 1 else None)
+            native_path = Path(native_resolved) if native_resolved else None
+            native_actual_sha = (file_sha256(native_path)
+                                 if native_path and native_path.is_file()
+                                 else None)
+            source_kind = str(local_bodies[ref].get("source") or "")
+            transform_match = False
+            if len(source_models) == 1 and len(mounted_models) == 1:
+                a, b = source_models[0], mounted_models[0]
+                transform_match = all(
+                    abs(float(x) - float(y)) <= 1e-9
+                    for x, y in zip(
+                        (a.m_Scale.x, a.m_Scale.y, a.m_Scale.z,
+                         a.m_Offset.x, a.m_Offset.y, a.m_Offset.z,
+                         a.m_Rotation.x, a.m_Rotation.y, a.m_Rotation.z),
+                        (b.m_Scale.x, b.m_Scale.y, b.m_Scale.z,
+                         b.m_Offset.x, b.m_Offset.y, b.m_Offset.z,
+                         b.m_Rotation.x, b.m_Rotation.y, b.m_Rotation.z)))
+            if source_kind != "board":
+                status = "P-MATE-REG"
+                detail = ("manual connector body is not source=board; an "
+                          "explicit mating-datum grader is required")
+            elif native_actual_sha != contract["native_model_sha256"]:
+                status = "P-MATE-REG"
+                detail = ("manual connector native identity is "
+                          f"{native_actual_sha or 'unresolved'}, expected "
+                          f"{contract['native_model_sha256']}")
+            elif not transform_match:
+                status = "P-MATE-REG"
+                detail = ("manual connector body did not retain the exact "
+                          "source model transform")
+            else:
+                status = "P-MATE-REG-OK"
+                detail = ("approved exact native connector body retained for "
+                          "manual installation; catalog substitution not used")
+            fab_local = (footprint_fab_bbox_local(source_fp)
+                         if source_fp else None)
+            local_model = mounted_models[0] if len(mounted_models) == 1 else None
+            connector_receipt_rows.append({
+                "ref": ref,
+                "group": contract["group"],
+                "authority": contract["authority"],
+                "access_axis_local": list(contract["axis"]),
+                "tolerance_mm": contract["tolerance_mm"],
+                "mating_plane_offset_mm": contract["mating_plane_offset_mm"],
+                "native_model_sha256": contract["native_model_sha256"],
+                "native_model_actual_sha256": native_actual_sha,
+                "representation_source": "native-manual",
+                "vendor_model_sha256": None,
+                "vendor_model_transform": ({
+                    "offset": [local_model.m_Offset.x, local_model.m_Offset.y,
+                               local_model.m_Offset.z],
+                    "rotation": [local_model.m_Rotation.x,
+                                  local_model.m_Rotation.y,
+                                  local_model.m_Rotation.z],
+                    "scale": [local_model.m_Scale.x, local_model.m_Scale.y,
+                              local_model.m_Scale.z],
+                } if local_model else None),
+                "catalog_to_source_footprint_transform": None,
+                "fab_bbox_local_mm": list(fab_local) if fab_local else None,
+                "fab_mating_support_mm": (
+                    bbox_support(fab_local, contract["axis"])
+                    if fab_local else None),
+                "vendor_bbox_local_mm": None,
+                "mating_support_delta_mm": 0.0 if status == "P-MATE-REG-OK" else None,
+                "verdict": "PASS" if status == "P-MATE-REG-OK" else "FAIL",
+            })
+            findings.append(("", ref, status, detail))
+            if status == "P-MATE-REG":
+                criticals.append(ref)
+                mate_reg_failed_refs.add(ref)
+
         # ---- NO-BODY: the terminal, fit-independent population gate
         cpl_refs = []
         placed_refs = []

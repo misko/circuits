@@ -1,0 +1,18 @@
+mpn: RC0402FR-07100KL
+manufacturer: YAGEO
+type: thick_film_resistor
+value: 100k
+status: active
+datasheet: {doc_id: RC0402FR-07100KL-spec, revision: "generated 2026-08-14", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-07100KL", local: RC0402FR-07100KL.pdf, sha256: 79a28c5a6f95f144dc501c15cf2173cfd1226113d22e1a0a989646e8c73732a5, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {resistance: 100kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas:
+  - "Used for USB2517I port-swap/configuration straps, the lower leg of the upstream VBUS_DET divider, DMP3007 gate bias, and selected low-current defaults. The VBUS_DET upper leg is a separate 47kohm part selected by ADR-0011; TPS2557 ILIM uses a separate exact 165kohm part."
+verified: "Exact YAGEO generated specification independently read for MPN, 100kohm, 1%, 0402 and dimensions on 2026-08-14."
+layout: {source: "Microchip USB2517I checklist plus board reverse-input topology", reviewed: 2026-08-15, notes: ["Place straps and divider legs at their destination pins; place the MOSFET bias directly across source and gate."]}
+sourcing: {lcsc: C60491, alternates: []}
+asserts:
+  - {assert: value, equals: 100k, why: "Hub strap behavior and the VBUS_DET divider lower-leg value were reviewed with this exact resistance."}

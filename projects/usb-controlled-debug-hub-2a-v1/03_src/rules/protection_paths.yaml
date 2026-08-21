@@ -39,7 +39,7 @@ paths:
       behavior: programmable_ovp_cutoff
       candidate_uvlo_rising_V: 17.00
       candidate_ovp_rising_V: 23.52
-      candidate_divider: {R1: 931k, R2: 19.6k, R3: 51.1k, tolerance_pct: 1}
+      candidate_divider: {R1_series: [910k, 22k], R1_total: 932k, R2: 20k, R3: 51k, tolerance_pct: 1}
       requirements: >-
         Before schematic freeze, machine-check independent resistor tolerance,
         the TPS16630 1.176-1.224 V OVP/UVLO thresholds and +/-150 nA pin

@@ -1,0 +1,52 @@
+mpn: "1935161"
+manufacturer: Phoenix Contact
+type: screw_terminal_power_input
+value: 1935161
+status: active
+datasheet:
+  doc_id: PT 1,5/ 2-5,0-H
+  revision: "Phoenix online catalog 2013-11-13"
+  url: https://www.phoenixcontact.com/us/products/1935161
+  sha256: 760ff908523dd6eccff7d1c8accbd8bedce0bf8e57bc1cbe3cc2485c7b98e83a
+  fetched: 2026-08-02
+package: 2-position 5.00 mm pitch side-entry THT screw terminal, green PA
+footprint: usb_controlled_debug_hub:Phoenix_1935161_PT_1p5_2_5p0_H
+escape:
+  style: connector
+  pitch: 5.0
+  escapes_worst_side: 2
+  tier_required: jlc_2layer_default
+  checked: "Phoenix drilling diagram: 5.00 mm pin pitch, 1.0 mm pins, 1.3 mm finished holes; JLC C3819953 exact CAD uses 2.2 mm lands"
+pins:
+  1: {name: TERMINAL_1, note: "Non-polarized hardware; assign VIN_RAW_POS in the schematic and mark '+' on silk."}
+  2: {name: TERMINAL_2, note: "Non-polarized hardware; assign VIN_RAW_NEG in the schematic and mark '-' on silk."}
+limits:
+  rated_current_ul: 18 A
+  rated_current_iec: 17.5 A
+  rated_voltage_ul: 300 V
+  rated_voltage_iec: 400 V
+  wire_range: 26 to 14 AWG / 2.5 mm2
+  contact_resistance: 20 mOhm
+  operating_temperature: -40 to +105 C
+  screw_torque: 0.35 to 0.4 N m
+gotchas:
+  - "The 18 A catalog current rating is comfortably above this board's approximately 2.6 A worst-case admitted input current."
+  - "Use adequately sized flexible wire (normally 18 AWG for this board's current and ordinary bench cable length), strip 6-7 mm, and torque to the specified 0.35-0.4 N m."
+  - "The manufacturer drilling diagram specifies 5.00 mm pitch, 1.0 mm pins, and 1.3 mm holes; do not substitute the visually similar Kangnex WJ126V evidence or a 5.08 mm footprint."
+  - "Phoenix defines a 10 x 9 mm body with the pin row 4 mm from one long edge; preserve that datum so edge/access checks measure the real enclosure."
+verified: "CITED: SHA-selected Phoenix-generated 1935161 catalog PDF gives the exact 5.00 mm drill pattern, 1.0 mm pins, 1.3 mm holes, 10 x 9 mm body, and 17.5 A product identity; JLC C3819953 exact CAD independently matches the pad centers and body. Checked 2026-08-02."
+sourcing:
+  lcsc: C3819953
+  alternates: []
+  note: "Exact part has JLC/LCSC and DigiKey sources; live quantities and THT assembly allocation must be reconfirmed at order time."
+layout:
+  source: "SHA-selected Phoenix Contact PT 1,5/2-5,0-H catalog drawing and JLC C3819953 exact CAD twin."
+  notes:
+    - "Place at the board edge with screwdriver and wire-entry access. Run the positive terminal directly into the input fuse with broad copper and no thermal-spoke bottleneck."
+    - "Make polarity unmistakable on top and bottom silkscreen; the connector itself is not keyed for polarity."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Phoenix Contact 1935161 SHA-selected online-catalog PDF, exact pitch, hole, pin, current, and envelope"}
+  - {tier: 2, reached: true, artifact: "JLC C3819953 exact 1935161 footprint and 3D body, independently fit against the manufacturer drill/body datums"}
+  - {tier: 3, reached: false, artifact: "Open routed board using exact Phoenix 1935161", why: "No exact editable board was found in the bounded terminal search; this passive high-current entry is governed by the manufacturer drilling diagram and project current-path review."}
+asserts:
+  - {assert: value, equals: 1935161, why: "The footprint, drill pattern, body envelope and JLC identity are exact-part bound."}

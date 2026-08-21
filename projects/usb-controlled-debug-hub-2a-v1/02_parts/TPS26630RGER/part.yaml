@@ -55,20 +55,6 @@ limits:
   uvlo_rising_threshold_V: [1.176, 1.224]
   ovp_turnoff_delay_us: [8.5, 14]
   thermal_resistance_ja_C_per_W: 31.4
-programming_candidate:
-  uvlo_ovp_divider:
-    R1: 931k
-    R2: 19.6k
-    R3: 51.1k
-    tolerance_pct: 1
-    nominal_uvlo_rising_V: 17.00
-    nominal_ovp_rising_V: 23.52
-    note: "Pre-schematic candidate only. Full independent resistor/leakage corners must keep 20 V enabled, 15 V disabled and OVP below downstream 28 V operating limits."
-  ilim:
-    resistor: 6.65k
-    tolerance_pct: 1
-    nominal_A: 2.71
-    note: "Pre-schematic candidate derived from TI's 18/RILIM(kOhm) characterized points; close full-temperature and resistor corners against the 3 A PD contract and minimum full-load input demand."
 gotchas:
   - "TPS26630 is the adjustable OVP-cutoff member; do not substitute TPS26632/33/35/36/37 PLIM variants under the same symbol."
   - "Without an external reverse-blocking FET, leave B_GATE and DRV floating and short IN_SYS to IN exactly as TI directs."
@@ -91,3 +77,11 @@ layout_refs:
     reached: true
     artifact: "TI SLVSE94G simplified schematic, RGE pin/package drawing and section 11.1 layout guidance"
     why: "Manufacturer authority fixes the high-voltage protection topology, escape and sensitive-program network placement."
+  - tier: 2
+    reached: true
+    artifact: "TI TPS26630-33EVM user's guide SLVUBI8A, Figures 8-10: placement plus routed top and bottom copper"
+    why: "The official exact-device EVM publishes measurable protection, high-current, and programming-network geometry."
+  - tier: 3
+    reached: false
+    artifact: "Community exact-MPN routed design"
+    why: "Not pursued because TI publishes an exact-device EVM with assembly and copper drawings."

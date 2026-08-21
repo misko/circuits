@@ -22,15 +22,17 @@ minimum remains above the 2.723 A planning demand.
 
 ## TPS16630 input window
 
-Candidate shared divider: R1=931 kOhm, R2=19.6 kOhm, R3=51.1 kOhm, all 1%.
+Candidate shared divider: R1=910 kOhm + 22 kOhm in series, R2=20 kOhm,
+R3=51 kOhm, all 1%. The split top leg uses stocked standard values and both
+resistors are independently cornered.
 The corner enumerator varies all three resistors independently, both device
 thresholds from 1.176–1.224 V, and both UVLO/OVP leakage currents from
 -150 to +150 nA:
 
 | threshold | minimum | maximum | consequence |
 |---|---:|---:|---|
-| UVLO rising | 16.1171 V | 17.9106 V | 15 V +5% is rejected; 20 V -5% is accepted |
-| OVP rising | 22.3402 V | 24.7388 V | below retained TPS56637 28 V recommended maximum |
+| UVLO rising | 16.0696 V | 17.8584 V | 15 V +5% is rejected; 20 V -5% is accepted |
+| OVP rising | 22.4135 V | 24.8191 V | below retained TPS56637 28 V recommended maximum |
 
 The directly exposed TPS16630 is rated for 60 V operation and 67 V absolute;
 the TVS2200 worst published clamp is 28.35 V.
@@ -46,12 +48,14 @@ The per-port path budget is 90 mOhm maximum:
 
 | element | maximum/budget | 2 A drop |
 |---|---:|---:|
-| TPS259804 bank eFuse + TPS259470A port eFuse | 50 mOhm | 100 mV |
-| PCB copper, vias and joints | 10 mOhm | 20 mV |
+| TPS259827 bank eFuse + TPS259470A port eFuse | 49.5 mOhm | 99 mV |
+| PCB copper, vias and joints | 10.5 mOhm | 21 mV |
 | qualified USB1130 mated contact | 30 mOhm | 60 mV |
 | total | 90 mOhm | 180 mV |
 
-The resulting worst planning floor is `4.965 - 0.180 = 4.785 V` at the mated
-test plug, 35 mV above the 4.75 V requirement. This is deliberately tight:
+The conservative 90 mOhm allocation retains a worst planning floor of
+`4.965 - 0.180 = 4.785 V` at the mated test plug, 35 mV above the 4.75 V
+requirement. Every term of the 90 mOhm path is explicitly owned. This is
+deliberately tight:
 post-route resistance extraction and a hot four-wire first-article measurement
 are mandatory, and failure backtracks to copper geometry or the service claim.

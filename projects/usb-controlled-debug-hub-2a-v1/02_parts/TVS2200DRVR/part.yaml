@@ -14,7 +14,7 @@ datasheet:
   provenance: "CITED: downloaded directly from ti.com; title/footer identify TVS2200 and SLVSED5C."
 package: "DRV 6-pin WSON 2x2 mm with exposed GND pad"
 footprint: Package_SON:WSON-6-1EP_2x2mm_P0.65mm_EP1x1.6mm_ThermalVias
-escape: {style: son, pitch: 0.65, tier_required: jlc_4layer_advanced, checked: "TI DRV bottom view and package drawing; exact land/paste/thermal-via adjudication remains a placement gate"}
+escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard, checked: "TI DRV bottom view and package drawing; shared escape math confirms the 0.65 mm perimeter-land package is standard-tier escapeable; exact land/paste/thermal-via adjudication remains a placement gate"}
 pins:
   1: GND
   2: GND
@@ -45,3 +45,5 @@ layout:
   notes: ["place immediately at J_POWER VBUS entry", "route connector-to-IN and GND-to-plane paths short and broad", "do not route protected current through a long TVS stub"]
 layout_refs:
   - {tier: 1, reached: true, artifact: "TI SLVSED5C sections 9.2 and 9.4", why: "manufacturer provides the USB Type-C VBUS application and measurable placement rules"}
+  - {tier: 2, reached: true, artifact: "TI FLAT-CLAMP-TVS-EVM and Flat-Clamp TVS adaptor-board user guide, official TVSxx0x family evaluation layout", why: "The manufacturer EVM provides measurable flat-clamp surge-current entry and ground-return geometry for the same DRV package family."}
+  - {tier: 3, reached: false, artifact: "Community exact-MPN routed design", why: "Not pursued because TI publishes the exact-family EVM and the datasheet fixes the DRV land pattern and current-flow rule."}

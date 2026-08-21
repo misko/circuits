@@ -1,0 +1,20 @@
+schema: 1
+kind: connector-orientation-approval-v1
+verdict: APPROVED
+subject_sha256: 475cf8ff51ff459bd325a8cb987313a4d6f2fbbfc2ba1918bf218ba7b2f145d8
+refs:
+- J_DATA
+- J_PORT1
+- J_PORT2
+- J_PORT3
+- J_PORT4
+- J_POWER
+reviewer: user
+confirmed_at: '2026-08-21T07:02:11Z'
+evidence_sha256:
+  views/J_DATA_inside.png: ca96661708d941d76971b1796c89efba9a2984855570782e645de1307eb7a083
+  views/J_DATA_outside.png: 53e38b48bd07410db70516eb943f03322cdb8dbdca778865aed21053aaa7c38e
+  views/J_DATA_top.png: 1d059316e9514a19a6d8b166135fdce1ddf462356f7ccfe2aca61829cc011d06
+  views/J_PORT1_inside.png: c6772bfa7761e0ff1883f434115a31213b81b222821ae0543990a237b69d0d6e
+  views/J_PORT1_outside.png: a6da65a9a6af24b2b77c1b8e055df37aa7ff87aa36ad7fdb0ffbf56cd0613ba8
+  views/J_PORT1_top.png: f142e6a8354331572b6b9de45b859a6fcc2a75e84d79b46a3a4a4eed8b66c873

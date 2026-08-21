@@ -138,6 +138,8 @@ rationale.
 | IMP-122 | Grade realised functional pad-bank direction before routing | completed | USB-controlled debug hub USB routing backtrack |
 | IMP-123 | Preflight differential endpoint topology and tangent compatibility | partially implemented | USB-controlled debug hub USB routing retry |
 | IMP-124 | Classify high-speed protection parts as shunt or series before placement | implemented | USB-controlled debug hub deterministic USB-bottom routing |
+| IMP-179 | Require an absolute public-stock surplus before footprint freeze | completed | USB-controlled debug hub 2A v1 pre-layout sourcing |
+| IMP-180 | Reject shadowed schematic-placement authority before TSX generation | proposed | USB-controlled debug hub 2A v1 power-sheet readability |
 | IMP-125 | Make generated evidence bundles relocatable across atomic promotion | completed | USB-controlled debug hub evidence promotion |
 | IMP-126 | Grade connector mating direction against the board edge | completed | USB-controlled debug hub connector review |
 | IMP-127 | Bind package-local rule areas to realised footprints | completed | USB-controlled debug hub connector review |
@@ -179,7 +181,7 @@ rationale.
 
 ## IMP-001 — pre-build rule/config schema validation
 
-- status: implementing
+- status: completed
 - observed: `projects/usb-hub-3s-v4/01_docs/journal/03_schematic.md`,
   2026-08-11 08:34 entry
 - evidence: A malformed `label_survival` row was knowable from YAML alone, but
@@ -6347,3 +6349,80 @@ IMP-143 owns experiment retention.
 - implementation: `skills/kicad-pcb/scripts/policy_audit.py` plus the split-pad
   regression in `test_policy_audit_partner_refs.py`.
 - recommendation: retain as a regression-protected checker refactor.
+
+## IMP-179 — require an absolute public-stock surplus before footprint freeze
+
+- status: completed
+- observed: USB-controlled debug hub 2A v1 pre-layout sourcing, 2026-08-20
+- evidence: the first quantity-five public-catalog pass accepted every line
+  because the legacy threshold was only `build_quantity * per_board_qty`.
+  That classified a crystal with 8 units for 5 required, an ESD array with 66
+  for 25 required, and an aggregate eFuse with 122 for 10 required as passing.
+  These are technically sufficient for one snapshot but are not reasonable
+  selections before footprint freeze: a small concurrent order can force a
+  schematic, footprint, placement and routing backtrack.
+- general rule: candidate selection must satisfy both quantity coverage and an
+  absolute volatility buffer. For the present policy, every machine-assembled
+  exact code must have public stock of at least
+  `build_quantity * per_board_qty + 200`. The absolute surplus is evaluated
+  per LCSC line after reference aggregation; it is not multiplied by board
+  quantity and it is not weakened for low-cost parts.
+- scope boundary: this is an early negative filter over volatile public
+  catalogue stock. It never proves JLC PCBA allocation and does not replace
+  the hash-bound pre-layout `AVAILABLE` response, MOQ/surplus-cash grading, or
+  the exact order-time `ALLOCATED`/BOM-echo gates. Manual/consigned parts need
+  an explicit disposition rather than silently bypassing the denominator.
+- intended landing point: refactor the existing `jlc_stock_check.py` candidate
+  gate to accept a named absolute-surplus policy alongside its existing
+  quantity multiplier. Record required quantity, observed stock, absolute
+  surplus, threshold and timestamp in the JSON receipt. Invoke it after the
+  preliminary quantity-expanded BOM and before exact footprint promotion.
+- substitution transaction: a failing line reopens exact MPN/datasheet,
+  package and pin identity, electrical corners, sourcing economics, footprint
+  authority and affected schematic invariants together. A same-package or
+  similarly named catalogue hit is only a candidate until all of those close.
+- simple regression cases: stock 205 for five required passes at `+200`;
+  stock 204 fails; stock 225 for 25 required passes; two references collapsed
+  into one BOM line use their aggregate required quantity; a public-stock pass
+  with no JLC allocation receipt remains pre-layout blocked.
+- recommendation: P0 for new boards because it spends seconds before layout
+  and prevents high-churn sourcing substitutions after footprint freeze.
+- implementation: `jlc_stock_check.py` now accepts the backward-
+  compatible `--min-surplus` parameter, includes the absolute limit in its
+  JSON receipt, records required quantity, threshold and observed surplus per
+  line, and grades `stock >= min_stock * aggregate_line_qty + min_surplus`.
+  The pure boundary regression covers 205/204 for five required, 225 for 25
+  required, and reference aggregation without network access. The lifecycle
+  router places the check inside S-PART-FREEZE while preserving separate MOQ,
+  `AVAILABLE`, allocation and uploader authority. The USB-controlled debug
+  hub 2A candidate BOM passes 50/50 at `--min-stock 5 --min-surplus 200`; the
+  exact USB-A receptacles are outside that denominator only through an
+  explicit manual/consigned disposition.
+
+## IMP-180 — reject shadowed schematic-placement authority before TSX generation
+
+- status: proposed
+- observed: USB-controlled debug hub 2A v1 power-sheet readability,
+  2026-08-20
+- evidence: the schematic placement router contained an early exact-name map
+  for `U_BUCK_A/B`, `L_BUCK_A/B` and `U_AGG_A/B` before a newer normalized
+  bank-family map. The early return silently shadowed the comprehensive rule,
+  so repeated attempts to move the aggregate eFuse appeared to have no effect.
+  The converter correctly refused a cross-net wire/label merge, but diagnosis
+  consumed several full TSX generations because the effective placement owner
+  was not visible.
+- general rule: one schematic reference must resolve to exactly one effective
+  placement rule. Exact-name, regex/family and default rules may coexist only
+  with an explicit priority contract; an earlier return that makes a later
+  authored rule unreachable is a source error, not a layout preference.
+- intended landing point: add a source-only schematic-placement lint before
+  TSX generation. Enumerate the manifest reference set, evaluate every layout
+  matcher, and fail on zero owners, multiple owners without declared priority,
+  or a matcher whose complete reference set is shadowed. Emit an effective
+  `ref -> rule id -> sheet/section/x/y` receipt for debugging and review.
+- simple regression cases: an exact `U_AGG_A` row plus a matching `U_AGG_*`
+  family row fails; two disjoint family rows pass; a documented exact override
+  with higher priority passes and appears in the receipt; an unmatched
+  reference falls through only to one named default owner.
+- recommendation: P1. This is a cheap source-schema extension to the existing
+  pre-TSX validation boundary, not a new pipeline phase.

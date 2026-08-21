@@ -1,0 +1,81 @@
+board:        usb_controlled_debug_hub_2a
+version:      v0.1.0
+ordered:      NOT-ORDERED (2026-08-21 staging)
+git_sha:      a8e7faa2b19c7984d0066542138a9c3b5cbcb532
+git_dirty:    true
+sourcing_authority: jlc-pcba
+status:       DRAFT — DO-NOT-ORDER
+gates:        PENDING release rehearsal
+DESIGN:       FAIL
+SOURCING:     BLOCKED-0 (DRAFT; no order-time allocation)
+assembly:     JLCPCB double-sided SMT assembly plus post-through-hole assembly for two USB-C receptacles; four 3 A USB-A receptacles are fitted manually or by consignment
+not_assembled: J_PORT1,J_PORT2,J_PORT3,J_PORT4
+sha256:
+  fab/artifact_index.json  11d68205cc3d423f682d5e8f7f996a91ea02017adce63dd997a587deda30d1b9
+  fab/bom.csv  87e915c88c601c8c218caf7211e2037787164230a6f332fb0592ebf3debefa19
+  fab/bom_echo_gate.txt  6914a28c5030f715edba89747c28d943520adf49b5ef3165e3f91e8e728bdbec
+  fab/cpl.csv  9fe336ccdb549065397673b1d91430f26b1831e9115b781b80a3e75f8f04aece
+  fab/order_notes.txt  7576135d4d486a79fc91e348f3066f1b8a9ce4e1e3efde37ac49a299ebfb78dc
+  fab/rotation_human_gate.txt  bc356003f070947d7590f245caf60e57be765770a69a965406d3a8b449b70b0d
+  fab/usb_controlled_debug_hub_2a-B_Cu.gbl  e514deeec95129c5fed4085c5f33dfd04f6d483a31d0475e1f9ddc21ebc26f6e
+  fab/usb_controlled_debug_hub_2a-B_Mask.gbs  ac66177e7438b8ad157324a140dea274e2c011b156c29beea500709e890f8129
+  fab/usb_controlled_debug_hub_2a-B_Paste.gbp  604104929fd2cb260ede3012cc4127358763c466f1599b688eedd363bdbd7991
+  fab/usb_controlled_debug_hub_2a-B_Silkscreen.gbo  7ae7e9217c8c0ebcd54b3f7c1089af4adb26311fbe09c76d7f82d0111ebcd3ef
+  fab/usb_controlled_debug_hub_2a-Edge_Cuts.gm1  663b85c2876311de5d9464589453dc99da483514481f3886d02b73259c706ed7
+  fab/usb_controlled_debug_hub_2a-F_Cu.gtl  51d8cd04af9d61a62ad7c8a8d8060641a7742a88d89f24da4bb88f06afd3587f
+  fab/usb_controlled_debug_hub_2a-F_Mask.gts  0a8ff43b110f78a941c1c5a8e44e15c07db7840ab5811ba8164185e48a060d18
+  fab/usb_controlled_debug_hub_2a-F_Paste.gtp  66b92436c01df280b3040dee5b7784da7d710d3f8ebefcc64c36141fcff298b4
+  fab/usb_controlled_debug_hub_2a-F_Silkscreen.gto  e203e234491a0ebb4f4152e9480dd2ee365b5972a10463f487460b99f5c69a24
+  fab/usb_controlled_debug_hub_2a-In1_Cu.g1  0da0b509c649ae52f8a1494d17f4fe8b04268832b9c4b82c0ae82b86b64db7f9
+  fab/usb_controlled_debug_hub_2a-In2_Cu.g2  e45eb584f943a549ff64b98ac1825cbbca65cc3a93cf3fa6559f97971ea5b575
+  fab/usb_controlled_debug_hub_2a-NPTH.drl  c40a4317d0b18b9a4811881f0d5c65d33b74fc3c477ff7238227b7dcad95d6e7
+  fab/usb_controlled_debug_hub_2a-PTH.drl  d8775f81cfd0afa9f92fee7ce04b504a0498a98e17aa5250acc71cda7458851e
+  fab/usb_controlled_debug_hub_2a_gerbers.zip  6c9e4d7e698e64b041332de5fb094ae19cfe9c4df15e95119f2c352b5e1d4d5d
+  pdf/assembly.pdf  d59c52f8b15e3193d9f61fd63098aa003b6319b8a57160ec1d722a73a4f2bcad
+  pdf/pcb_layers.pdf  64a2c884041ff082be7439bf3106af241f62c2d006d2d0e54a88f0f2c1136d48
+  pdf/schematic.pdf  e98942522edbda21cb39648fd62f4f1681a253ecefb11e0963fd292abf5a1b51
+  source/project/03_src/floorplan.yaml  1c6afc2e540f7a4572aac57aa132b4a3d6d5c14eed37665d71a4eb4c6afdb3e3
+  source/project/03_src/lib/3d/2N7002K_SOT23.step  77ba908a82212855f2a6d38b120604e403137808eaba47113ce858f1831017e5
+  source/project/03_src/lib/3d/CH224K_ESSOP10.step  e324fe2809b3c115601667e47843c5f263e1573ce605b584caee214614c00df6
+  source/project/03_src/lib/3d/MWSA0804S.step  ac6184de676452813897f4bd14b173d882ef16d8a20b3d21559adf43e0950fca
+  source/project/03_src/lib/3d/SWPA4030S.step  d15ff18847ae4bceb8534d8727ef70e7104ccf8f7c509d17e592afeeb36b8c8e
+  source/project/03_src/lib/3d/TI_RGE0024_VQFN24_4x4.step  9ef09310070d4d716bddae6818caa6b35b46a46e2b98e3673b7130ac501fbe84
+  source/project/03_src/lib/3d/TPS2557_SON8.step  fe4edffe6c341b4a1972262e087900083e16735d623278a987347963f15dc070
+  source/project/03_src/lib/3d/TPS259474LRPWR_VQFN-HR-10.step  1d13993d4bc9c3a12cd6ad47a92ca3333400eaa650b37a741ece3b40de0b03d7
+  source/project/03_src/lib/3d/TPS56637_RPA0010A.step  ad9b461ebbf969063ac5e2982b2fd5be8c968b16634dede53e3f71829058e745
+  source/project/03_src/lib/3d/TYPE-C-31-M-12.step  f902880f83a1b397b76360ed8686b6132a66920b3c1aac8e98239315842ff43e
+  source/project/03_src/lib/3d/USB1130-15-A-envelope.wrl  0131cf454b3201e60759003c22494fc1c60090cf42662b8658d0d2d2ca2a56c6
+  source/project/03_src/lib/3d/USB2517I_QFN64.step  a6f8074544fe7ebc2d3036daf26bea50e51cb93142aad3139cc2a84f069f2398
+  source/project/03_src/lib/usb_controlled_debug_hub_2a.pretty/Sunlord_MWSA0804S.kicad_mod  2c8cc313033fd2e46ba988f7b1e32489ec6cacb1fb20a9f660f2c7abb1a5a6af
+  source/project/03_src/lib/usb_controlled_debug_hub_2a.pretty/TI_RGE0024M_VQFN24_4x4_SplitPad_TypeVII.kicad_mod  31e5d68b37a776f650a84897c8627ee3045509c91558619b52c849a69f4bf657
+  source/project/03_src/lib/usb_controlled_debug_hub_2a.pretty/TI_RPA0010A_VQFN-HR-10_3x3mm.kicad_mod  bf38c3328a66c5a7735ac33bf95774c6399eb90394145db590287f6e8a88b3d0
+  source/project/03_src/lib/usb_controlled_debug_hub_2a.pretty/TI_RPW0010A_VQFN-HR-10_2x2mm_P0.45mm.kicad_mod  e9fe83d0972f888d7e327074cd8f7125fce10b7f812c9c9d392842094a2d5b98
+  source/project/03_src/lib/usb_controlled_debug_hub_2a.pretty/TI_TPS25982_RGE0024_SplitPad_ThermalVias.kicad_mod  e9237f907ba1a875a98e486144c98c13537130cc707a98c1a410501175db802f
+  source/project/03_src/lib/usb_controlled_debug_hub_2a.pretty/TYPE-C-31-M-12_Datasheet.kicad_mod  4486fab3e1f1e9d09ac1ab27124c0208c8b248c0da3b9d445a353fb01c73e2a4
+  source/project/03_src/lib/usb_controlled_debug_hub_2a.pretty/USB_A_GCT_USB1130-15-A_Horizontal.kicad_mod  d0f12849f760a10531214d88a49994d03b20bc21e855f6fb3d4499c4d78d9c4c
+  source/project/03_src/lib/usb_controlled_debug_hub_2a.pretty/WCH_CH224K_ESSOP10_EP.kicad_mod  254795c9bb116e80e81f1d450bf55db50e030fda9a7216175dbe9773199b3d79
+  source/project/03_src/route.yaml  c69743942e8bc76e3895c6d2af87ba8b3845e61e87aedaf8fa65c60c9af6bc1c
+  source/project/03_src/rules/assembly.yaml  688fd5b26ef3dfcb94b7693c4ea3bb86c8a0455afe069ec5c1829087adba0972
+  source/project/03_src/rules/contracts.md  7794bd1c72893de6f145306c4c6ccf1f5446655618f0b833eb037631988a94c3
+  source/project/03_src/rules/electrical_invariants.yaml  524f23d1d0dd1b6dfac4d7ee933675f7b9a223c2f94ee782c3c2a759f4798168
+  source/project/03_src/rules/first_article.yaml  6fe62f1003b65c6e22b7e5f714a9e972ac5a26cacde211fb0edd3c791e5e1d1c
+  source/project/03_src/rules/integration.yaml  82b19d775ff00ac4eb8a5abac8effb2f231f8998fad728774c4b70d7abd29c51
+  source/project/03_src/rules/model_registration.yaml  5c94e112f89ba1387894a28938729d782f1ab5317d871f9b59c283ae007a4761
+  source/project/03_src/rules/nets.yaml  18f94d5e21cb4cf712bd7af6ab7a1ae119ac5d6c827c11e3877c2b8eb7619711
+  source/project/03_src/rules/policy_waivers.yaml  05078a53144b8d430d28f035c72b84d03cffaaae5bd3be1162653bef8957f7be
+  source/project/03_src/rules/power_stages.yaml  35d0f8d287918870d1c5d85cdb1300173a2b0e1f4ebe92910ebce559a2847a95
+  source/project/03_src/rules/power_tree.yaml  d28ce528c6f46cf03635217c704387ae1f55d39779a6879b82122f834ac413a4
+  source/project/03_src/rules/protection_paths.yaml  ae6e1914071ee8ceac84b0b6dbe7049138754788bdbe6758337f5f0a3157b830
+  source/project/03_src/rules/requirements.yaml  6dbefe6fb4ad5c439abf0961cdbbbe1748c964a240e0c5764f7c1af11bca75c2
+  source/project/03_src/rules/rf.yaml  e4f15922a7048eac5b971f969b3fbb1e49aa8719ce96ecc6f26ed9584201d58e
+  source/project/03_src/rules/twin_adjudications.yaml  757c26cb3d46e76e6fffd22e427626fecd6d03b8d2cde960d506356081cc329b
+  source/project/04_kicad/usb_controlled_debug_hub_2a.kicad_dru  70187a78f07d63a7b8c7967b64fc03620de4ccbb89b8d17d0441a280a3501408
+  source/project/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb  71c1687ac22cecb840f2c40ff0f87e2cd1e4d9da0f5a3c5e8f6bfa5832d2bf5b
+  source/project/04_kicad/usb_controlled_debug_hub_2a.kicad_pro  a479d5152ffae1d901dfde697b2ae2646a009aba3226b5f4686e117b86dcfcfc
+  source/project/04_kicad/usb_controlled_debug_hub_2a.kicad_sch  5c2513661ebd807df4a6c0a045d99fc910c7f09a6c255eb433660b1254f9612c
+  source/usb_controlled_debug_hub_2a.kicad_dru  70187a78f07d63a7b8c7967b64fc03620de4ccbb89b8d17d0441a280a3501408
+  source/usb_controlled_debug_hub_2a.kicad_pcb  71c1687ac22cecb840f2c40ff0f87e2cd1e4d9da0f5a3c5e8f6bfa5832d2bf5b
+  source/usb_controlled_debug_hub_2a.kicad_pro  a479d5152ffae1d901dfde697b2ae2646a009aba3226b5f4686e117b86dcfcfc
+  source/usb_controlled_debug_hub_2a.kicad_sch  5c2513661ebd807df4a6c0a045d99fc910c7f09a6c255eb433660b1254f9612c
+  source/usb_controlled_debug_hub_2a.net  77d1bf722472929bcc27dd8de4657bc5d1b92977b60be6f25b5adeae42955590
+  source/usb_controlled_debug_hub_2a.tsx  eca35234c7ad6bbc97583296124942d209e9d911b97b7dc43be0180e53c1f9a9

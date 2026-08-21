@@ -66,10 +66,10 @@ mergeable.
 - [ ] A-CATALOG (advisory): `jlc_stock_check.py --json` grades LCSC catalog
       identity/stock as a cheap negative filter. Its PASS is not JLCPCB PCBA
       availability and cannot produce `SOURCING: CLEAR`.
-- [ ] J-PCBA-PRELAYOUT: the quantity-expanded preliminary BOM has an exact,
-      current `AVAILABLE` receipt from JLCPCB before placement/routing, bound
-      to an explicit procurement policy; preorder cash, gross MOQ surplus cost,
-      and assembly excess cost are within per-line and aggregate limits.
+- [x] J-PCBA-PRELAYOUT: `S-PART-FREEZE` is ACCEPTED 4/4 under ADR 0003's
+      supported user-accepted public-catalog path: exact request/code-set,
+      quantity-five `required + 200`, 24-hour freshness and explicit
+      DO-NOT-ORDER deferral are hash-bound. This does not satisfy J-PCBA-FINAL.
 - [ ] J-PCBA-FINAL: the exact staged `fab/bom.csv` has a current order-phase
       receipt with every line `ALLOCATED`; substitutions, insufficient quantity,
       stale/hash-mismatched evidence, excess-cost rejection, and checklist-only

@@ -2377,7 +2377,8 @@ class Ctx:
         return True
 
     def via_choice(self, net, x, y, avoid=(), spacing_override=None,
-                   allow_via_in_pad=False):
+                   allow_via_in_pad=False, exact_size=None,
+                   exact_drill=None):
         """Return the first legal ``(x, y, size, drill)`` without emitting it.
 
         Some callers need to validate copper that must reach the proposed via
@@ -2408,8 +2409,12 @@ class Ctx:
         if any((x - ux) ** 2 + (y - uy) ** 2 < spacing ** 2
                for ux, uy in self.used):
             return None
-        tiers = v.get("tiers") or [{"size": v.get("size", 0.6),
-                                    "drill": v.get("drill", 0.3)}]
+        if (exact_size is None) != (exact_drill is None):
+            raise ValueError("exact_size and exact_drill must be paired")
+        tiers = ([{"size": exact_size, "drill": exact_drill}]
+                 if exact_size is not None else
+                 (v.get("tiers") or [{"size": v.get("size", 0.6),
+                                      "drill": v.get("drill", 0.3)}]))
         for t in tiers:
             size, drill = float(t["size"]), float(t["drill"])
             if any(math.hypot(x - hx, y - hy) < r + drill / 2 + pth_margin
@@ -2424,13 +2429,14 @@ class Ctx:
         return None
 
     def try_via(self, net, x, y, avoid=(), spacing_override=None,
-                allow_via_in_pad=False):
+                allow_via_in_pad=False, exact_size=None, exact_drill=None):
         """Place one collide-checked via. THE shared primitive: every via
         this script adds goes through here, so the spacing/PTH/keepin
         guards can never be bypassed by a new pass."""
         choice = self.via_choice(
             net, x, y, avoid, spacing_override=spacing_override,
-            allow_via_in_pad=allow_via_in_pad)
+            allow_via_in_pad=allow_via_in_pad, exact_size=exact_size,
+            exact_drill=exact_drill)
         if choice is None:
             return False
         x, y, size, drill = choice
@@ -4417,13 +4423,18 @@ def p_janitor(ctx, c):
     for v in [t for t in ctx.board.GetTracks() if t.GetClass() == "PCB_VIA"]:
         nn = v.GetNetname()
         vx, vy = v.GetPosition().x / 1e6, v.GetPosition().y / 1e6
-        r2 = (v.GetWidth(pcbnew.F_Cu) / 2e6) ** 2
         attach = set()
         for t in ctx.board.GetTracks():
             if t.GetClass() == "PCB_VIA" or t.GetNetCode() != v.GetNetCode():
                 continue
+            # Copper overlaps when the distance between the track centreline
+            # and via centre is no greater than BOTH copper radii combined.
+            # Using only the via radius falsely pruned legitimate via banks
+            # whose centres are offset inside a wide power track (the 2A hub
+            # In1 distributor uses 2--3 mm tracks with 0.46 mm vias).
+            touch_r = (v.GetWidth(pcbnew.F_Cu) + t.GetWidth()) / 2e6
             if seg_d2(vx, vy, t.GetStart().x / 1e6, t.GetStart().y / 1e6,
-                      t.GetEnd().x / 1e6, t.GetEnd().y / 1e6) <= r2:
+                      t.GetEnd().x / 1e6, t.GetEnd().y / 1e6) <= touch_r ** 2:
                 attach.add(t.GetLayer())
         for fp in ctx.board.GetFootprints():
             for p in fp.Pads():
@@ -4495,13 +4506,13 @@ def p_prune_stitch_dangling(ctx, c):
                 abs(vx - ex) <= tol and abs(vy - ey) <= tol
                 for ex, ey in emitted):
             continue                        # not ours — never touch it
-        r2 = (v.GetWidth(pcbnew.F_Cu) / 2e6) ** 2
         attach = set()
         for t in ctx.board.GetTracks():
             if t.GetClass() == "PCB_VIA" or t.GetNetCode() != v.GetNetCode():
                 continue
+            touch_r = (v.GetWidth(pcbnew.F_Cu) + t.GetWidth()) / 2e6
             if seg_d2(vx, vy, t.GetStart().x / 1e6, t.GetStart().y / 1e6,
-                      t.GetEnd().x / 1e6, t.GetEnd().y / 1e6) <= r2:
+                      t.GetEnd().x / 1e6, t.GetEnd().y / 1e6) <= touch_r ** 2:
                 attach.add(t.GetLayer())
         for fp in ctx.board.GetFootprints():
             for p in fp.Pads():
@@ -4519,10 +4530,17 @@ def p_prune_stitch_dangling(ctx, c):
             for lay in z.GetLayerSet().Seq():
                 if lay in attach:
                     continue
-                # FILLED polys, not the outline — the whole point
-                if z.IsFilled() and \
-                        z.GetFilledPolysList(lay).Contains(v.GetPosition()):
-                    attach.add(lay)
+                # FILLED polys, not the zone outline — the whole point.  A
+                # via ring touching the filled boundary is connected even if
+                # its centre is just outside the polygon, so use the same
+                # copper-touch predicate as island grouping rather than a
+                # centre-only Contains() test.
+                if z.IsFilled():
+                    polys = z.GetFilledPolysList(lay)
+                    if any(_copper_reaches(polys.Outline(i), v.GetPosition(),
+                                           v.GetWidth(pcbnew.F_Cu) // 2)
+                           for i in range(polys.OutlineCount())):
+                        attach.add(lay)
         if len(attach) < minlay:
             dead.append(v)
             dead_details.append(
@@ -4857,7 +4875,7 @@ def _guard_same_net(net, ia, ib):
             f"different nets")
 
 
-def _via_overlap_site(ctx, net, ia, ib):
+def _via_overlap_site(ctx, net, ia, ib, size=None, drill=None):
     """A collision-checked through-via site inside BOTH islands (different
     layers) — the shared-plane bridge. Every via goes through ctx.try_via
     (via_site_ok + keepin/spacing/PTH guards), same discipline as taps."""
@@ -4876,7 +4894,12 @@ def _via_overlap_site(ctx, net, ia, ib):
             v = pcbnew.VECTOR2I_MM(x, y)
             if not (ia["chain"].PointInside(v) and ib["chain"].PointInside(v)):
                 continue
-            if ctx.try_via(net, x, y):
+            kwargs = {}
+            if size is not None:
+                kwargs["exact_size"] = size
+            if drill is not None:
+                kwargs["exact_drill"] = drill
+            if ctx.try_via(net, x, y, **kwargs):
                 return (x, y)
     return None
 
@@ -4891,6 +4914,18 @@ def _bridge_groups(ctx, c, net, ga, gb, width):
          the other on a DIFFERENT layer (the shared-plane hop; two group
          merges through a plane = the via pair)."""
     code = net.GetNetCode()
+    local_via = c.get("via") or {}
+    if not isinstance(local_via, dict):
+        die("heal_islands.via must be a mapping with optional size/drill")
+    unknown_via = sorted(set(local_via) - {"size", "drill"})
+    if unknown_via:
+        die(f"heal_islands.via has unknown key(s) {unknown_via}")
+    vs = float(local_via["size"]) if "size" in local_via else None
+    vd = float(local_via["drill"]) if "drill" in local_via else None
+    if (vs is None) != (vd is None):
+        die("heal_islands.via must declare size and drill together")
+    if vs is not None and not (vs > vd > 0):
+        die("heal_islands.via needs size > drill > 0")
     cands = []
     for ia in ga:
         if not ia["big"]:
@@ -4927,7 +4962,7 @@ def _bridge_groups(ctx, c, net, ga, gb, width):
             if not ib["big"] or ia["layer"] == ib["layer"]:
                 continue
             _guard_same_net(net, ia, ib)
-            pt = _via_overlap_site(ctx, net, ia, ib)
+            pt = _via_overlap_site(ctx, net, ia, ib, vs, vd)
             if pt:
                 return (f"plane via ({pt[0]:.2f},{pt[1]:.2f}) "
                         f"{ctx.board.GetLayerName(ia['layer'])}<->"
@@ -5380,10 +5415,21 @@ def p_seed_stubs(ctx, c):
 
 # ------------------------------------------ same-net zone priority unify ------
 def _zone_overlap_pairs(ctx):
-    """(same_net_same_prio, cross_net) copper-zone pairs whose OUTLINES
-    overlap on a shared copper layer. KiCad flags a same-net same-priority
-    outline intersection as `zones_intersect` ('intersecting zones must have
-    distinct priorities'); a cross-net area overlap is a SHORT."""
+    """Return ``(same_net_same_prio, cross_net_filled)`` zone pairs.
+
+    Same-net priority conflicts are an OUTLINE property: KiCad reports
+    ``zones_intersect`` when same-priority zone outlines overlap, even though
+    their eventual copper is one electrical net.  Different-net safety is a
+    FILLED-COPPER property instead.  It is normal for a full-board GND zone's
+    outline to contain higher-priority power zones; zone priority removes GND
+    copper beneath them.  Calling that ordinary nesting a short deadlocks the
+    stitch pipeline.  A cross-net pair is therefore returned only when the
+    post-fill copper polygons have positive-area overlap on a shared layer.
+
+    The caller runs after ``fill`` and again immediately after its own refill,
+    so an unfilled cross-net outline is deliberately not guessed about here;
+    the final DRC remains the independent shorting-items authority.
+    """
     pcbnew = ctx.pcbnew
     zones = [z for z in ctx.board.Zones()
              if not z.GetIsRuleArea() and z.GetNetname()]
@@ -5406,7 +5452,25 @@ def _zone_overlap_pairs(ctx):
                 if za.GetAssignedPriority() == zb.GetAssignedPriority():
                     same.append((za, zb))
             else:
-                cross.append((za, zb))
+                if not (za.IsFilled() and zb.IsFilled()):
+                    continue
+                filled_overlap = False
+                for layer in za.GetLayerSet().Seq():
+                    if (not pcbnew.IsCopperLayer(layer)
+                            or not zb.GetLayerSet().Contains(layer)):
+                        continue
+                    pa = za.GetFilledPolysList(layer)
+                    pb = zb.GetFilledPolysList(layer)
+                    if pa.OutlineCount() == 0 or pb.OutlineCount() == 0:
+                        continue
+                    copper_inter = pcbnew.SHAPE_POLY_SET(pa)
+                    copper_inter.BooleanIntersection(pb)
+                    if (copper_inter.OutlineCount() > 0
+                            and copper_inter.Area() > 0):
+                        filled_overlap = True
+                        break
+                if filled_overlap:
+                    cross.append((za, zb))
     return same, cross
 
 
@@ -5425,8 +5489,9 @@ def p_unify_zone_priorities(ctx, c):
       (a) reduce: after bumping + refill the pass RE-MEASURES same-net
           same-priority overlaps and dies if any remain — a unify that does
           not clear the intersection is an error, never a no-op;
-      (b) zero new violations: cross-net zone overlap is a SHORT and is
-          REFUSED loudly (never priority-bumped — that would hide a short);
+      (b) zero new violations: cross-net FILLED-COPPER overlap is a SHORT and
+          is REFUSED loudly (never priority-bumped — that would hide a short);
+          overlapping outlines resolved by zone priority are valid nesting;
           and the refill is checked with the heal_islands grouping so a
           bump that slices a pour into MORE islands (trading
           zones_intersect for unconnected) is a hard error;
@@ -5441,8 +5506,9 @@ def p_unify_zone_priorities(ctx, c):
         za, zb = cross[0]
         die(f"unify_zone_priorities: zones of DIFFERENT nets overlap "
             f"([{za.GetNetname()}] and [{zb.GetNetname()}]) — that is a "
-            f"SHORT, not a same-net priority union. Refusing to touch it: a "
-            f"cross-net zone intersection is design work (shorting_items), "
+            f"FILLED-COPPER SHORT, not a same-net priority union. Refusing "
+            f"to touch it: a cross-net copper intersection is design work "
+            f"(shorting_items), "
             f"never a mechanical priority bump")
     if not same:
         ctx.bump("zone_priorities_unified", 0)

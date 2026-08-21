@@ -1,131 +1,1460 @@
-# SCHEMA EXAMPLE (skill-owned, project-independent). Adopted from a proven
-# board as a reference for the generic backend's config format. Copy into a
-# new project's 03_src/ and replace the values — the KEYS are the contract.
+# Authored first-pass four-layer floorplan for the 2 A-per-port USB debug hub.
+# The validated USB/control island is retained from usb-controlled-debug-hub-v2.
+# The south power row contains the
+# 20 V PD/input-protection cell, a dedicated 3.3 V buck, and two independent
+# 5 V / 6 A buck-plus-aggregate-eFuse banks. The user-approved 150 x 115 mm
+# compaction preserves that row as one rigid cluster with a routing/thermal
+# corridor north of it. This is placement intent only;
+# no signal or power routing from the predecessor is carried over.
 #
-# cook-loadcell floorplan — the whole per-board input to
-# skills/kicad-pcb/scripts/generate_board_generic.py, replacing the 373-line
-# hand-written 03_src/generate_board.py.
-#   /usr/bin/python3 ../../skills/kicad-pcb/scripts/generate_board_generic.py \
-#       03_src/floorplan.yaml -o 06_build/proof/cook_loadcell.kicad_pcb
-# 55x45 2-layer: sensors J1/J2 + J5 north, J3/J4 + J6 south, HX711 center-west
-# (analog corner W, digital SE).
-
+# Board generation remains a pre-route artifact. Exact footprint/model
+# registration, placement gates, DRC, USB corridor review, and thermal/current
+# density review must pass before route.yaml may be adopted.
 project:
-  name: cook_loadcell
-  netlist: 06_build/netlists/cook_loadcell.net
-  output: 04_kicad/cook_loadcell.kicad_pcb
+  name: usb_controlled_debug_hub_2a
+  netlist: 06_build/netlists/usb_controlled_debug_hub_2a.net
+  output: 04_kicad/usb_controlled_debug_hub_2a.kicad_pcb
   parts_dir: 02_parts
-
 board:
-  outline: {x0: 20.0, y0: 20.0, x1: 75.0, y1: 65.0}
+  outline:
+    x0: 20.0
+    y0: 20.0
+    x1: 170.0
+    y1: 135.0
   edge_width: 0.1
-  layers: 2
-  # Optional, board-wide fabrication intent. Enable only when the order calls
-  # for every via to use the corresponding process; separately identify all
-  # via-in-pad sites and require fabricator/assembly DFM acceptance.
-  # Board-default via treatment; every via left "From rules" inherits it.
-  # Prefer selective thermal_vias.protection for via-in-pad work.
-  # via_protection: {capping: yes, filling: yes}
+  layers: 4
+  stackup:
+    nominal_thickness_mm: 1.6
+    thickness_tolerance_mm: 0.1
+    copper_finish: ENIG
+    dielectric_constraints: true
+    mask_thickness_mm: 0.01
+    copper_thickness_mm:
+    - 0.035
+    - 0.0152
+    - 0.0152
+    - 0.035
+    dielectrics:
+    - type: prepreg
+      thickness_mm: 0.2104
+      material: '7628'
+      epsilon_r: 4.4
+      loss_tangent: 0.02
+    - type: core
+      thickness_mm: 1.065
+      material: FR4
+      epsilon_r: 4.4
+      loss_tangent: 0.02
+    - type: prepreg
+      thickness_mm: 0.2104
+      material: '7628'
+      epsilon_r: 4.4
+      loss_tangent: 0.02
   mounting_holes:
     footprint: MountingHole:MountingHole_3.2mm_M3
-    at: [[23.5, 23.5], [71.5, 23.5], [23.5, 61.5], [71.5, 61.5]]
-
-libraries: [/usr/share/kicad/footprints]
-
+    refdes_prefix: H
+    at:
+    - - 24.0
+      - 24.0
+    - - 166.0
+      - 44.0
+    - - 24.0
+      - 131.0
+    - - 166.0
+      - 131.0
+  fiducials:
+    footprint: Fiducial:Fiducial_1mm_Mask2mm
+    refdes_prefix: FID
+    at:
+    - - 28.0
+      - 28.0
+    - - 164.0
+      - 101.0
+    - - 45.0
+      - 131.0
+libraries:
+- lib: usb_controlled_debug_hub
+  path: ../usb-controlled-debug-hub-v2/03_src/lib/usb_controlled_debug_hub.pretty
+- lib: usb_controlled_debug_hub_2a
+  path: 03_src/lib/usb_controlled_debug_hub_2a.pretty
+- /usr/share/kicad/footprints
 placement:
-  # anchors are PINNED — the legalizer never moves them
-  anchors:
-    # XH footprints are pad-1-origin; pads run +x at rot 0. Pitch must be
-    # >= 11.1 (B3B-XH courtyard is 10.99 wide) or bodies overlap pairwise
-    # and J1/J3 pad 1 lands on the corner mounting holes.
-    J1: [30.2, 24.2, 0]
-    J2: [41.3, 24.2, 0]
-    J5: [52.5, 24.2, 0]
-    J3: [30.2, 60.8, 0]
-    J4: [41.3, 60.8, 0]
-    J6: [53.5, 60.8, 0]
-    U1: [38.0, 42.0, 0]
-    Q1: [28.5, 36.0, 0]
-    JP1: [63.0, 42.0, 270]
-  # seeds are starting points the legalizer may walk outward from
-  seeds:
-    R1: [28.5, 39.5]
-    R2: [26.6, 42.6]     # moved: its GND pad kept landing on the S_PLUS B.Cu run
-    C1: [28.5, 44.5]
-    C2: [28.5, 47.0]
-    R7: [63.0, 27.5]
-    C7: [63.0, 30.0]
-    SJ1: [63.0, 32.5]
-    C3: [44.0, 38.0]
-    C4: [47.0, 38.0]
-    C5: [44.0, 46.0]
-    C6: [47.0, 46.0]
-    D1: [55.0, 55.0]
-    D2: [58.0, 55.0]
-    TP1: [24.0, 32.0]
-    TP2: [24.0, 40.0]
-    TP3: [24.0, 48.0]
-    TP4: [24.0, 55.0]
-    TP5: [52.0, 51.0]
-    TP6: [56.0, 51.0]
-    TP7: [60.0, 51.0]
+  # These exact 3 A receptacles are installed manually after PCBA. Encode the
+  # assembly decision in the regenerated board so no future position export
+  # can silently put them back onto JLC's machine-placement list.
   patterns:
-    # the KiCad SolderJumper footprint ships exclude_from_bom but the symbol
-    # is in_bom yes -> footprint_symbol_mismatch parity error. Clear it.
-    - match: "SJ*"
-      clear_attrs: [exclude_from_bom]
-  legalize: {enable: true, clearance: 0.25, edge_margin: 1.0, hole_keepout: 2.6, ring_max: 40}
-
+  - match: [J_PORT1, J_PORT2, J_PORT3, J_PORT4]
+    attrs: [exclude_from_pos_files]
+  sides:
+    U_ESD_UP: bottom
+    U_ESD1: bottom
+    U_ESD2: bottom
+    U_ESD3: bottom
+    U_ESD4: bottom
+    U_DATA1: bottom
+    U_DATA2: bottom
+    U_DATA3: bottom
+    U_DATA4: bottom
+  anchors:
+    J_PORT1:
+    - 55.0
+    - 25.8
+    - 180
+    J_PORT2:
+    - 83.0
+    - 25.8
+    - 180
+    J_PORT3:
+    - 111.0
+    - 25.8
+    - 180
+    J_PORT4:
+    - 139.0
+    - 25.8
+    - 180
+    U_ESD1:
+    - 55.0
+    - 31.5
+    - 270
+    U_ESD2:
+    - 83.0
+    - 31.5
+    - 270
+    U_ESD3:
+    - 111.0
+    - 31.5
+    - 270
+    U_ESD4:
+    - 139.0
+    - 31.5
+    - 270
+    U_DATA1:
+    - 55.75
+    - 40.0
+    - 90
+    U_DATA2:
+    - 83.75
+    - 40.0
+    - 90
+    U_DATA3:
+    - 111.75
+    - 40.0
+    - 90
+    U_DATA4:
+    - 132.0
+    - 40.0
+    - 90
+    U_PWR1:
+    - 48.0
+    - 54.0
+    - 0
+    U_PWR2:
+    - 76.0
+    - 54.0
+    - 0
+    U_PWR3:
+    - 104.0
+    - 54.0
+    - 0
+    U_PWR4:
+    - 132.0
+    - 54.0
+    - 0
+    J_DATA:
+    - 23.65
+    - 57.0
+    - 270
+    U_ESD_UP:
+    - 30.5
+    - 57.0
+    - 180
+    R_CC1:
+    - 34.0
+    - 52.0
+    - 90
+    R_CC2:
+    - 33.5
+    - 63.0
+    - 90
+    U_HUB:
+    - 93.0
+    - 65.0
+    - 0
+    Y_HUB:
+    - 88.5
+    - 55.5
+    - 0
+    U_PWR_CTRL:
+    - 45.0
+    - 72.0
+    - 0
+    U_CTRL:
+    - 74.0
+    - 76.0
+    - 0
+    U_EXP:
+    - 123.0
+    - 76.0
+    - 0
+    U_AND_PWR:
+    - 104.0
+    - 86.0
+    - 0
+    U_AND_DATA:
+    - 120.0
+    - 86.0
+    - 0
+    Q_DATA1:
+    - 62.0
+    - 45.0
+    - 0
+    Q_DATA2:
+    - 87.0
+    - 45.0
+    - 0
+    Q_DATA3:
+    - 100.0
+    - 45.0
+    - 0
+    Q_DATA4:
+    - 122.5
+    - 45.0
+    - 0
+    J_POWER:
+    - 23.65
+    - 118
+    - 270
+    F_PD:
+    - 32.0
+    - 118
+    - 0
+    D_PD_TVS:
+    - 35.0
+    - 127
+    - 90
+    U_PD:
+    - 41.0
+    - 118
+    - 90
+    R_PD_VDD:
+    - 39.0
+    - 131.0
+    - 0
+    C_PD_VDD:
+    - 46.5
+    - 121
+    - 0
+    R_PD_VBUS:
+    - 35.5
+    - 122.5
+    - 0
+    U_PD_IN:
+    - 52.0
+    - 117
+    - 0
+    R_PD_IN_ILIM:
+    - 64.0
+    - 113
+    - 0
+    C_PD_IN_DVDT:
+    - 64.0
+    - 117
+    - 90
+    C_PD_IN1:
+    - 48.0
+    - 110
+    - 90
+    C_PD_IN2:
+    - 52.0
+    - 110
+    - 90
+    C_PD_IN_HF:
+    - 47.0
+    - 117
+    - 90
+    L_MAIN:
+    - 72.0
+    - 123
+    - 0
+    C_DATA1:
+    - 60.0
+    - 35.0
+    - 0
+    R_DATA_OE1:
+    - 64.0
+    - 35.0
+    - 0
+    R_DATA_OK1:
+    - 64.0
+    - 48.0
+    - 0
+    C_PWR1_IN:
+    - 47.77
+    - 57.0
+    - 270
+    R_ILIM1:
+    - 49.8
+    - 49.5
+    - 0
+    R_PWR_EN1:
+    - 50.0
+    - 63.0
+    - 90
+    C_PORT1_HF:
+    - 52.0
+    - 52.0
+    - 0
+    C_PORT1_BULK:
+    - 54.5
+    - 56.0
+    - 0
+    C_DATA2:
+    - 85.0
+    - 35.0
+    - 0
+    R_DATA_OE2:
+    - 89.0
+    - 35.0
+    - 0
+    R_DATA_OK2:
+    - 89.0
+    - 48.0
+    - 0
+    C_PWR2_IN:
+    - 75.77
+    - 57.0
+    - 270
+    R_ILIM2:
+    - 77.8
+    - 49.5
+    - 0
+    R_PWR_EN2:
+    - 71.0
+    - 50.0
+    - 0
+    C_PORT2_HF:
+    - 80.0
+    - 52.0
+    - 0
+    C_PORT2_BULK:
+    - 82.5
+    - 56.0
+    - 0
+    C_DATA3:
+    - 102.0
+    - 35.0
+    - 0
+    R_DATA_OE3:
+    - 98.0
+    - 35.0
+    - 0
+    R_DATA_OK3:
+    - 98.0
+    - 48.0
+    - 0
+    C_PWR3_IN:
+    - 103.77
+    - 57.0
+    - 270
+    R_ILIM3:
+    - 105.8
+    - 49.5
+    - 0
+    R_PWR_EN3:
+    - 99.0
+    - 50.0
+    - 0
+    C_PORT3_HF:
+    - 108.0
+    - 52.0
+    - 0
+    C_PORT3_BULK:
+    - 110.5
+    - 56.0
+    - 0
+    C_DATA4:
+    - 124.5
+    - 35.0
+    - 0
+    R_DATA_OE4:
+    - 120.5
+    - 35.0
+    - 0
+    R_DATA_OK4:
+    - 120.5
+    - 48.0
+    - 0
+    C_PWR4_IN:
+    - 131.77
+    - 57.0
+    - 270
+    R_ILIM4:
+    - 133.8
+    - 49.5
+    - 0
+    R_PWR_EN4:
+    - 127.0
+    - 50.0
+    - 0
+    C_PORT4_HF:
+    - 136.0
+    - 52.0
+    - 0
+    C_PORT4_BULK:
+    - 138.5
+    - 56.0
+    - 0
+    C_HUB_A1:
+    - 87.0
+    - 59.0
+    - 0
+    C_HUB_A2:
+    - 96.0
+    - 55.0
+    - 0
+    C_HUB_A3:
+    - 96.0
+    - 59.0
+    - 0
+    C_HUB_A4:
+    - 99.0
+    - 59.0
+    - 0
+    C_HUB_A_BULK:
+    - 102.0
+    - 62.0
+    - 0
+    C_HUB_CR_HF:
+    - 102.0
+    - 65.0
+    - 0
+    C_HUB_CR_BULK:
+    - 102.0
+    - 68.0
+    - 0
+    C_HUB_DD:
+    - 87.0
+    - 71.0
+    - 0
+    C_HUB_PLL:
+    - 90.0
+    - 71.0
+    - 0
+    C_HUB_18:
+    - 92.0
+    - 71.4
+    - 270
+    C_HUB_18PLL:
+    - 93.5
+    - 58.5
+    - 0
+    C_XTAL1:
+    - 86.0
+    - 52.0
+    - 0
+    C_XTAL2:
+    - 88.5
+    - 50.0
+    - 0
+    R_XTAL:
+    - 83.5
+    - 52.0
+    - 0
+    R_RBIAS:
+    - 94.0
+    - 52.0
+    - 0
+    R_HUB_RESET:
+    - 84.0
+    - 67.0
+    - 0
+    C_HUB_RESET:
+    - 84.0
+    - 70.0
+    - 0
+    R_VBUS_TOP:
+    - 38.0
+    - 63.0
+    - 90
+    R_VBUS_BOT:
+    - 38.0
+    - 66.0
+    - 90
+    R_CFG0:
+    - 105.0
+    - 66.5
+    - 0
+    R_CFG1:
+    - 124.5
+    - 62.0
+    - 0
+    R_CFG2:
+    - 38.0
+    - 82.0
+    - 0
+    R_NONREM1:
+    - 105.0
+    - 68.0
+    - 0
+    R_NONREM0:
+    - 99.25
+    - 64.0
+    - 180
+    R_SWAP1:
+    - 116.0
+    - 70.0
+    - 0
+    R_SWAP2:
+    - 110.0
+    - 70.0
+    - 0
+    R_SWAP3:
+    - 113.0
+    - 62.0
+    - 180
+    R_SWAP4:
+    - 105.0
+    - 71.0
+    - 0
+    R_SWAP5:
+    - 46.0
+    - 85.0
+    - 0
+    R_SWAP6:
+    - 50.0
+    - 85.0
+    - 0
+    R_SWAP7:
+    - 54.0
+    - 85.0
+    - 0
+    R_GANG:
+    - 105.0
+    - 69.5
+    - 0
+    R_BOOST0:
+    - 113.0
+    - 70.0
+    - 0
+    R_BOOST1:
+    - 99.3
+    - 61.25
+    - 0
+    R_DIS6N:
+    - 119.0
+    - 70.0
+    - 180
+    R_DIS6P:
+    - 122.0
+    - 70.0
+    - 180
+    R_DIS7N:
+    - 125.0
+    - 70.0
+    - 180
+    R_DIS7P:
+    - 128.0
+    - 70.0
+    - 180
+    R_ILIM_CTRL:
+    - 48.3
+    - 73.0
+    - 90
+    C_PWR_CTRL_IN:
+    - 40.2
+    - 72.0
+    - 0
+    C_PWR_CTRL_OUT_HF:
+    - 50.0
+    - 69.0
+    - 0
+    C_PWR_CTRL_OUT:
+    - 50.0
+    - 73.0
+    - 0
+    C_CTRL_VDD:
+    - 68.8
+    - 74.05
+    - 180
+    C_CTRL_VUSB:
+    - 80.3
+    - 75.8
+    - 0
+    R_CTRL_RESET:
+    - 79.5
+    - 79.5
+    - 0
+    R_I2C_SCL:
+    - 80.5
+    - 71.0
+    - 0
+    R_I2C_SDA:
+    - 80.5
+    - 74.0
+    - 0
+    C_EXP_VDD:
+    - 116.0
+    - 77.0
+    - 0
+    R_EXP_RESET:
+    - 130.0
+    - 79.0
+    - 0
+    C_AND_PWR:
+    - 109.0
+    - 84.0
+    - 0
+    C_AND_DATA:
+    - 125.0
+    - 84.0
+    - 0
+    R_PWR_CMD1:
+    - 108.0
+    - 92.0
+    - 0
+    R_PWR_CMD2:
+    - 114.0
+    - 92.0
+    - 0
+    R_PWR_CMD3:
+    - 124.0
+    - 92.0
+    - 0
+    R_PWR_CMD4:
+    - 130.0
+    - 92.0
+    - 0
+    R_DATA_CMD1:
+    - 108.0
+    - 96.0
+    - 0
+    R_DATA_CMD2:
+    - 114.0
+    - 96.0
+    - 0
+    R_DATA_CMD3:
+    - 124.0
+    - 96.0
+    - 0
+    R_DATA_CMD4:
+    - 130.0
+    - 96.0
+    - 0
+    C_BST:
+    - 68.7
+    - 122.525
+    - 270
+    R_PD_UV_TOP_HI:
+    - 47.0
+    - 126.5
+    - 0
+    R_PD_UV_TOP_LO:
+    - 50.0
+    - 126.5
+    - 0
+    R_PD_UV_MID:
+    - 53.0
+    - 126.5
+    - 0
+    R_PD_OV_BOT:
+    - 56.0
+    - 126.5
+    - 0
+    U_MAIN:
+    - 66.0
+    - 123
+    - 0
+    C_MAIN_IN:
+    - 61.4
+    - 123.475
+    - 180
+    C_MAIN_OUT1:
+    - 79.0
+    - 120.5
+    - 90
+    C_MAIN_OUT2:
+    - 79.0
+    - 126
+    - 90
+    U_BUCK_A:
+    - 89.0
+    - 117
+    - 0
+    C_BST_A:
+    - 91.9
+    - 118.1
+    - 90
+    L_BUCK_A:
+    - 98.0
+    - 117
+    - 0
+    C_BUCK_A_IN1:
+    - 91.5
+    - 112.5
+    - 90
+    C_BUCK_A_IN2:
+    - 88.0
+    - 111.0
+    - 90
+    C_BUCK_A_OUT1:
+    - 106.0
+    - 114.5
+    - 90
+    C_BUCK_A_OUT2:
+    - 106.0
+    - 120
+    - 90
+    R_BUCK_A_EN_TOP:
+    - 87.0
+    - 125.5
+    - 0
+    R_BUCK_A_EN_BOT:
+    - 90.0
+    - 125.5
+    - 0
+    R_FB_A_TOP:
+    - 96.0
+    - 125.5
+    - 0
+    R_FB_A_BOT:
+    - 99.0
+    - 125.5
+    - 0
+    U_AGG_A:
+    - 115.0
+    - 113
+    - 0
+    C_AGG_A_IN:
+    - 110.0
+    - 117
+    - 0
+    R_AGG_A_ILIM:
+    - 119.2
+    - 112.8
+    - 0
+    C_AGG_A_TIMER:
+    - 119.2
+    - 116.0
+    - 0
+    C_AGG_A_DVDT:
+    - 119.0
+    - 108
+    - 0
+    C_BANK_A_HF:
+    - 110.0
+    - 111.5
+    - 0
+    C_BANK_A_BULK:
+    - 124.0
+    - 119
+    - 90
+    C_BANK_A_POLY:
+    - 120.0
+    - 126
+    - 0
+    U_BUCK_B:
+    - 133.0
+    - 117
+    - 0
+    C_BST_B:
+    - 135.9
+    - 118.1
+    - 90
+    L_BUCK_B:
+    - 142.0
+    - 117
+    - 0
+    C_BUCK_B_IN1:
+    - 135.5
+    - 112.5
+    - 90
+    C_BUCK_B_IN2:
+    - 132.0
+    - 111.0
+    - 90
+    C_BUCK_B_OUT1:
+    - 150.0
+    - 114.5
+    - 90
+    C_BUCK_B_OUT2:
+    - 150.0
+    - 120
+    - 90
+    R_BUCK_B_EN_TOP:
+    - 131.0
+    - 125.5
+    - 0
+    R_BUCK_B_EN_BOT:
+    - 134.0
+    - 125.5
+    - 0
+    R_FB_B_TOP:
+    - 140.0
+    - 125.5
+    - 0
+    R_FB_B_BOT:
+    - 143.0
+    - 125.5
+    - 0
+    U_AGG_B:
+    - 159.0
+    - 113
+    - 0
+    C_AGG_B_IN:
+    - 154.0
+    - 117
+    - 0
+    R_AGG_B_ILIM:
+    - 163.2
+    - 112.8
+    - 0
+    C_AGG_B_TIMER:
+    - 163.2
+    - 116.0
+    - 0
+    C_AGG_B_DVDT:
+    - 163.0
+    - 108
+    - 0
+    C_BANK_B_HF:
+    - 154.0
+    - 111.5
+    - 0
+    C_BANK_B_BULK:
+    - 164.0
+    - 122
+    - 90
+    C_BANK_B_POLY:
+    - 158.0
+    - 127
+    - 0
+  patterns:
+  - match: J_PORT*
+    model_override:
+      file: "${KIPRJMOD}/../03_src/lib/3d/USB1130-15-A-envelope.wrl"
+      offset: [0, 0, 0]
+      rotate: [0, 0, 0]
+  - match: Q_DATA*
+    model_override:
+      file: "${KIPRJMOD}/../03_src/lib/3d/2N7002K_SOT23.step"
+      rotate: [0, 0, 180]
+  - match: L_MAIN
+    model_override:
+      file: "${KIPRJMOD}/../03_src/lib/3d/SWPA4030S.step"
+      rotate: [0, 0, 270]
+  - match: U_HUB
+    model_override:
+      file: "${KIPRJMOD}/../03_src/lib/3d/USB2517I_QFN64.step"
+      rotate: [0, 0, 0]
+  - match: U_AGG_*
+    model_override:
+      file: "${KIPRJMOD}/../03_src/lib/3d/TI_RGE0024_VQFN24_4x4.step"
+      rotate: [0, 0, 0]
+  - match: U_PWR_CTRL
+    model_override:
+      file: "${KIPRJMOD}/../03_src/lib/3d/TPS2557_SON8.step"
+      rotate: [0, 0, 270]
+  - match: U_AGG_*
+    pad_overrides:
+    - pads:
+      - 4
+      - 5
+      - 10
+      - 11
+      - 12
+      - 14
+      - 26
+      on_net: GND
+      zone_connection: full
+  - match: D_PD_TVS
+    pad_overrides:
+    - pads:
+      - 1
+      - 2
+      - 3
+      - 7
+      on_net: GND
+      zone_connection: full
+  - match: U_DATA*
+    pad_overrides:
+    - pads:
+      - 2
+      on_net: GND
+      zone_connection: full
+  - match: U_HUB
+    pad_overrides:
+    - pads: [65]
+      on_net: GND
+      zone_connection: full
+  - match: U_EXP
+    pad_overrides:
+    - pads: [10]
+      on_net: GND
+      zone_connection: full
+  - match: U_AND_DATA
+    pad_overrides:
+    - pads: [7]
+      on_net: GND
+      zone_connection: full
+  - match: U_AND_PWR
+    pad_overrides:
+    - pads:
+      - 7
+      on_net: GND
+      zone_connection: full
+  - match: C_AND_PWR
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: C_PD_VDD
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: C_HUB_RESET
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: C_HUB_PLL
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: R_GANG
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: R_CFG0
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: R_BOOST1
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: R_NONREM1
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: R_SWAP4
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: C_HUB_A4
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: U_PWR_CTRL
+    pad_overrides:
+    - pads:
+      - 9
+      on_net: GND
+      zone_connection: full
+  - match: U_PWR[1-4]
+    pad_overrides:
+    - pads:
+      - 2
+      - 8
+      on_net: GND
+      zone_connection: full
+  - match: R_ILIM[1-4]
+    pad_overrides:
+    - pads:
+      - 2
+      on_net: GND
+      zone_connection: full
+  - match: C_PWR[1-4]_IN
+    pad_overrides:
+    - pads:
+      - 2
+      on_net: GND
+      zone_connection: full
+  - match: J_DATA
+    pad_overrides:
+    - pads:
+      - A1
+      - A12
+      - B1
+      - B12
+      on_net: GND
+      zone_connection: full
+  - match: J_POWER
+    pad_overrides:
+    - pads: [A1, A12, B1, B12]
+      on_net: GND
+      zone_connection: full
+  - match: U_BUCK_[AB]
+    pad_overrides:
+    - pads: [3, 9]
+      on_net: GND
+      zone_connection: full
+  - match: U_MAIN
+    pad_overrides:
+    - pads: [4]
+      on_net: GND
+      zone_connection: full
+  - match: C_BUCK_[AB]_OUT1
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: C_AGG_[AB]_DVDT
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: C_BANK_[AB]_BULK
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: Y_HUB
+    pad_overrides:
+    - pads: [2]
+      on_net: GND
+      zone_connection: full
+  - match: U_PD_IN
+    pad_overrides:
+    - pads: [9, 12]
+      on_net: GND
+      zone_connection: full
+  - match: U_PD
+    pad_overrides:
+    - pads: [9]
+      on_net: GND
+      zone_connection: full
+  pin:
+  - '*'
+  legalize:
+    enable: true
+    clearance: 0.65
+    edge_margin: 1.0
+    hole_keepout: 2.6
+    ring_max: 100
 design_rules:
   track_min_width: 0.15
   min_clearance: 0.127
   via_min_annulus: 0.13
-  hole_clearance: 0.25
-  hole_to_hole: 0.5
+  hole_clearance: 0.2
+  hole_to_hole: 0.25
   copper_edge_clearance: 0.3
-  via_min_size: 0.45
+  via_min_size: 0.46
   min_through_drill: 0.2
   solder_mask_min_width: 0.0
   solder_mask_expansion: 0.0
-
 zones:
-  - {net: GND, layers: [F.Cu, B.Cu], priority: 0, min_thickness: 0.3, clearance: 0.3, connect: thermal}
-
+- net: VBUS_PD_RAW
+  layers: [F.Cu]
+  priority: 8
+  rect: [26.7, 114.4, 31.25, 121.0]
+  connect: full
+- net: VBUS_PD
+  layers: [F.Cu]
+  priority: 7
+  rect: [32.75, 112.8, 55.8, 120.2]
+  connect: full
+- net: VBUS_PD
+  layers: [F.Cu]
+  priority: 7
+  rect: [33.8, 125.7, 36.2, 126.5]
+  connect: full
+- net: VBUS_PD_PROTECTED
+  layers: [F.Cu]
+  priority: 6
+  rect: [54.2, 113.7, 67.0, 125.2]
+  connect: full
+- net: VBUS_PD_PROTECTED
+  layers: [B.Cu]
+  priority: 6
+  rect: [57.0, 118.5, 135.8, 125.2]
+  connect: full
+- net: VBUS_PD_PROTECTED
+  layers: [F.Cu]
+  priority: 6
+  rect: [84.0, 110.2, 92.0, 120.0]
+  connect: full
+- net: VBUS_PD_PROTECTED
+  layers: [F.Cu]
+  priority: 6
+  rect: [128.0, 110.2, 136.0, 120.0]
+  connect: full
+- net: SW_3V3
+  layers: [F.Cu]
+  priority: 9
+  rect: [66.4, 120.8, 71.2, 125.2]
+  connect: full
+- net: SW_A
+  layers: [F.Cu]
+  priority: 9
+  rect: [89.1, 114.1, 96.1, 119.9]
+  connect: full
+- net: SW_B
+  layers: [F.Cu]
+  priority: 9
+  rect: [133.1, 114.1, 140.1, 119.9]
+  connect: full
+- net: P5V_BANK_A
+  layers: [F.Cu]
+  priority: 7
+  rect: [99.8, 112.5, 117.0, 123.0]
+  connect: full
+- net: P5V_BANK_B
+  layers: [F.Cu]
+  priority: 7
+  rect: [143.8, 112.5, 161.0, 123.0]
+  connect: full
+- net: P5V_A_PROTECTED
+  layers: [F.Cu]
+  priority: 5
+  rect: [108.5, 107.5, 125.5, 128.5]
+  connect: full
+- net: P5V_A_PROTECTED
+  layers: [B.Cu]
+  priority: 5
+  points: [[45.0, 52.0], [78.0, 52.0], [78.0, 57.0],
+           [72.0, 57.0], [72.0, 107.0], [117.0, 107.0],
+           [117.0, 110.0], [68.0, 110.0], [68.0, 57.0],
+           [45.0, 57.0]]
+  connect: full
+- net: P5V_A_PROTECTED
+  layers: [F.Cu]
+  priority: 5
+  rect: [45.0, 52.0, 49.0, 56.0]
+  connect: full
+- net: P5V_A_PROTECTED
+  layers: [F.Cu]
+  priority: 5
+  rect: [73.0, 52.0, 77.0, 56.0]
+  connect: full
+- net: P5V_B_PROTECTED
+  layers: [F.Cu]
+  priority: 5
+  rect: [152.5, 107.5, 166.0, 128.5]
+  connect: full
+- net: P5V_B_PROTECTED
+  layers: [B.Cu]
+  priority: 5
+  points: [[101.0, 52.0], [142.0, 52.0], [142.0, 107.0],
+           [162.0, 107.0], [162.0, 110.0], [138.0, 110.0],
+           [138.0, 57.0], [101.0, 57.0]]
+  connect: full
+- net: P5V_B_PROTECTED
+  layers: [F.Cu]
+  priority: 5
+  rect: [101.0, 52.0, 105.0, 56.0]
+  connect: full
+- net: P5V_B_PROTECTED
+  layers: [F.Cu]
+  priority: 5
+  rect: [129.0, 52.0, 133.0, 56.0]
+  connect: full
+- net: GND
+  layers:
+  - F.Cu
+  - In1.Cu
+  - In2.Cu
+  - B.Cu
+  priority: 0
+  min_thickness: 0.25
+  clearance: 0.3
+  connect: thermal
+# Named permissive rule areas: these deny no routing. They only bind the four
+# exact TPS2557 package-output width exceptions declared in rules/nets.yaml.
+keepouts:
+- {name: pwr1_output_launch, layers: [F.Cu], deny: [], rect: [47.9, 52.6, 49.7, 56.2]}
+- {name: pwr2_output_launch, layers: [F.Cu], deny: [], rect: [75.9, 52.6, 77.7, 56.2]}
+- {name: pwr3_output_launch, layers: [F.Cu], deny: [], rect: [103.9, 52.6, 105.7, 56.2]}
+- {name: pwr4_output_launch, layers: [F.Cu], deny: [], rect: [131.9, 52.6, 133.7, 56.2]}
+- {name: pwr1_input_drop, layers: [F.Cu], deny: [], rect: [47.5, 56.2, 48.55, 56.85]}
+- {name: pwr2_input_drop, layers: [F.Cu], deny: [], rect: [75.5, 56.2, 76.55, 56.85]}
+- {name: pwr3_input_drop, layers: [F.Cu], deny: [], rect: [103.5, 56.2, 104.55, 56.85]}
+- {name: pwr4_input_drop, layers: [F.Cu], deny: [], rect: [131.5, 56.2, 132.55, 56.85]}
+- {name: pd_raw_contact_neck, layers: [F.Cu], deny: [], rect: [28.7, 118.7, 29.8, 120.7]}
+- {name: pd_tvs_launch, layers: [F.Cu], deny: [], rect: [34.4, 119.7, 35.6, 126.4]}
+- {name: pd_vdd_tap_f, layers: [F.Cu], deny: [], rect: [37.2, 128.7, 37.8, 131.3]}
+- {name: pd_vdd_tap_b, layers: [B.Cu], deny: [], rect: [33.2, 113.2, 37.8, 129.3]}
+- {name: pd_vbus_tap, layers: [F.Cu], deny: [], rect: [34.7, 119.7, 35.3, 122.8]}
+- {name: pd_uv_tap, layers: [F.Cu], deny: [], rect: [39.7, 119.7, 46.8, 126.8]}
+- {name: pd_pin13_tap_f, layers: [F.Cu], deny: [], rect: [54.7, 118.3, 58.3, 118.95]}
+- {name: pd_pin13_tap_b, layers: [B.Cu], deny: [], rect: [55.2, 112.7, 58.3, 118.95]}
+- {name: pd_output_cap_tap, layers: [F.Cu], deny: [], rect: [47.7, 111.1, 56.8, 115.0]}
+- {name: pd_output_neck, layers: [F.Cu], deny: [], rect: [56.9, 113.6, 58.0, 114.8]}
+- {name: buck_a_input_zone_neck, layers: [F.Cu], deny: [], rect: [85.4, 116.2, 86.5, 117.3]}
+- {name: buck_a_vin_land_neck, layers: [F.Cu], deny: [], rect: [89.8, 114.2, 91.0, 115.6]}
+- {name: buck_b_input_zone_neck, layers: [F.Cu], deny: [], rect: [129.4, 116.2, 130.5, 117.3]}
+- {name: buck_b_vin_land_neck, layers: [F.Cu], deny: [], rect: [133.8, 114.2, 135.0, 115.6]}
+- {name: buck_a_enable_tap, layers: [F.Cu], deny: [], rect: [86.2, 124.2, 86.8, 125.8]}
+- {name: buck_b_enable_tap, layers: [F.Cu], deny: [], rect: [130.2, 124.2, 130.8, 125.8]}
+- {name: bank_a_bulk_link, layers: [F.Cu], deny: [], rect: [108.0, 107.8, 124.3, 120.8]}
+- {name: bank_b_bulk_link, layers: [F.Cu], deny: [], rect: [162.2, 108.8, 164.3, 124.0]}
+- {name: management_vbus_branch, layers: [F.Cu, B.Cu], deny: [], rect: [38.2, 56.2, 48.6, 74.3]}
+- {name: pwr2_input_pin_neck, layers: [F.Cu], deny: [], rect: [75.4, 53.7, 76.1, 56.8]}
+- {name: pwr3_input_pin_neck, layers: [F.Cu], deny: [], rect: [103.4, 53.7, 104.1, 56.8]}
+- {name: bank_a_agg_input_neck, layers: [F.Cu], deny: [], rect: [114.5, 110.7, 115.0, 112.7]}
+- {name: bank_b_agg_input_neck, layers: [F.Cu], deny: [], rect: [158.5, 110.7, 159.0, 112.7]}
+- {name: bank_a_feedback_tap, layers: [F.Cu], deny: [], rect: [94.2, 122.7, 100.0, 125.8]}
+- {name: bank_b_feedback_tap, layers: [F.Cu], deny: [], rect: [138.2, 122.7, 144.0, 125.8]}
+- {name: buck_a_switch_land_neck, layers: [F.Cu], deny: [], rect: [89.0, 117.9, 90.0, 119.7]}
+- {name: buck_b_switch_land_neck, layers: [F.Cu], deny: [], rect: [133.0, 117.9, 134.0, 119.7]}
 silk:
-  min_text_height: 0.6
-  refdes: {size: 0.6, min_size: 0.45, fab_copy: true, clearance: 0.16, priority_prefixes: "UJQ"}
-  labels:
-    - {match: "TP*", from: value, strip: "TP ", size: 0.6}
+  min_text_height: 0.7
+  caption_nudge: true
+  refdes:
+    size: 0.7
+    min_size: 0.5
+    fab_copy: true
+    clearance: 0.16
+    priority_prefixes: JUQF
   captions:
-    - ["LOAD SENSOR 1  B R W", 30.5, 29.2, 0.7]
-    - ["SENSOR 2  B R W", 38.8, 31.0, 0.7]
-    - ["FULL BRIDGE ALT: E+ S+ S- E- SH", 52.0, 29.4, 0.65]
-    - ["SENSOR 3  B R W", 30.5, 57.2, 0.7]
-    - ["SENSOR 4  B R W", 39.5, 55.4, 0.7]
-    - ["TO COOK-HUB J6: 5V 3V3 G DAT CLK", 54.0, 57.2, 0.65]
-    - ["JP1 RATE: 1-2=10SPS 2-3=80SPS", 62.0, 37.8, 0.6]
-    - ["SJ1: SHIELD HARD BOND", 63.0, 34.6, 0.55]
-    # title block lives in the SE clearing (JP1 y<=44.5, TP row y=51)
-    - ["cook-loadcell v1.0  HX711 PCB C", 57.0, 47.0, 0.7]
-    - ["MODE = POPULATION: 4x HALF-BRIDGE OR J5", 57.0, 48.7, 0.6]
-
+  - text: PORT 1 / 2 A
+    at:
+    - 55.0
+    - 36.0
+    size: 0.75
+  - text: PORT 2 / 2 A
+    at:
+    - 83.0
+    - 36.0
+    size: 0.75
+  - text: PORT 3 / 2 A
+    at:
+    - 111.0
+    - 36.0
+    size: 0.75
+  - text: PORT 4 / 2 A
+    at:
+    - 139.0
+    - 36.0
+    size: 0.75
+  - text: USB-C DATA
+    at:
+    - 25.5
+    - 49.0
+    size: 0.7
+  - text: VBUS SENSE ONLY
+    at:
+    - 25.5
+    - 65.5
+    size: 0.6
+  - text: USB-C PD POWER
+    at:
+    - 25.5
+    - 108.0
+    size: 0.7
+  - text: 20 V / 45 W MIN
+    at:
+    - 33.0
+    - 132.0
+    size: 0.6
+  - text: 3 A FUSE
+    at:
+    - 32.0
+    - 114.0
+    size: 0.6
+  - text: 'BANK A: PORTS 1+2'
+    at:
+    - 111.0
+    - 131.0
+    size: 0.65
+  - text: 'BANK B: PORTS 3+4'
+    at:
+    - 153.0
+    - 131.0
+    size: 0.65
 asserts:
   pad_net:
-    - {ref: D1, pad: 1, net: DAT}      # pad 1 = cathode
-    - {ref: D2, pad: 1, net: CLK}
-    - {ref: Q1, pad: 2, net: 5V}
-    - {ref: Q1, pad: 3, net: E_PLUS}
-    - {ref: U1, pad: 8, net: S_PLUS}
-    - {ref: U1, pad: 7, net: S_MINUS}
-    - {ref: J6, pad: 4, net: DAT}
-    - {ref: J6, pad: 5, net: CLK}
-
-# ESCAPE CORRIDORS (Phase F 2026-07-21, from usb-pwr-hub-3s ADR-0008):
-# reserved routing lanes off a dense package's loaded side — satisfies
-# escape_check v2's `escape-corridor` condition (P-ESC). Expands to a named
-# rule area `esc_<ref>_<side>` denying footprints+pours (tracks/vias stay
-# allowed — that is the lane). Unknown ref / bad side = hard error.
-#
-# escape_corridors:
-#   - {ref: U1, side: E, depth_mm: 4.0}            # full-side lane
-#   - {ref: U2, side: N, depth_mm: 3.0, width_mm: 6.0, layers: [F.Cu]}
+  - ref: U_HUB
+    pad: 58
+    net: UP_HUB_N
+  - ref: U_HUB
+    pad: 59
+    net: UP_HUB_P
+  - ref: U_HUB
+    pad: 65
+    net: GND
+  - ref: J_DATA
+    pad: A4
+    net: USB_UP_VBUS
+  - ref: J_DATA
+    pad: A6
+    net: UP_HUB_P
+  - ref: J_DATA
+    pad: A7
+    net: UP_HUB_N
+  - ref: J_POWER
+    pad: A4
+    net: VBUS_PD_RAW
+  - ref: J_POWER
+    pad: A5
+    net: PD_CC1
+  - ref: J_POWER
+    pad: B5
+    net: PD_CC2
+  - ref: J_PORT1
+    pad: 1
+    net: VBUS1_SW
+  - ref: J_PORT4
+    pad: 1
+    net: VBUS4_SW
+  - ref: U_ESD1
+    pad: 1
+    net: P1_PORT_P
+  - ref: U_ESD1
+    pad: 2
+    net: P1_PORT_N
+  - ref: U_ESD2
+    pad: 1
+    net: P2_PORT_P
+  - ref: U_ESD2
+    pad: 2
+    net: P2_PORT_N
+  - ref: U_ESD3
+    pad: 1
+    net: P3_PORT_P
+  - ref: U_ESD3
+    pad: 2
+    net: P3_PORT_N
+  - ref: U_ESD4
+    pad: 1
+    net: P4_PORT_P
+  - ref: U_ESD4
+    pad: 2
+    net: P4_PORT_N
+  edge_faces:
+  - ref: J_PORT1
+    edge: y0
+    min_offset_mm: 0.5
+  - ref: J_PORT2
+    edge: y0
+    min_offset_mm: 0.5
+  - ref: J_PORT3
+    edge: y0
+    min_offset_mm: 0.5
+  - ref: J_PORT4
+    edge: y0
+    min_offset_mm: 0.5
+  - ref: J_DATA
+    edge: x0
+    min_offset_mm: 0.5
+  - ref: J_POWER
+    edge: x0
+    min_offset_mm: 0.5
+  pad_bank_faces:
+  - ref: U_ESD1
+    pads:
+    - 1
+    - 2
+    toward_ref: J_PORT1
+    toward_pads:
+    - 2
+    - 3
+    behind_pads:
+    - 3
+    margin_mm: 0.5
+  - ref: U_ESD2
+    pads:
+    - 1
+    - 2
+    toward_ref: J_PORT2
+    toward_pads:
+    - 2
+    - 3
+    behind_pads:
+    - 3
+    margin_mm: 0.5
+  - ref: U_ESD3
+    pads:
+    - 1
+    - 2
+    toward_ref: J_PORT3
+    toward_pads:
+    - 2
+    - 3
+    behind_pads:
+    - 3
+    margin_mm: 0.5
+  - ref: U_ESD4
+    pads:
+    - 1
+    - 2
+    toward_ref: J_PORT4
+    toward_pads:
+    - 2
+    - 3
+    behind_pads:
+    - 3
+    margin_mm: 0.5
+  - ref: U_ESD_UP
+    pads:
+    - 1
+    - 2
+    toward_ref: J_DATA
+    toward_pads:
+    - A6
+    - A7
+    behind_pads:
+    - 3
+    margin_mm: 0.5
+  - ref: U_DATA1
+    pads:
+    - 6
+    - 7
+    toward_ref: U_ESD1
+    toward_pads:
+    - 1
+    - 2
+    behind_pads:
+    - 3
+    - 4
+    margin_mm: 0.25
+  - ref: U_DATA2
+    pads:
+    - 6
+    - 7
+    toward_ref: U_ESD2
+    toward_pads:
+    - 1
+    - 2
+    behind_pads:
+    - 3
+    - 4
+    margin_mm: 0.25
+  - ref: U_DATA3
+    pads:
+    - 6
+    - 7
+    toward_ref: U_ESD3
+    toward_pads:
+    - 1
+    - 2
+    behind_pads:
+    - 3
+    - 4
+    margin_mm: 0.25
+  - ref: U_DATA4
+    pads:
+    - 6
+    - 7
+    toward_ref: U_ESD4
+    toward_pads:
+    - 1
+    - 2
+    behind_pads:
+    - 3
+    - 4
+    margin_mm: 0.25
+escape_corridors:
+- ref: U_HUB
+  side: W
+  depth_mm: 1.5
+  width_mm: 7.0
+  layers:
+  - F.Cu

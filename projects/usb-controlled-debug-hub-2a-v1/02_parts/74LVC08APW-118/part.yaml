@@ -1,0 +1,84 @@
+mpn: 74LVC08APW,118
+manufacturer: Nexperia
+type: quad_two_input_and_gate
+value: 74LVC08APW,118
+function: Hardware interlocks for hub power commands and per-port data commands
+status: active
+note_dirname: "Filesystem-safe directory spelling uses a hyphen where the exact orderable MPN contains a comma."
+
+datasheet:
+  doc_id: 74LVC08A
+  revision: 8
+  url: https://assets.nexperia.com/documents/data-sheet/74LVC08A.pdf
+  local: 74LVC08A.pdf
+  sha256: 0aa72ac6c3e360d52b7cc17aa7c7aa7d730f12a5803e4decd1b628f13602a2a2
+  fetched: 2026-07-31
+  pages: 14
+  provenance: "CITED: fetched directly from assets.nexperia.com with the exact PW ordering suffix checked in the ordering table."
+
+package: TSSOP-14, 4.4 mm body, 0.65 mm pitch, SOT402-1
+footprint: Package_SO:TSSOP-14_4.4x5mm_P0.65mm
+escape:
+  style: leaded
+  pitch: 0.65
+  escapes_worst_side: 7
+  tier_required: jlc_2layer_default
+  conditions: [escape-corridor]
+  checked: escape_check 2026-07-31
+
+pins:
+  1: 1A
+  2: 1B
+  3: 1Y
+  4: 2A
+  5: 2B
+  6: 2Y
+  7: GND
+  8: 3Y
+  9: 3A
+  10: 3B
+  11: 4Y
+  12: 4A
+  13: 4B
+  14: VCC
+
+limits:
+  vcc_operating: 1.2 to 3.6 V
+  input_tolerant: 5.5 V independent of VCC
+  output_current: +/-24 mA at VCC 3.0 V
+  ambient_temperature: -40 to +125 C
+
+electrical:
+  source: "Nexperia 74LVC08A Rev 8 static characteristics at VCC = 2.7 to 3.6 V"
+  vdd: 3.3
+  vdd_net: 3V3_MAIN
+  defaults:
+    v_ih_min: 2.0
+    v_il_max: 0.8
+
+verified: "CITED: Nexperia 74LVC08A Rev 8 pin configuration and ordering information, PDF pp2-3 and p13; checked 2026-07-31."
+
+gotchas:
+  - "U_PWR_AND is a hardware policy interlock: every external TPS259470A EN is HUB_PRTPWR AND PWR_CMD. U_DATA_AND further requires PWR_EN AND DATA_CMD before the data switch can connect. Do not replace either condition with host-software-only sequencing."
+  - "The expander command inputs must not float. One external 10k pulldown on each PWR_CMD and DATA_CMD holds all external ports fully off while the management path is unpowered or resetting."
+  - "Use the PW TSSOP-14 suffix. Other package suffixes have the same logic but different land patterns."
+
+layout:
+  source: "Nexperia 74LVC08A Rev 8 package outline SOT402-1 and application requirements"
+  reviewed: 2026-07-31
+  notes:
+    - "Place U_PWR_AND between the hub power-control fanout and the external TPS259470A devices; place U_DATA_AND beside the OE inverter group. Keep outputs short and fit one local 100 nF VCC bypass per package."
+
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Nexperia 74LVC08A Rev 8 pinout, electrical tables, and SOT402-1 package reference"}
+  - {tier: 2, reached: false, artifact: "Manufacturer evaluation board", why: "A quad static logic gate has no dedicated manufacturer EVM; package and local bypass guidance are sufficient."}
+
+sourcing:
+  lcsc: C6053
+  alternates:
+    - {lcsc: C54411084, mpn: 74LVC08APW}
+  note: "Exact 74LVC08APW,118 catalog code observed during the 2026-07-31 bounded search; stock and JLC assembly class require order-day recheck."
+asserts:
+  - assert: value
+    equals: 74LVC08APW,118
+    why: "The PW suffix is the TSSOP-14 package used by the footprint; package-changing substitutions are not drop-in."

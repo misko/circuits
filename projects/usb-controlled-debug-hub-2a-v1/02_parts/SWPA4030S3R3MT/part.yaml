@@ -1,0 +1,17 @@
+mpn: SWPA4030S3R3MT
+manufacturer: Sunlord
+type: shielded_power_inductor
+value: 3.3uH
+status: active
+datasheet: {doc_id: Sunlord-SWPA4030S-series, revision: "series specification", url: "https://www.sunlordinc.com/Public/Uploads/uploadfile/files/20201221/SWPASeries.pdf", local: Sunlord-SWPA4030S-series.pdf, sha256: b8dce93b47f4127c607e3cd0080f25ce32798f2d4dc17d7fb8063c9297ac2b21, fetched: 2026-08-15}
+package: "shielded SMD 4.0x4.0x3.0mm"
+footprint: usb_controlled_debug_hub:Sunlord_SWPA4030S
+escape: {style: power_inductor, pitch: 2.0, tier_required: jlc_2layer_default, checked: "exact Sunlord SWPA4030S dimensions and terminal drawing 2026-08-15"}
+pins: {1: SW, 2: VOUT}
+limits: {inductance: 3.3uH, tolerance: 20pct, dcr_max: 52mOhm, saturation_current_min: 3.3A, saturation_current_typ: 3.6A, rms_current_min: 2.4A, rms_current_typ: 2.6A}
+gotchas: ["Keep terminal 1 and its copper inside the compact AP63203Q SW island. The part is magnetically shielded but still must remain away from USB pairs and the 24MHz crystal."]
+verified: "Exact SWPA4030S3R3MT row and SWPA4030S mechanical drawing independently checked for inductance, DCR, saturation/RMS currents and 4x4x3mm envelope on 2026-08-15."
+layout: {source: "Sunlord SWPA series drawing plus AP63203Q recommended PCB layout", reviewed: 2026-08-15, notes: ["Place immediately at U_BUCK SW; output capacitors begin at the quiet terminal 2 side."]}
+sourcing: {lcsc: C15269, alternates: []}
+asserts:
+  - {assert: value, equals: 3.3uH, why: "This is the AP63203Q Table 2 recommended inductance and the qualified exact order code."}

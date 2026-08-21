@@ -19,8 +19,9 @@ TPS259470A port eFuse for a full-corner threshold above 2 A and below the
 selected connector's 3 A rating. Replace KH-AF90DIP-112 with the already-
 qualified GCT USB1130-15-A. Re-open the input clamp/gate because the v2 18 V
 clamp and OVLO intentionally reject 20 V. Use TPS16630PWPR with TVS2200 at
-that boundary; the initially considered TPS259827O is rejected because its
-24 V recommended limit is below the TVS2200's 28.35 V worst published clamp.
+that boundary; TPS259827O remains rejected at the exposed 20 V input because
+its 24 V recommended limit is below the TVS2200's 28.35 V worst published
+clamp. It is separately acceptable on each protected 5 V bank.
 TPS26630 was electrically acceptable but rejected at commission because exact
 TI public stock was zero; the TPS16630 HTSSOP had ample public stock.
 

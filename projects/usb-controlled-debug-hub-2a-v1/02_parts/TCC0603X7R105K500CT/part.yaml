@@ -1,0 +1,19 @@
+mpn: TCC0603X7R105K500CT
+manufacturer: CCTC
+type: ceramic_capacitor
+value: 1uF
+status: active
+datasheet:
+  doc_id: CCTC general MLCC specification
+  url: "https://www.lcsc.com/product-detail/C5360793.html"
+  provenance: "Catalog-cited exact-MPN record: 1uF, 50V, X7R, +/-10%, 0603. The generic manufacturer PDF endpoint returned an access page during vendoring; exact catalog identity is retained and the order echo remains authoritative."
+package: 0603
+footprint: Capacitor_SMD:C_0603_1608Metric
+pins: {1: A, 2: B}
+limits: {capacitance_uF: 1, rated_voltage_V: 50, tolerance_pct: 10, dielectric: X7R}
+gotchas: ["DC-bias effective capacitance is not used as an exact transient-model value; first article measures the eFuse-pad waveform.", "Directly exposed sink capacitance, including this part, must remain below the Type-C 10uF attach ceiling."]
+verified: "LCSC exact C5360793 page and MPN ordering fields agree: TCC0603X7R105K500CT is 1uF, 50V, X7R, +/-10%, 0603; read 2026-08-19."
+sourcing: {lcsc: C5360793, note: "More than 370,000 catalog units, MOQ 20 and approximately USD 0.69 minimum line cost observed 2026-08-19; order-time JLC allocation remains mandatory."}
+layout:
+  source: "TI TPS25947 input-bypass guidance plus the exact 0603 catalog package"
+  notes: ["place directly at U_PD_IN IN/GND", "keep the clamp and eFuse input loop short"]

@@ -36,10 +36,8 @@ sourcing:
 layout:
   source: "TI SLVSEG1A Figures 17 and 34; TPS56637EVM-029 listed by TI"
   keep_short:
-    - {net: VBUS_PD_SW, anchor_pins: ["8"], partner_refs: [C_PD_A_IN1, C_PD_A_IN2, C_PD_B_IN1, C_PD_B_IN2], max_span_mm: 4.0, why: "post-negotiation bulk input ceramics immediately at each converter VIN; the upstream input protection controls their attach inrush"}
-  adjacency:
-    - {refdes: [U_BUCK_A, U_BUCK_B], max_mm: 0, why: "each converter is independently graded with its own BOOT, inductor, feedback and output-capacitor adjacency contract in floorplan.yaml"}
-  notes: ["four-layer ground plane and multiple VIN/PGND vias", "Kelvin FB return to AGND", "no USB or clock routing through or under the switching cell"]
+    - {net: VBUS_PD_PROTECTED, anchor_pins: ["8"], partner_refs: [C_BUCK_A_IN1, C_BUCK_A_IN2, C_BUCK_B_IN1, C_BUCK_B_IN2], max_span_mm: 4.0, why: "post-negotiation bulk input ceramics immediately at each converter VIN; the upstream TPS16630 controls their attach inrush"}
+  notes: ["Each converter is independently graded with its own BOOT, inductor, feedback and output-capacitor placement contract; physical proximity between U_BUCK_A and U_BUCK_B is neither required nor desirable.", "four-layer ground plane and multiple VIN/PGND vias", "Kelvin FB return to AGND", "no USB or clock routing through or under the switching cell"]
 layout_refs:
   - {tier: 1, reached: true, artifact: "TI SLVSEG1A Figure 34 exact layout example", why: "manufacturer fixes cell ordering, ground partition and feedback route"}
   - {tier: 2, reached: true, artifact: "TI TPS56637EVM-029 reference circuit identified on product documentation", why: "manufacturer 5V/6A evaluation precedent; exact editable CAD retrieval remains optional because the datasheet includes routed geometry"}

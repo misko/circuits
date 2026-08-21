@@ -61,7 +61,7 @@ control enables them. No firmware artifact belongs to this project.
   devices. Their ILIM resistor will be selected from the datasheet equation and
   full process/resistor corners so the guaranteed low threshold exceeds 2.0 A
   and the guaranteed high threshold remains below the USB1130 3 A rating.
-- One TPS259804-class latch-off breaker protects each 5 V bank. Each threshold
+- One TPS259827O latch-off breaker protects each 5 V bank. Each threshold
   must clear normal two-port load with margin yet coordinate below the
   TPS56637 minimum current limit. This is not inherited from v2.
 - Input protection must operate continuously at the full 20 V PD tolerance,

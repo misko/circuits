@@ -1,0 +1,20 @@
+mpn: CC0402KRX7R9BB104
+manufacturer: Yageo
+type: ceramic_capacitor
+value: 100nF
+package: "0402 (1005 metric)"
+footprint: Capacitor_SMD:C_0402_1005Metric
+pins: {1: A, 2: B}
+limits: {capacitance: 100nF, tolerance: 10pct, rated_voltage: 50V, dielectric: X7R}
+datasheet:
+  doc_id: Yageo CC X7R series
+  revision: catalog identity
+  url: "https://www.yageo.com/upload/media/product/productsearch/datasheet/mlcc/UPY-GPHC_X7R_4V-to-50V_18.pdf"
+  sha256: n/a
+  fetched: null
+verified: "JLC exact-code API row C131394 rechecked 2026-08-18: Yageo CC0402KRX7R9BB104, 100nF, 50V, X7R, +/-10%, 0402."
+sourcing: {lcsc: C131394, alternates: []}
+layout:
+  source: "TPS25947 input-bypass guidance"
+  reviewed: 2026-08-18
+  notes: ["Place directly from U_PD_IN IN to ground; this is the only low-impedance capacitance directly visible at Type-C attach."]

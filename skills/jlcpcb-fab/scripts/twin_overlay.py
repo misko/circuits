@@ -554,6 +554,32 @@ def read_ref_lcsc(bom, assembly):
     return out
 
 
+def read_local_body_refs(assembly):
+    """Refs whose finished-product body comes from assembly intent.
+
+    These refs can be intentionally absent from both BOM and CPL.  Their
+    source-owned native model is already bound to F.Fab by P-MODEL-REG, so
+    A-RENDER grades the rendered pixels against that authored physical
+    envelope instead of silently dropping the manual part from its
+    denominator.
+    """
+    out = set()
+    if not assembly or not Path(assembly).is_file():
+        return out
+    try:
+        import yaml
+        doc = yaml.safe_load(open(assembly)) or {}
+    except Exception:
+        return out
+    for key in ("not_assembled", "consigned"):
+        for entry in (doc.get(key) or []):
+            if not isinstance(entry.get("twin_body"), dict):
+                continue
+            out.update(str(ref).strip() for ref in (entry.get("refs") or [])
+                       if str(ref).strip())
+    return out
+
+
 def index_cache(cachedir):
     """LCSC -> path of the cached JLC .kicad_mod."""
     out = {}
@@ -831,6 +857,7 @@ def main(argv=None):
     twin_dir = Path(a.twin_dir) if a.twin_dir else png.parent
     cache = index_cache(twin_dir / "easyeda")
     ref_lcsc = read_ref_lcsc(a.bom, a.assembly)
+    local_body_refs = read_local_body_refs(a.assembly)
     by_ref = {p["ref"]: p for p in parts}
 
     expected = {}            # ref -> dict(exp, ang, fit_err, fitted, code)
@@ -919,6 +946,23 @@ def main(argv=None):
                              anchored=anchored, anchor=anchor, code=code,
                              fit_err=fits[0][0] if fits else None,
                              adjudicated=bool(adj))
+
+    for ref in sorted(local_body_refs):
+        if ref in expected:
+            continue
+        p = by_ref.get(ref)
+        if p is None:
+            no_model[ref] = "LOCAL: declared manual body is not on the board"
+            continue
+        if p["cy"] is None:
+            continue
+        if p["fab"] is None:
+            no_model[ref] = ("LOCAL: retained native body has no authored "
+                             "Fab physical envelope")
+            continue
+        expected[ref] = dict(
+            exp=p["fab"], ang=0, fitted=True, anchored=False, anchor=None,
+            code="LOCAL", fit_err=0.0, adjudicated=True)
 
     # ---------------- resolvability, then measurement ---------------------
     # A ref whose body has no expected box (no JLC model) cannot be masked out

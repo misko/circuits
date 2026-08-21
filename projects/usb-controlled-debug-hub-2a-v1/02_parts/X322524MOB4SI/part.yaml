@@ -1,0 +1,30 @@
+mpn: X322524MOB4SI
+manufacturer: YXC Crystal Oscillators
+type: quartz_crystal
+value: X322524MOB4SI
+function: USB2517I 24 MHz reference
+status: active
+datasheet:
+  url: https://taoic.oss-cn-hangzhou.aliyuncs.com/5375/product/13928452225_1685159287000.pdf
+  local: X322524MOB4SI.pdf
+  sha256: f639019a976233faec7ff408bdf69beece04da65e0c71c823697bf00b15661d7
+  product_page: https://jlcpcb.com/partdetail/YXC_CrystalOscillators-X322524MOB4SI/C70590
+  provenance: "CITED: YXC exact X322524MOB4SI six-page specification plus exact JLC C70590 product identity, checked 2026-08-20."
+package: SMD3225-4P
+footprint: Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm
+escape: {style: leaded, pitch: 2.2, tier_required: jlc_2layer_default, checked: escape_check 2026-07-31}
+pins: {1: XIN, 2: GND, 3: XOUT, 4: GND}
+limits: {frequency: 24 MHz, tolerance: 10 ppm, stability: 20 ppm, load_capacitance: 12 pF, esr_max: 40 ohm, temperature: -40 to +85 C}
+verified: "CITED: exact YXC specification table on p.2 fixes 24MHz, 12pF, +/-10ppm tolerance, +/-20ppm stability and 40ohm maximum ESR; the dimension drawing on p.4 fixes the 3.2x2.5mm four-pad geometry. Exact JLC C70590 identity cross-checked 2026-08-20."
+gotchas:
+  - "USB2517I requires 24 MHz within +/-350 ppm; this crystal's tolerance plus stability is comfortably inside that budget."
+  - "Pads 2 and 4 are case grounds. Keep the crystal, 1 Mohm resistor, and load capacitors tight to hub pins 60/61."
+layout: {source: "YXC X322524MOB4SI exact drawing plus Microchip USB2517 hardware checklist", reviewed: 2026-08-20, notes: ["No signal or switch-node routing beneath or through the crystal cell."]}
+layout_refs:
+  - {tier: 1, reached: true, artifact: "YXC exact X322524MOB4SI specification and land drawing"}
+  - {tier: 2, reached: false, artifact: "YXC manufacturer evaluation-board or editable reference-layout design files", why: "A passive crystal has no manufacturer evaluation-board layout specific to this exact ordering code."}
+sourcing: {lcsc: C70590, note: "101,010 public JLC catalogue units observed 2026-08-20; quantity-five requirement is 5, leaving 101,005 surplus; allocation remains authoritative."}
+asserts:
+  - assert: value
+    equals: X322524MOB4SI
+    why: "The 24 MHz frequency, 12 pF load, ESR and four-pad package are bound to the exact crystal."

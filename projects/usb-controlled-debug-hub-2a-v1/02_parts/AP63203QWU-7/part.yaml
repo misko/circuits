@@ -51,9 +51,9 @@ layout:
   source: "DS43698 Figure 4, Table 2, and Recommended PCB Layout Figure 77"
   keep_short:
     - {net: SW_3V3, max_span_mm: 3.5, anchor_pins: ["5"], partner_refs: [L_MAIN], why: "DS43698 Layout Guidelines: place the inductor immediately at SW(5) and minimize switch copper."}
-    - {net: VBUS_PD_SW, max_span_mm: 2.1, anchor_pins: ["2", "3"], partner_refs: [C_3V3_IN], why: "DS43698 Figure 4 and Layout Guidelines require the input ceramic directly across VIN(2/3) and GND(4)."}
+    - {net: VBUS_PD_PROTECTED, max_span_mm: 2.1, anchor_pins: ["2", "3"], partner_refs: [C_MAIN_IN], why: "DS43698 Figure 4 and Layout Guidelines require the input ceramic directly across VIN(2/3) and GND(4)."}
   adjacency:
-    - {refdes: [U_BUCK, C_BST], max_mm: 1.5, why: "DS43698 Figure 4: keep the 100 nF bootstrap loop directly between BST(6) and SW(5)."}
+    - {refdes: [U_MAIN, C_BST], max_mm: 1.5, why: "DS43698 Figure 4: keep the 100 nF bootstrap loop directly between BST(6) and SW(5)."}
   notes:
     - "place the output ceramics immediately after L_MAIN; FB(1) senses quiet 3V3_MAIN copper at the output capacitors, never the SW-side terminal"
     - "minimize the VIN-switch-GND and SW-BST loops; keep the SW island beneath

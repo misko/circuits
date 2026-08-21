@@ -1,0 +1,14 @@
+# Numeric TSX pin -> exact TYPE-C-31-M-12 manufacturer pad. Both USB-C
+# footprints carry dual portHints, so the schematic producer sees numeric pins
+# and the KiCad bridge emits the real alphanumeric pads.
+# tsx1 A1   tsx2 A4   tsx3 A5   tsx4 A6   tsx5 A7   tsx6 A8   tsx7 A9
+# tsx8 A12  tsx9 B1   tsx10 B4  tsx11 B5  tsx12 B6  tsx13 B7  tsx14 B8
+# tsx15 B9  tsx16 B12 tsx17 SH
+J_DATA: A1 A4 A5 A6 A7 A8 A9 A12 B1 B4 B5 B6 B7 B8 B9 B12 SH
+J_POWER: A1 A4 A5 A6 A7 A8 A9 A12 B1 B4 B5 B6 B7 B8 B9 B12 SH
+
+# Retained rejected TPS26630 dossier: its exposed PowerPAD is EP. The live
+# design uses TPS16630PWPR with numeric pin21 for the exposed pad, but the
+# dossier remains preflight-covered so any future use must map that identity.
+# tsx25 EP
+TPS26630RGER: EP

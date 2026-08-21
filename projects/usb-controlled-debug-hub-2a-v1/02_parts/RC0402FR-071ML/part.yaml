@@ -1,0 +1,17 @@
+mpn: RC0402FR-071ML
+manufacturer: YAGEO
+type: thick_film_resistor
+value: 1M
+status: active
+datasheet: {doc_id: RC0402FR-071ML-spec, revision: "generated 2026-08-14", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-071ML", local: RC0402FR-071ML.pdf, sha256: e6b9df62e7351ab3a6ab02f7de22a27a6db0558cf5f935c3ab929d519619af0e, fetched: 2026-08-14}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-14"}
+pins: {1: A, 2: B}
+limits: {resistance: 1MOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas: ["This source-to-gate resistor holds the P-channel reverse-polarity MOSFET off when the input is floating; retain it physically across DMP3007SPS-13 source and gate."]
+verified: "Exact YAGEO generated specification independently read for MPN, 1Mohm, 1%, 0402 and dimensions on 2026-08-14."
+layout: {source: "board reverse-polarity input topology", reviewed: 2026-08-14, notes: ["Place directly across DMP3007SPS-13 source and gate."]}
+sourcing: {lcsc: C138033, alternates: []}
+asserts:
+  - {assert: value, equals: 1M, why: "The reverse-input MOSFET source-to-gate bias and crystal feedback roles were reviewed at 1Mohm."}

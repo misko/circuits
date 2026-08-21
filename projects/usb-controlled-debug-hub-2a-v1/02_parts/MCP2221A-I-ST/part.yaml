@@ -1,0 +1,87 @@
+mpn: MCP2221A-I/ST
+manufacturer: Microchip Technology
+type: usb_hid_i2c_uart_bridge
+value: MCP2221A-I/ST
+function: Factory-programmed full-speed USB HID-to-I2C management bridge
+status: in_production
+note_dirname: "directory MCP2221A-I-ST; '/' in the orderable MPN is not usable in a path"
+datasheet:
+  doc_id: DS20005565
+  revision: DS20005565D
+  url: https://ww1.microchip.com/downloads/aemDocuments/documents/APID/ProductDocuments/DataSheets/MCP2221A-Data-Sheet-DS20005565D.pdf
+  product_page: https://www.microchip.com/en-us/product/MCP2221A
+  local: DS20005565D.pdf
+  sha256: ade28a45a0314e2ff24afaa45589566dacfaaa147f3bd5491e9659deac9a4574
+  fetched: 2026-08-15
+  pages: 78
+  provenance: "CITED: downloaded directly from Microchip; DS20005565D footer and title identify the exact MCP2221A document."
+package: TSSOP-14, 4.4 mm body, 0.65 mm pitch
+footprint: Package_SO:TSSOP-14_4.4x5mm_P0.65mm
+escape:
+  style: leaded
+  pitch: 0.65
+  escapes_worst_side: 6
+  tier_required: jlc_2layer_default
+  conditions: [escape-corridor]
+  checked: escape_check 2026-08-15
+pins:
+  1: VDD
+  2: GP0
+  3: GP1
+  4: RST
+  5: URx
+  6: UTx
+  7: GP2
+  8: GP3
+  9: SDA
+  10: SCL
+  11: VUSB
+  12: D-
+  13: D+
+  14: VSS
+limits:
+  vdd_operating: 3.0 to 5.5 V
+  usb_speed: 12 Mbit/s full speed
+  supply_current_typ: 13 mA active
+  i2c_clock_max: 400 kHz
+  temperature: -40 to +85 C
+  vusb_capacitance: 0.22 to 0.47 uF ceramic
+configuration:
+  firmware: manufacturer_factory_image_only
+  usb_functions: [CDC, HID]
+  management_transport: HID I2C commands
+  factory_power_attribute: bus powered
+  factory_required_current: 100 mA
+  nonvolatile_customization: not_required
+electrical:
+  source: "DS20005565D Table 4-1 and Sections 1.6/1.13"
+  vdd: 5.0
+  vdd_net: VBUS_CTRL
+gotchas:
+  - "MCP2221A is already a programmed USB bridge; do not create or flash project firmware. The HID function transports I2C operations using the manufacturer protocol."
+  - "At VDD=5 V the SDA/SCL and GPIO high levels are in the 5 V domain. The receiving 74LVC08 inputs are explicitly 5.5 V tolerant while powered at 3.3 V."
+  - "VUSB is the internal USB-transceiver regulator output and requires 0.22-0.47 uF locally. It is not a general-purpose 3.3 V rail."
+  - "Factory USB attributes are bus-powered and 100 mA. Powering VDD from physical hub port 1 VBUS keeps that descriptor electrically truthful."
+  - "Unused UART/GPIO pins remain unconnected; the command path uses only SCL and SDA."
+verified: "CITED: 14-pin PDIP/SOIC/TSSOP top-view map and Table 1-1, DS20005565D pp2-4; factory bus-power and 100 mA fields from Registers 1-9/1-10, pp10-11; checked 2026-08-15."
+layout:
+  source: "Microchip DS20005565D Sections 1.6 and 1.13 plus the 14-pin package drawing"
+  reviewed: 2026-08-15
+  keep_short:
+    - {net: VBUS_CTRL, max_span_mm: 4, anchor_pins: ["1"], partner_refs: [C_CTRL_VDD], why: "Place the VDD bypass directly between VDD(1) and VSS(14)."}
+    - {net: CTRL_VUSB_3V3, max_span_mm: 4, anchor_pins: ["11"], partner_refs: [C_CTRL_VUSB], why: "DS20005565D Section 1.6 requires a local high-quality 0.22-0.47 uF ceramic at VUSB."}
+  notes:
+    - "Keep the internal full-speed D+/D- pair direct from hub port 1; there is no connector branch or test-point stub."
+    - "Keep SCL/SDA together with one pull-up pair to VBUS_CTRL and no unused long branches."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Microchip DS20005565D application connections, pin map, USB power, and I2C sections"}
+  - {tier: 2, reached: true, artifact: "Microchip ADM00559 MCP2221A Breakout Module official schematic/layout precedent"}
+  - {tier: 3, reached: false, artifact: "Community exact-MPN routed reference", why: "The official breakout and complete manufacturer application connections were sufficient for this low-density bridge."}
+sourcing:
+  lcsc: C130462
+  digikey: MCP2221A-I/ST-ND
+  note: "Exact TSSOP-14 part had 380 public JLC catalogue units on 2026-08-20, leaving 375 above the quantity-five requirement; allocation remains a separate gate."
+asserts:
+  - assert: value
+    equals: MCP2221A-I/ST
+    why: "The A revision and /ST TSSOP package are both load-bearing identities; the older MCP2221 has a different maximum UART rate."

@@ -7,9 +7,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
 
 # --- board-specific knobs (the ONLY things to edit) -------------------------
-BOARD=power3s                                  # <board> stem for 04_kicad/<board>.*
-TSX=power3s                                    # 03_tscircuit/src/<TSX>.tsx basename
-SCHEMATIC_TITLE=POWER3S                        # human PDF title
+BOARD=usb_controlled_debug_hub_2a              # <board> stem for 04_kicad/<board>.*
+TSX=usb_controlled_debug_hub_2a                # 03_tscircuit/src/<TSX>.tsx basename
+SCHEMATIC_TITLE=USB_CONTROLLED_DEBUG_HUB_2A    # human PDF title
 # ----------------------------------------------------------------------------
 
 PY=/usr/bin/python3
@@ -202,20 +202,31 @@ $PY "$FS/manufacturing_readiness.py" grade . --phase selection \
     --json 06_build/verification/manufacturing_readiness_selection.json \
     || { echo "GATE FAILED [1b] PCB-SOURCING: exact source code/dossier identity or coded R/C value is not ready for part freeze"; exit 1; }
 
-# J-PCBA-PRELAYOUT — the complete source BOM exists, but placement/routing
-# spend has not started. LCSC catalog stock is advisory and cannot satisfy this
-# operator checkpoint. Emit the exact request once, pause visibly, and resume
-# after the JLCPCB PCBA response has been captured and graded.
+# J-PCBA-PRELAYOUT — prefer the exact logged-in JLC response. This project also
+# has an explicit user-accepted catalog-only pre-layout decision; the readiness
+# compositor verifies its exact request/code set, 24-hour freshness and bounded
+# DO-NOT-ORDER wording. That route can start placement but never clear ORDER.
 PCBA_DIR=06_build/sourcing
 PCBA_REQUEST="$PCBA_DIR/prelayout_request.json"
 PCBA_RESPONSE="$PCBA_DIR/prelayout_response.csv"
 PCBA_RECEIPT="$PCBA_DIR/prelayout_receipt.json"
+CATALOG_EVIDENCE="$PCBA_DIR/stock_check.json"
+CATALOG_DECISION=01_docs/decisions/0003-public-catalog-prelayout-acceptance.md
 BUILD_QUANTITY=$(awk '$1 == "build_quantity:" {print $2; exit}' 03_src/rules/assembly.yaml)
 if ! [[ "$BUILD_QUANTITY" =~ ^[1-9][0-9]*$ ]]; then
     echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: assembly.yaml needs a positive build_quantity"
     exit 2
 fi
-if [ ! -f "$PCBA_RECEIPT" ]; then
+if [ -f "$CATALOG_DECISION" ]; then
+    $PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
+        --catalog-request "$PCBA_REQUEST" \
+        --catalog-evidence "$CATALOG_EVIDENCE" \
+        --catalog-decision "$CATALOG_DECISION" \
+        --json 06_build/verification/manufacturing_readiness_prelayout.json \
+        --stage-bundle "$PIPELINE_EVIDENCE/bundles/part_freeze" \
+        --stage-result "$PIPELINE_EVIDENCE/S-PART-FREEZE.stage.json" \
+        || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: user-accepted public-catalog evidence is missing, stale, incomplete, or no longer matches the exact source BOM"; exit 1; }
+elif [ ! -f "$PCBA_RECEIPT" ]; then
     mkdir -p "$PCBA_DIR"
 	if { [ -f "$PCBA_REQUEST" ] && [ ! -f "$PCBA_RESPONSE" ]; } || \
 	   { [ ! -f "$PCBA_REQUEST" ] && [ -f "$PCBA_RESPONSE" ]; }; then
@@ -240,13 +251,14 @@ if [ ! -f "$PCBA_RECEIPT" ]; then
     echo "GATE INCOMPLETE [1c] J-PCBA-PRELAYOUT: check/upload $PCBA_REQUEST, fill $PCBA_RESPONSE, then run:"
     echo "  $PY $FS/jlc_pcba_availability.py grade $PCBA_REQUEST $PCBA_RESPONSE --out $PCBA_RECEIPT"
     exit 2
+else
+    $PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
+        --pcba-receipt "$PCBA_RECEIPT" \
+        --json 06_build/verification/manufacturing_readiness_prelayout.json \
+        --stage-bundle "$PIPELINE_EVIDENCE/bundles/part_freeze" \
+        --stage-result "$PIPELINE_EVIDENCE/S-PART-FREEZE.stage.json" \
+        || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: exact JLCPCB PCBA availability is missing, stale, substituted, or insufficient"; exit 1; }
 fi
-$PY "$FS/manufacturing_readiness.py" grade . --phase prelayout \
-    --pcba-receipt "$PCBA_RECEIPT" \
-    --json 06_build/verification/manufacturing_readiness_prelayout.json \
-    --stage-bundle "$PIPELINE_EVIDENCE/bundles/part_freeze" \
-    --stage-result "$PIPELINE_EVIDENCE/S-PART-FREEZE.stage.json" \
-    || { echo "GATE FAILED [1c] J-PCBA-PRELAYOUT: exact JLCPCB PCBA availability is missing, stale, substituted, or insufficient"; exit 1; }
 
 # [2] ERC gate — 0 ERRORS. TWO RUNS, AND THE SPLIT IS THE CANON'S, NOT A
 # SOFTENING. Canon S4 and the kicad-pcb golden rules both say the gate is

@@ -1,0 +1,35 @@
+{
+  "files": {
+    "03_src/rebuild_all.sh": {
+      "sha256": "f73d0663215181e3a7d6f845791d8712587af8db61754dcc7f183dec9996fc20",
+      "size": 32759
+    },
+    "03_tscircuit/build/circuit.json": {
+      "sha256": "91fa12ab65d3eac8f01466bc85f502814ea999508a841da6a914cee098613ad2",
+      "size": 3524517
+    },
+    "03_tscircuit/build/schematic.pdf": {
+      "sha256": "e98942522edbda21cb39648fd62f4f1681a253ecefb11e0963fd292abf5a1b51",
+      "size": 509164
+    },
+    "03_tscircuit/manifest.yaml": {
+      "sha256": "910bb15f741b2631782ecb4163f0cae1a116da468f7ecc76e514c35e5357d1f7",
+      "size": 2747
+    },
+    "04_kicad/usb_controlled_debug_hub_2a.kicad_sch": {
+      "sha256": "5c2513661ebd807df4a6c0a045d99fc910c7f09a6c255eb433660b1254f9612c",
+      "size": 636530
+    },
+    "06_build/build_provenance.json": {
+      "sha256": "112c9e7b07247ebafb9177657e9ba086a7ebee4b8e77873bd49234c303723fa4",
+      "size": 857
+    },
+    "06_build/netlists/usb_controlled_debug_hub_2a.net": {
+      "sha256": "77d1bf722472929bcc27dd8de4657bc5d1b92977b60be6f25b5adeae42955590",
+      "size": 341796
+    }
+  },
+  "name": "schematic",
+  "project": "usb-controlled-debug-hub-2a-v1",
+  "schema": 1
+}

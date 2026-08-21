@@ -1,0 +1,17 @@
+mpn: RC0402FR-0712KL
+manufacturer: YAGEO
+type: thick_film_resistor
+value: 12k
+status: active
+datasheet: {doc_id: RC0402FR-0712KL-spec, revision: "generated 2026-08-15", url: "https://www.yageogroup.com/component-documentation/download/specsheet/RC0402FR-0712KL", local: RC0402FR-0712KL.pdf, sha256: 6c6df25a162b141d6d73474bae3e5da5ff374249422f0829ccd775ffc1a38578, fetched: 2026-08-15}
+package: "0402 (1005 metric)"
+footprint: Resistor_SMD:R_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact YAGEO dimensions 2026-08-15"}
+pins: {1: A, 2: B}
+limits: {resistance: 12kOhm, tolerance: 1pct, power: 62.5mW, voltage: 50V, temperature: "-55C to 155C"}
+gotchas: ["USB2517I RBIAS requires this 12kohm 1% value to ground; place it directly at pin 63 and do not share the node."]
+verified: "Exact YAGEO generated specification checked for MPN, 12kohm, 1%, 0402 and dimensions on 2026-08-15."
+layout: {source: "Microchip USB2517I hardware checklist", reviewed: 2026-08-15, notes: ["Place directly between USB2517I RBIAS and the adjacent ground return."]}
+sourcing: {lcsc: C114760, alternates: []}
+asserts:
+  - {assert: value, equals: 12k, why: "The USB2517I reference-current bias value is manufacturer specified."}

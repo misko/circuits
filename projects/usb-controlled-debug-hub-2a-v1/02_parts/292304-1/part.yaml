@@ -1,0 +1,50 @@
+mpn: 292304-1
+manufacturer: TE Connectivity
+type: usb_b_receptacle
+value: 292304-1
+status: active
+mates: receptacle
+datasheet:
+  doc_id: ENG_CD_292304
+  revision: D4
+  url: https://www.te.com/commerce/DocumentDelivery/DDEController?Action=showdoc&DocId=Customer%2BDrawing%7C292304%7CD4%7Cpdf%7CEnglish%7CENG_CD_292304_D4.pdf%7C292304-1
+  sha256: 1cf7e9b81d3071586b98174bfea75b38a9c63589428fbd3eeecdb5d4b9543476
+  fetched: 2026-07-31
+package: USB 2.0 Type-B receptacle, right-angle through-hole, two shell board locks
+footprint: usb_controlled_debug_hub:USB_B_TE_292304-1_Horizontal
+escape:
+  style: connector
+  pitch: 2.5
+  escapes_worst_side: 4
+  tier_required: jlc_2layer_default
+  checked: escape_check 2026-07-31
+pins:
+  1: {name: VBUS, note: "Upstream host 5 V sense/input; this board is self-powered and must not backfeed it."}
+  2: {name: D-, note: "USB 2.0 upstream data minus."}
+  3: {name: D+, note: "USB 2.0 upstream data plus."}
+  4: {name: GND, note: "USB upstream signal/power return."}
+  5: {name: SHIELD, note: "Two 2.3 mm shell board-lock holes are fused as numeric pad 5 in both TSX and the project footprint."}
+limits:
+  contact_current: 1 A max
+  operating_temperature: -55 to +85 C
+  mating_cycles: 1500
+  recommended_pcb_thickness: 1.57 mm
+  msl: 1
+gotchas:
+  - "TE explicitly marks the product Active and directs design activity to the customer drawing. The custom footprint must use drawing D4: 0.92 +/-0.08 mm signal holes, 2.5 mm pitch, and 2.3 +/-0.08 mm shell holes."
+  - "Upstream VBUS is not the hub's power source. Enforce no-backfeed and use it only as required by the USB hub/controller self-powered architecture."
+verified: "TE drawing ENG_CD_292304_D4 sheet 1, PC BOARD MOUNTING DIMENSIONS and front mating view; standard USB Type-B contact numbering cross-checked against the numbered mating view; TE product features checked 2026-07-31."
+sourcing:
+  lcsc: C86462
+  alternates: []
+  note: "JLC catalog class was Expand on 2026-07-31; THT allocation and assembly capability still require order-day confirmation."
+layout:
+  source: "TE customer drawing ENG_CD_292304_D4 PC Board Mounting Dimensions and USB 2.0 upstream-port routing practice."
+  notes:
+    - "Place on the board edge, route D+/D- as a short matched USB pair directly toward the upstream ESD/hub path, and avoid branches."
+    - "Treat VBUS as host-present/sense according to the final self-powered hub schematic; never connect the 5 V port-power trunk back to this pin."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TE ENG_CD_292304_D4 sheet 1, exact mechanical drawing and PCB hole pattern"}
+  - {tier: 2, reached: false, artifact: "Open routed reference using exact TE 292304-1", why: "No exact-MPN editable routed reference was located during the bounded upstream-connector search; the TE drawing is sufficient for the passive connector geometry."}
+asserts:
+  - {assert: value, equals: 292304-1, why: "Upstream shell, signal-hole and board-lock geometry are exact-part bound."}

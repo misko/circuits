@@ -1150,5 +1150,35 @@ def t_jlc_row_progress_is_unbuffered():
           "the row print must use flush=True for pipes and CI logs")
 
 
+@test("JLC catalog stock requires the aggregate build quantity plus an "
+      "absolute volatility surplus")
+def t_jlc_stock_absolute_surplus_boundary():
+    """Exercise the pure threshold predicate without touching the network."""
+    source = (FAB_SCRIPTS / "jlc_stock_check.py").read_text()
+    tree = ast.parse(source)
+    node = next((n for n in tree.body
+                 if isinstance(n, ast.FunctionDef)
+                 and n.name == "grade_stock"), None)
+    check(node is not None, "jlc_stock_check must expose grade_stock")
+    scope = {}
+    exec(compile(ast.Module(body=[node], type_ignores=[]),
+                 "jlc_stock_check.py:grade_stock", "exec"), scope)
+    grade = scope["grade_stock"]
+
+    eq(grade(205, 1, 5, 200),
+       {"required_qty": 5, "stock_threshold": 205,
+        "absolute_surplus": 200, "passes": True},
+       "five required plus 200 passes at 205")
+    check(not grade(204, 1, 5, 200)["passes"],
+          "one unit below the absolute threshold must fail")
+    check(grade(225, 5, 5, 200)["passes"],
+          "25 required plus 200 passes at 225")
+    aggregated = grade(210, 2, 5, 200)
+    eq(aggregated["required_qty"], 10,
+       "two collapsed references are aggregated before applying surplus")
+    eq(aggregated["stock_threshold"], 210,
+       "absolute surplus is added once per BOM line, not once per reference")
+
+
 if __name__ == "__main__":
     sys.exit(main())

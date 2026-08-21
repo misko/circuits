@@ -1,0 +1,35 @@
+mpn: PESD2USB5UX-TR
+manufacturer: Nexperia
+type: dual_ultralow_capacitance_usb_esd_array
+datasheet:
+  doc_id: PESD2USB5UX-T
+  revision: "9 September 2020"
+  url: "https://assets.nexperia.com/documents/data-sheet/PESD2USB5UX-T.pdf"
+  product_page: "https://www.nexperia.com/product/PESD2USB5UX-T"
+  local: PESD2USB5UX-T.pdf
+  sha256: 6e86f26606d8dd9bd563f172b68f5db53f8ee1d9b7c1105a88598d9d7344b112
+  fetched: 2026-08-20
+  pages: 12
+  provenance: "CITED: downloaded directly from assets.nexperia.com; exact PESD2USB5UX-T product data sheet."
+package: SOT23 TO-236AB
+footprint: Package_TO_SOT_SMD:SOT-23
+escape: {style: leaded, pitch: 0.95, tier_required: jlc_2layer_default, checked: "Nexperia SOT23 pin drawing and exact JLC C3709087 identity checked 2026-08-20"}
+pins: {1: IO1, 2: IO2, 3: GND}
+limits: {vrwm: 5V, capacitance_typ: 0.47pF, capacitance_max: 0.6pF, iec_61000_4_2_contact: 8kV, peak_pulse_8_20us: 4A}
+gotchas:
+  - "This is a shunt array, not a six-pin flow-through device. Pins 1/2 land directly on D-/D+ and pin 3 takes the shortest available return to the adjacent ground plane."
+  - "IO1 and IO2 are equivalent bidirectional shunt channels; their D-/D+ assignment may be exchanged to preserve physical pair order, but the chosen per-instance pin/net map remains source-asserted."
+  - "The -TR suffix and Nexperia manufacturer identity are bound to JLC C3709087; do not substitute look-alikes carrying similar names."
+  - "The 0.6pF maximum is lower than the predecessor's 0.7pF ceiling; first-article USB 2.0 eye/compliance testing remains mandatory."
+verified: "CITED: Nexperia PESD2USB5UX-T Figure 1 and Table 3 on pp.2-3 fix pin 1=K1/IO1, pin 2=K2/IO2 and pin 3=common-anode GND; Table 2 on p.2 fixes 0.47pF typical/0.6pF maximum and USB 2.0 suitability. Independently read 2026-08-20; exact JLC C3709087 confirms Nexperia identity and TO-236AB package."
+sourcing: {lcsc: C3709087, alternates: [C3704436], note: "2,523 public JLC catalogue units observed 2026-08-20; quantity-five requirement is 25, leaving 2,498 surplus; allocation remains authoritative"}
+layout:
+  source: "Nexperia PESD2USB5UX-T pin/package authority plus Microchip USB2517 Hardware Design Checklist DS00004211A implementation guidance"
+  reviewed: "2026-08-20"
+  route_topology: {kind: shunt, signal_pads: ["1", "2"], return_pads: ["3"]}
+  notes: ["place at each exposed connector", "route the ground pin with minimum inductance", "never branch D+/D- to this shunt; land pins 1/2 directly on the continuous pair path", "keep the device on the signal layer and put any unavoidable via behind it"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "Nexperia PESD2USB5UX-T datasheet and SOT23 package drawing", why: "manufacturer source owns pinout, parasitics and protection rating"}
+  - {tier: 1, reached: true, artifact: "Microchip USB2517 Hardware Design Checklist DS00004211A", why: "hub manufacturer explicitly requires connector-close, direct-on-trace TVS placement with no signal branch and a low-impedance ground path"}
+  - {tier: 2, reached: true, artifact: "exact JLC C3709087 identity", why: "assembly-vendor catalogue cross-checks MPN and package identity; exact CAD remains a footprint-promotion gate"}
+  - {tier: 3, reached: false, artifact: "community board", why: "manufacturer evidence is sufficient"}

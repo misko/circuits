@@ -6,16 +6,15 @@ datasheet: {doc_id: USB1130, revision: "Revision E", url: "https://gct.co/files/
 package: right-angle through-hole USB Type-A receptacle
 footprint: usb_controlled_debug_hub_2a:USB_A_GCT_USB1130-15-A_Horizontal
 escape: {style: connector, pitch: 2.0, tier_required: jlc_2layer_default, checked: "manufacturer land-pattern review 2026-08-10"}
-pins: {1: VBUS, 2: DM, 3: DP, 4: GND, SH: SHIELD}
-pin_aliases:
-  SH: {schematic: "5", footprint: SH, fused: false, why: "tscircuit assigns the single shell port numeric pin 5 while the manufacturer land uses SH", evidence: "GCT USB1130 Revision E shows both board-lock lands as the one receptacle shell; 03_tscircuit source names pin5 SHIELD"}
+pins: {1: VBUS, 2: DM, 3: DP, 4: GND, 5: SHIELD}
 limits: {current_per_contact: 3A, contact_resistance_max_initial: 30mOhm, durability: 1500_cycles}
 gotchas:
+  - "The project-local footprint numbers both electrically common shell holes as pad 5 so the exact physical land pattern and single schematic SHIELD pin remain one net without a hidden alias."
   - "The 3A contact rating, rather than legacy USB-A assumptions, is binding for the 2A continuous service."
   - "Pins 2/3 carry USB 2.0 D-/D+ on this board. The receptacle's current rating does not authorize a device to draw 2 A without an appropriate device/charging contract."
   - "GCT fixes the exact USB1130 land geometry but does not number the four signal holes. Contact numbering and functions therefore come independently from the USB-IF USB 2.0 specification, not from inference about the footprint drawing."
 verified: "GCT USB1130 Revision E sheet 1 independently confirms the component geometry, board cutout, 3A rating and 30mOhm maximum initial contact resistance; USB-IF USB 2.0 Specification Revision 2.0 Table 6-1 p.94 and Figure 6-12 p.115 independently confirm the receptacle PCB order 1=VBUS, 2=D-, 3=D+, 4=GND, re-read from the official 2025-06-03 USB-IF archive on 2026-08-11"
-sourcing: {lcsc: C5815149, alternates: [], note: "JLC plugin/through-hole candidate; volatile stock evidence is kept in 06_build/cache"}
+sourcing: {lcsc: C5815149, alternates: [], digikey: USB1130-15-A, note: "JLC public stock did not meet the +200 pre-layout buffer. Keep the exact documented 3 A connector but exclude it from turnkey population; DigiKey publicly listed 18,788 exact units on 2026-08-20."}
 layout:
   source: "GCT USB1130 Revision E recommended PCB layout and PCB-edge datum"
   reviewed: "2026-08-11"

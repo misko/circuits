@@ -1,0 +1,17 @@
+mpn: 0402CG180J500NT
+manufacturer: FH Guoju
+type: ceramic_capacitor_c0g
+value: 18p
+status: active
+datasheet: {doc_id: 0402CG180J500NT-product, revision: "online product record", url: "https://www.fhcomp.com/en/product_info/?prod_code=0402CG180J500NT", local: null, sha256: null, fetched: 2026-08-15}
+package: "0402 (1005 metric)"
+footprint: Capacitor_SMD:C_0402_1005Metric
+escape: {style: passive, pitch: 0.5, tier_required: jlc_2layer_default, checked: "exact manufacturer and JLC product identity 2026-08-15"}
+pins: {1: A, 2: B}
+limits: {capacitance: 18pF, tolerance: 5pct, rated_voltage: 50V, dielectric: C0G_NP0}
+gotchas: ["These two capacitors are the selected 24MHz crystal load pair. Their effective load includes pin and layout parasitics; do not change value without rechecking the crystal load calculation."]
+verified: "Exact manufacturer product record and JLC C1549 identity checked for 18pF, 50V, C0G, 5%, 0402 on 2026-08-15."
+layout: {source: "Microchip USB2517I hardware checklist", reviewed: 2026-08-15, notes: ["Place symmetrically at XTAL1/XTAL2 with independent short ground returns and no nearby switching copper."]}
+sourcing: {lcsc: C1549, alternates: []}
+asserts:
+  - {assert: value, equals: 18p, why: "The selected crystal network was reviewed with this exact load-capacitor value."}

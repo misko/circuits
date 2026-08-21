@@ -29,6 +29,12 @@ procurement exposure. Public catalog evidence remains a pre-layout negative
 filter; final allocation/uploader evidence is still mandatory. Do not add a
 second hand-maintained part-freeze file.
 
+The preliminary catalog probe must apply the project's named absolute stock
+surplus after aggregating all references on each LCSC line (for example,
+`build_quantity * per_board_qty + 200`). The receipt records required quantity,
+threshold, observed surplus, and timestamp. This volatility filter neither
+authorizes MOQ cash nor substitutes for the hash-bound `AVAILABLE` response.
+
 ## E-CLOSURE
 
 Run after fresh netlist export and before schematic review or placement.

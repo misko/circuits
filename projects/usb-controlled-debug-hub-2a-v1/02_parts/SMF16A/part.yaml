@@ -1,0 +1,22 @@
+mpn: SMF16A
+manufacturer: Littelfuse
+type: tvs_diode
+value: SMF16A
+status: active
+datasheet:
+  doc_id: Littelfuse SMF datasheet
+  url: "https://www.littelfuse.com/media?resourcetype=datasheets&itemid=8a0f9fd2-3f6d-46b0-b9db-2878cdd3d7b6"
+  local: Littelfuse_SMF.pdf
+  sha256: 3a45fa80d044fa43b906e470e9615a0e5f210adb5818d95c26d6e4a7ca95edd7
+  pages: 6
+package: SOD-123FL
+footprint: usb_controlled_debug_hub:Littelfuse_SMF_SOD-123FL
+pins: {1: A, 2: K}
+limits: {standoff_V: 16, breakdown_min_V: 17.8, breakdown_max_V: 19.7, clamp_max_V: 26.0, peak_current_A: 7.7, peak_power_W: 200}
+gotchas: ["Unidirectional device: cathode to VBUS_PD and anode to GND.", "Transient clamp only; not a sustained overvoltage regulator."]
+verified: "Exact SMF16A row and SOD-123FL mounting-pad layout in the Littelfuse SMF series datasheet; read 2026-08-18."
+sourcing: {lcsc: C207257, note: "JLC catalog stock 5097 observed 2026-08-18; order allocation pending."}
+layout:
+  source: "Littelfuse SMF datasheet p.5, Dimensions - SOD-123FL Package / Mounting Pad Layout"
+  notes: ["Use 1.60 x 1.40 mm lands with 1.30 mm inner gap; pad centers are 2.90 mm apart."]
+  footprint_adjudication: "JLC/EasyEDA C207257 uses a different 3.34 mm pad spacing. The source footprint follows Littelfuse's exact 1.60 x 1.40 mm, 1.30 mm-gap mounting-pad recommendation."

@@ -1,0 +1,12 @@
+mpn: TCC1206X7R106K500HT
+manufacturer: CCTC
+type: capacitor
+value: 10uF 50V X7R 10%
+status: active
+datasheet: {local: CCTC_TCC1206X7R106K500HT.pdf, sha256: 4173d16079818113e294f2218694b58c77499c817e9eb0faef27e22614716409, url: "https://www.lcsc.com/product-detail/C5449000.html"}
+package: 1206
+footprint: Capacitor_SMD:C_1206_3216Metric
+pins: {1: terminal, 2: terminal}
+limits: {rated_voltage_V: 50, capacitance_uF: 10, tolerance_pct: 10, dielectric: X7R}
+verified: "Exact CCTC ordering code and ratings in accepted LCSC/JLC dossier; read 2026-08-18."
+sourcing: {lcsc: C5449000, note: "JLC catalog stock 173199 observed 2026-08-18; order allocation pending."}

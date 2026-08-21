@@ -1,0 +1,12 @@
+mpn: 0466003.NRHF
+manufacturer: Littelfuse
+type: fuse
+value: 3A 32V
+status: active
+datasheet: {local: Littelfuse_0466003.pdf, sha256: 4403086cca399795cb8168f0c647437221fd7a25c35527e6eb6b7403e51c0144, url: "https://www.littelfuse.com/products/fuses/surface-mount-fuses/nano-2-fuses/466/0466003.nrhf"}
+package: 1206
+footprint: Fuse:Fuse_1206_3216Metric
+pins: {1: IN, 2: OUT}
+limits: {current_rating_A: 3, voltage_rating_VDC: 32}
+verified: "Exact Littelfuse 0466003.NRHF family row and package; read 2026-08-18."
+sourcing: {lcsc: C14165, note: "JLC catalog stock 33615 observed 2026-08-18; order allocation pending."}

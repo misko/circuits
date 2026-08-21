@@ -1,0 +1,42 @@
+mpn: TVS1800DRVR
+manufacturer: Texas Instruments
+type: unidirectional_power_tvs
+value: TVS1800DRVR
+status: active
+datasheet:
+  doc_id: SLVSEV7B
+  revision: "revised October 2024"
+  url: "https://www.ti.com/lit/ds/symlink/tvs1800.pdf"
+  product_page: "https://www.ti.com/product/TVS1800"
+  local: SLVSEV7B.pdf
+  sha256: a999cd718b3702ad37380839c09d82a8f7bc88d968ef4def28a42a7b557e96dc
+  fetched: 2026-08-19
+  pages: 26
+  provenance: "CITED: official TI exact-MPN PDF; electrical table, pin table, DRV package drawing and layout guidance were read for this use."
+package: DRV0006A WSON-6 2x2mm P0.65 with exposed pad
+footprint: usb_controlled_debug_hub:TI_DRV0006A_WSON-6_2x2mm_P0.65mm
+escape: {style: qfn, pitch: 0.65, tier_required: jlc_4layer_standard, checked: "TI example land pattern and exact C2649846 JLC CAD agree on 2.06mm bank spacing and 0.65mm pitch; package escape itself fits the standard four-layer tier, while the board still requires advanced processing for its selective filled/capped 0.20mm via family"}
+pins: {1: GND, 2: GND, 3: GND, 4: IN, 5: IN, 6: IN, 7: GND_EP}
+limits:
+  vrwm_V: 18
+  breakdown_min_V: 19.5
+  breakdown_max_V: 23.8
+  clamp_max_V_27C_40A: 23.4
+  clamp_max_V_125C_35A: 24.7
+  pulse: "8/20us"
+gotchas:
+  - "Pins 1-3 and exposed pad 7 are all GND; pins 4-6 are all IN. Join each bank with broad, short copper and minimize the ground return inductance."
+  - "The 24.7V value is the specified 125C, 35A, 8/20us clamp, not a universal sustained-overvoltage ceiling. Measure at U_PD_IN on first article."
+  - "The device is placed after F_PD. It protects the 28V-absolute-maximum U_PD_IN input as well as the downstream regulator; OVLO cannot protect the eFuse's own input pin."
+verified: "TI SLVSEV7B electrical characteristics, pin functions, Figure 9-1/9-2 layout and DRV0006A package; read 2026-08-19. JLC/LCSC C2649846 identifies exact TVS1800DRVR."
+sourcing:
+  lcsc: C2649846
+  note: "LCSC catalog stock above 3,800 and MOQ 1 observed 2026-08-19; exact JLC order allocation remains mandatory."
+layout:
+  source: "TI SLVSEV7B sections 9 and 11, DRV0006A drawing; exact JLC C2649846 CAD used as independent geometry corroboration"
+  reviewed: 2026-08-19
+  notes: ["Put the IN bank on the post-fuse VBUS path", "give pins 1-3 and EP multiple low-inductance ground connections", "probe the eFuse-side VBUS pad during transient qualification"]
+layout_refs:
+  - {tier: 1, reached: true, artifact: "TI SLVSEV7B layout example and DRV0006A package drawing", why: "manufacturer source fixes pin banks, body and recommended placement"}
+  - {tier: 2, reached: true, artifact: "JLC/LCSC C2649846 exact CAD", why: "assembly-vendor geometry corroborates the land and model"}
+  - {tier: 3, reached: false, artifact: "community board", why: "not needed because manufacturer and vendor precedents agree"}
