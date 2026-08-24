@@ -250,6 +250,7 @@ file is itself rejected — a waiver needs evidence, not a bare path.
 """
 import argparse
 import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -317,12 +318,53 @@ def _load_exceptions(release_dir: Path):
     return allow, bad
 
 
+def _exact_indexed_fab_artifacts(release_dir: Path):
+    """Return exact-board-bound ``fab/<path> -> sha256`` entries.
+
+    Equal bytes are not evidence of staleness by themselves. A route-only
+    release can legitimately regenerate the same BOM, CPL, drill or operator
+    worklist. The producer's artifact index is admissible only when its board
+    digest matches the one standalone board at ``source/*.kicad_pcb`` and each
+    indexed artifact digest matches the candidate byte-for-byte. Anything
+    absent, ambiguous or malformed remains subject to the strict stale-byte
+    rule below.
+    """
+    index_path = release_dir / "fab" / "artifact_index.json"
+    boards = sorted((release_dir / "source").glob("*.kicad_pcb"))
+    if not index_path.is_file() or len(boards) != 1:
+        return {}
+    try:
+        data = json.loads(index_path.read_text(encoding="utf-8-sig"))
+        board_rec = data["board"]
+        if (data.get("kind") != "jlc-artifact-index-v1" or
+                board_rec.get("sha256") != _sha256(boards[0])):
+            return {}
+        admitted = {}
+        for records in (data.get("roles") or {}).values():
+            if not isinstance(records, list):
+                return {}
+            for rec in records:
+                name = str((rec or {}).get("path") or "")
+                digest = str((rec or {}).get("sha256") or "")
+                if (not name or Path(name).name != name or
+                        not re.fullmatch(r"[0-9a-f]{64}", digest)):
+                    return {}
+                path = release_dir / "fab" / name
+                if not path.is_file() or _sha256(path) != digest:
+                    return {}
+                admitted[f"fab/{name}"] = digest
+        return admitted
+    except (KeyError, TypeError, ValueError, OSError, json.JSONDecodeError):
+        return {}
+
+
 # --------------------------------------------------------------- check (a)
 def check_stale(release_dir, releases_root, allow):
     """Any generated artifact sha256-identical to the same-named file in an
     EARLIER release of the same board (unless waived)."""
     findings = []
     earlier = _earlier_releases(release_dir, releases_root)
+    indexed = _exact_indexed_fab_artifacts(release_dir)
     for rel, path in _artifacts(release_dir):
         h = _sha256(path)
         for older in earlier:
@@ -332,6 +374,12 @@ def check_stale(release_dir, releases_root, allow):
                     findings.append(
                         f"  note: {rel} identical to {older.name}/{rel} "
                         f"— WAIVED ({allow[rel]})")
+                    continue
+                if indexed.get(rel) == h:
+                    findings.append(
+                        f"  note: {rel} identical to {older.name}/{rel} "
+                        f"— REGENERATED-EQUAL (artifact index binds these "
+                        f"bytes to the exact candidate board)")
                     continue
                 findings.append(
                     f"  STALE: {rel} is sha256-IDENTICAL to "

@@ -37,6 +37,12 @@
       "policy_ids": ["GG-RESOLVE", "GG-SHADOW", "M-BOUND", "M-COVER", "M-FRESH"]
     },
     {
+      "id": "early_boundaries",
+      "owner": "pcb-design",
+      "references": ["skills/pcb-design/references/early-boundary-gates.md"],
+      "policy_ids": []
+    },
+    {
       "id": "compute",
       "owner": "pcb-design",
       "references": ["skills/pcb-design/references/compute-tiers.md"],
@@ -69,7 +75,7 @@
     {
       "id": "kicad_routing",
       "owner": "kicad-pcb",
-      "references": ["skills/kicad-pcb/references/fast-pcb-flow.md", "skills/kicad-pcb/references/routing-pipeline.md"],
+      "references": ["skills/kicad-pcb/references/fast-pcb-flow.md", "skills/kicad-pcb/references/route-candidate-contract.md", "skills/kicad-pcb/references/route-exploration.md", "skills/kicad-pcb/references/route-ownership.md", "skills/kicad-pcb/references/routing-pipeline.md", "skills/kicad-pcb/references/source-to-prep-authority.md"],
       "policy_ids": ["PF-VIA-ASPECT"]
     },
     {
@@ -116,7 +122,7 @@
     },
     {
       "spec": {"schema": 1, "id": "PCB-SOURCING", "owner": "pcb-design", "lifecycle": "sourcing", "cost": "external", "work_class": "network", "timeout_s": 3600, "requires": ["architecture_locked"], "produces": ["parts_locked"], "blocks": ["schematic"], "invalidated_by": ["architecture_semantic", "parts_semantic"]},
-      "domains": ["commission", "kicad_layout_precedents", "kicad_policy", "lifecycle"],
+      "domains": ["commission", "early_boundaries", "kicad_layout_precedents", "kicad_policy", "lifecycle"],
       "applies": {"always": true}
     },
     {
@@ -131,12 +137,12 @@
     },
     {
       "spec": {"schema": 1, "id": "KICAD-SCHEMATIC", "owner": "kicad-pcb", "lifecycle": "schematic", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["parts_locked", "rf_source_clearance"], "produces": ["schematic_reviewed"], "blocks": ["placement"], "invalidated_by": ["parts_semantic", "rules_semantic", "source_semantic"]},
-      "domains": ["kicad_policy", "kicad_schematic", "lifecycle", "review_publication"],
+      "domains": ["early_boundaries", "kicad_policy", "kicad_schematic", "lifecycle", "review_publication"],
       "applies": {"always": true}
     },
     {
       "spec": {"schema": 1, "id": "KICAD-PLACEMENT", "owner": "kicad-pcb", "lifecycle": "placement", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["schematic_reviewed"], "produces": ["placement_reviewed"], "blocks": ["routing"], "invalidated_by": ["placement_semantic", "schematic_semantic"]},
-      "domains": ["jlc_connector_orientation", "kicad_placement", "kicad_policy", "lifecycle", "review_publication"],
+      "domains": ["early_boundaries", "jlc_connector_orientation", "kicad_placement", "kicad_policy", "lifecycle", "review_publication"],
       "applies": {"always": true}
     },
     {

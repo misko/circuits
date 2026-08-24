@@ -560,8 +560,8 @@ elif uns_path.exists():
 
 for _fid, _text in dict.fromkeys(_XCHECK):    # one line per distinct finding
     print(f"  {_fid}: {_text}")
+gate_path = out / "rotation_human_gate.txt"
 if _HUMAN_GATE:
-    gate_path = out / "rotation_human_gate.txt"
     with open(gate_path, "w") as f:
         f.write("A-POL SINGLE-CHANNEL — these placements have NO numbering-free\n"
                 "channel corroborating their rotation. The pad-NUMBER fit is\n"
@@ -575,6 +575,11 @@ if _HUMAN_GATE:
           f"order-preview human gate REQUIRED before first order: "
           f"{ {c: sorted(r) for c, r in _HUMAN_GATE.items()} } "
           f"-> {gate_path.name}")
+else:
+    gate_path.write_text(
+        "A-POL SINGLE-CHANNEL: N-A — 0 placements require the numbering-free "
+        "human rotation channel.\n",
+        encoding="utf-8")
 
 if _UNSOURCED and not args.allow_unsourced_rotations:
     n_refs = sum(len(e["refs"]) for e in _UNSOURCED.values())
@@ -717,7 +722,7 @@ if _contradiction:
 # only after the assembly half has passed its blocking gates; a failed run
 # leaves absence, not yesterday's order note.
 _assembly_data, _assembly_source = load_assembly(Path(args.board))
-_order_note = via_order_note(_assembly_data, _assembly_source)
+_order_note = via_order_note(_assembly_data, _assembly_source, board)
 if _order_note:
     order_notes_path.write_text(_order_note, encoding="utf-8")
     print(f"  V-ORDER generated: {order_notes_path.name} "
@@ -770,6 +775,9 @@ roles = {
     "gerber_archive": [_artifact_record(zip_path)],
     "bom": [_artifact_record(bom_path)],
     "cpl": [_artifact_record(cpl_path)],
+    "bom_echo_worklist": [_artifact_record(echo_path)],
+    "rotation_worklist": [_artifact_record(gate_path)],
+    "fabrication_files": [_artifact_record(path) for path in fresh],
     "drill": [_artifact_record(path) for path in fresh
               if path.suffix.lower() == ".drl"],
 }

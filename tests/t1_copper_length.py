@@ -218,6 +218,20 @@ def straight(net, y, length, x0=0.0, layer="F.Cu"):
     return (net, (x0, y), (x0 + length, y), layer)
 
 
+def endpoint_decl(members, paths, tol=0.5, topology="chain"):
+    """Build the explicit endpoint-path schema used by the path fixtures."""
+    import yaml
+    doc = {"classes": {}, "length_match": {"USB": {
+        "adr": "0099", "intent": "grade endpoint paths, never inventory",
+        "members": members, "topology": topology, "congruent_pads": True,
+        "max_spread_mm": tol, "router_moves": "any", "paths": paths}}}
+    return yaml.safe_dump(doc, sort_keys=False)
+
+
+def one_pad(ref, name, net, x, y):
+    return (ref, (x, y), 0.0, [(name, net, (0.0, 0.0))])
+
+
 # =============================================================== THE VACUITY
 @test("THE PRE-FIX R-LEN PREDICATE PASSES ON NOTHING BUT THE WORD 'length' IN "
       "A COMMENT — re-measured against the REAL cooksense source",
@@ -275,7 +289,7 @@ def t_matched_pair_passes():
     r = must_pass(run([KPY, LEN, d, "--strict"]), "matched pair")
     contains(r.out, "PASS R-LEN", "verdict")
     contains(r.out, "spread=0.0000 mm", "the measured spread")
-    contains(r.out, "2 member path(s) measured / 2", "coverage denominator")
+    contains(r.out, "2 electrical path(s) measured / 2", "coverage denominator")
     contains(r.out, "1 group(s) graded / 1 declared", "group denominator")
     # both arms are 20.000 mm even though the NET SPLIT differs (8+12 vs 12+8):
     # a member is a CHAIN of nets, which is the thing declaring only the first
@@ -918,6 +932,102 @@ def t_oct_explicit_endpoints():
     eq(round(floor, 6), 5.0, "the physical chain terminals own the floor")
 
 
+@test("explicit endpoint paths grade a two-net chain across a declared series component")
+def t_endpoint_path_series_chain():
+    members = {"P": ["P_HUB", "P_PORT"], "N": ["N_HUB", "N_PORT"]}
+    paths = {
+        "P": [{"id": "main", "segments": [
+            {"net": "P_HUB", "from": "H.1", "to": "SW.1"},
+            {"net": "P_PORT", "from": "SW.2", "to": "J.1"}]}],
+        "N": [{"id": "main", "segments": [
+            {"net": "N_HUB", "from": "H.2", "to": "SW.3"},
+            {"net": "N_PORT", "from": "SW.4", "to": "J.2"}]}],
+    }
+    pads = [one_pad("H", "1", "P_HUB", 0, 0),
+            one_pad("SW", "1", "P_HUB", 5, 0),
+            one_pad("SW", "2", "P_PORT", 5, 1),
+            one_pad("J", "1", "P_PORT", 10, 1),
+            one_pad("H", "2", "N_HUB", 0, 3),
+            one_pad("SW", "3", "N_HUB", 5, 3),
+            one_pad("SW", "4", "N_PORT", 5, 4),
+            one_pad("J", "2", "N_PORT", 10, 4)]
+    d = scratch(endpoint_decl(members, paths), pads=pads,
+                segs=[straight("P_HUB", 0, 5), straight("P_PORT", 1, 5, 5),
+                      straight("N_HUB", 3, 5), straight("N_PORT", 4, 5, 5)])
+    r = must_pass(run([KPY, LEN, d, "--strict"]), "series endpoint chain")
+    contains(r.out, "PATH-SPREAD main     0.0000 mm", "whole-link skew")
+    contains(r.out, "OFF-PATH P_HUB", "every series net is inventoried")
+
+
+@test("a reversible USB-C tree grades every declared leaf-to-root path")
+def t_endpoint_path_reversible_tree():
+    members = {"P": ["P"], "N": ["N"]}
+    paths = {
+        "P": [{"id": "A", "segments": [{"net": "P", "from": "J.A6", "to": "H.1"}]},
+              {"id": "B", "segments": [{"net": "P", "from": "J.B6", "to": "H.1"}]}],
+        "N": [{"id": "A", "segments": [{"net": "N", "from": "J.A7", "to": "H.2"}]},
+              {"id": "B", "segments": [{"net": "N", "from": "J.B7", "to": "H.2"}]}],
+    }
+    pads = [one_pad("J", "A6", "P", 0, -1), one_pad("J", "B6", "P", 0, 1),
+            one_pad("H", "1", "P", 10, 0), one_pad("J", "A7", "N", 0, 3),
+            one_pad("J", "B7", "N", 0, 5), one_pad("H", "2", "N", 10, 4)]
+    segs = [("P", (0, -1), (2, 0), "F.Cu"), ("P", (0, 1), (2, 0), "F.Cu"),
+            ("P", (2, 0), (10, 0), "F.Cu"),
+            ("N", (0, 3), (2, 4), "F.Cu"), ("N", (0, 5), (2, 4), "F.Cu"),
+            ("N", (2, 4), (10, 4), "F.Cu")]
+    d = scratch(endpoint_decl(members, paths, topology="tree"), pads=pads, segs=segs)
+    r = must_pass(run([KPY, LEN, d, "--strict"]), "reversible tree")
+    contains(r.out, "PATH-SPREAD A        0.0000 mm", "A row is graded")
+    contains(r.out, "PATH-SPREAD B        0.0000 mm", "B row is graded")
+
+
+@test("a compensating stub cannot improve endpoint skew", kind="known_bad")
+def t_endpoint_path_compensating_stub_fails():
+    members = {"P": ["P"], "N": ["N"]}
+    paths = {m: [{"id": "main", "segments": [
+        {"net": m, "from": f"J.{m}", "to": f"H.{m}"}]}] for m in members}
+    pads = [one_pad("J", "P", "P", 0, 0), one_pad("H", "P", "P", 10, 0),
+            one_pad("J", "N", "N", 0, 3), one_pad("H", "N", "N", 11, 3)]
+    segs = [straight("P", 0, 5), straight("P", 0, 5, 5),
+            ("P", (5, 0), (5, 1), "F.Cu"), straight("N", 3, 11)]
+    d = scratch(endpoint_decl(members, paths), pads=pads, segs=segs)
+    r = must_fail(run([KPY, LEN, d, "--strict"]), "compensating stub")
+    contains(r.out, "R-LEN-SPREAD [USB/main]", "real path mismatch is visible")
+    contains(r.out, "R-LEN-OFFPATH [USB/P]", "the compensating stub is rejected")
+
+
+@test("an orphaned same-net meander is off-path copper", kind="known_bad")
+def t_endpoint_path_orphan_meander_fails():
+    members = {"P": ["P"], "N": ["N"]}
+    paths = {m: [{"id": "main", "segments": [
+        {"net": m, "from": f"J.{m}", "to": f"H.{m}"}]}] for m in members}
+    pads = [one_pad("J", "P", "P", 0, 0), one_pad("H", "P", "P", 10, 0),
+            one_pad("J", "N", "N", 0, 3), one_pad("H", "N", "N", 10, 3)]
+    d = scratch(endpoint_decl(members, paths), pads=pads,
+                segs=[straight("P", 0, 10), straight("P", 8, 5),
+                      straight("N", 3, 10)])
+    r = must_fail(run([KPY, LEN, d, "--strict"]), "orphan meander")
+    contains(r.out, "5.0000 mm across 1 physical copper edge", "orphan is measured")
+
+
+@test("two track sections connected only through one same-net pad form one path")
+def t_endpoint_path_pad_join():
+    members = {"P": ["P"], "N": ["N"]}
+    paths = {m: [{"id": "main", "segments": [
+        {"net": m, "from": f"J.{m}", "to": f"H.{m}"}]}] for m in members}
+    pads = [one_pad("J", "P", "P", 0, 0), one_pad("M", "P", "P", 5, 0),
+            one_pad("H", "P", "P", 10, 0), one_pad("J", "N", "N", 0, 3),
+            one_pad("M", "N", "N", 5, 3), one_pad("H", "N", "N", 10, 3)]
+    segs = [("P", (0, 0), (4.8, 0), "F.Cu"),
+            ("P", (5.2, 0), (10, 0), "F.Cu"),
+            ("N", (0, 3), (4.8, 3), "F.Cu"),
+            ("N", (5.2, 3), (10, 3), "F.Cu")]
+    d = scratch(endpoint_decl(members, paths), pads=pads, segs=segs)
+    r = must_pass(run([KPY, LEN, d, "--strict"]), "pad-aware join")
+    contains(r.out, "PATH-SPREAD main     0.0000 mm", "pad join is path-aware")
+    contains(r.out, "unexplained edges 0", "both track sections are consumed")
+
+
 @test("saved-board fence_pitch fails an over-bound realized aperture and "
       "passes a closed one", kind="known_bad")
 def t_fence_pitch_red_and_green():
@@ -944,7 +1054,8 @@ def t_fence_pitch_red_and_green():
 @test("the schema is self-documenting and the gate obeys G-INPUT/G-COVER")
 def t_schema_and_gate_contract():
     r = must_pass(run([KPY, LEN, "--schema"]), "--schema")
-    for k in ("length_match:", "members:", "topology: chain", "no_vias:",
+    for k in ("length_match:", "members:", "topology: chain", "paths:",
+              "off_path_mm", "no_vias:",
               "max_spread_mm:", "pin:", "congruent_pads:", "stackup_mm:",
               "router_moves:", "elongation:"):
         contains(r.out, k, f"the schema documents {k}")

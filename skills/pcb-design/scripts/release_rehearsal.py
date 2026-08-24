@@ -96,7 +96,7 @@ def init_manifest(release: Path, project: Path | None = None) -> Path:
         "status:       DRAFT — DO-NOT-ORDER",
         "gates:        PENDING release rehearsal",
         "DESIGN:       FAIL",
-        "SOURCING:     BLOCKED-0 (DRAFT; no order-time allocation)",
+        "SOURCING:     BLOCKED-SOURCING (DRAFT; no order-time allocation)",
         f"assembly:     {assembly.get('service', 'PENDING')}",
         "not_assembled: " + (",".join(not_assembled) if not_assembled else "none"),
         "sha256:",

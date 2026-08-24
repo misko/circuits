@@ -44,6 +44,7 @@ sys.path.insert(0, str(FAB_SCRIPTS))
 from jlc_rotation_resolve import (SRC_LCSC, SRC_UNSOURCED,  # noqa: E402
                                   cross_check, load_lcsc_rows, load_name_db,
                                   resolve, resolve_rotation)
+from jlc_rotation_audit import audit_fab  # noqa: E402
 
 AUDIT = FAB_SCRIPTS / "jlc_rotation_audit.py"
 EXPORT = FAB_SCRIPTS / "export_jlc_package.py"
@@ -396,6 +397,20 @@ def t_symmetry_discriminates():
         check(not sym[fpn]["exempt"], f"a DIODE was exempted: {sym[fpn]}")
     check(not sym["SOT-23-6"]["exempt"],
           "SOT-23-6 was exempted — that is the ten-safety-gate package")
+
+
+@test("release rotation audit applies the same measured symmetry exemption as export")
+def t_release_audit_symmetry_population_matches_export():
+    d = tmpdir("rot_audit_")
+    (d / "bom.csv").write_text(
+        "Comment,Designator,Footprint,MPN,LCSC\n"
+        "10k,R1,R_0402,GENERIC,C_TEST\n")
+    (d / "cpl.csv").write_text(
+        "Designator,Val,Package,Mid X,Mid Y,Layer,Rotation\n"
+        "R1,10k,R_0402,0,0,top,0\n")
+    uns, total = audit_fab(d, {}, [], exempt={"R1"})
+    eq(total, 1, "one CPL row graded")
+    eq(uns, {}, "measured-symmetric row is not reported unsourced")
 
 
 # ======================================================= the exporter gate ==

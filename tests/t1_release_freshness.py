@@ -38,6 +38,7 @@ neutered (`--_disable-*`) and shown to PASS — proving the finding comes from
 the check under test and nothing else. A gate that cannot fail is worthless.
 """
 import json
+import hashlib
 import sys
 from pathlib import Path
 
@@ -211,6 +212,63 @@ def t_stale_fab():
     (d2 / "fab" / "demo_gerbers.zip").write_bytes(_blob("gerber-1.1"))
     r = must_fail(gate(d2), "stale gerber must block", "STALE")
     contains(r.out, "fab/demo_gerbers.zip", "names the stale fab file")
+
+
+def _write_exact_artifact_index(release, artifact_name):
+    """Bind one deterministic fab output to this fixture's exact board."""
+    (release / "source").mkdir(exist_ok=True)
+    board = release / "source" / "demo_board.kicad_pcb"
+    board.write_text(f"board for {release.name}\n")
+    artifact = release / "fab" / artifact_name
+    digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
+    index = {
+        "schema": 1,
+        "kind": "jlc-artifact-index-v1",
+        "board": {
+            "path": board.name,
+            "sha256": hashlib.sha256(board.read_bytes()).hexdigest(),
+            "size": board.stat().st_size,
+        },
+        "roles": {"bom": [{"path": artifact.name,
+                              "sha256": digest,
+                              "size": artifact.stat().st_size}]},
+    }
+    (release / "fab" / "artifact_index.json").write_text(
+        json.dumps(index, indent=2, sort_keys=True) + "\n")
+
+
+@test("release_freshness accepts deterministic equal fab bytes only when the "
+      "producer index binds them to the exact candidate board")
+def t_regenerated_equal_indexed_fab():
+    root = tmpdir("relfresh_equal_indexed_")
+    d1 = make_release(root, "1.1",
+                      pdf_tags={"assembly_front.pdf": "front-v1.1"})
+    d2 = make_release(root, "1.2",
+                      pdf_tags={"assembly_front.pdf": "front-v1.2"})
+    for d in (d1, d2):
+        (d / "fab" / "bom.csv").write_text("Comment,Designator\nR 10k,R1\n")
+        _write_exact_artifact_index(d, "bom.csv")
+    r = must_pass(gate(d2), "equal BOM regenerated from the exact candidate")
+    contains(r.out, "REGENERATED-EQUAL", "states why equality is current")
+
+
+@test("release_freshness still rejects equal fab bytes when the artifact "
+      "index does not match the exact candidate", kind="known_bad")
+def t_kb_regenerated_equal_bad_index():
+    root = tmpdir("relfresh_equal_bad_index_")
+    d1 = make_release(root, "1.1",
+                      pdf_tags={"assembly_front.pdf": "front-v1.1"})
+    d2 = make_release(root, "1.2",
+                      pdf_tags={"assembly_front.pdf": "front-v1.2"})
+    for d in (d1, d2):
+        (d / "fab" / "bom.csv").write_text("Comment,Designator\nR 10k,R1\n")
+        _write_exact_artifact_index(d, "bom.csv")
+    index_path = d2 / "fab" / "artifact_index.json"
+    index = json.loads(index_path.read_text())
+    index["board"]["sha256"] = "0" * 64
+    index_path.write_text(json.dumps(index, indent=2, sort_keys=True) + "\n")
+    r = must_fail(gate(d2), "a forged/stale board binding", "STALE")
+    contains(r.out, "fab/bom.csv", "names the unproven equal artifact")
 
 
 @test("release_freshness: a documented exception (reason given) waives one "

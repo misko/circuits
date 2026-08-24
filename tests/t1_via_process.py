@@ -133,6 +133,20 @@ def t_exporter_emits_note():
     contains(text, "ordinary 0.30 mm drill family", "ordinary selector")
     contains(text, str(assembly), "note names its machine-readable source")
     contains(text, "Uploader confirmation required: YES", "human gate")
+    contains(text, "Exact board census: 1 protected, 1 ordinary, 0 partial",
+             "exact board counts are generated, not copied from prose")
+
+
+@test("V-ORDER rejects a hard-coded census copied from an older board",
+      kind="known_bad")
+def t_stale_hardcoded_census_fails():
+    _d, board, assembly = fixture()
+    data = yaml.safe_load(assembly.read_text())
+    data["via_process"]["order_remark"] += (
+        " The exact routed-board census is 578 protected and 0 ordinary.")
+    assembly.write_text(yaml.safe_dump(data, sort_keys=False))
+    result = must_fail(run([KPY, TOOL, board]), "stale via census", "V-ORDER")
+    contains(result.out, "exact board is 1 / 1", "finding prints live counts")
 
 
 if __name__ == "__main__":

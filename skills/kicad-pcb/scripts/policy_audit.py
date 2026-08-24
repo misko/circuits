@@ -115,6 +115,61 @@ def physical_pin_keep_short_spans(anchors, points, span, partner_refs=None):
     return measured
 
 
+def selected_part_yamls(proj, phase):
+    """Return dossiers selected by the exact generated circuit when available.
+
+    Several mutually exclusive candidates can legitimately remain in 02_parts,
+    and two candidates often share one footprint.  Grading every dossier then
+    assigns an obsolete candidate's layout budget to the newly selected part
+    purely because their package IDs match.  Source phase deliberately keeps
+    the complete maintenance population; realized phases use the exact MPN or
+    LCSC identity carried by circuit.json.
+    """
+    declared = sorted((proj / "02_parts").glob("*/part.yaml"))
+    if phase == "source" or not yaml:
+        return [str(p) for p in declared]
+    circuit = proj / "03_tscircuit/build/circuit.json"
+    if not circuit.exists():
+        return [str(p) for p in declared]
+    try:
+        payload = json.loads(circuit.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return [str(p) for p in declared]
+    elements = payload if isinstance(payload, list) else payload.get("elements", [])
+    mpns, codes = set(), set()
+    for element in elements:
+        if not isinstance(element, dict) or element.get("type") != "source_component":
+            continue
+        mpn = str(element.get("manufacturer_part_number") or "").strip()
+        if mpn:
+            mpns.add(mpn)
+        suppliers = element.get("supplier_part_numbers") or {}
+        if isinstance(suppliers, dict):
+            values = suppliers.get("jlcpcb") or []
+            if isinstance(values, str):
+                values = [values]
+            codes.update(str(v).strip() for v in values if str(v).strip())
+    selected = []
+    for path in declared:
+        try:
+            part = yaml.safe_load(path.read_text(encoding="utf-8-sig")) or {}
+        except Exception:
+            selected.append(str(path))  # preserve fail-closed parse behavior
+            continue
+        lcsc = str((part.get("sourcing") or {}).get("lcsc") or "").strip()
+        if str(part.get("mpn") or "").strip() in mpns or (lcsc and lcsc in codes):
+            selected.append(str(path))
+    return selected or [str(p) for p in declared]
+
+
+def release_artifact_root(release_candidate, project):
+    """Resolve the one runnable KiCad root for a live or staged subject."""
+    if release_candidate is None:
+        return project / "04_kicad"
+    nested = release_candidate / "source" / "project" / "04_kicad"
+    return nested if nested.is_dir() else release_candidate / "source"
+
+
 def thermal_pad_findings(board, copper_layers, area_min=4.0, min_vias=2,
                          search=1.0):
     """Return large SMD pads lacking nearby inter-layer thermal conductors.
@@ -221,18 +276,18 @@ GRADES = ("PASS", "FAIL", "WAIVED", "HUMAN", "N-A", "UNGRADED")
 # never been measured cannot have regressed — and picks up a bound the first
 # time someone records one. That declared gap is the honest price of never
 # failing a board for existing.
-PREC_GRADED_FLOOR = 46   # in-scope parts carrying a TIER-GRADED precedent
-                         # record, FLEET-WIDE. Raised 36 -> 46 on 2026-08-17
-                         # after the Pi USB boards entered the governed fleet:
-                         # the read-only sweep measures 46 graded / 165 in
+PREC_GRADED_FLOOR = 86   # in-scope parts carrying a TIER-GRADED precedent
+                         # record, FLEET-WIDE. Raised 46 -> 86 on 2026-08-21
+                         # after the debug-hub dossiers entered the governed
+                         # fleet: the read-only sweep measures 86 graded / 216 in
                          # scope. A numerator advance raises this floor in the
                          # same change; it may never be lowered.
 #
 # PER-BOARD owed ceilings: in-scope parts with NO tier-graded record. Each may
 # only FALL, and each is TIGHT (the test asserts equality, so a board that
 # improves must lower its own row in the same commit and cannot bank slack).
-# MEASURED 2026-08-17, read-only sweep of `projects/*/02_parts/`: 165 in scope
-# across 13 boards, 46 GRADED and 119 OWED. The per-board rows below are exact;
+# MEASURED 2026-08-21, read-only sweep of `projects/*/02_parts/`: 216 in scope
+# across 15 boards, 86 GRADED and 130 OWED. The per-board rows below are exact;
 # `tests/t1_layout_precedent.py` independently recomputes every denominator.
 PREC_OWED_CEILING = {
     "crow-mic-pod-v2": 4,
@@ -245,7 +300,9 @@ PREC_OWED_CEILING = {
     "pluto-rx2-8way-v5": 0,
     "programmable-usb2-hub": 10,
     "smc0985-cooksense": 35,
+    "usb-controlled-debug-hub-2a-v1": 6,
     "usb-controlled-debug-hub-v1": 5,
+    "usb-controlled-debug-hub-v2": 5,
     "usb-hub-3s-v3": 12,
     "usb-hub-3s-v4": 0,
 }
@@ -315,6 +372,13 @@ def main():
                     help="which board of a MULTI-BOARD project to grade "
                          "(04_kicad stem, e.g. 'interposer'); default is the "
                          "first, which is what the release scope follows")
+    ap.add_argument(
+        "--release-candidate", default="",
+        help="grade the exact mutable release-staging directory: board and "
+             "schematic come from its source/, while release-scoped BOM/CPL/"
+             "body rows use that candidate instead of the latest seal")
+    ap.add_argument("--output", default="",
+                    help="write the atomic report here instead of 06_build/")
     ap.add_argument("--phase", choices=("full", "source", "placement"),
                     default="full",
                     help="full release audit (default), the source-only "
@@ -322,13 +386,22 @@ def main():
                          "placement P-LAYOUT/P-PREC/P-ADJ gate before routing")
     args = ap.parse_args()
     proj = Path(args.project).resolve()
+    release_candidate = (Path(args.release_candidate).resolve()
+                         if args.release_candidate else None)
+    if release_candidate is not None and not release_candidate.is_dir():
+        ap.error(f"--release-candidate is not a directory: {release_candidate}")
     cfgp = Path(args.config) if args.config else proj / "03_src/rules/policy_audit.json"
     cfg = json.loads(cfgp.read_text(encoding="utf-8-sig")) if cfgp.exists() else {}
     build = proj / "06_build"
     build.mkdir(exist_ok=True)
 
-    boards = sorted(glob.glob(str(proj / "04_kicad" / "*.kicad_pcb")))
-    schs = sorted(glob.glob(str(proj / "04_kicad" / "*.kicad_sch")))
+    # New standalone archives carry one relocatable project tree. Prefer that
+    # tree over root-level convenience copies: `${KIPRJMOD}` in the latter has
+    # a different meaning after relocation. Legacy flat candidates remain
+    # supported by the resolver's fallback.
+    artifact_root = release_artifact_root(release_candidate, proj)
+    boards = sorted(glob.glob(str(artifact_root / "*.kicad_pcb")))
+    schs = sorted(glob.glob(str(artifact_root / "*.kicad_sch")))
     # WHICH BOARD IS UNDER AUDIT. A project may build several
     # (smc0985-cooksense builds `cooksense` and `interposer`), and every check
     # below — including the RELEASE scope — must grade the SAME one. `--board`
@@ -426,6 +499,8 @@ def main():
     else:
         rows.append(("S-NET", "N-A", "no board"))
 
+    part_yamls = selected_part_yamls(proj, args.phase)
+
     # ---- S-VER reads the KEY, not the first place the word appears ---------
     # It used to grep the raw text for the first literal `verified:` and read
     # 300 characters from there. `part.yaml` is a YAML document that TALKS
@@ -439,7 +514,7 @@ def main():
     # second half of the same mistake: a citation past that cut-off read as
     # absent. `yaml.safe_load` + `y["verified"]` has neither failure mode.
     weak, tot, unparsed = [], 0, []
-    for py in sorted(glob.glob(str(proj / "02_parts" / "*" / "part.yaml"))):
+    for py in part_yamls:
         name = Path(py).parent.name
         y = None
         if yaml:
@@ -490,7 +565,6 @@ def main():
     # a 0.5mm QFN at standard tier, discovered as drill_out_of_range at DRC)
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import escape_check as ec
-    part_yamls = sorted(glob.glob(str(proj / "02_parts" / "*" / "part.yaml")))
     if part_yamls and yaml:
         tiers = ec.load_tiers()
         probs = []
@@ -1500,89 +1574,27 @@ def main():
         rows.append(("R-RULES", "N-A", "no route-input .kicad_pro found"))
     rows.append(("R4", "HUMAN", "escape-first routing order — design review "
                  "(feasibility itself is machine-checked: P-ESC/P-TIER)"))
-    # =====================================================================
-    # R-LEN — THIS ROW IS THE DEFECT, AND THE REPLACEMENT IS LANDED BUT NOT
-    # WIRED. DO NOT LEAVE IT LIKE THIS.
-    # =====================================================================
-    # The predicate below passes if the WORD "length" or "spread" appears
-    # anywhere in the project's audit_board.py. A COMMENT satisfies it.
-    # MEASURED 2026-07-29, fleet-wide:
-    #   smc0985-cooksense        PASS  <- two COMMENTS about a creepage slot
-    #                                    being "lengthened" and an outline
-    #                                    notch that "lengthens" a path. No net.
-    #   pluto-rx2-8way           PASS  <- comments, plus an I3 check grading
-    #                                    pad-centre RADIUS (placement), whose
-    #                                    own text says "STAGE-6 OBLIGATION:
-    #                                    equalise ROUTED length to +/-0.10mm"
-    #                                    with nothing enforcing it.
-    #   crow-recorder-central-v2 PASS  <- the ONLY honest pass in the fleet: it
-    #                                    really sums t.GetLength() over the USB
-    #                                    pair and floors the spread at 1 mm.
-    #   pluto-cal-switch         N-A   <- "no timing-critical nets declared", on
-    #                                    the board whose RELEASE ARTIFACT IS A
-    #                                    PUBLISHED LENGTH DELTA (ADR-0011).
-    #   crow-mic-pod-v2, usb-hub-3s-v3   N-A (correct — no matched path).
-    # So 3 of 6 boards passed a length gate on prose and 1 of 6 measured
-    # copper. Phase is a property of COPPER and the router is stochastic.
-    #
-    # THE REPLACEMENT: skills/kicad-pcb/scripts/copper_length_audit.py, with
-    # tests/t1_copper_length.py (16 tests, 9 known-bad) and a canon R-LEN row.
-    #
-    # WHY IT IS NOT WIRED HERE YET: at landing, smc0985-cooksense was mid-fix
-    # on three order-blockers with a full review battery in flight, and THIS
-    # ROW'S vacuous PASS is part of that battery's evidence. Re-pointing it
-    # would move cooksense from `R-LEN PASS` to `R-LEN N-A` inside another
-    # agent's evidence run. An unwired gate plus a measurement is recoverable
-    # in one follow-up; a corrupted seal battery is not. Same reasoning, same
-    # shape, as E-NETREF landing unwired the same day.
-    #
-    # WHAT IS OWED, EXACTLY (do all four in one change, once the boards are
-    # quiet):
-    #   1. Replace the four lines below with a subprocess call:
-    #        clen = Path(__file__).resolve().parent / "copper_length_audit.py"
-    #        r = sh([sys.executable, str(clen), str(proj)])
-    #        detail = (r.stdout + r.stderr).strip().replace("\n", " ")[:200]
-    #        if "N-A: no `length_match:`" in detail:
-    #            rows.append(("R-LEN", "N-A", detail))
-    #        elif r.returncode == 2:
-    #            rows.append(("R-LEN", "UNGRADED", detail))
-    #        elif "UNREACHED R-LEN" in detail:
-    #            rows.append(("R-LEN", "UNREACHED", detail))
-    #        else:
-    #            grade("R-LEN", r.returncode == 0, detail, detail)
-    #      Note: exit 2 is UNGRADED, NOT N-A, and an UNREACHED group must never
-    #      render as PASS — that is the whole vacuity being removed.
-    #   2. Expect the row to become N-A on all six boards until a
-    #      `length_match:` block is authored, because the DECLARATION is owed
-    #      too (step 3). N-A-with-a-reason is strictly better than today's
-    #      PASS-on-a-comment, but it is NOT the finished state.
-    #   3. Author `length_match:` in 03_src/rules/nets.yaml on the two boards
-    #      that need it — the ready-to-paste blocks are in the R-LEN canon row
-    #      and in `copper_length_audit.py --schema`:
-    #        * pluto-cal-switch RF_LOOP_D4 (ADR-0011): members ARM1
-    #          [LOOP_ARM1, PAD_A2A_1, LOOP_ARM1_SW] and ARM2 [LOOP_ARM2,
-    #          PAD_A2B_1, LOOP_ARM2_SW]; no_vias: true; congruent_pads: true
-    #          (A-SYM already proves the congruence); max_spread_mm: 1.0.
-    #        * pluto-rx2-8way RF_RADIAL_STAR (ADR-0007): the nine radial arms,
-    #          one member each; no_vias: true; max_spread_mm: 1.0. ADR-0007's
-    #          "equal-length BY CONSTRUCTION" is a claim about COPPER and this
-    #          is where it gets graded. NOTE its audit_board I3 currently asks
-    #          for +/-0.10 mm of ROUTED length: that is 1.3 deg at 6 GHz, well
-    #          inside the switch's OWN 13.2 deg part-to-part window, KRT has no
-    #          inter-net skew machinery to deliver it, and a ceiling nobody can
-    #          hold gets waived into uselessness. Re-derive it against the
-    #          drift arithmetic in the R-LEN canon row before adopting it.
-    #   4. Then wire E-NETREF too (its own owed note says so), because K12
-    #      grades those same member net names against the NETLIST, and a
-    #      tolerance addressed to a net that does not exist is decoration.
-    # Until all four land, run `copper_length_audit.py PROJECT_DIR` BY HAND;
-    # the canon row and that file are the authority, `--root .` is the census.
-    has_len = bool(re.search(r"length|spread", audit_src, re.I))
-    rows.append(("R-LEN", "PASS" if has_len else "N-A",
-                 "length-spread audit present in 03_src (VACUOUS: this grades "
-                 "the WORD, not the copper — see the note above and run "
-                 "copper_length_audit.py)" if has_len
-                 else "no timing-critical nets declared"))
+    # R-LEN is a property of realized copper, not of comments or net names.
+    # Run the owning endpoint-path checker in strict mode against the exact
+    # board selected above.  The checker is pad-aware, follows declared series
+    # chains, enumerates reversible-tree leaves, and rejects off-path copper.
+    clen = Path(__file__).resolve().parent / "copper_length_audit.py"
+    cmd = [sys.executable, str(clen), str(proj), "--strict", "--quiet"]
+    if board_p is not None:
+        cmd += ["--board", str(board_p)]
+    r = sh(cmd)
+    detail = (r.stdout + r.stderr).strip().replace("\n", " ")[:500]
+    if "N-A: no `length_match:`" in detail:
+        rows.append(("R-LEN", "N-A", detail))
+    elif r.returncode == 2:
+        rows.append(("R-LEN", "UNGRADED", detail or
+                     "copper-length checker could not grade its subject"))
+    elif "UNREACHED R-LEN" in detail:
+        rows.append(("R-LEN", "UNREACHED", detail))
+    else:
+        grade("R-LEN", r.returncode == 0,
+              detail or "endpoint-path copper-length contract passes",
+              detail or "endpoint-path copper-length contract failed")
 
     # ---------------- electrical (the netlist must match INTENT) ----------
     # E-INV/E-ADR: the D1 reverse-polarity defect (usb-hub-3s v1.0) passed ERC,
@@ -1843,6 +1855,16 @@ def main():
     else:
         rows.append(("M-REL", "N-A", "no releases yet"))
 
+    if release_candidate is not None:
+        # A mutable candidate cannot prove its own immutable seal.  It can and
+        # must still make every downstream release-scoped row grade the exact
+        # candidate instead of silently falling back to the previous release.
+        rows = [row for row in rows if row[0] != "M-REL"]
+        rows.append(("M-REL", "HUMAN",
+                     f"{release_candidate.name}: mutable candidate; seal and "
+                     "manifest identity belong to release rehearsal"))
+        latest = release_candidate
+
     # M-BOM: the ORDERABLE BOM's per-refdes LCSC code must EQUAL the source's
     # (circuit.json) — a merged row (2 refdes, 2 source codes, 1 line), a
     # substituted code, or a blank code where the source has one is silent BOM
@@ -1857,7 +1879,12 @@ def main():
     # v1.2 shipped C2933210=3.74k labeled 4.12k), flagging a row no source
     # resolves rather than passing it — all offline.
     jlc_scripts = Path(__file__).resolve().parent.parent.parent / "jlcpcb-fab" / "scripts"
-    cjs = (glob.glob(str(proj / "03_tscircuit" / "build" / "circuit.json"))
+    cjs = ((glob.glob(str(release_candidate / "source" / "project" /
+                            "03_tscircuit" / "build" / "circuit.json"))
+            if release_candidate else [])
+           or (glob.glob(str(release_candidate / "03_tscircuit" / "build" /
+                                "circuit.json")) if release_candidate else [])
+           or glob.glob(str(proj / "03_tscircuit" / "build" / "circuit.json"))
            or glob.glob(str(proj / "03_tscircuit" / "dist" / "**" / "circuit.json"),
                         recursive=True))
     # WHICH BOM, AND AGAINST WHICH SOURCE — the pair must be CONTEMPORANEOUS.
@@ -1949,8 +1976,9 @@ def main():
 
             # 1. the SEAL, if it is still contemporaneous with source.
             if _sealed_bom and not _probs(_sealed_bom):
+                _kind = "CANDIDATE" if release_candidate is not None else "SEALED"
                 grade("M-BOM", True,
-                      f"{Path(_sealed_bom).relative_to(proj)} (SEALED, and still "
+                      f"{Path(_sealed_bom).relative_to(proj)} ({_kind}, and still "
                       f"contemporaneous with source): every LCSC == source "
                       f"({_coded} coded)", "")
             elif _cand:
@@ -1992,8 +2020,12 @@ def main():
     elif not _fab_ready:
         rows.append(("A-POP", "N-A", "no CPL exported yet"))
     else:
-        r = sh([sys.executable, str(jlc_scripts / "assembly_coverage.py"),
-                _asm_target])
+        _asm_cmd = [sys.executable,
+                    str(jlc_scripts / "assembly_coverage.py"), _asm_target]
+        _asm_policy = proj / "03_src" / "rules" / "assembly.yaml"
+        if _asm_policy.exists():
+            _asm_cmd += ["--assembly", str(_asm_policy)]
+        r = sh(_asm_cmd)
         head = [l for l in (r.stdout + r.stderr).splitlines()
                 if l.strip().startswith(("UNDECLARED", "DECLARED", "POS-ATTR",
                                          "UNCODED", "CPL-NO", "BAD-REASON",
@@ -2190,9 +2222,11 @@ def main():
     # old one cannot reach the published file no matter when it flushes.
     sys.stdout.flush()
     sys.stderr.flush()
-    dest = build / ({"source": "source_policy_audit.md",
-                     "placement": "placement_policy_audit.md"}.get(
-                         args.phase, "policy_audit.md"))
+    dest = (Path(args.output).resolve() if args.output else
+            build / ({"source": "source_policy_audit.md",
+                      "placement": "placement_policy_audit.md"}.get(
+                         args.phase, "policy_audit.md")))
+    dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(".md.tmp")
     tmp.write_text(text)
     os.replace(tmp, dest)

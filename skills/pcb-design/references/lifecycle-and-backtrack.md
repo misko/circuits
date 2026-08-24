@@ -62,8 +62,12 @@ successor not to rederive an inherited number.
 
 ## 3. Planned handoffs
 
-Prefer handoffs after schematic review and after routing/layout seal. At a
-boundary:
+Require fresh handoffs after adopted schematic review, after accepted
+placement/pilot feasibility before global routing, immediately on D-BACK, and
+after layout seal. When the host exposes comparable live context telemetry,
+warn at 60 percent and require a handoff at 70 percent before beginning more
+expensive work. Semantic boundaries remain mandatory when telemetry is
+unavailable. At a boundary:
 
 1. Commit the green state.
 2. Append a handoff journal entry with current stage, next command, open
@@ -71,21 +75,29 @@ boundary:
 3. Refresh the status beacon.
 4. Generate and validate the compact content-addressed handoff through the
    KiCad flow helper.
-5. End the session cleanly when context use is high.
+5. Generate a strict `TaskEnvelope` naming `context_mode: FRESH`, the exact
+   packet, deadline, role ceiling, replacement limit and writer scope.
+6. End the current session; do not let it continue mechanical work past a
+   mandatory boundary.
 
-A successor reads the beacon, the tail of the current journal, the compact
-handoff, and files named by those records. Do not preload whole journal or
-learnings directories.
+A successor reads only the verified handoff, beacon, tail of the current-stage
+journal, and exact files named by those records. Do not preload the transcript,
+whole journal/learnings directories, or an earlier reviewer's reasoning.
 
 ## 4. Bounded work and visibility
 
-Classify work before running it:
+Classify execution time before running it:
 
 - local/cheap mechanical checks;
 - bounded CPU work;
 - network work with retry/backoff;
 - independent review wait;
 - operator wait.
+
+Separately declare the agent role as `mechanical`, `authoring`, or `judgment`.
+`execution_class` attributes time; `agent_role` sets the logical compute
+ceiling. Do not reuse one vocabulary for the other. The companion contracts in
+`pipeline_execution.py` bind these facts without changing `StageSpec`.
 
 Give executable stages a positive deadline. Stream heartbeats or durable
 progress for work whose normal runtime can appear silent. A timeout terminates
@@ -99,7 +111,10 @@ resume a context-heavy agent for mechanical iterations.
 
 Human review is not a polling accident. Persist an immutable commission and
 pause with `INCOMPLETE`; never manufacture a witness or infer acceptance from
-silence. User approval advances only the stage explicitly under review.
+silence. The coordinator, not review prose, enforces the deadline: interrupt a
+late reviewer, materialize every unfinished checklist row as unresolved, and
+allow at most one fresh replacement on the same exact subject. User approval
+advances only the stage explicitly under review.
 
 ## 5. D-BACK diagnosis
 

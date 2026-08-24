@@ -7,10 +7,11 @@ instrumentation. Domain predicates remain in `kicad-pcb` and `jlcpcb-fab`.
 ## Contents
 
 1. Ownership and typed stage/result schemas
-2. Subject identity and artifact transactions
-3. Review contracts and lifecycle facts
-4. Conditional RF adapter
-5. Migration and shadow implementation status
+2. Execution envelopes and agent/session spans
+3. Subject identity and artifact transactions
+4. Review contracts and lifecycle facts
+5. Conditional RF adapter
+6. Migration and shadow implementation status
 
 Migration/coverage IDs owned here: `GG-RESOLVE`, `GG-SHADOW`, `M-BOUND`,
 `M-COVER`, and `M-FRESH`.
@@ -101,6 +102,59 @@ Rules:
 - timeouts and incomplete reviews never become admissible PASS evidence.
 - the result names output symbols; the artifact bundle binds their paths and
   bytes.
+
+## Companion execution contracts
+
+Do not extend `StageSpec` with agent, prompt, context, token, writer-path or
+replacement details. `StageSpec` says what engineering work exists; the strict
+schema-1 contracts in `pipeline_execution.py` say how one bounded attempt is
+executed.
+
+`TaskEnvelope` is generated evidence under `06_build`, never another authored
+project policy:
+
+```yaml
+schema: 1
+task_id: route-wave-1
+stage_id: KICAD-ROUTING
+run_id: 20260824T120000Z-a1
+subject: {semantic_sha256: <64 hex>, raw_sha256: <64 hex>}
+executor: agent
+execution_class: local
+recommended_agent_role: mechanical
+agent_role: mechanical
+role_escalation_reason: null
+context_mode: FRESH
+input_handoff_id: handoff-a1
+input_packet:
+  - {name: handoff, path: 06_build/agent_handoff.yaml,
+     sha256: <64 hex>, size: 512}
+deadline_at: 2026-08-24T12:10:00Z
+max_nonimproving_attempts: 2
+replacement_limit: 1
+writer_scope: {mode: EXCLUSIVE, paths: [03_src/route/final.kicad_pcb]}
+output_path: 06_build/orchestration/attempts/route-wave-1.json
+```
+
+`execution_class` is the elapsed-time axis (`local`, `network`, `backoff`,
+`review_wait`, `operator_wait`). `agent_role` is the compute/judgment axis
+(`mechanical`, `authoring`, `judgment`). Escalation above the recommended role
+requires a reason. Model names never enter project authority.
+
+`FRESH` requires a non-empty content-addressed packet. Reviewers are always
+fresh. Non-agent work uses `NOT_APPLICABLE` context. Exclusive writers name a
+non-empty, sorted, traversal-free path set; read-only work claims none.
+
+`TaskAttempt` records a terminal bounded outcome. `TIMED_OUT`, `INCOMPLETE` and
+`HANDOFF_REQUIRED` require explicit unresolved rows; a PASS may carry none.
+The coordinator may launch no more replacements than the envelope permits and
+must not admit a late result from an earlier attempt.
+
+`AgentSpan` is a companion to, not a revision of, `StageSpan`. Optional token
+usage names its accounting authority and metric and retains input, cached
+input and output separately. Missing telemetry is `UNKNOWN`, never zero;
+different authorities or metrics such as `raw_rollout` and `normalized_goal`
+must never be summed.
 
 ## Subject identity
 
@@ -318,6 +372,8 @@ The schema-1 foundation is available under `skills/pcb-design/scripts/`:
   late authority;
 - `pipeline_timing.py` — work-class totals and dependency critical-path
   summaries kept distinct from the observed wall envelope.
+- `pipeline_execution.py` — companion task envelopes, bounded attempts,
+  fresh-context decisions, agent spans and non-conflated token telemetry;
 - `pipeline_catalog.py` — strict, canonical, exact-driver-hash-bound catalogs
   that keep legacy argv/cwd/applicability/accepted evidence separate from typed
   stage semantics;

@@ -1,36 +1,37 @@
-# Compute tiers — the model an agent runs on, as a DECLARED cost ceiling
+# Agent roles and compute ceilings
 
 The D-TIER symmetry, applied to tokens: a board's fab tier is a COST CEILING
 declared at commission (D-TIER) — you never discover it at the DRC gate.
 Compute is the same resource with the same failure mode, denominated in tokens
-instead of dollars: with no declared ceiling, every spawned agent silently
-defaults to the most expensive model, and mechanical work (poll loops,
-rebuilds, exports) burns frontier tokens producing output a cheap model
-reproduces exactly. This file is the tier table; the governing rules live in
-SKILL.md "Compute discipline".
+instead of dollars. Mechanical loops must not silently inherit the cost and
+context of judgment work. This file owns the logical agent-role ceiling;
+`pipeline-stage-contract.md` owns execution classes such as `local`, `network`
+and `review_wait`. The two axes are deliberately different.
 
-Provenance: generalizes the routing-grind tier ladder already proven in
-SKILL.md stages 4-6 (Tier 0 script / Tier 1 cheap operator / Tier 2 frontier
-on D-BACK escalation only); subsumes task #17 ("routing cost-tiering").
+Provenance: generalizes the routing-grind ladder: deterministic script,
+mechanical operator, then judgment only on a measured D-BACK.
 
-## Work classes
+## Agent roles
 
-| Class | The work | Tier (ceiling) |
+| Role | The work | Logical ceiling |
 |---|---|---|
-| mechanical | rebuild/poll loops, fab export, PDF/artifact regen, twin runs, packaging, DRC re-runs, sweeps — every gate is machine-MEASURED; judgment adds nothing to the loop | cheap model (haiku-class), low effort |
-| authoring | schematic/tsx edits, floorplan/route config, part.yaml writing — bounded creation against a schema; the gates catch the errors | default model |
-| judgment | red-team lenses, D-BACK diagnosis, seal-verify adjudication, user-facing decisions — the output IS the judgment; a cheap model here fails silently | default model, full effort |
+| mechanical | rebuild/poll loops, fab export, PDF/artifact regen, twin runs, packaging, DRC re-runs, sweeps — every gate is machine-MEASURED; judgment adds nothing to the loop | economy / low effort |
+| authoring | schematic/tsx edits, floorplan/route config, part.yaml writing — bounded creation against a schema; the gates catch the errors | standard |
+| judgment | red-team lenses, D-BACK diagnosis, seal-verify adjudication, user-facing decisions — the output IS the judgment; a low-cost role here fails silently | standard / full effort |
 
 ## The rule
 
-- Every spawned agent DECLARES its work class in the spawn prompt
-  (`work-class: mechanical`). The class names the tier; the tier is the
-  ceiling.
-- Escalating ABOVE the class tier requires a stated reason in the same spawn
-  prompt — the D-TIER shape: why the cheaper tier fails, not that the costlier
-  one is nicer.
+- Every spawned agent declares `agent-role: mechanical|authoring|judgment`.
+  A generated `TaskEnvelope` records the recommended role, actual role and
+  any escalation reason; model names do not belong in project authority.
+- Escalating above the recommended role requires a stated reason: why the
+  lower role cannot produce the required evidence, not that a higher tier is
+  preferable.
 - Mechanical work is SAFE at the cheap tier for the same reasons the routing
   grind is: gates are machine-measured (`kicad-cli drc` cannot be talked into
   0/0/0), canon M3 forbids hand-editing outputs, and loop bounds live in the
   scripts, not in model judgment. A cheap agent that hits a wall escalates
   (D-BACK) — it does not improvise.
+- `execution_class` remains the elapsed-time attribution axis. Never store an
+  agent role in `StageSpec.work_class`, and never infer an agent role from a
+  subprocess timing row.

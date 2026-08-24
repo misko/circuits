@@ -22,6 +22,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+import route_acceptance_core
+
 
 COORDINATE_KEYS = {
     "x", "y", "x_mm", "y_mm", "position", "coordinate", "coordinates",
@@ -128,9 +130,46 @@ def observe(observation: dict[str, Any], previous: dict[str, Any] | None = None,
     amplified = bool(requested and expanded >=
                      requested * max_operation_amplification and not improved)
 
+    objective = observation.get("objective")
+    if objective is None and isinstance(observation.get("checks"), dict):
+        objective = route_acceptance_core.objective_vector(observation["checks"])
+    relation = None
+    old_objective = old.get("last_objective")
+    nonimproving = int(old.get("nonimproving_objective_attempts", 0))
+    if objective is not None:
+        if not isinstance(objective, dict):
+            raise ValueError("objective must be a route-objective mapping")
+        # Canonicalize and validate through the public comparator.  Comparing
+        # the vector to itself catches empty/incomplete dimensions without
+        # inventing a baseline on the first attempt.
+        canonical = route_acceptance_core.objective_vector(
+            observation["checks"]) if isinstance(observation.get("checks"), dict) \
+            else objective
+        if old_objective is None:
+            # A first observation still has to prove that its active axes are
+            # complete and numerically comparable.  Otherwise it would seed a
+            # malformed baseline and buy one extra routing attempt.
+            relation = route_acceptance_core.pareto_relation(
+                canonical, canonical)
+        else:
+            relation = route_acceptance_core.pareto_relation(
+                old_objective, canonical)
+            if relation["relation"] == "IMPROVEMENT":
+                nonimproving = 0
+            else:
+                nonimproving += 1
+        objective = canonical
+
     complete = not current["unresolved"] and not current["hard_findings"]
-    if complete:
+    if relation is not None and relation["relation"] == "INCOMPLETE":
+        decision = "STAGNATED"
+        reason = "route objective dimensions are incomplete or incomparable"
+    elif complete:
         decision, reason = "COMPLETE", "no unresolved work or hard findings"
+    elif relation is not None and nonimproving >= 2:
+        decision = "STAGNATED"
+        reason = (f"objective failed to Pareto-improve for {nonimproving} "
+                  "consecutive bounded candidates")
     elif amplified:
         decision = "STAGNATED"
         reason = (f"operation amplification {expanded}/{requested} reached "
@@ -144,6 +183,13 @@ def observe(observation: dict[str, Any], previous: dict[str, Any] | None = None,
     elif len(seen) > max_novel_signatures:
         decision = "BUDGET_EXHAUSTED"
         reason = f"novel diagnostic budget {max_novel_signatures} exceeded"
+    elif objective is not None and relation is not None:
+        if relation["relation"] == "IMPROVEMENT":
+            decision, reason = "NOVEL_PROGRESS", "route objective Pareto-improved"
+        else:
+            decision, reason = (
+                "CONTINUE_DIAGNOSTIC",
+                f"bounded diagnostic after objective {relation['relation'].lower()}")
     elif improved or is_novel:
         decision, reason = "NOVEL_PROGRESS", (
             "unresolved denominator reduced" if improved and attempts > 1
@@ -161,6 +207,8 @@ def observe(observation: dict[str, Any], previous: dict[str, Any] | None = None,
         "seen_signatures": seen,
         "last_observation": current,
         "last_decision": decision,
+        "last_objective": objective,
+        "nonimproving_objective_attempts": nonimproving,
     }
     result = {
         "schema": 1,
@@ -172,7 +220,14 @@ def observe(observation: dict[str, Any], previous: dict[str, Any] | None = None,
         "unresolved_count": unresolved_count,
         "novel_signatures": len(seen),
         "stop": decision in STOP_DECISIONS,
+        "objective_relation": relation,
     }
+    if result["stop"]:
+        typed_findings = list(current["hard_findings"])
+        if relation is not None and relation.get("findings"):
+            typed_findings.extend(relation["findings"])
+        result["backtrack"] = route_acceptance_core.recommend_backtrack(
+            typed_findings)
     return state, result
 
 

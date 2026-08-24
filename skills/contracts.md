@@ -1,6 +1,6 @@
 # contract: skills/
 
-**Purpose** — the product: four symlink-published skills (`~/.claude/skills/*`
+**Purpose** — the product: five symlink-published skills (`~/.claude/skills/*`
 point HERE — one home, no drift; the DIRECTORY NAME is the invocation name, so
 `shopping-list/` is `/shopping-list`). Each skill is self-contained: everything
 a clean-room agent needs to design a board lives under its folder. Skills NEVER
@@ -21,6 +21,7 @@ CLAUDE.md) and covered by a known-bad test in `tests/`.
 | `pcb-design/` | pipeline orchestration skill (own contract) |
 | `kicad-pcb/` | KiCad engineering skill: scripts + references (own contract) |
 | `jlcpcb-fab/` | JLCPCB order/verification skill (own contract) |
+| `pcb-enclosure/` | PCB-coupled enclosure design, printability, fit and physical-verification skill (own contract) |
 | `shopping-list/` | per-distributor buying skill for the parts the fab will not source, governed by canon M-QUOTE (own contract) |
 
 ## Audit

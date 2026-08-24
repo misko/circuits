@@ -51,6 +51,7 @@ C23027: {mpn: 0603WAF3572T5E, value: "35.7k", verified: "2026-08-18 JLC exact-co
 C58827: {mpn: 0402WGF2103TCE, value: "210k", verified: "2026-08-18 JLC exact-code API row captured in usb-controlled-debug-hub-v2 power_hardening_candidates_report.csv: UNI-ROYAL 0402WGF2103TCE, 210k, 0402, stock 38803. Ordering field 2103 independently decodes to 210kOhm."}
 C163486: {mpn: RC0402FR-07187KL, value: "187k", verified: "2026-08-18 LCSC exact-code product page and JLC exact-code stock check: YAGEO RC0402FR-07187KL, 187kOhm +/-1%, 0402, catalog stock 6092. Selected as the largest value inside TI TPS2557's recommended 20k-187k ILIM range; catalog stock is necessary but not an order allocation."}
 C23071: {mpn: 0603WAF5901T5E, value: "5.9k", verified: "2026-08-18 JLC exact-code API row captured in usb-controlled-debug-hub-v2 power_hardening_candidates_report.csv: UNI-ROYAL 0603WAF5901T5E, 5.9k, 0603, stock 70175. Ordering field 5901 independently decodes to 5.90kOhm."}
+C25973: {mpn: 0603WAF5361T5E, value: "5.36k", verified: "2026-08-22 public JLC selectSmtComponentList exact-code row: UNI-ROYAL 0603WAF5361T5E, 5.36k +/-1%, 100mW, 75V, 0603, -55C to +155C, MOQ 1, catalog stock 17762. Ordering field 5361 independently decodes to 5.36kOhm; catalog stock is not an assembly allocation."}
 
 # USB controlled debug hub 2 A architecture values. Public exact-code JLC
 # product pages were cross-checked by the live catalog stock probe on

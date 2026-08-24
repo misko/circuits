@@ -12,9 +12,9 @@ why).
 |---|---|
 | `SKILL.md` | the small orchestration kernel: lifecycle, invariants, capability-profile decisions, and direct reference router |
 | `contracts.md` | this file |
-| `scripts/**` | publication-boundary orchestration gates plus the pure reference router and authority/coverage checker; mechanical and fabrication mechanics remain owned by the lower-level skills |
+| `scripts/**` | publication-boundary orchestration gates plus the pure reference router and authority/coverage checker; enclosure and fabrication mechanics remain owned by `pcb-enclosure` and `jlcpcb-fab` |
 | `templates/**` | the seed set: `contracts/` (stage contracts, nested to match project layout), `03_src/` + `03_tscircuit/` schema examples, `01_docs/` starters, `ORCHESTRATION_STATE.md` (the coordinator's state-journal skeleton, copied per campaign not per project), `project.gitignore`, `rebuild_all.sh`, `README.md` |
-| `references/**` | one-owner orchestration procedures, the typed stage contract, and the machine-readable authority map; KiCad and JLC mechanics remain routed to their owning skills |
+| `references/**` | one-owner orchestration procedures, the typed stage contract, and the machine-readable authority map; KiCad, enclosure and JLC mechanics remain routed to their owning skills |
 
 ## Audit
 

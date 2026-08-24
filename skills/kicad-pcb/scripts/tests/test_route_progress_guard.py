@@ -51,6 +51,38 @@ class RouteProgressGuardTest(unittest.TestCase):
                              "hard_findings": [], "frontier": []})
         self.assertEqual(result["decision"], "COMPLETE")
 
+    def test_two_nonimproving_objectives_force_backtrack(self):
+        first_obs = observation(["SCL"])
+        first_obs["objective"] = {"requested_opens": 1, "drc_violations": 0}
+        state, _ = observe(first_obs)
+        second_obs = observation(["SCL"], frontier="east")
+        second_obs["objective"] = {"requested_opens": 1, "drc_violations": 0}
+        state, second = observe(second_obs, state)
+        self.assertEqual(second["decision"], "CONTINUE_DIAGNOSTIC")
+        third_obs = observation(["SCL"], frontier="north")
+        third_obs["objective"] = {"requested_opens": 1, "drc_violations": 0}
+        _, third = observe(third_obs, state)
+        self.assertEqual(third["decision"], "STAGNATED")
+        self.assertTrue(third["stop"])
+        self.assertIn("backtrack", third)
+
+    def test_incomplete_first_objective_stops_without_seeding_baseline(self):
+        first = observation(["SCL"])
+        first["objective"] = {}
+        state, result = observe(first)
+        self.assertEqual(result["decision"], "STAGNATED")
+        self.assertTrue(result["stop"])
+        self.assertEqual(
+            result["objective_relation"]["relation"], "INCOMPLETE")
+        self.assertEqual(state["last_objective"], {})
+
+    def test_empty_route_cannot_hide_incomplete_objective(self):
+        _, result = observe({
+            "subject": "x", "unresolved": [], "hard_findings": [],
+            "frontier": [], "objective": {}})
+        self.assertEqual(result["decision"], "STAGNATED")
+        self.assertTrue(result["stop"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -134,16 +134,15 @@ via barrels joining the same x,y on two layers) and reports:
     n_end        vertices of degree 1 (the terminals, i.e. pad landings).
     path_mm      the longest simple path (graph diameter by edge weight).
 
-**`total_mm` is the graded quantity, and a group must EARN it by declaring
-`topology: chain`, which this gate VERIFIES from the copper: ZERO branch
-vertices and ZERO cycles.** A graph with neither is a disjoint union of simple
-paths, so `total_mm` IS the path length, exactly. A member that declares
-`chain` and has a branch is **UNREACHED with its branch count**, and both
-`total_mm` and `path_mm` are printed so the reader sees the size of the
-ambiguity — not failed, because a legitimate tap on an RF line is a design
-question this gate has no standing to decide, and not passed, because the
-number would be wrong. `topology: tree` opts into grading `total_mm` on a
-branching net and says so on every line.
+**`total_mm` is copper inventory, not propagation length.** It remains the
+legacy graded quantity only for declarations without explicit `paths:` and
+only after a chain earns the older zero-branch/zero-cycle predicate.  New
+tree, reversible-connector and series-component contracts declare exact
+REF.PAD-to-REF.PAD paths.  Those paths are joined through same-net pad copper,
+graded individually, and every unused physical edge is reported as
+`off_path_mm` and FAILS.  A compensating stub can therefore never improve a
+path skew verdict.  `topology: tree` alone is no longer sufficient evidence
+for a new design; the leaves must be enumerated by `paths:`.
 
 `n_comp > 1` is reported and is deliberately NOT a failure: two tracks landing
 on ONE pad at different points are joined by the LAND, which a pads-free
@@ -413,6 +412,27 @@ length_match:
     octilinear_endpoints:      # OPTIONAL explicit physical terminal pair per
       ARM1: [J1.1, U1.2]       # member. Required when a member net has 3+
       ARM2: [J2.1, U1.3]       # pads (for example a shunt ESD device).
+    paths:                     # RECOMMENDED; REQUIRED for trees, reversible
+                               # connectors, and chains crossing series parts.
+                               # Path IDs must be identical for every member;
+                               # the tolerance is applied to EACH ID, never to
+                               # total copper inventory.
+      ARM1:
+        - id: main
+          segments:
+            - {net: LOOP_ARM1, from: J1.1, to: U_ATT1.1}
+            - {net: LOOP_ARM1_SW, from: U_ATT1.2, to: U_SW.1}
+      ARM2:
+        - id: main
+          segments:
+            - {net: LOOP_ARM2, from: J2.1, to: U_ATT2.1}
+            - {net: LOOP_ARM2_SW, from: U_ATT2.2, to: U_SW.2}
+                               # A tree declares multiple IDs, one per leaf.
+                               # The gate joins track endpoints THROUGH the
+                               # declared same-net pad copper, reports every
+                               # endpoint-to-endpoint path, and FAILS any
+                               # physical copper edge not used by at least one
+                               # declared path as `off_path_mm`.
     pin:                       # OPTIONAL, and the check that guards a release:
       spread_mm: 0.000         # the PUBLISHED spread this board's artifact
       tol_mm: 0.05             # claims. drift beyond tol_mm FAILS, because a
@@ -662,6 +682,79 @@ def read_pads(text):
     return out
 
 
+def read_pad_shapes(text):
+    """Return exact-enough copper landing geometry keyed by net.
+
+    The length gate deliberately does not charge pad copper as propagation
+    length: the land-entry term remains a lower-bound qualification.  It does,
+    however, have to know that two track endpoints landing at different points
+    of the SAME pad are electrically connected.  Treating those endpoints as
+    separate graph components is the defect that made total copper look like a
+    path on usb-controlled-debug-hub-2a-v1 v0.1.1.
+
+    Rect/roundrect pads use their rotated rectangular envelope; circle/oval
+    pads use an ellipse.  Custom pads are refused when selected as an endpoint
+    rather than guessed from their bounding box.
+    """
+    out = {}
+    for fb in _blocks(text, "footprint"):
+        fm = re.search(_AT3, fb)
+        if not fm:
+            continue
+        fx, fy = float(fm.group(1)), float(fm.group(2))
+        fa = float(fm.group(3)) if fm.group(3) else 0.0
+        fr = math.radians(fa)
+        ca, sa = math.cos(fr), math.sin(fr)
+        rm = re.search(r'\(property\s+"Reference"\s+"([^"]+)"', fb) or \
+            re.search(r'\(fp_text\s+reference\s+"([^"]+)"', fb)
+        ref = rm.group(1) if rm else "?"
+        for pb in _subblocks(fb, "pad"):
+            head = re.search(r'\(pad\s+"([^"]*)"\s+(\S+)\s+(\S+)', pb)
+            am = re.search(_AT3, pb)
+            sm = re.search(r'\(size\s+([-\d.eE+]+)\s+([-\d.eE+]+)\)', pb)
+            nn = re.search(r'\(net\s+(?:\d+\s+)?"([^"]*)"\s*\)', pb)
+            lm = re.search(r'\(layers\s+([^\)]*)\)', pb)
+            if not (head and am and sm and nn and lm) or not nn.group(1):
+                continue
+            px, py = float(am.group(1)), float(am.group(2))
+            pa = float(am.group(3)) if am.group(3) else 0.0
+            layers = re.findall(r'"([^"]+)"', lm.group(1))
+            out.setdefault(nn.group(1), []).append({
+                "ref": ref, "pad": head.group(1), "kind": head.group(2),
+                "shape": head.group(3),
+                "x": fx + px * ca + py * sa,
+                "y": fy - px * sa + py * ca,
+                "angle": fa + pa,
+                "sx": float(sm.group(1)), "sy": float(sm.group(2)),
+                "layers": layers,
+            })
+    return out
+
+
+def _pad_has_layer(pad, layer):
+    return layer in pad["layers"] or "*.Cu" in pad["layers"]
+
+
+def _point_in_pad(pad, x, y, eps=0.002):
+    """True when a board point is inside the selected pad copper.
+
+    ``eps`` is two micrometres: enough to absorb KiCad text serialization at a
+    land boundary, five orders below the USB trace width.  It must never bridge
+    two different pads because this predicate is evaluated per exact REF.PAD.
+    """
+    a = math.radians(pad["angle"])
+    dx, dy = x - pad["x"], y - pad["y"]
+    # inverse of KiCad's clockwise-on-screen footprint transform
+    lx = dx * math.cos(a) - dy * math.sin(a)
+    ly = dx * math.sin(a) + dy * math.cos(a)
+    hx, hy = pad["sx"] / 2.0 + eps, pad["sy"] / 2.0 + eps
+    if pad["shape"] in ("circle", "oval"):
+        return (lx / hx) ** 2 + (ly / hy) ** 2 <= 1.0 + 1e-12
+    if pad["shape"] == "custom":
+        return False
+    return abs(lx) <= hx and abs(ly) <= hy
+
+
 def read_plated_pads(text):
     """{net -> [(x, y, ref, pad)]} for plated through-hole pads.
 
@@ -891,6 +984,237 @@ def net_geometry(entry, layer_order, stackup_mm=None, plated_pads=()):
     }
 
 
+# KiCad occasionally serializes two endpoints that are physically coincident
+# to adjacent sub-micron decimal coordinates.  Quantizing graph vertices to a
+# one-micrometre grid recognizes the same continuous copper without ever
+# bridging a manufacturable clearance (the board floor is 150 micrometres).
+PATH_NODE_UM = 1.0
+
+
+def _path_node(xy, layer):
+    scale = 1000.0 / PATH_NODE_UM
+    return (int(round(xy[0] * scale)), int(round(xy[1] * scale)), layer)
+
+
+def _path_xy(node):
+    scale = 1000.0 / PATH_NODE_UM
+    return node[0] / scale, node[1] / scale
+
+
+def _path_graph(entry, layer_order, stackup_mm, pads_for_net,
+                plated_pads=()):
+    """Build a weighted same-net graph with zero-cost pad-copper joins.
+
+    Physical edges receive stable integer IDs.  Pad joins receive ``None`` and
+    therefore cannot hide off-path copper.  The graph remains independent of
+    pcbnew and is derived directly from the shipped board text.
+    """
+    adj, physical, eid = {}, {}, 0
+
+    def edge(u, v, weight, physical_edge=True):
+        nonlocal eid
+        ident = eid if physical_edge else None
+        if physical_edge:
+            physical[ident] = weight
+            eid += 1
+        adj.setdefault(u, []).append((v, weight, ident))
+        adj.setdefault(v, []).append((u, weight, ident))
+
+    for layer, a, b, ln in entry["segs"]:
+        edge(_path_node(a, layer), _path_node(b, layer), ln)
+    idx = {name: i for i, name in enumerate(layer_order)}
+    for la, lb, at in entry["vias"]:
+        if not stackup_mm or la not in idx or lb not in idx:
+            return None, f"via at {at} has no priced declared stackup"
+        lo, hi = sorted((idx[la], idx[lb]))
+        if hi > len(stackup_mm):
+            return None, f"via at {at} exceeds declared stackup"
+        edge(_path_node(at, la), _path_node(at, lb),
+             sum(stackup_mm[lo:hi]))
+
+    # Price a used plated-pad layer transition exactly as net_geometry does.
+    for x, y, _ref, _pad in plated_pads:
+        present = [name for name in layer_order
+                   if _path_node((x, y), name) in adj]
+        if len(present) < 2:
+            continue
+        if not stackup_mm:
+            return None, f"plated pad {_ref}.{_pad} has no priced stackup"
+        lo, hi = min(idx[n] for n in present), max(idx[n] for n in present)
+        edge(_path_node((x, y), layer_order[lo]),
+             _path_node((x, y), layer_order[hi]), sum(stackup_mm[lo:hi]))
+
+    # A synthetic per-layer pad anchor joins every track/via endpoint that is
+    # physically inside that exact same-net land.  The zero edge establishes
+    # connectivity but deliberately does not invent propagation length.
+    anchors = {}
+    real_nodes = list(adj)
+    for pad in pads_for_net:
+        if pad["shape"] == "custom":
+            continue
+        ident = f"{pad['ref']}.{pad['pad']}"
+        for layer in layer_order:
+            if not _pad_has_layer(pad, layer):
+                continue
+            hits = [n for n in real_nodes if n[2] == layer and
+                    _point_in_pad(pad, *_path_xy(n))]
+            if not hits:
+                continue
+            anchor = ("PAD", ident, layer)
+            anchors.setdefault(ident, []).append(anchor)
+            for n in hits:
+                edge(anchor, n, 0.0, physical_edge=False)
+    return {"adj": adj, "physical": physical, "anchors": anchors}, None
+
+
+def _shortest_declared_path(graph, start_ident, end_ident):
+    """Return (length, physical-edge-set, error) between exact pad identities."""
+    import heapq
+    starts = graph["anchors"].get(start_ident) or []
+    ends = set(graph["anchors"].get(end_ident) or [])
+    if not starts:
+        return None, set(), f"endpoint {start_ident} does not touch this net's copper"
+    if not ends:
+        return None, set(), f"endpoint {end_ident} does not touch this net's copper"
+    dist, prev, heap = {}, {}, []
+    serial = 0
+    for n in starts:
+        dist[n] = 0.0
+        heapq.heappush(heap, (0.0, serial, n))
+        serial += 1
+    target = None
+    while heap:
+        d, _order, node = heapq.heappop(heap)
+        if d != dist.get(node):
+            continue
+        if node in ends:
+            target = node
+            break
+        for nxt, weight, edge_id in graph["adj"].get(node, []):
+            nd = d + weight
+            if nd + 1e-12 < dist.get(nxt, float("inf")):
+                dist[nxt] = nd
+                prev[nxt] = (node, edge_id)
+                heapq.heappush(heap, (nd, serial, nxt))
+                serial += 1
+    if target is None:
+        return None, set(), (f"no same-net copper path from {start_ident} to "
+                             f"{end_ident}")
+    used, cur = set(), target
+    while cur not in starts:
+        parent, edge_id = prev[cur]
+        if edge_id is not None:
+            used.add(edge_id)
+        cur = parent
+    return dist[target], used, None
+
+
+def grade_declared_paths(gname, decl, row, nets, layer_order, pad_shapes,
+                         plated_pads, res):
+    """Grade endpoint paths and reject copper inventory outside those paths.
+
+    Every member owns the same ordered path IDs.  A reversible USB-C tree uses
+    IDs ``A`` and ``B``; a series chain uses one ``main`` ID with one declared
+    segment per net on either side of the component.  Spread is applied per ID
+    and the group reports the worst path-pair spread.
+    """
+    stack = decl.get("stackup_mm")
+    graphs, graph_errors = {}, []
+    for net in {s["net"] for plist in decl["paths"].values()
+                for p in plist for s in p["segments"]}:
+        graph, why = _path_graph(nets[net], layer_order, stack,
+                                 pad_shapes.get(net, ()),
+                                 plated_pads.get(net, ()))
+        if why:
+            graph_errors.append(f"{net}: {why}")
+        else:
+            graphs[net] = graph
+    if graph_errors:
+        row["verdict"] = "UNREACHED" if row["verdict"] != "FAIL" else "FAIL"
+        row["why"] = "; ".join(graph_errors)
+        res["unreached"].append(f"R-LEN-UNREACHED [{gname}] {row['why']}")
+        return
+
+    path_rows, used_by_net = [], {net: set() for net in graphs}
+    unresolved = []
+    for member, plist in decl["paths"].items():
+        for path_decl in plist:
+            length, seg_rows = 0.0, []
+            for seg in path_decl["segments"]:
+                ln, used, why = _shortest_declared_path(
+                    graphs[seg["net"]], seg["from"], seg["to"])
+                if why:
+                    unresolved.append(
+                        f"{member}.{path_decl['id']}/{seg['net']}: {why}")
+                    continue
+                length += ln
+                used_by_net[seg["net"]].update(used)
+                seg_rows.append({**seg, "length_mm": ln,
+                                 "physical_edges": len(used)})
+            path_rows.append({"member": member, "id": path_decl["id"],
+                              "length_mm": length, "segments": seg_rows})
+    if unresolved:
+        row["verdict"] = "UNREACHED" if row["verdict"] != "FAIL" else "FAIL"
+        row["why"] = "; ".join(unresolved)
+        res["unreached"].append(f"R-LEN-UNREACHED [{gname}] {row['why']}")
+        row["electrical_paths"] = path_rows
+        return
+
+    # Count the actual endpoint paths only after every segment resolves.  The
+    # legacy member count remains in JSON for compatibility, but it is not the
+    # denominator for a reversible tree (two members there describe four
+    # independently graded electrical paths).
+    res["n_electrical_measured"] += len(path_rows)
+
+    off_rows, off_total = [], 0.0
+    for net, graph in graphs.items():
+        unused = set(graph["physical"]) - used_by_net[net]
+        off = sum(graph["physical"][i] for i in unused)
+        off_rows.append({"net": net, "off_path_mm": off,
+                         "unexplained_edge_count": len(unused)})
+        off_total += off
+        if off > 1e-6 or unused:
+            row["verdict"] = "FAIL"
+            res["fails"].append(
+                f"R-LEN-OFFPATH [{gname}/{net}] {off:.4f} mm across "
+                f"{len(unused)} physical copper edge(s) is not used by any "
+                f"declared endpoint path. A stub or orphan must never improve "
+                f"path skew; declare the missing leaf or repair the copper.")
+
+    members = list(decl["members"])
+    ids = [p["id"] for p in decl["paths"][members[0]]]
+    spreads, tol = [], decl.get("max_spread_mm", "report")
+    for path_id in ids:
+        vals = {m: next(p["length_mm"] for p in path_rows
+                        if p["member"] == m and p["id"] == path_id)
+                for m in members}
+        spread = max(vals.values()) - min(vals.values())
+        spreads.append({"id": path_id, "members": vals, "spread_mm": spread})
+        if tol != "report" and spread > float(tol) + 1e-9:
+            row["verdict"] = "FAIL"
+            res["fails"].append(
+                f"R-LEN-SPREAD [{gname}/{path_id}] endpoint path spread "
+                f"{spread:.4f} mm exceeds max_spread_mm {tol} (ADR-"
+                f"{decl['adr']}). Members: " + ", ".join(
+                    f"{m}={vals[m]:.4f}" for m in members))
+    row["electrical_paths"] = path_rows
+    row["path_spreads"] = spreads
+    row["off_path"] = off_rows
+    row["off_path_mm"] = off_total
+    row["spread_mm"] = max((x["spread_mm"] for x in spreads), default=0.0)
+
+    pin = decl.get("pin")
+    if pin:
+        drift = abs(row["spread_mm"] - float(pin["spread_mm"]))
+        row["pin_drift_mm"] = drift
+        if drift > float(pin["tol_mm"]) + 1e-9:
+            row["verdict"] = "FAIL"
+            res["fails"].append(
+                f"R-LEN-PIN [{gname}] worst endpoint-path spread "
+                f"{row['spread_mm']:.4f} mm vs pinned {pin['spread_mm']} "
+                f"+-{pin['tol_mm']} mm (drift {drift:.4f} mm)")
+
+
 # ============================================================== the declaration
 def load_groups(proj):
     """`length_match:` out of 03_src/rules/nets.yaml, schema-checked at load.
@@ -956,6 +1280,64 @@ def load_groups(proj):
                     raise AuditError(
                         f"{p}: length_match.{g}.octilinear_endpoints.{name} "
                         f"must be [REF.PAD, REF.PAD]")
+        paths = d.get("paths")
+        if paths is not None:
+            if not isinstance(paths, dict) or set(paths) != set(mem):
+                raise AuditError(
+                    f"{p}: length_match.{g}.paths must name exactly the "
+                    f"members {sorted(mem)}")
+            ids_by_member = {}
+            for name, plist in paths.items():
+                if not isinstance(plist, list) or not plist:
+                    raise AuditError(
+                        f"{p}: length_match.{g}.paths.{name} must be a "
+                        f"non-empty list of declared electrical paths")
+                ids, used_nets = [], []
+                for i, path_decl in enumerate(plist):
+                    if not isinstance(path_decl, dict) or not isinstance(
+                            path_decl.get("id"), str) or not path_decl["id"]:
+                        raise AuditError(
+                            f"{p}: length_match.{g}.paths.{name}[{i}] needs "
+                            f"a non-empty string `id:`")
+                    segs = path_decl.get("segments")
+                    if not isinstance(segs, list) or not segs:
+                        raise AuditError(
+                            f"{p}: length_match.{g}.paths.{name}[{i}].segments "
+                            f"must be a non-empty list")
+                    ids.append(path_decl["id"])
+                    for j, seg in enumerate(segs):
+                        if not isinstance(seg, dict) or set(seg) != {
+                                "net", "from", "to"}:
+                            raise AuditError(
+                                f"{p}: length_match.{g}.paths.{name}[{i}]."
+                                f"segments[{j}] must contain exactly net, "
+                                f"from, to")
+                        if seg["net"] not in mem[name]:
+                            raise AuditError(
+                                f"{p}: length_match.{g}.paths.{name}[{i}] "
+                                f"uses net {seg['net']!r} outside members."
+                                f"{name}={mem[name]}")
+                        if not all(isinstance(seg[k], str) and "." in seg[k]
+                                   for k in ("from", "to")):
+                            raise AuditError(
+                                f"{p}: length_match.{g}.paths.{name}[{i}] "
+                                f"segment endpoints must be REF.PAD strings")
+                        used_nets.append(seg["net"])
+                if len(set(ids)) != len(ids):
+                    raise AuditError(
+                        f"{p}: length_match.{g}.paths.{name} has duplicate "
+                        f"path ids {ids}")
+                if set(used_nets) != set(mem[name]):
+                    raise AuditError(
+                        f"{p}: length_match.{g}.paths.{name} must cover every "
+                        f"member net exactly by declared endpoint segments; "
+                        f"member nets={mem[name]}, used={used_nets}")
+                ids_by_member[name] = ids
+            first = next(iter(ids_by_member.values()))
+            if any(ids != first for ids in ids_by_member.values()):
+                raise AuditError(
+                    f"{p}: length_match.{g}.paths must use identical ordered "
+                    f"path ids for every member, got {ids_by_member}")
         pin = d.get("pin")
         if pin is not None:
             if not isinstance(pin, dict) or "spread_mm" not in pin \
@@ -1156,7 +1538,12 @@ def grade(proj, board_override=None):
     res = {"project": proj.name, "declaration": str(decl),
            "board": str(board) if board else None,
            "groups": [], "fails": [], "unreached": [],
-           "n_group": len(groups), "n_member": 0, "n_measured": 0}
+           "n_group": len(groups), "n_member": 0, "n_measured": 0,
+           "n_electrical_declared": sum(
+               sum(len(plist) for plist in (d.get("paths") or {}).values())
+               if d.get("paths") else len(d.get("members") or {})
+               for d in groups.values()),
+           "n_electrical_measured": 0}
     if not groups:
         return res
     if board is None:
@@ -1172,6 +1559,7 @@ def grade(proj, board_override=None):
     nets, layer_order, text = read_copper(board)
     board_nets = set(nets)
     pads = read_pads(text)
+    pad_shapes = read_pad_shapes(text)
     plated_pads = read_plated_pads(text)
     recipe = route_recipe(proj)
 
@@ -1249,7 +1637,8 @@ def grade(proj, board_override=None):
                 # crow-recorder-central-v2: USB_DP is 3 components, 0 branches
                 # — 23.6209 mm of copper and no ambiguity at all. Failing it
                 # would have penalised the board for the reader's blindness.
-                if top == "chain" and gg["n_seg"] and gg["n_branch"]:
+                if (top == "chain" and not d.get("paths") and gg["n_seg"]
+                        and gg["n_branch"]):
                     m["measured"] = False
                     m["why"].append(
                         f"{n}: declared `topology: chain` but the copper has "
@@ -1271,6 +1660,8 @@ def grade(proj, board_override=None):
                     row["verdict"] = "FAIL"
             if m["measured"]:
                 res["n_measured"] += 1
+                if not d.get("paths"):
+                    res["n_electrical_measured"] += 1
             row["members"].append(m)
 
         if ghosts:
@@ -1292,6 +1683,16 @@ def grade(proj, board_override=None):
                 row["verdict"] = "UNREACHED"
             row["why"] = "; ".join(w for m in unm for w in m["why"])
             res["unreached"].append(f"R-LEN-UNREACHED [{gname}] {row['why']}")
+            res["groups"].append(row)
+            continue
+
+        # Explicit endpoint paths supersede aggregate copper inventory.  This
+        # is the only valid mode for a tree or a multi-net series chain: every
+        # physical edge must be explained by at least one declared path and
+        # every matching tolerance is applied path-ID by path-ID.
+        if d.get("paths"):
+            grade_declared_paths(gname, d, row, nets, layer_order, pad_shapes,
+                                 plated_pads, res)
             res["groups"].append(row)
             continue
 
@@ -1347,7 +1748,8 @@ def report(res, out=print, verbose=True):
     if not res["n_group"]:
         out("  N-A: no `length_match:` block in 03_src/rules/nets.yaml — this "
             "board declares no net whose purpose is phase.")
-        out("  0 group(s) graded / 0 declared, 0 member path(s) measured / 0")
+        out("  0 group(s) graded / 0 declared, 0 electrical path(s) "
+            "measured / 0")
         return ok
     out("  MEASURED: track centrelines + arc centrelines + via barrels. NOT "
         "measured: pad-entry copper (so every absolute is a LOWER BOUND), and "
@@ -1384,6 +1786,19 @@ def report(res, out=print, verbose=True):
                     f"zones {m['n_zone']}  branch {m['n_branch']}  "
                     f"comp {m['n_comp']}  ends {m['n_end']}  "
                     f"nets {'+'.join(m['nets'])}")
+            for p in g.get("electrical_paths", []):
+                out(f"      PATH {p['id']:<8s} {p['member']:<10s} = "
+                    f"{p['length_mm']:9.4f} mm  segments "
+                    f"{len(p['segments'])}")
+            for s in g.get("path_spreads", []):
+                vals = ", ".join(f"{k}={v:.4f}"
+                                 for k, v in s["members"].items())
+                out(f"      PATH-SPREAD {s['id']:<8s} {s['spread_mm']:.4f} "
+                    f"mm  ({vals})")
+            for off in g.get("off_path", []):
+                out(f"      OFF-PATH {off['net']:<18s} "
+                    f"{off['off_path_mm']:.4f} mm  unexplained edges "
+                    f"{off['unexplained_edge_count']}")
         if g["why"]:
             out(f"      why: {g['why']}")
     for f in res["fails"]:
@@ -1392,7 +1807,8 @@ def report(res, out=print, verbose=True):
         out(f"  {u}")
     graded = sum(1 for g in res["groups"] if g["verdict"] in ("PASS", "FAIL"))
     out(f"  {graded} group(s) graded / {res['n_group']} declared, "
-        f"{res['n_measured']} member path(s) measured / {res['n_member']}, "
+        f"{res['n_electrical_measured']} electrical path(s) measured / "
+        f"{res['n_electrical_declared']}, "
         f"{len(res['unreached'])} UNREACHED")
     # An UNREACHED group must NEVER read as PASS on the bottom line — that is
     # the whole vacuity this gate replaces. `--strict` makes it exit 1.
@@ -1487,14 +1903,14 @@ def main(argv=None):
                 if not a.json:
                     print()
             ng = sum(r["n_group"] for r in allres)
-            nm = sum(r["n_measured"] for r in allres)
-            nt = sum(r["n_member"] for r in allres)
+            nm = sum(r["n_electrical_measured"] for r in allres)
+            nt = sum(r["n_electrical_declared"] for r in allres)
             if a.json:
                 encoded = json.dumps(allres, indent=1, default=str) + "\n"
                 print(encoded, end="")
             else:
                 print(f"FLEET: {len(projs)} project(s), {ng} length_match group(s) "
-                      f"declared, {nm} member path(s) measured / {nt}, "
+                      f"declared, {nm} electrical path(s) measured / {nt}, "
                       f"{bad} project(s) FAIL")
             if a.json_output:
                 Path(a.json_output).write_text(

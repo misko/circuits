@@ -1,5 +1,13 @@
 # Placement, anchors, and proximity gates
 
+## Contents
+
+1. Electrical snap-back and physical legality
+2. Proximity and protected-placement rules
+3. Placement-freeze routability receipt
+4. Functional-cell shadow checks
+5. Promotion boundary
+
 ## The central fact
 
 Every automatic placement optimizer seen so far (DeepPCB's RL placer, and
@@ -90,3 +98,75 @@ banks. `require_topology: true` with no rows is a failure, not zero-row PASS.
 The receipt proves declared feasibility and catches misclassified endpoints
 early; it does not claim that a global route exists. Dense ECOs that need
 bounded candidate route probes remain governed by IMP-148.
+
+## Functional-cell shadow checks
+
+Scalar distance and body clearance can both pass while a repeated power or
+interface cell is functionally backwards, locally crossed, or impossible to
+escape. When those risks apply, author a board-scoped
+`03_src/rules/placement_cells.yaml` contract and let
+`placement_routability_preflight.py` discover it, or pass
+`--functional-cells` explicitly.
+
+The data-only `placement_cell_checks.py` library grades these independent
+predicates:
+
+| Predicate | What must be explicit or observed |
+|---|---|
+| Selected part and pad roles | Exact selected MPN, functional pad bank, and expected nets; the snapshot must independently observe the MPN and pads |
+| Signed functional vector | Ordered anchors plus expected direction/projection, not absolute distance alone |
+| Ordered local path | The intended anchor sequence and any two-terminal members; crossings and reversed chains fail |
+| Simultaneous reservation | Layer, corridor/bbox and commodity for every route that must coexist |
+| Constrained-pad escape | One explicit direct, dogbone, or approved selective-via-in-pad decision for every measured constrained pad |
+| Critical-ground egress | A local via/trace/zone egress for every selected critical-ground pad |
+| Hot-path lower bound | Authored PCB mOhm allocation plus segment length, maximum width, eligible layers, and stack copper thickness |
+| Pilot/replica equivalence | Ref map, transform/tolerance, exact MPN/pad structure, semantic structure, and transformed obstacles |
+
+Applicability is evidence-derived. A measured constrained pad or selected
+critical-ground role cannot be suppressed by omitting a `require_*` flag.
+Malformed applicable evidence is `INCOMPLETE`; a genuinely simple board with
+no selected/applicable facts is `N-A` with a zero denominator.
+
+Keep the evidence independent:
+
+- the selected MPN in the contract is the expectation, not the observation;
+- a missing observed footprint MPN is `INCOMPLETE`, not an assumed match;
+- a `verified: true` field is not a substitute for the measured geometry it
+  summarizes;
+- authored obstacle, fabrication and stack facts must be hash-bound inputs;
+- the hot-path check proves only a geometric copper-resistance lower bound and
+  consumes the allocation from the owning electrical/power contract.
+
+The current pcbnew adapter extracts placed part/pad geometry and accepts only
+the documented obstacle, fabrication and stack snapshot additions. It does not
+make the library a router, a DRC engine, or an electrical DC-bias calculator.
+
+## Promotion boundary
+
+Functional cells currently appear under `shadow_checks.functional_cells` in
+the placement-routability receipt. Their status is hash-bound and reported,
+but it does not alter the receipt's authoritative verdict or denominator.
+Never copy a shadow PASS into the main check list by hand.
+
+Operational isolation is part of shadow status. A missing or malformed
+explicit shadow input records shadow `INCOMPLETE`; it must not raise out of the
+authoritative compositor. Keep shadow diagnostics and their identity outside
+the authoritative P-FEAS semantic projection, so checker churn cannot stale a
+previously accepted placement. Add them to that identity only in the same
+change that promotes the predicate.
+
+Promote only after focused known-bad fixtures and representative USB Hub,
+Pluto, and USB-controlled-debug-hub canaries establish all of the following:
+
+1. the pcbnew adapter observes every required identity/geometry fact rather
+   than echoing the authored expectation;
+2. simple boards remain explicitly non-applicable;
+3. existing accepted placements retain verdict, denominator and blocker
+   equivalence, or each stricter result has a reviewed explanation;
+4. boxed pads, crossed paths, overlapping same-layer reservations, missing
+   ground egress, impossible hot paths and non-equivalent replicas fail;
+5. a changed footprint, MPN, pad map, obstacle or stack invalidates reuse.
+
+Promote the compositor predicate once and remove the corresponding duplicate
+manual checklist in the same change. Until then, legacy placement admission
+remains authority and a shadow mismatch triggers investigation, not override.

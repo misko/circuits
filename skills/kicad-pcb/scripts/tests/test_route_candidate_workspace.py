@@ -37,10 +37,19 @@ class FakeRunner:
             # The authoritative prepared rule says this candidate violates USB
             # clearance. A candidate-owned clamped rule would have hidden it.
             authoritative = (cwd / "subject.kicad_dru").read_text()
+            subject = Path(command[-1]).name == "subject.kicad_pcb"
             violations = ([{"type": "clearance", "description": "USB floor"}]
-                          if "authoritative" in authoritative else [])
-            report.write_text(json.dumps({"violations": violations}))
-            return CommandResult(1 if violations else 0, "drc")
+                          if subject and "authoritative" in authoritative else [])
+            report.write_text(json.dumps({
+                "$schema": "https://schemas.kicad.org/drc.v1.json",
+                "source": Path(command[-1]).name,
+                "date": "2026-08-24T12:00:00Z",
+                "kicad_version": "9.0",
+                "violations": violations,
+                "unconnected_items": [],
+                "schematic_parity": [],
+            }))
+            return CommandResult(0, "drc")
         raise AssertionError(f"unexpected command: {command}")
 
 
@@ -77,9 +86,14 @@ class CandidateWorkspaceTest(unittest.TestCase):
         # The local diagnostic would see the clamped candidate sidecar as clean.
         self.assertIn("clamped", candidate.with_suffix(".kicad_dru").read_text())
         receipt = grade_candidate(prepared, candidate, root / "grade",
-                                  required_nets=["SCL"], runner=FakeRunner())
+                                  required_nets=["SCL"],
+                                  shadow_native_drc=True,
+                                  runner=FakeRunner())
         self.assertEqual(receipt["verdict"], "REJECTED")
         self.assertEqual(receipt["checks"]["physical_drc"]["status"], "FAIL")
+        self.assertEqual(
+            receipt["shadow_checks"]["native_drc_delta"]["authority"],
+            "SHADOW")
         self.assertIn("authoritative",
                       (root / "grade/subject.kicad_dru").read_text())
 
@@ -111,6 +125,54 @@ class CandidateWorkspaceTest(unittest.TestCase):
         receipt = grade_candidate(prepared, candidate, root / "grade",
                                   runner=incomplete)
         self.assertEqual(receipt["verdict"], "INCOMPLETE")
+
+    def test_shadow_classifier_cannot_weaken_legacy_hard_rejection(self):
+        root = Path(tempfile.mkdtemp(prefix="candidate-workspace-"))
+        prepared, candidate = fixture(root)
+        receipt = grade_candidate(prepared, candidate, root / "grade",
+                                  shadow_native_drc=True,
+                                  runner=FakeRunner())
+        self.assertEqual(receipt["checks"]["physical_drc"]["status"], "FAIL")
+        self.assertEqual(receipt["verdict"], "REJECTED")
+        self.assertIn("native_drc_delta", receipt["shadow_checks"])
+
+    def test_receipt_status_forgery_breaks_content_binding(self):
+        root = Path(tempfile.mkdtemp(prefix="candidate-workspace-"))
+        prepared, candidate = fixture(root)
+        workspace = root / "grade"
+        receipt = grade_candidate(prepared, candidate, workspace,
+                                  runner=FakeRunner())
+        self.assertEqual(receipt["verdict"], "REJECTED")
+        forged = json.loads((workspace / "receipt.json").read_text())
+        forged["verdict"] = "ACCEPTED"
+        for row in forged["checks"].values():
+            row["status"] = "PASS"
+        (workspace / "receipt.json").write_text(json.dumps(forged))
+        valid, failures = verify_receipt(workspace / "receipt.json")
+        self.assertFalse(valid)
+        self.assertIn("receipt content binding changed", failures)
+
+    def test_shadow_drc_failure_cannot_change_legacy_acceptance(self):
+        root = Path(tempfile.mkdtemp(prefix="candidate-workspace-"))
+        prepared, candidate = fixture(root)
+        prepared.with_suffix(".kicad_dru").write_text("clean prepared rules")
+        drc_calls = 0
+
+        def runner(command, cwd):
+            nonlocal drc_calls
+            if command[:3] == ["kicad-cli", "pcb", "drc"]:
+                drc_calls += 1
+                if drc_calls > 1:
+                    raise RuntimeError("shadow tool unavailable")
+            return FakeRunner()(command, cwd)
+
+        receipt = grade_candidate(
+            prepared, candidate, root / "grade", shadow_native_drc=True,
+            runner=runner)
+        self.assertEqual(receipt["verdict"], "ACCEPTED")
+        self.assertEqual(
+            receipt["shadow_checks"]["native_drc_delta"]["status"],
+            "INCOMPLETE")
 
 
 if __name__ == "__main__":

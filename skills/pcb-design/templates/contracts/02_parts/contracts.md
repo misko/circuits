@@ -374,6 +374,11 @@ asserts:                    # OPTIONAL, canon P-FACT. The part's own facts,
     why: "AMASS drawing fig 2: pad 1 is the '-' blade. A reversed XT60 already
       shipped once and the netlist is self-consistent either way, so no ERC,
       DRC or parity check can see it"
+  - assert: configured_pin_net     # an exact mode/address/boot/voltage strap
+    pin: 3                         # on every selected instance of this MPN
+    net: GND                       # must realize this exact exported net
+    why: "CH224K section 6.2 requires CFG3 low in the 0/1/0 20 V code; high
+      silently requests 15 V even though the dossier's requested_voltage says 20 V"
   - assert: value                  # the fab BOM's Comment for every ref of
     equals: 1k                     # this part must DECODE to this value.
     tolerance_pct: 5               # SI-aware: 1k / 1kOhm / 1kΩ / 4k7 / 0R1
@@ -552,9 +557,11 @@ And it answers **P-FACT** — the part's own facts are graded against the board
 and the release, not merely written down:
 
 - Audit: `jlcpcb-fab/scripts/part_facts_check.py PROJECT_OR_RELEASE [--strict]`
-  (offline; no pcbnew, no network). It grades `pad1_net_polarity` against the
-  exported NETLIST, `value` against the fab BOM, `not_on_assembly_bom` against
-  BOM+CPL, and `msl` against the release's ORDER paperwork.
+  (offline; no pcbnew, no network). It grades `pad1_net_polarity` and
+  `configured_pin_net` against the exported NETLIST, `value` against the fab
+  BOM, `not_on_assembly_bom` against BOM+CPL, and `msl` against the release's
+  ORDER paperwork. Use `configured_pin_net` for selected-part truth tables;
+  a `configuration:` prose mapping alone proves no realized strap.
 - `keepout_region` is DECLARED but NOT YET GRADED (it needs board geometry).
   The checker names it DEFERRED and FAILs it under `--strict`; it never
   reports clean. That is the LTV-817S isolation-barrier class and it is the
@@ -734,6 +741,8 @@ against the `side: bottom` features) are the cheapest first bite.
 | `asserts[].tolerance_pct` | `part_facts_check.py` | P-FACT tolerance window |
 | `asserts[].polarity` | `part_facts_check.py` | P-FACT `pad1_net_polarity` |
 | `asserts[].pad` | `generate_board_generic.py, part_facts_check.py` | P-FACT subject pad |
+| `asserts[].pin` | `part_facts_check.py` | P-FACT `configured_pin_net` subject pin |
+| `asserts[].net` | `part_facts_check.py` | P-FACT exact realized net required by a selected-part configuration truth table |
 | `asserts[].level` | `part_facts_check.py` | P-FACT `msl` level |
 | `asserts[].floor_life_h` | `part_facts_check.py` | P-FACT `msl` floor life |
 | `asserts[].layers` | `generate_board_generic.py` | `keepout_region` layers (DEFERRED, and P-FACT says so) |

@@ -50,6 +50,14 @@ Run after fresh netlist export and before schematic review or placement.
 Every specialist must pass. Those specialist scripts remain the sole owners
 of equations and limits.
 
+When `03_src/rules/operating_states.yaml` exists, E-CLOSURE also composes
+`operating_state_check.py`. Selected-part facts or electrical rules decode the
+device-specific source/default/negotiated/startup/steady/off/fault intervals;
+the generic specialist proves that each full producer interval is contained by
+the downstream accepted interval. Presence derives applicability. An empty,
+malformed or evidence-free contract is `INCOMPLETE`, not N-A. Projects without
+the new contract retain the legacy denominator during migration.
+
 ## P-FEASIBILITY
 
 Run on the exact placed board before route preparation. The existing

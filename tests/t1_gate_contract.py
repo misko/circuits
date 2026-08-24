@@ -102,10 +102,15 @@ def parse_status(value):
     return value
 '''
     d = _root({name: library for name in (
+        "board_authority.py",
+        "copper_graph.py",
         "pipeline_catalog.py",
         "pipeline_contract.py",
+        "pipeline_execution.py",
         "pipeline_shadow.py",
         "pipeline_xtrace.py",
+        "placement_cell_checks.py",
+        "route_acceptance_core.py",
     )})
     r = must_pass(run([KPY, TOOL, "--root", d]),
                   "typed pipeline library inventory")

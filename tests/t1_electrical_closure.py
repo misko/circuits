@@ -56,5 +56,36 @@ def t_one_failure_rejects():
           "failed corner predicate disappeared")
 
 
+@test("an authored operating-state contract extends the existing boundary")
+def t_state_contract_composition():
+    project = project_tree()
+    (project / "03_src/rules/operating_states.yaml").write_text("""
+schema: 1
+contracts:
+  - id: pd_to_input
+    phase: negotiated
+    producer: {ref: U_PD, quantity: voltage, unit: V, min: 19, max: 21,
+               evidence: {source: 02_parts/U_PD/part.yaml, sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,
+                          locator: decoded selected-part state}}
+    consumer: {ref: U_IN, quantity: voltage, unit: V, min: 16, max: 30,
+               evidence: {source: 02_parts/U_IN/part.yaml, sha256: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb,
+                          locator: exact UVLO and input limits}}
+""")
+    (project / "03_src/rules/operating_state_manifest.yaml").write_text("""
+schema: 1
+expected:
+  - {id: pd_to_input, phase: negotiated}
+""")
+    report = electrical_closure.grade(
+        project, runner=lambda _command, _cwd: {
+            "status": "PASS", "returncode": 0, "elapsed_s": 0.01,
+            "output": "fixture pass"})
+    eq(report["verdict"], "ACCEPTED", "closure verdict")
+    eq(report["coverage"], {"passing": 10, "total": 10},
+       "state-aware closure denominator")
+    check("operating_state_compatibility" in report["checks"],
+          "state specialist was not composed")
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

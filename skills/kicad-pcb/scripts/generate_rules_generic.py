@@ -316,6 +316,25 @@ def main(argv=None):
     ns["classes"] = out_classes
     ns["netclass_patterns"] = patterns
     ns.setdefault("meta", {"version": 4})
+
+    # APPLICABILITY-DERIVED NATIVE DRC (2026-08-21).  An explicit electrical
+    # path contract means this board contains geometry whose purpose is length
+    # tuning.  Leaving KiCad's tuning-profile geometry predicate at `ignore`
+    # while citing a clean DRC receipt is contradictory: the native checker is
+    # applicable by construction.  Turn it on at the same source-owned point
+    # that emits the length/net rules.  Boards without explicit `paths:` keep
+    # their existing severity, so this is progressive rather than fleet-wide.
+    length_groups = nets.get("length_match") or {}
+    explicit_path_tuning = (
+        isinstance(length_groups, dict)
+        and any(isinstance(decl, dict) and bool(decl.get("paths"))
+                for decl in length_groups.values())
+    )
+    if explicit_path_tuning:
+        severities = (proj.setdefault("board", {})
+                      .setdefault("design_settings", {})
+                      .setdefault("rule_severities", {}))
+        severities["tuning_profile_track_geometries"] = "error"
     if diff_dims:
         # board design_settings.diff_pair_dimensions — the routing/tuning UI's
         # diff-pair table AND the reviewable declaration that the geometry was
@@ -492,6 +511,8 @@ def main(argv=None):
           + (f" + {len(foreign)} preserved foreign rules" if foreign else "")
           + (f" + {len(retired)} retired ({', '.join(d[0] for d in retired)})"
              if retired else "")
+          + ("; enabled tuning_profile_track_geometries=error from explicit "
+             "length paths" if explicit_path_tuning else "")
           + f" -> {dru.name}")
 
 

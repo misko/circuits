@@ -74,12 +74,22 @@ def release(parts, bom, cpl=None, netlist=None, order=None):
 
 
 def netlist_of(pad1_nets):
-    """{ref: net} -> a minimal exported netlist with each ref's pad 1."""
+    """{net: refs} -> a minimal exported netlist with each ref's pad 1."""
     blocks = []
     for i, (net, refs) in enumerate(pad1_nets.items(), 1):
         nodes = "".join(f'(node (ref "{r}") (pin "1"))' for r in refs)
         blocks.append(f'(net (code "{i}") (name "{net}") {nodes})')
-    return '(export (version "E") (nets ' + "".join(blocks) + '))'
+    return '(export (version "E") (nets\n' + "\n".join(blocks) + '\n))'
+
+
+def netlist_pins(net_pins):
+    """{net: [(ref, pin)]} -> a minimal exported netlist."""
+    blocks = []
+    for i, (net, nodes) in enumerate(net_pins.items(), 1):
+        body = "".join(
+            f'(node (ref "{ref}") (pin "{pin}"))' for ref, pin in nodes)
+        blocks.append(f'(net (code "{i}") (name "{net}") {body})')
+    return '(export (version "E") (nets\n' + "\n".join(blocks) + '\n))'
 
 
 def pfact(d, *extra):
@@ -109,6 +119,19 @@ asserts:
 sourcing: {lcsc: C7719}
 """
 
+CH224_CONFIG = """\
+mpn: CH224K
+type: usb_pd_sink_controller_hardware_configured
+asserts:
+  - {assert: configured_pin_net, pin: 9, net: GND,
+     why: "WCH CH224K-specific table: CFG1 low for 20 V"}
+  - {assert: configured_pin_net, pin: 2, net: PD_VDD,
+     why: "WCH CH224K-specific table: CFG2 high for 20 V"}
+  - {assert: configured_pin_net, pin: 3, net: GND,
+     why: "WCH CH224K-specific table: CFG3 low completes 0/1/0 for 20 V"}
+sourcing: {lcsc: C970725}
+"""
+
 
 # ------------------------------------------------------------ clean cases
 @test("P-FACT passes a release whose artifacts agree with every declared fact")
@@ -123,6 +146,38 @@ def t_clean():
              "says how much it actually graded, over the total declared")
 
 
+@test("P-FACT compiles selected-part configuration straps into exact pin/net "
+      "comparisons")
+def t_configured_pin_net_clean():
+    d = release(
+        {"CH224K": CH224_CONFIG},
+        [("CH224K", "U_PD", "ESSOP-10", "CH224K", "C970725")],
+        netlist=netlist_pins({
+            "GND": [("U_PD", "9"), ("U_PD", "3")],
+            "PD_VDD": [("U_PD", "2")],
+        }))
+    r = must_pass(pfact(d), "P-FACT on the documented CH224K 20 V straps")
+    contains(r.out, "3/3 assertion(s) REACHED A COMPARISON",
+             "all three strap pins are independently graded")
+
+
+@test("P-FACT FAILS the CH224K incident: 0/1/1 requests 15 V, not the "
+      "documented 20 V 0/1/0", kind="known_bad")
+def t_configured_pin_net_wrong_strap():
+    d = release(
+        {"CH224K": CH224_CONFIG},
+        [("CH224K", "U_PD", "ESSOP-10", "CH224K", "C970725")],
+        netlist=netlist_pins({
+            "GND": [("U_PD", "9")],
+            "PD_VDD": [("U_PD", "2"), ("U_PD", "3")],
+        }))
+    r = must_fail(pfact(d), "P-FACT on the escaped 15 V strap", "P-FACT")
+    contains(r.out, "U_PD", "names the configured instance")
+    contains(r.out, "pin 3", "names the wrong strap pin")
+    contains(r.out, "PD_VDD", "names the realized high state")
+    contains(r.out, "GND", "names the required low state")
+
+
 @test("P-FACT says out loud when NOTHING is declared, rather than passing "
       "quietly")
 def t_nothing_declared():
@@ -132,7 +187,8 @@ def t_nothing_declared():
     d = release({"PLAIN": "mpn: PLAIN\ntype: resistor\n"},
                 [("10k", "R1", "R_0603", "PLAIN", "C1")])
     r = must_pass(pfact(d), "P-FACT with nothing declared")
-    contains(r.out, "0/1 part.yaml declare", "the coverage denominator")
+    contains(r.out, "0/1 part.yaml are selected and declare",
+             "the coverage denominator")
     contains(r.out, "nothing was proved", "says so in words")
 
 
@@ -337,6 +393,26 @@ def t_facts_reach_the_refs():
     r = pfact(d, "--strict")
     must_fail(r, "P-FACT strict on an unreached assertion", "UNREACHED")
     contains(r.out, "grades nothing", "says why an unreached assert is not a pass")
+
+
+@test("P-FACT release strictness grades selected parts, not unused candidate dossiers")
+def t_release_selection_excludes_unused_candidates():
+    selected = WD_OK
+    unused = WD_OK.replace("TPS3823-33DBVR", "OLD-CANDIDATE").replace(
+        "C7719", "C999999")
+    d = release(
+        {"TPS3823-33DBVR": selected, "OLD-CANDIDATE": unused},
+        [("1k", "R1", "R_0402", "TPS3823-33DBVR", "C7719")])
+    (d / "03_tscircuit" / "build").mkdir(parents=True)
+    (d / "03_tscircuit" / "build" / "circuit.json").write_text(json.dumps([
+        {"type": "source_component", "name": "R1",
+         "manufacturer_part_number": "TPS3823-33DBVR",
+         "supplier_part_numbers": {"jlcpcb": ["C7719"]}}
+    ]))
+    r = must_pass(pfact(d, "--strict"),
+                  "P-FACT strict on selected release population")
+    contains(r.out, "1 unused by this release", "unused candidate is explicit")
+    contains(r.out, "1/1 assertions graded", "selected assertion is complete")
 
 
 @test("P-FACT REFUSES to print OK over a ZERO denominator — 16 declared, 16 "

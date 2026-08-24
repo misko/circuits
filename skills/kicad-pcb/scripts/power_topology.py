@@ -204,6 +204,7 @@ FAIL, not a false pass, and it is not this gate's vacuity condition. The
 """
 import argparse
 import glob
+import json
 import re
 import sys
 from pathlib import Path
@@ -293,11 +294,48 @@ def _norm_id(s):
 LINEAR_FACTS = ("dropout_mv", "pdiss_max_mw")
 
 
+def _selected_part_dirs(proj):
+    """Exact realized dossier directories, or None when no circuit exists."""
+    circuit = Path(proj) / "03_tscircuit" / "build" / "circuit.json"
+    if not circuit.exists():
+        return None
+    try:
+        payload = json.loads(circuit.read_text(encoding="utf-8-sig"))
+    except Exception:
+        return None
+    elements = payload if isinstance(payload, list) else payload.get("elements", [])
+    mpns, codes = set(), set()
+    for element in elements:
+        if not isinstance(element, dict) or element.get("type") != "source_component":
+            continue
+        mpn = str(element.get("manufacturer_part_number") or "").strip()
+        if mpn:
+            mpns.add(mpn)
+        suppliers = element.get("supplier_part_numbers") or {}
+        values = suppliers.get("jlcpcb") or [] if isinstance(suppliers, dict) else []
+        if isinstance(values, str):
+            values = [values]
+        codes.update(str(v).strip() for v in values if str(v).strip())
+    selected = set()
+    for py in sorted((Path(proj) / "02_parts").glob("*/part.yaml")):
+        try:
+            part = yaml.safe_load(py.read_text(encoding="utf-8-sig")) or {}
+        except Exception:
+            continue
+        lcsc = str((part.get("sourcing") or {}).get("lcsc") or "").strip()
+        if str(part.get("mpn") or "").strip() in mpns or (lcsc and lcsc in codes):
+            selected.add(py.parent.name)
+    return selected or None
+
+
 def load_part_index(proj):
     """{normalized mpn/dirname -> {dir, type, dropout_mv, pdiss_max_mw}} over
     02_parts/*/part.yaml."""
     idx = {}
+    selected = _selected_part_dirs(proj)
     for py in sorted(glob.glob(str(Path(proj) / "02_parts" / "*" / "part.yaml"))):
+        if selected is not None and Path(py).parent.name not in selected:
+            continue
         try:
             y = yaml.safe_load(Path(py).read_text(encoding="utf-8-sig")) or {}
         except Exception:

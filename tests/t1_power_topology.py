@@ -32,6 +32,7 @@ E-OFF case below goes RED. Each known-bad is additionally a passing-TOPOLOGY
 board broken in exactly one margin/off dimension.
 """
 import re
+import json
 import sys
 from pathlib import Path
 
@@ -96,6 +97,24 @@ def distribution_rail(name="USB1", *, resistance=300, limit_min=0.926,
 
 def ptree(*rails, top=""):
     return top + "rails:\n" + "".join(rails)
+
+
+@test("E-TOPO converter census excludes an unused regulator candidate selected "
+      "out of the exact generated circuit")
+def t_converter_census_uses_selected_population():
+    d = project(
+        ptree(rail("3V3", 9, 12, 3.3, 3.3, 1, "NEW-REG")),
+        parts={"OLD-REG": "synchronous_buck_fixed_3v3",
+               "NEW-REG": "synchronous_buck_fixed_3v3"})
+    build = d / "03_tscircuit" / "build"
+    build.mkdir(parents=True)
+    (build / "circuit.json").write_text(json.dumps({"elements": [{
+        "type": "source_component",
+        "manufacturer_part_number": "NEW-REG",
+    }]}))
+    result = must_pass(run([KPY, PTOP, d]), "selected converter census")
+    contains(result.out, "covering 1/1 converter", "selected denominator")
+    not_contains(result.out, "OLD-REG", "unused converter candidate")
 
 
 SOURCE_BOUNDARY = (

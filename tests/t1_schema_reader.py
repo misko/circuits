@@ -167,6 +167,54 @@ def t_orphan_key_fails():
     not_contains(r.out, "UNREAD 03_src/rules/nets.yaml `classes.<C>.routing")
 
 
+@test("G-ORPHAN discovers nested mechanical YAML and FAILS one undeclared "
+      "enclosure key", kind="known_bad")
+def t_nested_mechanical_yaml_orphan_fails():
+    """The enclosure schema lives below ``03_src/mechanical``. Before that
+    path joined ``SOURCE_GLOBS``, a config could add arbitrary load-bearing
+    geometry keys and this gate would never enumerate the file, so every such
+    addition passed vacuously. The clean and broken arms differ by one key.
+    """
+    d = tmpdir()
+    reader = GOOD_READER.replace(
+        'tier = cfg["fab_tier"]',
+        'schema = cfg["schema"]\n    tier = cfg["fab_tier"]')
+    dd = repo(d, CLEAN, readers={"reader.py": reader})
+
+    # This family is owned by pcb-enclosure, so exercise that reader home too;
+    # the clean arm fails if either READER_DIRS or SOURCE_GLOBS regresses.
+    enclosure_readers = dd / "skills" / "pcb-enclosure" / "scripts"
+    enclosure_readers.mkdir(parents=True)
+    (dd / "skills" / "kicad-pcb" / "scripts" / "reader.py").replace(
+        enclosure_readers / "reader.py")
+
+    contract_dir = (dd / "skills" / "pcb-design" / "templates" /
+                    "contracts" / "03_src" / "mechanical")
+    contract_dir.mkdir(parents=True)
+    (contract_dir / "contracts.md").write_text("""\
+# contract: 03_src/mechanical/
+
+### keys: 03_src/mechanical/enclosure.yaml
+
+| key | reader | why |
+|---|---|---|
+| `schema` | `reader.py` | schema version |
+""", encoding="utf-8")
+
+    source_dir = dd / "projects" / "bd" / "03_src" / "mechanical"
+    source_dir.mkdir(parents=True)
+    config = source_dir / "enclosure.yaml"
+    config.write_text("schema: 1\n", encoding="utf-8")
+    must_pass(sweep(dd), "G-ORPHAN on clean nested mechanical YAML")
+
+    config.write_text("schema: 1\nunread_clearance_mm: 0.4\n",
+                      encoding="utf-8")
+    r = sweep(dd)
+    must_fail(r, "G-ORPHAN on nested mechanical YAML", "ORPHAN")
+    contains(r.out, "unread_clearance_mm")
+    contains(r.out, "03_src/mechanical/enclosure.yaml")
+
+
 @test("G-ORPHAN reports ONE finding for a whole undeclared BLOCK, at its "
       "topmost level — a wall of findings is a verdict nobody acts on")
 def t_orphan_reported_once_at_the_top():

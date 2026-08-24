@@ -106,6 +106,42 @@ class FakeBoard:
         return self.footprints
 
 
+@test("source-prep authority compiles from board-observed facts in shadow")
+def t_source_prep_authority_shadow():
+    root = tmpdir("source_authority_")
+    stack = root / "stackup.yaml"
+    plan = root / "route_plan.yaml"
+    circuit = root / "circuit.json"
+    stack.write_text(yaml.safe_dump({
+        "schema": "stackup-v1",
+        "copper": [
+            {"name": "F.Cu", "thickness_um": 35, "role": "signal"},
+            {"name": "B.Cu", "thickness_um": 35, "role": "signal"},
+        ],
+        "routing_classes": {
+            "signal": {"allowed_layers": ["F.Cu", "B.Cu"]},
+        },
+    }, sort_keys=False))
+    plan.write_text(yaml.safe_dump({
+        "schema": "route-plan-v1",
+        "groups": {"all": "rest"},
+        "waves": [{"name": "all", "group": "all",
+                   "routing_class": "signal"}],
+        "exclusions": [], "deterministic_owners": [],
+    }, sort_keys=False))
+    circuit.write_text(json.dumps([{
+        "type": "source_component", "name": "U1",
+        "manufacturer_part_number": "EXACT-IC",
+    }]))
+    board = FakeBoard([FakeFootprint("U1", [("1", "SIG")])])
+    report = placement_routability_preflight._source_authority_shadow(
+        stack, plan, None, board, circuit)
+    eq(report["status"], "PASS", "source authority shadow status")
+    eq(report["authority"], "SHADOW", "source authority rollout")
+    eq(report["report"]["live"]["mpns"], ["EXACT-IC"],
+       "independent exact MPN observation")
+
+
 @test("connector lane contract checks ordered physical pad-to-net identity")
 def t_connector_lane_clean():
     board = FakeBoard([FakeFootprint("J1", [("A6", "USB_P"),
@@ -350,6 +386,10 @@ def t_placement_feasibility_stage_evidence():
             "layer_eligibility": {"status": "PASS", "detail": "2 layers"},
         },
         "coverage": {"passing": 2, "total": 2},
+        "shadow_checks": {
+            "functional_cells": {"status": "INCOMPLETE",
+                                 "detail": "diagnostic only"}},
+        "shadow_coverage": {"passing": 0, "total": 1},
     }
     receipt_path.write_text(json.dumps(receipt))
     (project / "bundle-parent").mkdir()
@@ -360,6 +400,23 @@ def t_placement_feasibility_stage_evidence():
     eq(stage["stage_id"], "P-FEASIBILITY", "feasibility stage id")
     eq(stage["outputs"], ["placement_feasibility_report"],
        "feasibility symbol")
+    first_subject = stage["subject"]
+
+    # Changing only a shadow diagnostic must not churn the authoritative stage
+    # identity or leak into the accepted measurement.
+    receipt["shadow_checks"]["functional_cells"]["status"] = "PASS"
+    receipt_path.write_text(json.dumps(receipt))
+    (project / "bundle-parent-2").mkdir()
+    placement_routability_preflight._publish_feasibility(
+        receipt, receipt_path, project / "bundle-parent-2/accepted",
+        project / "feasibility-2.stage.json")
+    second = json.loads((project / "feasibility-2.stage.json").read_text())
+    eq(second["subject"], first_subject, "shadow-isolated feasibility subject")
+    measurements = list((project / "bundle-parent-2").rglob(
+        "placement_feasibility.json"))
+    check(len(measurements) == 1, "accepted feasibility measurement missing")
+    check("shadow_checks" not in json.loads(measurements[0].read_text()),
+          "shadow diagnostics leaked into authoritative measurement")
 
 
 def rehearsal_tree():
@@ -375,6 +432,36 @@ def rehearsal_tree():
         "checks": {"fixture": {"status": "PASS"}},
     }))
     return release, artifact, receipt
+
+
+@test("release rehearsal init states its own blocked-sourcing admission token")
+def t_rehearsal_init_declares_blocked_sourcing():
+    root = tmpdir("release_rehearsal_init_")
+    project = root / "project"
+    release = project / "06_build/release_staging/v1.0-2026-08-17"
+    (release / "source").mkdir(parents=True)
+    (release / "source/fixture.kicad_pcb").write_text("(kicad_pcb)\n")
+    (release / "ORDER_README.md").write_text(
+        "BLOCKED-SOURCING: order-phase allocation absent.\n")
+    (project / "03_src/rules").mkdir(parents=True)
+    (project / "04_kicad").mkdir()
+    (project / "03_src/rules/assembly.yaml").write_text(
+        "service: fixture\nnot_assembled: []\n")
+    prior_repo, prior_git = release_rehearsal.REPO, release_rehearsal._git
+    try:
+        release_rehearsal.REPO = root
+        release_rehearsal._git = lambda *args: (
+            "0123456789abcdef" if args == ("rev-parse", "HEAD") else "")
+        manifest = release_rehearsal.init_manifest(release, project)
+    finally:
+        release_rehearsal.REPO = prior_repo
+        release_rehearsal._git = prior_git
+    text = manifest.read_text()
+    check("BLOCKED-SOURCING" in text,
+          "init emitted a sourcing state its own admission check cannot read")
+    check(release_rehearsal._declares_blocked_sourcing(
+              manifest, release / "ORDER_README.md"),
+          "freshly initialized manifest cannot enter blocked-sourcing rehearsal")
 
 
 @test("release rehearsal receipt reopens unchanged staged bytes")

@@ -35,6 +35,7 @@ import argparse
 import hashlib
 import json
 import os
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -42,6 +43,8 @@ import pcbnew
 import yaml
 
 import critical_route_check
+import board_authority
+import placement_cell_checks
 import placement_gates
 import route_ownership_preflight
 from tier_preflight import board_scoped
@@ -68,6 +71,113 @@ def _atomic_json(path: Path, value: dict[str, Any]) -> None:
     temporary.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n",
                          encoding="utf-8")
     os.replace(temporary, path)
+
+
+def _functional_cell_shadow(config_path: Path, board: Any) -> dict[str, Any]:
+    """Grade the schema-1 functional-cell contract without owning admission.
+
+    The first deployment is deliberately shadow-only: several predicates use
+    authored local-clearance evidence until the pcbnew measurement adapter is
+    proven on fleet canaries.  A result is still exact-config/board bound by
+    the parent receipt and cannot silently disappear once configured.
+    """
+    contract = yaml.safe_load(
+        config_path.read_text(encoding="utf-8-sig")) or {}
+    if not isinstance(contract, dict):
+        raise ValueError("placement_cells.yaml must contain a mapping")
+    snapshot = placement_cell_checks.snapshot_from_pcbnew(board)
+    measured = contract.get("snapshot") or {}
+    if not isinstance(measured, dict):
+        raise ValueError("placement_cells.snapshot must be a mapping")
+    forbidden = sorted(set(measured) - {"obstacles", "fabrication", "stackup"})
+    if forbidden:
+        raise ValueError(
+            "placement_cells.snapshot has unsupported keys: " +
+            ", ".join(forbidden))
+    snapshot.update(measured)
+    report = placement_cell_checks.evaluate_placement_cells(contract, snapshot)
+    return {
+        "status": report["status"],
+        "detail": (f"{report['coverage']['graded']}/"
+                   f"{report['coverage']['total']} functional-cell facts graded"),
+        "report": report,
+        "authority": "SHADOW",
+        "promotion_note": (
+            "authored local-clearance predicates remain shadow-only until "
+            "pcbnew-measured canary equivalence is demonstrated"),
+    }
+
+
+def _observed_source_facts(board: Any,
+                           circuit_json: Path | None = None) -> dict[str, Any]:
+    """Extract live authority facts independently from the exact board/source.
+
+    Refdes and net identity come from the loaded PCB.  Exact MPN population is
+    read from the generated circuit artifact when present; it is never copied
+    from the stack, route-plan, or migration contracts being checked.
+    """
+    refs: set[str] = set()
+    nets: set[str] = set()
+    for footprint in board.GetFootprints():
+        ref = str(footprint.GetReference() or "").strip()
+        if ref:
+            refs.add(ref)
+        for pad in footprint.Pads():
+            net = str(pad.GetNetname() or "").strip()
+            if net:
+                nets.add(net)
+
+    mpns: set[str] = set()
+    if circuit_json is not None and circuit_json.is_file():
+        payload = json.loads(circuit_json.read_text(encoding="utf-8-sig"))
+        if not isinstance(payload, list):
+            raise ValueError("circuit.json must contain a list")
+        for row in payload:
+            if not isinstance(row, dict) or row.get("type") != "source_component":
+                continue
+            mpn = str(row.get("manufacturer_part_number") or "").strip()
+            if mpn:
+                mpns.add(mpn)
+    return {
+        "schema": "observed-source-facts-v1",
+        "refs": sorted(refs),
+        "nets": sorted(nets),
+        "mpns": sorted(mpns),
+        "occurrences": [],
+    }
+
+
+def _source_authority_shadow(stack_path: Path, route_plan_path: Path,
+                             migration_path: Path | None, board: Any,
+                             circuit_json: Path | None) -> dict[str, Any]:
+    """Compile source-to-prep authority without changing admission yet."""
+    stack = yaml.safe_load(stack_path.read_text(encoding="utf-8-sig")) or {}
+    route_plan = yaml.safe_load(
+        route_plan_path.read_text(encoding="utf-8-sig")) or {}
+    migration = None
+    if migration_path is not None:
+        migration = yaml.safe_load(
+            migration_path.read_text(encoding="utf-8-sig")) or {}
+    observed = _observed_source_facts(board, circuit_json)
+    report = board_authority.compile_source_prep_authority(
+        stack=stack, observed=observed, route_plan=route_plan,
+        migration=migration)
+    valid, failures = board_authority.verify_authority(
+        report, stack=stack, observed=observed, route_plan=route_plan,
+        migration=migration)
+    status = report["verdict"] if valid else "INCOMPLETE"
+    return {
+        "status": status,
+        "detail": (f"{report['coverage']['owned_live_nets']}/"
+                   f"{report['coverage']['live_nets']} live nets owned; "
+                   f"{len(report['findings'])} finding(s)"),
+        "report": report,
+        "verification_failures": failures,
+        "authority": "SHADOW",
+        "promotion_note": (
+            "dual-run until fleet canaries prove exact board/source extraction "
+            "and no legacy gate is weakened"),
+    }
 
 
 def _topology(route_cfg: dict[str, Any], board: Any,
@@ -408,7 +518,11 @@ def _series_power_paths(route_cfg: dict[str, Any], board: Any) -> dict[str, Any]
 
 
 def grade(project: Path, board_path: Path, *, board_name: str | None = None,
-          placement_config: Path | None = None) -> dict[str, Any]:
+          placement_config: Path | None = None,
+          functional_cells_config: Path | None = None,
+          stack_authority: Path | None = None,
+          route_plan_authority: Path | None = None,
+          topology_migration: Path | None = None) -> dict[str, Any]:
     project, board_path = project.resolve(), board_path.resolve()
     route_path, route_note = board_scoped(project, "route.yaml", board_name)
     nets_path, nets_note = board_scoped(project, "rules/nets.yaml", board_name)
@@ -457,6 +571,7 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
     except Exception as exc:
         checks["route_ownership"] = {"status": "INCOMPLETE", "detail": str(exc)}
     board = pcbnew.LoadBoard(str(board_path))
+    shadow_checks: dict[str, dict[str, Any]] = {}
     try:
         checks["endpoint_topology"] = _topology(route_cfg, board, project)
     except Exception as exc:
@@ -473,6 +588,73 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
         checks["series_power_paths"] = _series_power_paths(route_cfg, board)
     except Exception as exc:
         checks["series_power_paths"] = {"status": "INCOMPLETE", "detail": str(exc)}
+    cells_path: Path | None
+    if functional_cells_config is not None:
+        cells_path = functional_cells_config.resolve()
+        if not cells_path.is_file():
+            shadow_checks["functional_cells"] = {
+                "status": "INCOMPLETE",
+                "detail": f"functional-cell contract does not exist: {cells_path}",
+                "authority": "SHADOW"}
+            cells_path = None
+    else:
+        cells_path, _ = board_scoped(
+            project, "rules/placement_cells.yaml", board_name)
+    if cells_path is not None and cells_path.is_file():
+        try:
+            shadow_checks["functional_cells"] = _functional_cell_shadow(
+                cells_path.resolve(), board)
+        except Exception as exc:
+            shadow_checks["functional_cells"] = {
+                "status": "INCOMPLETE", "detail": str(exc),
+                "authority": "SHADOW"}
+
+    authority_errors: list[str] = []
+
+    def authority_path(explicit: Path | None, relative: str) -> Path | None:
+        if explicit is not None:
+            resolved = explicit.resolve()
+            if not resolved.is_file():
+                authority_errors.append(
+                    f"source-authority input does not exist: {resolved}")
+                return None
+            return resolved
+        candidate, _ = board_scoped(project, relative, board_name)
+        return candidate.resolve() if candidate is not None and candidate.is_file() \
+            else None
+
+    stack_path = authority_path(stack_authority, "rules/stackup.yaml")
+    plan_path = authority_path(route_plan_authority, "rules/route_plan.yaml")
+    migration_path = authority_path(
+        topology_migration, "rules/topology_migration.yaml")
+    authority_configured = bool(authority_errors) or any(
+        (stack_path, plan_path, migration_path))
+    circuit_path = project / "03_tscircuit/build/circuit.json"
+    if authority_configured:
+        if authority_errors:
+            shadow_checks["source_prep_authority"] = {
+                "status": "INCOMPLETE", "detail": "; ".join(authority_errors),
+                "authority": "SHADOW"}
+        elif stack_path is None or plan_path is None:
+            missing = [name for name, value in (
+                ("stackup.yaml", stack_path), ("route_plan.yaml", plan_path))
+                       if value is None]
+            shadow_checks["source_prep_authority"] = {
+                "status": "INCOMPLETE",
+                "detail": "configured source authority is missing " +
+                          ", ".join(missing),
+                "authority": "SHADOW",
+            }
+        else:
+            try:
+                shadow_checks["source_prep_authority"] = (
+                    _source_authority_shadow(
+                        stack_path, plan_path, migration_path, board,
+                        circuit_path if circuit_path.is_file() else None))
+            except Exception as exc:
+                shadow_checks["source_prep_authority"] = {
+                    "status": "INCOMPLETE", "detail": str(exc),
+                    "authority": "SHADOW"}
     statuses = {row["status"] for row in checks.values()}
     verdict = ("INCOMPLETE" if "INCOMPLETE" in statuses else
                "REJECTED" if "FAIL" in statuses else "ACCEPTED")
@@ -480,6 +662,15 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
               "nets": _record(nets_path)}
     if placement_config is not None and placement_config.is_file():
         inputs["placement_config"] = _record(placement_config.resolve())
+    if cells_path is not None and cells_path.is_file():
+        inputs["placement_cells"] = _record(cells_path.resolve())
+    for name, path in (("stack_authority", stack_path),
+                       ("route_plan_authority", plan_path),
+                       ("topology_migration", migration_path)):
+        if path is not None:
+            inputs[name] = _record(path)
+    if authority_configured and circuit_path.is_file():
+        inputs["circuit"] = _record(circuit_path.resolve())
     for row in checks.get("endpoint_topology", {}).get("rows", []):
         if row.get("part_yaml"):
             key = "part_" + row["part_mpn"].lower().replace("/", "_")
@@ -488,9 +679,15 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
         "schema": 1, "kind": "placement-routability-receipt-v1",
         "verdict": verdict, "subject": inputs["board"], "inputs": inputs,
         "checks": checks,
+        "shadow_checks": shadow_checks,
         "coverage": {"passing": sum(row["status"] in {"PASS", "N-A"}
                                      for row in checks.values()),
                      "total": len(checks)},
+        "shadow_coverage": {
+            "passing": sum(row["status"] in {"PASS", "N-A"}
+                           for row in shadow_checks.values()),
+            "total": len(shadow_checks),
+        },
     }
 
 
@@ -528,26 +725,48 @@ def _publish_feasibility(receipt: dict[str, Any], receipt_path: Path,
                     .get("rows", []),
         "layers": receipt["checks"].get("layer_eligibility", {}),
     }
+    shadow_inputs = {
+        "placement_cells", "stack_authority", "route_plan_authority",
+        "topology_migration", "circuit",
+    }
+    authoritative_inputs = {
+        name: record for name, record in receipt["inputs"].items()
+        if name not in shadow_inputs
+    }
+    authoritative_receipt = {
+        "schema": receipt["schema"], "kind": receipt["kind"],
+        "verdict": receipt["verdict"], "subject": receipt["subject"],
+        "inputs": authoritative_inputs, "checks": receipt["checks"],
+        "coverage": receipt["coverage"],
+    }
+    authoritative_bytes = (json.dumps(
+        authoritative_receipt, indent=2, sort_keys=True) + "\n").encode("utf-8")
     identity = subject_identity("placement-feasibility", 1, [TypedIdentityInput(
-        "placement", "mapping", semantic, receipt_path.read_bytes())])
+        "placement", "mapping", semantic, authoritative_bytes)])
     inputs = {name: Path(record["path"])
-              for name, record in receipt["inputs"].items()}
+              for name, record in authoritative_inputs.items()}
     coverage = receipt["coverage"]
-    publish_stage_evidence(
-        stage_id="P-FEASIBILITY",
-        output_symbol="placement_feasibility_report",
-        producer="placement_routability_preflight.py",
-        producer_version="schema-1-shadow",
-        subject=identity,
-        inputs=inputs,
-        measurement_path=receipt_path,
-        measurement_name="placement_feasibility.json",
-        accepted_dir=bundle_path,
-        stage_result_path=stage_path,
-        status="PASS",
-        graded=coverage["passing"],
-        total=coverage["total"],
-    )
+    # Publish only the authoritative projection. Shadow diagnostics remain in
+    # the caller's receipt but cannot churn the accepted P-FEASIBILITY subject
+    # or invalidate downstream evidence.
+    with tempfile.TemporaryDirectory(prefix="p-feas-authority-") as temporary:
+        measurement = Path(temporary) / "placement_feasibility.json"
+        measurement.write_bytes(authoritative_bytes)
+        publish_stage_evidence(
+            stage_id="P-FEASIBILITY",
+            output_symbol="placement_feasibility_report",
+            producer="placement_routability_preflight.py",
+            producer_version="schema-1-shadow",
+            subject=identity,
+            inputs=inputs,
+            measurement_path=measurement,
+            measurement_name="placement_feasibility.json",
+            accepted_dir=bundle_path,
+            stage_result_path=stage_path,
+            status="PASS",
+            graded=coverage["passing"],
+            total=coverage["total"],
+        )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -558,6 +777,10 @@ def main(argv: list[str] | None = None) -> int:
     grade_parser.add_argument("--board", type=Path, required=True)
     grade_parser.add_argument("--board-name")
     grade_parser.add_argument("--placement-config", type=Path)
+    grade_parser.add_argument("--functional-cells", type=Path)
+    grade_parser.add_argument("--stack-authority", type=Path)
+    grade_parser.add_argument("--route-plan-authority", type=Path)
+    grade_parser.add_argument("--topology-migration", type=Path)
     grade_parser.add_argument("--json", type=Path, required=True)
     grade_parser.add_argument("--stage-bundle", type=Path)
     grade_parser.add_argument("--stage-result", type=Path)
@@ -572,7 +795,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if valid else 1
     try:
         receipt = grade(args.project, args.board, board_name=args.board_name,
-                        placement_config=args.placement_config)
+                        placement_config=args.placement_config,
+                        functional_cells_config=args.functional_cells,
+                        stack_authority=args.stack_authority,
+                        route_plan_authority=args.route_plan_authority,
+                        topology_migration=args.topology_migration)
     except Exception as exc:
         print(f"PLACEMENT-ROUTABILITY INCOMPLETE: {exc}")
         return 2

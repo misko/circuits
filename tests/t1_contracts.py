@@ -180,6 +180,9 @@ def t_template_seed():
     shutil.copy(tpl / "contracts" / "ROOT.contracts.md", d / "contracts.md")
     (d / "03_src" / "rules").mkdir()
     (d / "03_src" / "lib").mkdir()
+    # Exercise the enclosure-selected conditional branch in templates/README.
+    # A board with enclosure=none simply omits this governed subfolder.
+    (d / "03_src" / "mechanical").mkdir()
     (d / "01_docs" / "decisions").mkdir()
     (d / "01_docs" / "journal").mkdir()
     (d / "01_docs" / "learnings").mkdir()
@@ -197,6 +200,8 @@ def t_template_seed():
             ("contracts/01_docs/learnings/contracts.md",
              "01_docs/learnings/contracts.md"),
             ("contracts/03_src/lib/contracts.md", "03_src/lib/contracts.md"),
+            ("contracts/03_src/mechanical/contracts.md",
+             "03_src/mechanical/contracts.md"),
             ("contracts/03_src/rules/contracts.md",
              "03_src/rules/contracts.md")]:
         shutil.copy(tpl / src, d / dst)

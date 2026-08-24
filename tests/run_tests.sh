@@ -63,11 +63,13 @@ SUITES=(
   t1_contracts.py
   t1_pipeline_foundation.py
   t1_pipeline_contract.py
+  t1_pipeline_execution.py
   t1_skill_progressive_disclosure.py
   t1_pipeline_registry.py
   t1_pipeline_runtime.py
   t1_pipeline_artifacts.py
   t1_pipeline_acceptance.py
+  t1_pipeline_safety_boundaries.py
   t1_pcba_availability.py
   t1_receipt_readiness.py
   t1_pipeline_review.py
@@ -90,6 +92,8 @@ SUITES=(
   t1_net_label_survival.py
   t1_tsx_to_board.py
   t1_electrical_invariants.py
+  t1_electrical_closure.py
+  t1_operating_state.py
   t1_early_design.py
   t1_net_reference.py
   t1_waiver_evidence.py

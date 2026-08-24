@@ -37,6 +37,7 @@ with `git show 5566d356:skills/kicad-pcb/scripts/policy_audit.py` swapped in
 recorded in each docstring. Restored and re-run green afterwards.
 """
 import re
+import json
 import sys
 from pathlib import Path
 
@@ -45,6 +46,87 @@ from harness import (KPY, ROOT, SCRIPTS, check, contains, eq, main,  # noqa: E40
                      run, test, tmpdir)
 
 POLICY = SCRIPTS / "policy_audit.py"
+
+
+def selected_dossiers(d, phase="placement"):
+    """Ask the live auditor which exact dossiers a realized phase grades."""
+    code = (
+        "import importlib.util,json,sys\n"
+        "spec=importlib.util.spec_from_file_location('policy_audit',sys.argv[1])\n"
+        "mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)\n"
+        "print('@@'+json.dumps(mod.selected_part_yamls(mod.Path(sys.argv[2]),sys.argv[3])))\n"
+    )
+    result = run([KPY, "-c", code, str(POLICY), str(d), phase])
+    eq(result.rc, 0, "selected dossier helper")
+    return [Path(p).parent.name for p in
+            json.loads(result.out.split("@@", 1)[1].strip())]
+
+
+@test("release policy resolves the relocatable nested project instead of a "
+      "flat convenience copy")
+def t_release_candidate_uses_canonical_nested_project():
+    d = tmpdir("candidate_root_")
+    candidate = d / "candidate"
+    flat = candidate / "source"
+    nested = flat / "project" / "04_kicad"
+    nested.mkdir(parents=True)
+    code = (
+        "import importlib.util,sys\n"
+        "spec=importlib.util.spec_from_file_location('policy_audit',sys.argv[1])\n"
+        "mod=importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)\n"
+        "print('@@'+str(mod.release_artifact_root(mod.Path(sys.argv[2]),mod.Path(sys.argv[3]))))\n"
+    )
+    result = run([KPY, "-c", code, str(POLICY), candidate, d / "project"])
+    eq(result.rc, 0, "candidate root resolver")
+    eq(Path(result.out.split("@@", 1)[1].strip()), nested,
+       "canonical nested artifact root")
+
+
+@test("realized policy phases grade only the exact selected part when two "
+      "candidate dossiers share one footprint")
+def t_realized_phase_selects_exact_part_identity():
+    d = tmpdir("selected_part_")
+    for name, mpn, code in (("OLD", "OBSOLETE-REG", "COLD"),
+                            ("NEW", "SELECTED-REG", "CNEW")):
+        pd = d / "02_parts" / name
+        pd.mkdir(parents=True)
+        (pd / "part.yaml").write_text(
+            f"mpn: {mpn}\nfootprint: lib:SOT-23-6\n"
+            f"sourcing:\n  lcsc: {code}\n"
+            "layout:\n  source: exact manufacturer layout section\n"
+            "  keep_short:\n"
+            "    - {net: VIN, max_span_mm: 2.0, why: local bypass}\n")
+    build = d / "03_tscircuit" / "build"
+    build.mkdir(parents=True)
+    (build / "circuit.json").write_text(json.dumps({"elements": [{
+        "type": "source_component",
+        "manufacturer_part_number": "SELECTED-REG",
+        "supplier_part_numbers": {"jlcpcb": ["CNEW"]},
+    }]}))
+    eq(selected_dossiers(d), ["NEW"], "realized exact dossier population")
+    eq(set(selected_dossiers(d, "source")), {"OLD", "NEW"},
+       "source maintenance population")
+
+
+@test("realized policy dossier selection fails closed when circuit identity "
+      "matches no declared candidate", kind="known_bad")
+def t_realized_phase_unknown_identity_falls_back_to_all():
+    d = tmpdir("selected_part_unknown_")
+    pd = d / "02_parts" / "DECLARED"
+    pd.mkdir(parents=True)
+    (pd / "part.yaml").write_text(
+        "mpn: DECLARED\nfootprint: lib:SOT-23-6\n"
+        "sourcing:\n  lcsc: CDECLARED\n")
+    build = d / "03_tscircuit" / "build"
+    build.mkdir(parents=True)
+    (build / "circuit.json").write_text(json.dumps({"elements": [{
+        "type": "source_component",
+        "manufacturer_part_number": "UNDECLARED",
+        "supplier_part_numbers": {"jlcpcb": ["CUNKNOWN"]},
+    }]}))
+    # Returning every dossier makes the later policy checks conservative; an
+    # empty selection would silently exempt the realized design from review.
+    eq(selected_dossiers(d), ["DECLARED"], "fail-closed dossier population")
 
 # An in-scope part by P-LAYOUT's rule (npins > 2), carrying a valid `layout:`
 # block so that P-LAYOUT itself is green and only P-PREC is under test.

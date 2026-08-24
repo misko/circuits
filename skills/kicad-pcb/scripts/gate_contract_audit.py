@@ -149,6 +149,12 @@ SKIP_BASENAMES = {
     "pipeline_registry.py",
     "pipeline_review.py", "pipeline_runtime.py", "pipeline_shadow.py",
     "pipeline_timing.py", "pipeline_xtrace.py",
+    # Source/placement/routing transaction cores are mapping-in/mapping-out
+    # libraries.  They deliberately expose no CLI and print no verdict; their
+    # PASS/FAIL strings are closed schema values consumed by the executable
+    # gates that wrap them.
+    "board_authority.py", "copper_graph.py", "placement_cell_checks.py",
+    "route_acceptance_core.py", "pipeline_execution.py",
 }
 
 
@@ -510,7 +516,7 @@ VACUITY_RE = re.compile(r"^[ \t]*VACUITY:", re.M)
 #: landed with declarations and executable fixtures. The router composes a
 #: profile without proving a board exists; the authority audit proves lexical
 #: reachability without understanding whether prose reversed a policy.
-VACUITY_FLOOR = 16
+VACUITY_FLOOR = 17
 
 
 def vacuity_declaration(text):

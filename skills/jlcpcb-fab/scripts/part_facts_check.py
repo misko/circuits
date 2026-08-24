@@ -31,6 +31,8 @@ THE `asserts:` BLOCK (02_parts contract; every entry REQUIRES `why:`)
     asserts:
       - {assert: pad1_net_polarity, pad: 1, polarity: negative,
          why: "XT60 pad 1 is the '-' blade; datasheet fig 2"}
+      - {assert: configured_pin_net, pin: 3, net: GND,
+         why: "CH224K CFG3 low completes the documented 20 V 0/1/0 strap"}
       - {assert: value, equals: 1k, tolerance_pct: 5,
          why: "TI SLVS165O 7.3.4 names 1k explicitly"}
       - {assert: not_on_assembly_bom, why: "THT + stock 0; hand-wired"}
@@ -52,6 +54,11 @@ GRADED HERE (offline, no pcbnew, no network):
                       *_N, VSS, ...; '+' nets: everything else). Complements
                       canon P2/P-POL, which grades the same fact from the
                       BOARD — two artifacts, one fact (canon M1).
+  configured_pin_net every selected instance's declared pin must land on the
+                      exact named net in the exported netlist. This compiles
+                      mode/address/boot/voltage straps from the selected-part
+                      dossier into realized connectivity instead of trusting
+                      a prose configuration block.
 
 DEFERRED, and named rather than silently missing:
   keepout_region      needs board geometry (copper vs the part's body
@@ -121,7 +128,8 @@ except ImportError:                                   # pragma: no cover
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-KINDS_GRADED = {"value", "not_on_assembly_bom", "msl", "pad1_net_polarity"}
+KINDS_GRADED = {"value", "not_on_assembly_bom", "msl",
+                "pad1_net_polarity", "configured_pin_net"}
 KINDS_DEFERRED = {"keepout_region"}
 
 #: nets that ARE the negative/return side. Anything else is treated as
@@ -228,8 +236,8 @@ def load_fab(root):
     return ref_lcsc, ref_comment, cpl, bom_p, cpl_p
 
 
-def load_netlist_pad1(root):
-    """{ref: net_on_pad_1} parsed from the exported netlist, text only.
+def load_netlist_pin_nets(root):
+    """{(ref, pin): net} parsed from the exported netlist, text only.
 
     Deliberately a DIFFERENT artifact from the board that canon P2/P-POL
     grades: two independent readings of one fact (canon M1)."""
@@ -249,9 +257,14 @@ def load_netlist_pad1(root):
         net = m.group(1)
         for n in re.finditer(r'\(ref\s+"([^"]+)"\)\s*\(pin\s+"([^"]+)"\)',
                              m.group(2)):
-            if n.group(2) == "1":
-                out.setdefault(n.group(1), net)
+            out.setdefault((n.group(1), n.group(2)), net)
     return out, Path(hits[0])
+
+
+def load_netlist_pad1(root):
+    """Compatibility projection for the original polarity assertion."""
+    pins, path = load_netlist_pin_nets(root)
+    return {ref: net for (ref, pin), net in pins.items() if pin == "1"}, path
 
 
 def load_entry_refmap(root):
@@ -309,7 +322,42 @@ def order_text(root):
 
 
 # --------------------------------------------------------------------------
-def grade(root, parts_dir, strict=False):
+def load_selected_mpns(root):
+    """Return exact MPNs explicitly selected by the authored circuit.
+
+    A project parts directory is also a candidate/archive store.  Release
+    strictness must grade the parts selected by the exact circuit/BOM, not
+    every historical candidate that happens to remain in ``02_parts``.
+    Manual/DNP parts can lack an LCSC code, so the circuit's exact
+    ``manufacturer_part_number`` is the independent selection channel.
+    """
+    d = Path(root)
+    patterns = (
+        "03_tscircuit/build/circuit.json",
+        "source/project/03_tscircuit/build/circuit.json",
+        "source/circuit.json",
+    )
+    for pat in patterns:
+        p = d / pat
+        if not p.exists():
+            continue
+        try:
+            doc = json.loads(p.read_text(encoding="utf-8-sig"))
+        except Exception:
+            continue
+        els = doc if isinstance(doc, list) else (doc.get("elements") or [])
+        out = set()
+        for e in els:
+            if not isinstance(e, dict) or e.get("type") != "source_component":
+                continue
+            mpn = str(e.get("manufacturer_part_number") or "").strip()
+            if mpn:
+                out.add(mpn)
+        return out, str(p.relative_to(d))
+    return set(), None
+
+
+def grade(root, parts_dir, strict=False, all_declared=False):
     """Returns (findings, coverage, declaring_parts, total_parts) where
     coverage is {"graded": n, "unreached": n, "refmap": label}.
 
@@ -320,7 +368,8 @@ def grade(root, parts_dir, strict=False):
     verdict)."""
     parts, total = load_parts(parts_dir)
     ref_lcsc, ref_comment, cpl, bom_p, cpl_p = load_fab(root)
-    pad1, netp = load_netlist_pad1(root)
+    pin_nets, netp = load_netlist_pin_nets(root)
+    pad1 = {ref: net for (ref, pin), net in pin_nets.items() if pin == "1"}
     otext = order_text(root)
     finds, graded, unreached = [], 0, 0
 
@@ -335,6 +384,20 @@ def grade(root, parts_dir, strict=False):
         # No fab BOM yet (any stage before 7). The relation still exists —
         # earlier, in the artifact where it was authored (M-ENTRY).
         by_code, refmap_label = load_entry_refmap(root)
+
+    selected_mpns, mpnmap_label = load_selected_mpns(root)
+    selected_codes = set(by_code)
+    # Once a fab BOM exists, the project parts directory is a superset of the
+    # release.  Ignore unused candidate/legacy dossiers by default; otherwise
+    # --strict makes a valid release fail because an unrelated part was not
+    # selected.  --all-declared retains the fleet-maintenance diagnostic.
+    if bom_p is not None and mpnmap_label is not None and not all_declared:
+        active_parts = {
+            mpn: p for mpn, p in parts.items()
+            if p["lcsc"] in selected_codes or mpn in selected_mpns
+        }
+    else:
+        active_parts = parts
 
     def miss(text):
         """One UNREACHED finding, counted."""
@@ -354,7 +417,7 @@ def grade(root, parts_dir, strict=False):
                    f"not one of them")
                 + " — an assertion that grades nothing is not a pass")
 
-    for mpn, p in sorted(parts.items()):
+    for mpn, p in sorted(active_parts.items()):
         refs = sorted(by_code.get(p["lcsc"], [])) if p["lcsc"] else []
         for e in p["asserts"]:
             kind = e["assert"]
@@ -524,8 +587,43 @@ def grade(root, parts_dir, strict=False):
                             f"electrical check can see it"))
                 continue
 
+            if kind == "configured_pin_net":
+                pin = str(e.get("pin", "")).strip()
+                want = str(e.get("net", "")).strip()
+                if not pin or not want:
+                    finds.append((
+                        "P-FACT-CONFIG",
+                        f"{mpn}: configured_pin_net requires non-empty "
+                        f"`pin:` and `net:`, got pin={pin!r}, net={want!r}"))
+                    continue
+                if netp is None:
+                    miss(f"{mpn}: configured_pin_net declared but no "
+                         f"exported netlist found under {root}")
+                    continue
+                if not refs:
+                    miss(f"configured_pin_net: {why_no_ref(mpn, p)}")
+                    continue
+                graded += 1
+                for r in refs:
+                    got = pin_nets.get((r, pin))
+                    if got is None:
+                        finds.append((
+                            "P-FACT", f"{mpn}/{r}: configured pin {pin} is "
+                            f"not present in the exported netlist; part.yaml "
+                            f"requires net {want!r} — {e['why'][:90]}"))
+                    elif got != want:
+                        finds.append((
+                            "P-FACT", f"{mpn}/{r}: configured pin {pin} is "
+                            f"on net {got!r}, but part.yaml requires "
+                            f"{want!r} — {e['why'][:90]}"))
+                continue
+
     return (finds, {"graded": graded, "unreached": unreached,
-                    "refmap": refmap_label}, len(parts), total)
+                    "refmap": refmap_label, "mpnmap": mpnmap_label,
+                    "selected_parts": len(active_parts),
+                    "declaring_inventory": len(parts),
+                    "skipped_unused": len(parts) - len(active_parts)},
+            len(active_parts), total)
 
 
 def main(argv=None):
@@ -536,6 +634,11 @@ def main(argv=None):
                          "project the release belongs to)")
     ap.add_argument("--strict", action="store_true",
                     help="a DEFERRED or UNREACHED assertion is also a failure")
+    ap.add_argument(
+        "--all-declared", action="store_true",
+        help="diagnostic: grade every asserted dossier in 02_parts, including "
+             "parts not selected by this release (release gating defaults to "
+             "the exact BOM/circuit-selected population)")
     args = ap.parse_args(argv)
     if yaml is None:
         print("P-FACT LOAD ERROR: PyYAML not available")
@@ -553,7 +656,8 @@ def main(argv=None):
         return 0
 
     try:
-        finds, cov, declaring, total = grade(root, pd, args.strict)
+        finds, cov, declaring, total = grade(
+            root, pd, args.strict, all_declared=args.all_declared)
     except ConfigError as e:
         print(f"P-FACT LOAD ERROR: {e}")
         return 2
@@ -561,10 +665,14 @@ def main(argv=None):
     hard = [f for f in finds if f[0] == "P-FACT"]
     soft = [f for f in finds if f[0] != "P-FACT"]
     graded, unre = cov["graded"], cov["unreached"]
-    print(f"P-FACT: {declaring}/{total} part.yaml declare an `asserts:` block; "
+    print(f"P-FACT: {declaring}/{total} part.yaml are selected and declare an "
+          f"`asserts:` block; inventory carries {cov['declaring_inventory']} "
+          f"asserting dossier(s), {cov['skipped_unused']} unused by this "
+          f"release; "
           f"{graded}/{graded + unre} assertion(s) REACHED A COMPARISON against "
           f"{root} ({unre} unreached; refdes<->LCSC read from "
-          f"{cov['refmap'] or 'NOTHING'})")
+          f"{cov['refmap'] or 'NOTHING'}; selected MPNs read from "
+          f"{cov['mpnmap'] or 'NOTHING'})")
     for fid, text in finds:
         print(f"  {fid}: {text}")
     if hard or (args.strict and soft):

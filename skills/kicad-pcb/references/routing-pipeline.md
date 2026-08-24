@@ -6,14 +6,26 @@ reintroduces a failure that was already debugged once.
 
 ## Contents
 
-1. Ampacity guardrails
-2. Canonical routing steps
-3. Repair procedure
-4. Package-versus-router decision
-5. Measured empirics
-6. Quick-loop economics and escalation
+1. Source-to-preparation authority
+2. Ampacity guardrails
+3. Canonical routing steps
+4. Repair procedure
+5. Package-versus-router decision
+6. Measured empirics
+7. Candidate transactions and final acceptance
+8. Quick-loop economics, escalation and progressive controls
 
 The route-entry capability check includes `PF-VIA-ASPECT`.
+
+## Source-to-preparation authority
+
+Before emitting r0, read `source-to-prep-authority.md`. Compile the authored
+stack, independent live source facts, optional migration, and route ownership
+into one verified source-preparation receipt. Consume its physical-order,
+layer/reference, via-span, wave-owner and conservative stitch outputs; do not
+rederive those facts in the route driver. During migration the receipt remains
+shadow behind current prep authority until its owning canaries pass. This is
+an internal source-to-prep seam, not a new lifecycle stage.
 
 ## Step 0 (BEFORE anything routes): ampacity guardrails
 
@@ -138,8 +150,14 @@ single final-route acceptance receipt rather than an isolated green claim.
 
 ### Final-route acceptance (mandatory promotion boundary)
 
-Run quick mode after a candidate mutation and full mode before route promotion,
-layout seal, release review, or fabrication export:
+Read `route-candidate-contract.md` before this boundary. Every mutation first
+enters a fresh candidate workspace bound to the immutable prepared board and
+prepared `.kicad_pro`/`.kicad_dru`; candidate-owned sidecars never grade their
+own copper. Verify that workspace receipt before updating route progress or an
+accepted pointer.
+
+Run quick mode after an accepted candidate mutation and full mode before route
+promotion, layout seal, release review, or fabrication export:
 
 ```text
 route_acceptance_gate.py grade PROJECT --board BOARD --mode quick \
@@ -163,6 +181,12 @@ configured drill families, while this checker inventories every saved
 `PCB_VIA` against actual board thickness and the selected tier ceiling. Blind
 and buried spans conservatively use full thickness until final fabricator
 stackup evidence supplies a smaller plated span.
+
+Use the exact native-DRC provenance and compatibility rules in
+`route-candidate-contract.md`. Full promotion requires a fresh, hash-bound,
+unchanged-board `0/0/0` report. Shared semantic admission/copper results remain
+shadow during canary rollout; approximate real-board connectivity cannot own
+promotion.
 
 Two stitch passes earn a special note here. Put **`fresh_reload`** after the
 last `fill`: it unconditionally saves and re-execs in a fresh pcbnew process,
@@ -309,11 +333,19 @@ The order is load-bearing:
 
 ```text
 ownership preflight -> KRT wave -> legacy fast wave gates
-                    -> immutable candidate workspace -> progress receipt
-       unresolved -> semantic novelty budget -> retry or D-BACK
+                    -> immutable candidate workspace -> verified receipt
+                    -> semantic objective/progress receipt
+       unresolved -> Pareto + novelty budget -> retry or typed D-BACK
 ```
 
 `observe` mode records an incompatibility without changing legacy promotion;
-use it only for fleet migration. New projects use `enforce`. A candidate that
-is REJECTED or INCOMPLETE in enforce mode never writes route progress or
-`FINAL`.
+use it only for fleet migration. New projects may enforce the established
+candidate receipt while its new shared semantic subchecks remain shadow. A
+candidate that is REJECTED or INCOMPLETE in enforce mode never writes route
+progress or `FINAL`.
+
+The exploration guard signs unresolved nets, hard finding types/owners, and
+frontier ownership while ignoring coordinate/hash churn. When objective data
+is present, require complete Pareto comparison across every active dimension.
+Stop at the owning semantic/attempt/operation bounds and obey the emitted typed
+backtrack. `route-exploration.md` alone owns exact defaults and retention rules.

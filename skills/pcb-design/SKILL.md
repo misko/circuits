@@ -80,6 +80,7 @@ Read these files directly when their condition applies. References longer than
 | Electrical and machine/human policy canon | kicad-pcb | `../kicad-pcb/references/design-policies.md` |
 | TSX/KiCad schematic generation and readability | kicad-pcb | `../kicad-pcb/references/schematic-generation.md` and `../kicad-pcb/references/tscircuit-folder.md` |
 | Placement, adjacency, body/courtyard and corridor checks | kicad-pcb | `../kicad-pcb/references/placement-and-proximity.md` |
+| Physical stack order, layer roles/references, topology migration and route-wave ownership | kicad-pcb | `../kicad-pcb/references/source-to-prep-authority.md` |
 | Route preparation, KRT, stitch, grind and DRC | kicad-pcb | `../kicad-pcb/references/routing-pipeline.md`, `../kicad-pcb/references/route-ownership.md`, `../kicad-pcb/references/route-candidate-contract.md`, `../kicad-pcb/references/route-exploration.md`, and `../kicad-pcb/references/fast-pcb-flow.md` |
 | Datasheet/reference-layout precedent selection | kicad-pcb | `../kicad-pcb/references/layout-precedents.md` |
 | RF/impedance/phase/isolation applies | kicad-pcb | `../kicad-pcb/references/rf/rf-context.md` plus the applicable RF review protocol linked here: `../kicad-pcb/references/rf-schematic-review-protocol.md`, `../kicad-pcb/references/rf-pcb-review-protocol.md`, `../kicad-pcb/references/rf-fab-review-protocol.md` |
@@ -192,11 +193,21 @@ schematic does not pass. Compose the post-netlist specialist battery as
 Load only the applicable KiCad placement/routing references. Prove package
 escape, part/pin identity, native-polygon body/courtyard clearance, datasheet
 adjacency, corridor capacity, and critical-pair inventory before router spend.
+Before route preparation, compile the closed source-to-prep authority over the
+authored physical stack, independently observed live topology, any explicit
+migration, and exact route ownership. It may derive only unambiguous layer,
+reference, via-span and stitch facts. Keep its decision shadowed behind the
+current preparation authority until the documented canaries agree.
+
 At placement freeze, run the placement-routability compositor. It grades the
-existing physical predicates plus declared shunt/series endpoint topology and
-layer eligibility, ordered connector lanes, and explicit series power paths;
-it does not route copper or add a lifecycle stage. Publish accepted shadow
-evidence as `P-FEASIBILITY` until canary equivalence permits promotion.
+existing physical predicates and source-owned topology/layer declarations; it
+does not route copper or add a lifecycle stage. Functional-cell evidence for
+selected-part pad roles, signed orientation, local paths, simultaneous
+reservations, constrained escapes, ground egress, hot-path lower bounds and
+pilot replicas remains shadow until its independent-observation canaries pass.
+Publish accepted stage evidence as `P-FEASIBILITY`; never let a shadow PASS
+weaken the legacy decision.
+
 After native-model registration, close `P-ORIENT` for edge-mounted connectors
 with machine geometry plus exact, hash-bound human directional views. If the
 fabrication twin substitutes a vendor model, require its automatic
@@ -212,12 +223,15 @@ stage.
 
 Route from a track-free, unfilled deterministic input. Run the mechanical grind
 at the cheapest tier, stop on the bounded plateau trigger, fix upstream source,
-and regenerate. Candidate-loop checks remain cheap; promotion and layout seal
-consume one hash-bound final-route acceptance receipt over critical
-connectivity/topology, ownership, realized vias, declared length/plane/
-ampacity evidence and native DRC. Full DRC requires zero violations, zero
-unconnected, and zero parity findings at full severity after rules are emitted
-last.
+and regenerate. Treat each mutation as a fresh, immutable candidate
+transaction bound to the prepared board and sidecars. Candidate-owned rules
+never grade their own copper. Compare semantic objectives and stop after the
+bounded non-improvement budget; use the typed recommendation to backtrack.
+During dual-authority rollout, new semantic copper/admission results are shadow
+and may only tighten an accepted legacy result after promotion canaries pass.
+Layout seal consumes one hash-bound final-route receipt. Its fresh native DRC
+must bind the unchanged board and report and show absolute zero violations,
+zero unconnected items, and zero schematic-parity findings.
 
 ## Fabrication and assembly
 

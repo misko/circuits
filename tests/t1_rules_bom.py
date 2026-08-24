@@ -105,6 +105,53 @@ def t_rules_written():
     contains(dru, "(min 0.50mm)", ".kicad_dru BRIDGE width")
 
 
+@test("explicit electrical paths make KiCad tuning-geometry DRC mandatory")
+def t_explicit_paths_enable_native_tuning_geometry_drc():
+    """The release checker may not cite zero native DRC while the native
+    predicate most relevant to its declared tuning geometry is ignored.
+    Applicability comes from source (`length_match.*.paths`), not a board-name
+    exception or a manual project-file edit."""
+    proj = rules_project()
+    import yaml
+    nets = proj / "03_src" / "rules" / "nets.yaml"
+    spec = yaml.safe_load(nets.read_text()) or {}
+    spec["length_match"] = {
+        "TEST_PAIR": {
+            "adr": "TEST",
+            "intent": "fixture path pair",
+            "members": {"P": ["E_PLUS"], "N": ["E_MINUS"]},
+            "topology": "chain",
+            "paths": {
+                "P": [{"id": "main", "segments": [
+                    {"net": "E_PLUS", "from": "U1.1", "to": "J1.1"}
+                ]}],
+                "N": [{"id": "main", "segments": [
+                    {"net": "E_MINUS", "from": "U1.2", "to": "J1.2"}
+                ]}],
+            },
+            "max_spread_mm": 0.5,
+        }
+    }
+    nets.write_text(yaml.safe_dump(spec, sort_keys=False))
+
+    pro_path = proj / "04_kicad" / "cook_loadcell.kicad_pro"
+    before = json.loads(pro_path.read_text())
+    severity = (before.setdefault("board", {})
+                .setdefault("design_settings", {})
+                .setdefault("rule_severities", {}))
+    severity["tuning_profile_track_geometries"] = "ignore"
+    pro_path.write_text(json.dumps(before, indent=2) + "\n")
+
+    r = must_pass(run([PY, GEN_RULES, proj]),
+                  "generate_rules_generic with explicit paths")
+    after = json.loads(pro_path.read_text())
+    eq(after["board"]["design_settings"]["rule_severities"]
+       ["tuning_profile_track_geometries"], "error",
+       "applicable native tuning geometry severity")
+    contains(r.out, "enabled tuning_profile_track_geometries=error",
+             "applicability decision is visible")
+
+
 @test("rules_audit PASSes on a correctly generated project")
 def t_rules_audit_clean():
     proj = rules_project()

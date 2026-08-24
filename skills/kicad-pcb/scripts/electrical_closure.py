@@ -3,7 +3,8 @@
 
 This script deliberately contains no electrical formulas.  The specialist
 gates remain authoritative for net survival, invariants, corner calculations,
-topology, margins, off-control, component census, and source-value identity.
+topology, margins, off-control, component census, source-value identity, and
+declared cross-device operating-state compatibility.
 E-CLOSURE only supplies a non-vacuous denominator and one hash-bound pipeline
 boundary so a later stage cannot accidentally omit one member of the battery.
 """
@@ -91,7 +92,7 @@ def _inputs(project: Path) -> dict[str, Path]:
 
 def commands(project: Path) -> list[tuple[str, list[str]]]:
     py = "/usr/bin/python3"
-    return [
+    battery = [
         ("net_label_survival", [py, str(KICAD_SCRIPTS / "net_label_survival.py"), "."]),
         ("electrical_invariants", [py, str(KICAD_SCRIPTS / "electrical_invariants.py"), "."]),
         ("adr_coverage", [py, str(KICAD_SCRIPTS / "electrical_invariants.py"), ".", "--adr-coverage"]),
@@ -104,6 +105,17 @@ def commands(project: Path) -> list[tuple[str, list[str]]]:
             py, str(FAB_SCRIPTS / "bom_source_check.py"), "--circuit-only",
             str(_canonical_circuit(project)), "--parts", str(project / "02_parts")]),
     ]
+    # E-STATE is opt-in during fleet migration.  Its presence is derived from
+    # the authored rule, not a require_* switch; projects without the new
+    # contract retain the exact legacy nine-predicate composition.  Once
+    # present, malformed/empty state coverage fails inside the specialist.
+    if (project / "03_src/rules/operating_states.yaml").is_file():
+        battery.append(("operating_state_compatibility", [
+            py, str(KICAD_SCRIPTS / "operating_state_check.py"), ".",
+            "--manifest", "03_src/rules/operating_state_manifest.yaml",
+            "--json", "06_build/verification/operating_state.json",
+        ]))
+    return battery
 
 
 def grade(project: Path, *, runner: Callable[[list[str], Path], dict[str, Any]] = _run

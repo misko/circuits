@@ -39,7 +39,7 @@ via an explicit pattern (see the coverage rule below).
 | `fix_pcb_design.md` | retained PCB workflow review and repair notes |
 | `fix_routing_to_industry_standards.md` | retained routing standards review notes |
 | `routing_readme.md` | retained router usage and investigation notes |
-| `skills/` | the product: pcb-design, kicad-pcb, jlcpcb-fab, shopping-list (own contract) |
+| `skills/` | the product: pcb-design, kicad-pcb, jlcpcb-fab, pcb-enclosure, shopping-list (own contract) |
 | `docs/` | repo-level canon: ADRs + proof docs (own contract) |
 | `examples/` | frozen evidence snapshots skills may cite (own contract) |
 | `scripts/` | repo-level tooling, e.g. this audit (own contract) |

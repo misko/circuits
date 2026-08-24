@@ -464,7 +464,17 @@ def main(argv=None):
         if args.release:
             base = Path(args.release)
             fab = base / "fab" if (base / "fab").is_dir() else base
-            uns, n_cpl = audit_fab(fab, table, name_db)
+            # Match the exporter's one valid exemption: reopen the exact
+            # release board and measure 180-degree pad+graphics symmetry.
+            # The old --release path omitted this argument, so a package the
+            # exporter correctly accepted was re-reported as 130/179
+            # UNSOURCED rows (mostly chip passives).  A downstream audit may
+            # not silently grade a stricter, different population.
+            board_hits = sorted((base / "source").glob("*.kicad_pcb"))
+            if not board_hits:
+                board_hits = sorted(base.glob("04_kicad/*.kicad_pcb"))
+            exempt = exempt_refs(board_hits[0]) if len(board_hits) == 1 else None
+            uns, n_cpl = audit_fab(fab, table, name_db, exempt)
             if not n_cpl:
                 print(f"A-ROT N-A: no CPL under {fab}")
                 return rc
@@ -478,7 +488,8 @@ def main(argv=None):
                 rc = 1
             else:
                 print(f"A-ROT OK: all {n_cpl} CPL rotations resolve from a "
-                      f"MEASURED per-LCSC row")
+                      f"MEASURED per-LCSC row or exact-board measured "
+                      f"180-degree symmetry")
         else:
             root = Path(args.root) if args.root else \
                 Path(__file__).resolve().parents[3]

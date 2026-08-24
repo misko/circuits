@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -56,7 +57,24 @@ def load_assembly(board_path: Path, explicit: str | None = None):
     return data, path
 
 
-def via_order_note(data: dict, source: Path | None = None) -> str | None:
+def _via_counts(board):
+    protected = ordinary = partial = 0
+    for item in board.GetTracks():
+        if item.GetClass() != "PCB_VIA":
+            continue
+        capped = item.GetCappingMode() == pcbnew.CAPPING_MODE_CAPPED
+        filled = item.GetFillingMode() == pcbnew.FILLING_MODE_FILLED
+        if capped != filled:
+            partial += 1
+        elif capped:
+            protected += 1
+        else:
+            ordinary += 1
+    return protected, ordinary, partial, len(via_in_pad_hits(board))
+
+
+def via_order_note(data: dict, source: Path | None = None,
+                   board=None) -> str | None:
     process = data.get("via_process")
     if not isinstance(process, dict):
         return None
@@ -65,10 +83,15 @@ def via_order_note(data: dict, source: Path | None = None) -> str | None:
         return None
     origin = source.as_posix() if source else "assembly.yaml"
     confirm = bool(process.get("uploader_confirmation_required"))
+    census = ""
+    if board is not None:
+        protected, ordinary, partial, vip = _via_counts(board)
+        census = (f"\nExact board census: {protected} protected, {ordinary} "
+                  f"ordinary, {partial} partial; {vip} via-in-pad sites.")
     return (
         "JLCPCB VIA PROCESS — GENERATED; DO NOT RE-TYPE\n"
         f"Source: {origin}\n"
-        f"Order remark: {remark}\n"
+        f"Order remark: {remark}{census}\n"
         "Uploader confirmation required: " + ("YES" if confirm else "NO")
         + "\n"
     )
@@ -272,6 +295,18 @@ def check(board_path: Path, assembly: str | None = None):
                     f"declared families {ordinary_drills}")
 
     total = protected + ordinary_count + partial
+    # Legacy prose sometimes hard-coded a prior release's census.  If it does,
+    # it must agree with this exact board; otherwise a superficially complete
+    # order note can send the fabricator an obsolete drill-family count.
+    stated = re.search(
+        r"census\s+is\s+(\d+)\s+protected.*?(\d+)\s+ordinary", remark,
+        re.I | re.S)
+    if stated and (int(stated.group(1)), int(stated.group(2))) != \
+            (protected, ordinary_count):
+        out["fails"].append(
+            "V-ORDER stale hard-coded census: order_remark says "
+            f"{stated.group(1)} protected / {stated.group(2)} ordinary, "
+            f"exact board is {protected} / {ordinary_count}")
     out["census"] = census
     out["coverage"] = {
         "V-FLAGS": f"{total}/{total} vias graded",
