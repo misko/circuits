@@ -1,8 +1,9 @@
 # circuits
 
-Agent skills for taking a PCB from generator scripts to a fab-ready, ordered
-board — written for [Claude Code](https://claude.com/claude-code), usable as
-plain documentation by anyone.
+Agent skills for taking a PCB from requirements through a fab-ready, ordered
+board and a verified printable enclosure — written for
+[Claude Code](https://claude.com/claude-code), usable as plain documentation
+by anyone.
 
 These are not tutorials. Every claim in them was paid for by a real failure on
 a real board (a 136-part, 4-layer rover power board, 2026-07): bugs that
@@ -10,12 +11,15 @@ shipped silently past DRC, routers that produced fuses instead of traces,
 assembly previews that lied. The skills exist so the next board doesn't
 rediscover them.
 
-## The two skills
+## The skills
 
 | Skill | Covers |
 |---|---|
+| [`pcb-design`](skills/pcb-design/) | End-to-end PCB lifecycle, scope, handoffs, reviews, release, publication, and first article. |
 | [`kicad-pcb`](skills/kicad-pcb/) | Schematic generation, placement, routing, verification. 11 golden rules, 7 reference docs, 4 project-agnostic scripts. |
 | [`jlcpcb-fab`](skills/jlcpcb-fab/) | Fab outputs and ordering: gerber/BOM/CPL export, live JLCPCB stock checks, part-spec confirmation, CPL rotation correction. |
+| [`pcb-enclosure`](skills/pcb-enclosure/) | Hash-bound PCB interfaces, support-aware enclosure CAD, connector access, inserts, mesh checks, physical evidence, and candidate packages. |
+| [`shopping-list`](skills/shopping-list/) | Distributor-separated purchase lists for parts not supplied by the PCB assembler. |
 
 ## The model: KiCad as a library, not a GUI
 
@@ -84,6 +88,8 @@ in the skills.
 
 ## Scope
 
-These cover **generate → route → verify → order**. Turning an English
-requirement into an architecture and a part selection is *not* covered — that
-remains expert work, documented per project.
+These cover **commission → generate → route → verify → order**, plus a separate
+**CAD → print-fit → thermal** enclosure evidence ladder. Engineering judgement
+still owns architecture, part selection, and physical acceptance; the skills
+make those decisions explicit and reproducible rather than pretending to infer
+them from attractive outputs.

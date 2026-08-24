@@ -283,11 +283,14 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
 GOVERNED_FLOOR = 20
-PROVEN_FLOOR = 698
-#: 19 -> 20 governed families on 2026-08-24: enclosure design gained a
-#: declarative `03_src/mechanical/enclosure.yaml` contract. Nested mechanical
-#: YAML joined SOURCE_GLOBS in the same change, with a known-bad proving that
-#: an undeclared geometry key is no longer invisible.
+PROVEN_FLOOR = 716
+#: 19 -> 20 governed families and 698 -> 716 PROVEN on 2026-08-24:
+#: enclosure design gained a declarative `03_src/mechanical/enclosure.yaml`
+#: contract whose twelve rows name real enclosure readers. Re-pinning the
+#: merged enclosure + pipeline-authority tree also captured six already-proven
+#: rows the former floor lagged. Nested mechanical YAML joined SOURCE_GLOBS,
+#: with a known-bad proving that an undeclared geometry key is no longer
+#: invisible.
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.

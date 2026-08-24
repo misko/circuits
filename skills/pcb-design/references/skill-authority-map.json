@@ -61,6 +61,12 @@
       "policy_ids": []
     },
     {
+      "id": "pcb_enclosure",
+      "owner": "pcb-enclosure",
+      "references": ["skills/pcb-enclosure/references/connector-access.md", "skills/pcb-enclosure/references/enclosure-topologies.md", "skills/pcb-enclosure/references/fasteners-and-inserts.md", "skills/pcb-enclosure/references/fdm-printability.md", "skills/pcb-enclosure/references/interface-schema.md", "skills/pcb-enclosure/references/verification-and-release.md"],
+      "policy_ids": []
+    },
+    {
       "id": "kicad_policy",
       "owner": "kicad-pcb",
       "references": ["skills/kicad-pcb/references/design-policies.md"],

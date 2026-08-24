@@ -28,7 +28,7 @@ meshes, renders, reports and packages belong under `06_build/mechanical/`.
 | `subject.*` | `enclosure_common.py, verify_enclosure.py, package_enclosure.py` | exact PCB/STEP paths and SHA-256 identities bind every derived artifact |
 | `process.*` | `enclosure_common.py, generate_enclosure.py, verify_enclosure.py` | printer, material, nozzle/layer and support policy constrain generated geometry |
 | `cad.*` | `enclosure_common.py, generate_enclosure.py, verify_enclosure.py` | backend/source selection and exact generated-part contract |
-| `geometry.*` | `enclosure_common.py, generate_enclosure.py, verify_enclosure.py` | split-shell, panel, tray or service-access topology and its clearances |
+| `geometry.*` | `enclosure_common.py, generate_enclosure.py, verify_enclosure.py` | split-shell or captured-panel base/tray topology and its panel-capture clearances; service-access openings come from `interfaces[].*` |
 | `fasteners.*` | `enclosure_common.py, generate_enclosure.py, verify_enclosure.py` | screw, insert, boss and fit-coupon geometry |
 | `interfaces[].*` | `enclosure_common.py, generate_enclosure.py, verify_enclosure.py` | every connector, control, fuse and mounting feature receives an explicit access disposition |
 | `thermal.*` | `enclosure_common.py, generate_enclosure.py, verify_enclosure.py` | ventilation zones and the thermal-validation obligation |

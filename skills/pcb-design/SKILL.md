@@ -6,9 +6,9 @@ description: Drive a PCB from a user brief through requirements, architecture, s
 # `/pcb-design` — brief to verified assembled board
 
 Deliver a populated, reviewable board—not merely Gerbers or DRC-clean copper.
-Orchestrate the lifecycle; delegate electrical/layout mechanics to `kicad-pcb`
-and manufacturer/assembly mechanics to `jlcpcb-fab` through the reference
-router below.
+Orchestrate the lifecycle; delegate electrical/layout mechanics to `kicad-pcb`,
+printable enclosure mechanics to `pcb-enclosure`, and manufacturer/assembly
+mechanics to `jlcpcb-fab` through the reference router below.
 
 ## Outcome and authority
 
@@ -24,6 +24,8 @@ Authority is deliberately singular:
   reviews, release seal, publication, first-article transition;
 - `kicad-pcb`: schematic/netlist, placement, geometry, routing, DRC/parity,
   impedance and RF realization;
+- `pcb-enclosure`: board-interface extraction, printable enclosure source,
+  inserts, access, CAD/mesh checks, physical-fit evidence and candidate packages;
 - `jlcpcb-fab`: Gerber/drill/BOM/CPL, stock, population, rotation, JLC twin,
   model registration and manufacturer staging;
 - project `contracts.md`: exact artifact membership and immutable seal rules;
@@ -57,10 +59,15 @@ source in a separate, evidenced change.
 5. Default `firmware` to `forbidden`. Do not create, modify, build, or release
    firmware unless the user explicitly requests it. A programmable IC does not
    imply firmware scope.
-6. Run `scripts/skill_reference_router.py` in plan mode. Read every selected
+6. If an enclosure is in scope, record `co_design` or `derived` in its
+   `03_src/mechanical/enclosure.yaml` and route the parallel mechanical
+   workstream to `pcb-enclosure`. In this first canary phase it is an explicit
+   auxiliary handoff, not a typed PCB `StageSpec` and not part of PCB release
+   readiness.
+7. Run `scripts/skill_reference_router.py` in plan mode. Read every selected
    procedure completely before its stage and do not load unselected domain
    references.
-7. Keep current project drivers and gates authoritative. The typed plan is a
+8. Keep current project drivers and gates authoritative. The typed plan is a
    composition/coverage guard until a project has an approved equivalent trace.
 
 ## Reference router
@@ -89,6 +96,7 @@ Read these files directly when their condition applies. References longer than
 | JLC BOM/CPL, stock, rotation, uploader review | jlcpcb-fab | `../jlcpcb-fab/references/assembly-and-order.md` |
 | JLC CAD twin, model transforms, bounding boxes/registration | jlcpcb-fab | `../jlcpcb-fab/references/digital-twin.md` |
 | Edge-mounted connector orientation, mating plane, directional 3D approval | jlcpcb-fab | `../jlcpcb-fab/references/connector-orientation.md` |
+| Printable enclosure, connector panels, standoffs/inserts, fit coupons, mesh/collision checks or physical enclosure evidence | pcb-enclosure | `../pcb-enclosure/SKILL.md`, then its applicable `../pcb-enclosure/references/interface-schema.md`, `../pcb-enclosure/references/enclosure-topologies.md`, `../pcb-enclosure/references/connector-access.md`, `../pcb-enclosure/references/fasteners-and-inserts.md`, `../pcb-enclosure/references/fdm-printability.md`, and `../pcb-enclosure/references/verification-and-release.md` |
 | Exact JLC fabrication/assembly staging | jlcpcb-fab | `../jlcpcb-fab/references/release-staging.md` |
 | Physical first-article power-up | jlcpcb-fab | `../jlcpcb-fab/references/first-article-bringup.md` |
 
@@ -136,6 +144,12 @@ procedure solely to recover syntax.
 | Publication | Publication gate passes against base/head and repository protection applies | pcb-design publication |
 | First article | Staged population, exposed-pad, resistance/current-limit and contract-owned electrical/RF/thermal tests pass | jlcpcb-fab first-article card + project test plan |
 | Production | First-article evidence closes every production hold | pcb-design lifecycle |
+
+Enclosure status is a parallel auxiliary lifecycle. `CAD_READY`,
+`PRINT_VERIFIED`, and `THERMALLY_VERIFIED` describe only the exact bound
+enclosure candidate; none promotes PCB layout, fabrication, release, or first
+article. An enclosure `FAIL` or `INCOMPLETE` remains visible without rewriting
+an immutable PCB release.
 
 ### Stage loop
 

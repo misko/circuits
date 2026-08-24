@@ -43,6 +43,7 @@ POLICY_RE = re.compile(POLICY_PATTERN)
 POLICY_ID_RE = re.compile(r"^(?:" + POLICY_PATTERN + r")$")
 OWNER_PREFIX = {
     "pcb-design": "skills/pcb-design/",
+    "pcb-enclosure": "skills/pcb-enclosure/",
     "kicad-pcb": "skills/kicad-pcb/",
     "jlcpcb-fab": "skills/jlcpcb-fab/",
 }
@@ -51,6 +52,7 @@ BASELINE_SKILLS = (
     "skills/kicad-pcb/SKILL.md",
     "skills/jlcpcb-fab/SKILL.md",
 )
+CURRENT_SKILLS = BASELINE_SKILLS + ("skills/pcb-enclosure/SKILL.md",)
 ALLOWED_CORE_SCRIPTS = frozenset({
     "pcb_publication_gate.py", "skill_authority_check.py",
     "skill_reference_router.py",
@@ -196,7 +198,7 @@ def audit(
             findings.append(
                 f"core word budget: {words} > {budget['max_words']}")
 
-    for skill_path in BASELINE_SKILLS:
+    for skill_path in CURRENT_SKILLS:
         live = root / skill_path
         try:
             skill_text = live.read_text(encoding="utf-8")
@@ -292,7 +294,7 @@ def audit(
 
     skill_tree_text = "\n".join(
         path.read_text(encoding="utf-8", errors="replace")
-        for skill in ("pcb-design", "jlcpcb-fab")
+        for skill in ("pcb-design", "pcb-enclosure", "jlcpcb-fab")
         for path in (root / "skills" / skill).rglob("*.md")
     )
     for phrase in STALE_AUTHORITY_PHRASES:

@@ -1,7 +1,8 @@
 # contract: 03_src/
 
 **Purpose** — the only hand-written truth about the board's *KiCad-side*
-design: placement, rules, the promoted route, and the per-board gates.
+design (placement, rules, promoted route and per-board gates) and its optional
+board-coupled mechanical design.
 Everything in `04_kicad/` and `06_build/` is derived from here plus
 `03_tscircuit/`. If `03_src/` and `04_kicad/` disagree, `03_src/` is right and
 `04_kicad/` is stale.
@@ -17,6 +18,8 @@ carry its own `generate_board.py` / `route_prep.py` / `stitch_and_fill.py` /
 clean-room run proved its logic is 100% board-independent). `03_src/` holds the
 board-specific **config** the shared scripts consume, plus exactly ONE small
 per-board gate: `audit_board.py` (board-specific placement/pad invariants).
+The `mechanical/` subtree carries enclosure config and parametric CAD without
+creating a second PCB backend.
 
 ## Allowed
 
@@ -31,6 +34,7 @@ per-board gate: `audit_board.py` (board-specific placement/pad invariants).
 | `rebuild_all.sh` | THE entry point: thin driver that calls the SHARED generics in canonical order, `set -euo pipefail` | REQUIRED |
 | `export_pdfs.sh` | release PDF set (pcb_layers, assembly) + PNG verification renders | |
 | `lib/` | project-local footprints tscircuit/KiCad can't yet express — see `lib/contracts.md` | |
+| `mechanical/` | Hand-authored board-coupled mechanical source for the printable enclosure. Configuration, parametric CAD and instructions live here; generated interfaces, meshes, renders and reports live under `06_build/mechanical/`. See `mechanical/contracts.md`. | `pcb-enclosure` |
 | `*.py` | **STOPGAP ONLY (canon M8)**: any script beyond `audit_board.py`/`bom_seed.py` is a declared backend gap — its docstring MUST name the gap and the config schema that would replace it. The SECOND board needing the same script triggers mandatory promotion into the shared backend | `rebuild_all.sh` |
 | `contracts.md` | this file | |
 

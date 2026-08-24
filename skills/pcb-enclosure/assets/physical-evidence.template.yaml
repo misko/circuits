@@ -1,0 +1,16 @@
+schema: 1
+kind: pcb-enclosure-physical-evidence-v1
+config_semantic_sha256: REPLACE_WITH_64_HEX_FROM_VERIFICATION_JSON
+tests:
+  insert_coupon:
+    status: NOT_RUN
+    evidence: "Not run; replace with operator, date, exact hardware/process, and evidence path."
+  board_drop_in:
+    status: NOT_RUN
+    evidence: "Not run; replace with operator, date, assembly sequence, and evidence path."
+  all_interfaces_mated:
+    status: NOT_RUN
+    evidence: "Not run; replace with operator, date, mating configuration, and evidence path."
+  thermal_soak:
+    status: NOT_RUN
+    evidence: "Not run; replace with operator, date, load/ambient/duration/results, and evidence path."

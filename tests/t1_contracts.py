@@ -181,7 +181,8 @@ def t_template_seed():
     (d / "03_src" / "rules").mkdir()
     (d / "03_src" / "lib").mkdir()
     # Exercise the enclosure-selected conditional branch in templates/README.
-    # A board with enclosure=none simply omits this governed subfolder.
+    # A commission that selects no enclosure work alongside its capability
+    # profile simply omits this governed subfolder.
     (d / "03_src" / "mechanical").mkdir()
     (d / "01_docs" / "decisions").mkdir()
     (d / "01_docs" / "journal").mkdir()

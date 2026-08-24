@@ -28,7 +28,8 @@ design source on 2026-07-20; the fix is that the skill carries its own canon.
 - Sub-stage contracts nest under `contracts/` exactly as they land in the
   project (`contracts/01_docs/decisions/`,
   `contracts/03_src/{lib,mechanical,rules}/`). The mechanical contract is
-  seeded only when the capability profile selects an enclosure.
+  seeded only when commission explicitly selects enclosure work alongside the
+  capability profile.
 
 ## Commission a new board (what the SKILL does)
 
@@ -60,7 +61,8 @@ cp <skill>/templates/contracts/01_docs/journal/contracts.md   projects/<name>/01
 cp <skill>/templates/contracts/01_docs/learnings/contracts.md projects/<name>/01_docs/learnings/
 cp <skill>/templates/contracts/03_src/lib/contracts.md        projects/<name>/03_src/lib/
 cp <skill>/templates/contracts/03_src/rules/contracts.md      projects/<name>/03_src/rules/
-# CONDITIONAL — only when `enclosure` is `co_design` or `derived`:
+# CONDITIONAL — only when commission's enclosure scope explicitly selects
+# `co_design` or `derived`:
 mkdir -p projects/<name>/03_src/mechanical
 cp <skill>/templates/contracts/03_src/mechanical/contracts.md projects/<name>/03_src/mechanical/
 ```
