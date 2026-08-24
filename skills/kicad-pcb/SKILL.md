@@ -147,6 +147,7 @@ credits, or debugging time — check provenance notes before assuming staleness.
 |---|---|
 | Folder layout spec→fab, datasheet/parts caching, releases | `references/project-structure.md` |
 | The 7-step generate→route→verify pipeline + KRT invocations | `references/routing-pipeline.md` |
+| Physical stack order, layer/reference roles, topology migration, route ownership defaults | `references/source-to-prep-authority.md` |
 | Many-pad power ownership and constrained corridor order before KRT | `references/route-ownership.md` |
 | Immutable candidate rule authority and promotion receipts | `references/route-candidate-contract.md` |
 | Semantic stagnation budgets and transactional experiment retention | `references/route-exploration.md` |
@@ -155,8 +156,9 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | pcbnew Python API gotchas with workaround patterns | `references/pcbnew-scripting.md` |
 | DRC classification, .kicad_dru patterns, JLC capability floors | `references/drc-discipline.md` |
 | Placement anchors, snap-back, proximity gates | `references/placement-and-proximity.md` |
+| Generic high-speed digital source/placement/realized checks (USB etc.) | `references/signal-integrity.md` |
 | Generator-driven schematics, structure links, section boxes | `references/schematic-generation.md` |
-| Conditional RF sequence, clean-room knowledge selection, geometry gates | `references/rf/rf-context.md` + `references/rf/source_cards.yaml` |
+| RF-only sequence after authoritative `rf.enabled: true`, clean-room knowledge selection, geometry gates | `references/rf/rf-context.md` + `references/rf/source_cards.yaml` |
 | Legacy RF incidents and detailed background | `references/rf-design.md` |
 | Independent RF schematic review | `references/rf-schematic-review-protocol.md` |
 | Independent RF routed-board review | `references/rf-pcb-review-protocol.md` |
@@ -188,7 +190,7 @@ credits, or debugging time — check provenance notes before assuming staleness.
 | `scripts/pad_separation.py` | P-PADSEP: separate-footprint copper must clear the fab-tier gap; exact same-net overlap/touch and foreign-pad stencil paste intrusion are fatal; same-footprint composite pads remain legal |
 | `scripts/rf_contract_check.py` | RF-CONTRACT: explicit RF applicability, ports/cross-sections/claims/first-article plan, plus exact-artifact RF schematic/PCB/fab reviews with derived nonzero requirement coverage |
 | `scripts/rf_context.py` | RF-CONTEXT: deterministic offline source-card selection; no network, reviewer, or wait point; exact no-op runs reuse a stable bundle |
-| `scripts/rf_solver.py` | RF-SOLVER: risk-triggered pending-section jobs only; direct argv, declared files, local/no-network policy, streaming heartbeat, hard deadline, process-group termination, and exact bundle cache |
+| `scripts/rf_solver.py` | RF-SOLVER: risk-triggered pending-section jobs only; direct argv, declared files, declarative `network:false` policy (not enforced isolation), streaming heartbeat, hard deadline, process-group termination, and exact bundle cache |
 | `scripts/rf_check.py` | RF-SOURCE/RF-REALIZED: exact RF-net geometry inventory, advisory/blocking bend policy, bounded saved-board fence run, and review-bindable evidence bundles |
 | `scripts/tier_preflight.py` | R-PREFLIGHT gate: every routing/stitch/rescue parameter with a DRC-floor twin, including nominal board-thickness/minimum-drill plated-through aspect ratio (`PF-VIA-ASPECT`), proven consistent with the declared fab tier BEFORE any KRT cycle; wired refuse-to-route into `route_and_stitch_generic route`; `--explain` prints derivations + copy-paste fixes |
 | `scripts/fence_pitch.py` | Saved-board RF ground-fence gate: reconstructs each RF line/arc arm, projects GND vias and PTH return posts into each contract-owned flank band, and fails when any realized endpoint/interior aperture exceeds the declared bound |

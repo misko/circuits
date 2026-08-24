@@ -95,9 +95,10 @@ Use `shunt` for a protection device whose signal pads tap distinct conductors
 and whose return pads leave the signal path. Use `series_flow_through` or
 `series_directional` when signal current must enter and leave through declared
 banks. `require_topology: true` with no rows is a failure, not zero-row PASS.
-The receipt proves declared feasibility and catches misclassified endpoints
-early; it does not claim that a global route exists. Dense ECOs that need
-bounded candidate route probes remain governed by IMP-148.
+The receipt reports declared feasibility and catches misclassified endpoints
+early; structural reopening does not independently regrade its predicates, so
+it cannot authorize P-FEAS promotion or claim that a global route exists. Dense
+ECOs that need bounded candidate route probes remain governed by IMP-148.
 
 ## Functional-cell shadow checks
 
@@ -143,17 +144,24 @@ make the library a router, a DRC engine, or an electrical DC-bias calculator.
 
 ## Promotion boundary
 
-Functional cells currently appear under `shadow_checks.functional_cells` in
-the placement-routability receipt. Their status is hash-bound and reported,
-but it does not alter the receipt's authoritative verdict or denominator.
-Never copy a shadow PASS into the main check list by hand.
+Functional cells and source-preparation authority are requested in a separate
+`*.shadow.json` diagnostic beside the placement-routability receipt. The live
+placement grade does not execute them, hash them as authoritative inputs, or
+include them in its verdict/denominator. A separately budgeted canary runner
+may consume the request; never copy a shadow PASS into the main check list by
+hand.
 
 Operational isolation is part of shadow status. A missing or malformed
 explicit shadow input records shadow `INCOMPLETE`; it must not raise out of the
 authoritative compositor. Keep shadow diagnostics and their identity outside
-the authoritative P-FEAS semantic projection, so checker churn cannot stale a
-previously accepted placement. Add them to that identity only in the same
-change that promotes the predicate.
+the legacy placement-routability projection used to construct the P-FEAS
+subject, so checker churn cannot stale a previously accepted placement. Add
+them to that identity only in the same change that promotes the predicate.
+
+The current P-FEAS stage emitter is also fail-closed: structural receipt
+reopening does not rerun the seven placement predicates. It therefore writes
+only a typed `INCOMPLETE` shadow result, no accepted output and no accepted
+bundle.
 
 Promote only after focused known-bad fixtures and representative USB Hub,
 Pluto, and USB-controlled-debug-hub canaries establish all of the following:

@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from collections import Counter, defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from pathlib import Path
@@ -301,6 +302,90 @@ def _canonical_item(raw: Mapping[str, Any]) -> dict[str, Any]:
     return item
 
 
+def _track_line_key(item: Mapping[str, Any]) -> tuple[Any, ...] | None:
+    """Return an exact integer line/style identity for a straight track.
+
+    Router and KiCad save passes are free to split one straight segment into
+    several collinear primitives.  That serialization choice is not a copper
+    mutation, so inventories compare the covered interval on a line rather
+    than the number of segment objects.  Width, net and layer remain semantic.
+    """
+    if item.get("kind") != "track":
+        return None
+    start = item.get("start_nm") or []
+    end = item.get("end_nm") or []
+    if len(start) != 2 or len(end) != 2:
+        return None
+    dx = int(end[0]) - int(start[0])
+    dy = int(end[1]) - int(start[1])
+    divisor = math.gcd(abs(dx), abs(dy))
+    if divisor == 0:
+        return None
+    ux, uy = dx // divisor, dy // divisor
+    if ux < 0 or (ux == 0 and uy < 0):
+        ux, uy = -ux, -uy
+    # Cross(direction, point) identifies the infinite integer line.
+    offset = ux * int(start[1]) - uy * int(start[0])
+    return (str(item.get("net") or ""),
+            tuple(str(layer) for layer in item.get("layers") or []),
+            int(item.get("width_nm") or 0), ux, uy, offset)
+
+
+def _track_interval(item: Mapping[str, Any], key: tuple[Any, ...]) \
+        -> tuple[int, int, tuple[int, int], tuple[int, int]]:
+    ux, uy = int(key[3]), int(key[4])
+    left = (int(item["start_nm"][0]), int(item["start_nm"][1]))
+    right = (int(item["end_nm"][0]), int(item["end_nm"][1]))
+    left_t = ux * left[0] + uy * left[1]
+    right_t = ux * right[0] + uy * right[1]
+    if right_t < left_t:
+        left_t, right_t, left, right = right_t, left_t, right, left
+    return left_t, right_t, left, right
+
+
+def _normalize_collinear_tracks(items: Iterable[dict[str, Any]]) \
+        -> list[dict[str, Any]]:
+    """Merge touching/overlapping collinear track intervals exactly.
+
+    Gaps are never bridged.  Consequently a one-to-two split is equivalent,
+    while deleting either half shortens the canonical interval and remains a
+    visible failure.
+    """
+    groups: dict[tuple[Any, ...], list[dict[str, Any]]] = defaultdict(list)
+    passthrough: list[dict[str, Any]] = []
+    for item in items:
+        key = _track_line_key(item)
+        if key is None:
+            passthrough.append(item)
+        else:
+            groups[key].append(item)
+
+    normalized = list(passthrough)
+    for key, tracks in groups.items():
+        intervals = sorted((_track_interval(item, key) for item in tracks),
+                           key=lambda row: (row[0], row[1], row[2], row[3]))
+        current_start_t, current_end_t, current_start, current_end = intervals[0]
+        merged: list[tuple[tuple[int, int], tuple[int, int]]] = []
+        for start_t, end_t, start, end in intervals[1:]:
+            if start_t <= current_end_t:
+                if end_t > current_end_t:
+                    current_end_t, current_end = end_t, end
+                continue
+            merged.append((current_start, current_end))
+            current_start_t, current_end_t = start_t, end_t
+            current_start, current_end = start, end
+        merged.append((current_start, current_end))
+        for start, end in merged:
+            if end < start:
+                start, end = end, start
+            normalized.append({
+                "kind": "track", "net": key[0], "layers": list(key[1]),
+                "start_nm": list(start), "end_nm": list(end),
+                "width_nm": key[2],
+            })
+    return sorted(normalized, key=_json_key)
+
+
 def _extract_synthetic_items(source: Any) -> list[Mapping[str, Any]]:
     if isinstance(source, Mapping):
         if source.get("kind") == "semantic-copper-inventory-v1" \
@@ -334,6 +419,17 @@ def _extract_synthetic_items(source: Any) -> list[Mapping[str, Any]]:
 
 def _pcbnew_items(source: Any) -> list[dict[str, Any]]:
     """Read a saved/live pcbnew board without importing pcbnew at module load."""
+    if isinstance(source, (str, Path)):
+        board_path = Path(source)
+        if not board_path.is_file():
+            raise ValueError(f"board path is missing: {board_path}")
+        # pcbnew's parser emits GUI assertions (and some releases can block on
+        # them) before raising for arbitrary text.  Refuse an obviously
+        # non-board fixture before importing the SWIG runtime.
+        with board_path.open("rb") as stream:
+            header = stream.read(64 * 1024)
+        if b"(kicad_pcb" not in header:
+            raise ValueError(f"not a KiCad PCB file: {board_path}")
     try:
         import pcbnew  # type: ignore
     except ImportError as exc:  # pragma: no cover - depends on host KiCad
@@ -352,12 +448,22 @@ def _pcbnew_items(source: Any) -> list[dict[str, Any]]:
         net = str(track.GetNetname())
         if isinstance(track, pcbnew.PCB_VIA):
             try:
-                layers = [layer_name(layer) for layer in track.GetLayerSet().Seq()]
+                layer_ids = list(track.GetLayerSet().Seq())
+                layers = [layer_name(layer) for layer in layer_ids]
             except Exception:
-                layers = [layer_name(track.TopLayer()), layer_name(track.BottomLayer())]
+                layer_ids = [track.TopLayer(), track.BottomLayer()]
+                layers = [layer_name(layer) for layer in layer_ids]
+            # KiCad 10 warns on the old no-argument PCB_VIA.GetWidth() and
+            # may route it through a GUI property accessor.  Diameter is a
+            # layer-aware property; query one realized span layer explicitly.
+            diameter_layer = layer_ids[0] if layer_ids else track.TopLayer()
+            try:
+                diameter = track.GetWidth(diameter_layer)
+            except TypeError:  # KiCad 7 exposes only the no-argument overload.
+                diameter = track.GetWidth()
             result.append({"kind": "via", "net": net, "layers": layers,
                            "at_nm": point(track.GetPosition()),
-                           "diameter_nm": int(track.GetWidth()),
+                           "diameter_nm": int(diameter),
                            "drill_nm": int(track.GetDrillValue())})
         elif hasattr(pcbnew, "PCB_ARC") and isinstance(track, pcbnew.PCB_ARC):
             try:
@@ -416,19 +522,15 @@ def _pcbnew_items(source: Any) -> list[dict[str, Any]]:
     return result
 
 
-def canonical_copper_inventory(source: Any) -> dict[str, Any]:
-    """Return a sorted semantic copper inventory with a content signature.
-
-    ``source`` may be a synthetic mapping/sequence, an already canonical
-    inventory, a pcbnew board object, or a ``.kicad_pcb`` path.  The result is
-    safe to persist as JSON and compare across save/reload cycles.
-    """
+def _copper_inventory(source: Any, *, normalize_tracks: bool) -> dict[str, Any]:
     if isinstance(source, (str, Path)) or (not isinstance(source, (Mapping, Sequence))
                                           and hasattr(source, "GetTracks")):
         raw_items = _pcbnew_items(source)
     else:
         raw_items = _extract_synthetic_items(source)
-    items = sorted((_canonical_item(value) for value in raw_items), key=_json_key)
+    canonical_items = [_canonical_item(value) for value in raw_items]
+    items = (_normalize_collinear_tracks(canonical_items) if normalize_tracks
+             else sorted(canonical_items, key=_json_key))
     by_net: dict[str, dict[str, Any]] = {}
     kinds = Counter()
     for item in items:
@@ -445,6 +547,18 @@ def canonical_copper_inventory(source: Any) -> dict[str, Any]:
                    "by_kind": dict(sorted(kinds.items()))},
         "nets": dict(sorted(by_net.items())),
     }
+
+
+def canonical_copper_inventory(source: Any) -> dict[str, Any]:
+    """Return a sorted semantic copper inventory with a content signature.
+
+    ``source`` may be a synthetic mapping/sequence, an already canonical
+    inventory, a pcbnew board object, or a ``.kicad_pcb`` path.  Straight
+    collinear segments are normalized by covered interval so serialization
+    splits do not appear as mutations.  Topology checks retain a private raw
+    primitive inventory because a split point can also be a branch endpoint.
+    """
+    return _copper_inventory(source, normalize_tracks=True)
 
 
 def _touched_nets(touched: Any) -> tuple[set[str] | None, str | None]:
@@ -559,6 +673,67 @@ def diff_copper(before: Any, after: Any, *, touched: Any = None,
         "ownership_graded": owners is not None,
         "findings": findings,
     }
+
+
+def source_owned_copper_equivalence(
+        source: Any, candidate: Any,
+        *, kinds: Iterable[str] = ("track", "arc", "via")) -> dict[str, Any]:
+    """Prove that every source-owned copper primitive survives in candidate.
+
+    Candidate additions are deliberately allowed: that is the router's job.
+    Source tracks use the same normalized collinear interval representation as
+    :func:`diff_copper`, so a serialization split is equivalent but any
+    shortened interval is reported missing.  This helper is pure policy and
+    remains separate from promotion authority during shadow rollout.
+    """
+    selected = {str(kind).strip().lower() for kind in kinds
+                if str(kind).strip()}
+    before = canonical_copper_inventory(source)
+    after = canonical_copper_inventory(candidate)
+    source_items = [item for item in before["items"]
+                    if item.get("kind") in selected]
+    candidate_items = [item for item in after["items"]
+                       if item.get("kind") in selected]
+
+    candidate_exact = Counter(
+        _json_key(item) for item in candidate_items if item.get("kind") != "track")
+    candidate_tracks: dict[tuple[Any, ...], list[tuple[int, int]]] = defaultdict(list)
+    for item in candidate_items:
+        key = _track_line_key(item)
+        if key is not None:
+            low, high, _start, _end = _track_interval(item, key)
+            candidate_tracks[key].append((low, high))
+
+    missing: list[dict[str, Any]] = []
+    retained = 0
+    for item in source_items:
+        key = _track_line_key(item)
+        if key is not None:
+            low, high, _start, _end = _track_interval(item, key)
+            present = any(candidate_low <= low and candidate_high >= high
+                          for candidate_low, candidate_high
+                          in candidate_tracks.get(key, []))
+        else:
+            encoded = _json_key(item)
+            present = candidate_exact[encoded] > 0
+            if present:
+                candidate_exact[encoded] -= 1
+        if present:
+            retained += 1
+        else:
+            missing.append(item)
+    status = "N-A" if not source_items else "FAIL" if missing else "PASS"
+    payload = {
+        "schema": SCHEMA, "kind": "source-owned-copper-equivalence-v1",
+        "status": status, "source_signature": before["signature"],
+        "candidate_signature": after["signature"],
+        "selected_kinds": sorted(selected), "missing": missing,
+        "counts": {"source": len(source_items), "retained": retained,
+                   "missing": len(missing)},
+        "findings": [{"type": "SOURCE_COPPER_MISSING", "item": item}
+                     for item in missing],
+    }
+    return {**payload, "signature": _digest(payload)}
 
 
 class _UnionFind:
@@ -715,7 +890,7 @@ def connectivity_signature(source: Any, requested_nets: Iterable[str] | None = N
         components = {str(net): _normalize_direct_components(value)
                       for net, value in direct.items()}
     else:
-        inventory = canonical_copper_inventory(source)
+        inventory = _copper_inventory(source, normalize_tracks=False)
         components = _graph_components(inventory)
     requested = sorted({str(net) for net in (requested_nets or [])})
     rows = {}
@@ -815,7 +990,7 @@ def requested_net_regressions(before: Any, after: Any,
 def endpoint_layer_closure(source: Any, *, nets: Iterable[str] | None = None,
                            endpoints: Sequence[Mapping[str, Any]] | None = None) -> dict[str, Any]:
     """Prove each requested pad endpoint is reached on a legal copper layer."""
-    inventory = canonical_copper_inventory(source)
+    inventory = _copper_inventory(source, normalize_tracks=False)
     items = list(inventory["items"])
     if endpoints is not None:
         items.extend(_canonical_item({"kind": "pad", **row}) for row in endpoints)
@@ -921,7 +1096,7 @@ def _components_touch(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool
 
 def filled_zone_components(source: Any, nets: Iterable[str] | None = None) -> dict[str, Any]:
     """Return merged filled-zone components in semantic geometry form."""
-    inventory = canonical_copper_inventory(source)
+    inventory = _copper_inventory(source, normalize_tracks=False)
     requested = set(str(net) for net in nets) if nets is not None else None
     raw_by_net: dict[str, list[dict[str, Any]]] = defaultdict(list)
     zones_seen: set[str] = set()
@@ -1050,4 +1225,5 @@ __all__ = [
     "canonical_copper_inventory", "diff_copper", "connectivity_signature",
     "requested_net_regressions", "endpoint_layer_closure",
     "filled_zone_components", "power_graph_delta",
+    "source_owned_copper_equivalence",
 ]

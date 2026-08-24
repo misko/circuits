@@ -2,6 +2,7 @@
 """T1: generic cross-device operating-state compatibility."""
 from __future__ import annotations
 
+import hashlib
 import sys
 from pathlib import Path
 
@@ -20,18 +21,23 @@ from operating_state_check import (grade_document, grade_file,  # noqa: E402
                                    verify_receipt)
 
 
-def endpoint(ref, low, high, *, quantity="voltage", unit="V"):
+def endpoint(ref, low, high, *, quantity="voltage", unit="V",
+             evidence_sha=None):
     return {"ref": ref, "quantity": quantity, "unit": unit,
             "min": low, "max": high, "evidence": {
-                "source": f"02_parts/{ref}/part.yaml", "sha256": "a" * 64,
+                "source": f"02_parts/{ref}/part.yaml",
+                "sha256": evidence_sha or "a" * 64,
                 "locator": f"exact {ref} authority"}}
 
 
-def document(source=(19, 21), sink=(16.07, 30)):
+def document(source=(19, 21), sink=(16.07, 30), *, evidence=None):
+    evidence = evidence or {}
     return {"schema": 1, "contracts": [{
         "id": "pd_to_input_efuse", "phase": "negotiated",
-        "producer": endpoint("U_PD", *source),
-        "consumer": endpoint("U_PD_IN", *sink),
+        "producer": endpoint("U_PD", *source,
+                             evidence_sha=evidence.get("U_PD")),
+        "consumer": endpoint("U_PD_IN", *sink,
+                             evidence_sha=evidence.get("U_PD_IN")),
     }]}
 
 
@@ -42,10 +48,22 @@ def manifest(*rows):
         {"id": cid, "phase": phase} for cid, phase in sorted(rows)]}
 
 
+def evidence_tree(root):
+    result = {}
+    for ref in ("U_PD", "U_PD_IN"):
+        path = root / "02_parts" / ref / "part.yaml"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f"mpn: {ref}\nvalidated_state: true\n")
+        result[ref] = hashlib.sha256(path.read_bytes()).hexdigest()
+    return result
+
+
 @test("20 V negotiated source is contained by the downstream input window")
 def t_compatible_state():
     result = grade_document(document(), manifest())
     eq(result["verdict"], "ACCEPTED")
+    eq(result["authority"], "SHADOW",
+       "authored endpoint numbers were promoted as extracted truth")
     eq(result["coverage"], {"passing": 1, "total": 1})
 
 
@@ -106,14 +124,18 @@ def t_schema_fail_closed():
       kind="known_bad")
 def t_receipt_staleness():
     root = tmpdir("operating-state-")
+    evidence = evidence_tree(root)
     config = root / "operating_states.yaml"
     manifest_path = root / "operating_state_manifest.yaml"
-    config.write_text(yaml.safe_dump(document(), sort_keys=False))
+    config.write_text(yaml.safe_dump(document(evidence=evidence), sort_keys=False))
     manifest_path.write_text(yaml.safe_dump(manifest(), sort_keys=False))
-    receipt = grade_file(config, manifest_path)
+    receipt = grade_file(config, manifest_path, evidence_root=root)
     eq(receipt["verdict"], "ACCEPTED")
+    eq(receipt["authority"], "SHADOW")
+    eq(receipt["evidence"]["authority"], "UNVERIFIED")
     check(verify_receipt(receipt)[0], "fresh receipt did not reopen")
-    config.write_text(yaml.safe_dump(document(source=(15, 15)), sort_keys=False))
+    config.write_text(yaml.safe_dump(
+        document(source=(15, 15), evidence=evidence), sort_keys=False))
     valid, failures = verify_receipt(receipt)
     check(not valid, "changed source retained an accepted receipt")
     check(any("subject moved or changed" in row for row in failures),
@@ -124,10 +146,12 @@ def t_receipt_staleness():
       "range mismatch", kind="known_bad")
 def t_cli_rejects_incompatible_state():
     root = tmpdir("operating-state-cli-")
+    evidence = evidence_tree(root)
     config = root / "operating_states.yaml"
     manifest_path = root / "operating_state_manifest.yaml"
     receipt = root / "receipt.json"
-    config.write_text(yaml.safe_dump(document(source=(15, 15)), sort_keys=False))
+    config.write_text(yaml.safe_dump(
+        document(source=(15, 15), evidence=evidence), sort_keys=False))
     manifest_path.write_text(yaml.safe_dump(manifest(), sort_keys=False))
     result = must_fail(run([
         sys.executable, CHECK, root, "--config", config,
@@ -137,21 +161,59 @@ def t_cli_rejects_incompatible_state():
           "CLI did not name the exact receipt it wrote")
 
 
-@test("endpoint evidence paths are not independently reopened by E-STATE",
-      kind="vacuity", gate="operating_state_check.py")
-def t_vacuity_endpoint_evidence_is_not_reopened():
+@test("invented endpoint evidence cannot be promoted by E-STATE",
+      kind="known_bad")
+def t_endpoint_evidence_is_reopened():
     root = tmpdir("operating-state-evidence-vacuity-")
     config = root / "operating_states.yaml"
     manifest_path = root / "operating_state_manifest.yaml"
     receipt = root / "receipt.json"
     config.write_text(yaml.safe_dump(document(), sort_keys=False))
     manifest_path.write_text(yaml.safe_dump(manifest(), sort_keys=False))
-    result = must_pass(run([
+    result = must_fail(run([
         sys.executable, CHECK, root, "--config", config,
         "--manifest", manifest_path, "--json", receipt,
-    ]), "E-STATE with syntactically valid but nonexistent endpoint evidence")
-    check("E-STATE ACCEPTED: 1/1" in result.out,
-          "fixture no longer reproduces the declared evidence blind spot")
+    ]), "E-STATE with syntactically valid but nonexistent endpoint evidence",
+       "E-STATE INCOMPLETE")
+    check("E-STATE-EVIDENCE" in result.out,
+          "missing evidence was not diagnosed at its owning boundary")
+
+
+@test("existing citation bytes do not prove authored numeric endpoints",
+      kind="vacuity", gate="operating_state_check.py")
+def t_vacuity_unextracted_numeric_endpoints():
+    root = tmpdir("operating-state-unextracted-values-")
+    evidence = evidence_tree(root)
+    config = root / "operating_states.yaml"
+    manifest_path = root / "operating_state_manifest.yaml"
+    # The cited files contain only an MPN and a generic validation marker; no
+    # 19..21 V or 16.07..30 V value exists in either one.
+    config.write_text(yaml.safe_dump(document(evidence=evidence), sort_keys=False))
+    manifest_path.write_text(yaml.safe_dump(manifest(), sort_keys=False))
+    receipt = grade_file(config, manifest_path, evidence_root=root)
+    eq(receipt["verdict"], "ACCEPTED",
+       "the declared citation-only blind spot stopped reproducing")
+    eq(receipt["authority"], "SHADOW", "vacuous result escaped shadow")
+    eq(receipt["evidence"]["authority"], "UNVERIFIED",
+       "unextracted endpoint numbers gained evidence authority")
+
+
+@test("changed cited endpoint bytes invalidate an accepted receipt",
+      kind="known_bad")
+def t_endpoint_evidence_staleness():
+    root = tmpdir("operating-state-evidence-stale-")
+    evidence = evidence_tree(root)
+    config = root / "operating_states.yaml"
+    manifest_path = root / "operating_state_manifest.yaml"
+    config.write_text(yaml.safe_dump(document(evidence=evidence), sort_keys=False))
+    manifest_path.write_text(yaml.safe_dump(manifest(), sort_keys=False))
+    receipt = grade_file(config, manifest_path, evidence_root=root)
+    eq(receipt["verdict"], "ACCEPTED")
+    (root / "02_parts/U_PD/part.yaml").write_text("mpn: CHANGED\n")
+    valid, failures = verify_receipt(receipt)
+    check(not valid, "changed endpoint authority retained promotion validity")
+    check(any("evidence:02_parts/U_PD/part.yaml" in row for row in failures),
+          "changed endpoint evidence was not named")
 
 
 if __name__ == "__main__":

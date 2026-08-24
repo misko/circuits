@@ -134,6 +134,23 @@ def t_stale_preexisting_output():
     eq(accepted_bytes(accepted), before, "accepted bundle after stale rejection")
 
 
+@test("accepted bundle cannot contain a declared input", kind="known_bad")
+def t_bundle_cannot_replace_input_tree():
+    root, source, _accepted = fixture()
+    before = {path.relative_to(root).as_posix(): path.read_bytes()
+              for path in root.rglob("*") if path.is_file()}
+    try:
+        transaction(source, root, run_id="run-destructive")
+    except artifacts.ArtifactDeclarationError as exc:
+        check("contain declared input" in str(exc),
+              "destructive target diagnosis missing")
+    else:
+        raise AssertionError("project-root accepted bundle was allowed")
+    after = {path.relative_to(root).as_posix(): path.read_bytes()
+             for path in root.rglob("*") if path.is_file()}
+    eq(after, before, "constructor mutated the input tree")
+
+
 @test("exit-zero producer with a missing declared output is rejected",
       kind="known_bad")
 def t_exit_zero_missing_output():
@@ -377,6 +394,27 @@ def t_nested_parent_symlink():
     else:
         raise AssertionError("nested output symlink was followed and published")
     check(not accepted.exists(), "symlinked first bundle was published")
+
+
+@test("producer-created hardlinked output cannot enter an accepted bundle",
+      kind="known_bad")
+def t_hardlinked_output():
+    _root, source, accepted = fixture()
+    before = source.read_bytes()
+
+    def hardlinked(staging):
+        (staging / "result.json").hardlink_to(source)
+        (staging / "result.csv").write_text(
+            "code,quantity\nC1,5\n", encoding="utf-8")
+
+    try:
+        transaction(source, accepted, run_id="run-hardlink").publish(hardlinked)
+    except artifacts.ArtifactValidationError as exc:
+        check("multiply-linked" in str(exc), "hardlink diagnosis missing")
+    else:
+        raise AssertionError("hardlinked producer output was published")
+    eq(source.read_bytes(), before, "declared input changed during rejection")
+    check(not accepted.exists(), "hardlinked first bundle was published")
 
 
 @test("opt-in failed workspace retention preserves exact diagnostics and prior good",

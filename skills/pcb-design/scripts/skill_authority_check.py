@@ -138,10 +138,9 @@ EXPECTED_STAGES = {
     ),
     "pi_usb": (
         "PCB-COMMISSION", "PCB-ARCHITECTURE", "PCB-SOURCING",
-        "KICAD-RF-CONTEXT", "KICAD-RF-SOURCE", "KICAD-SCHEMATIC",
-        "KICAD-PLACEMENT", "KICAD-ROUTING", "KICAD-RF-REALIZED",
+        "KICAD-SCHEMATIC", "KICAD-PLACEMENT", "KICAD-ROUTING",
         "KICAD-LAYOUT-SEAL", "JLC-FABRICATION", "JLC-ASSEMBLY-VERIFY",
-        "JLC-RF-FAB-REVIEW", "PCB-RELEASE-REVIEW", "PCB-RELEASE-SEAL",
+        "PCB-RELEASE-REVIEW", "PCB-RELEASE-SEAL",
     ),
     "pluto_v5": (
         "PCB-COMMISSION", "PCB-ARCHITECTURE", "PCB-SOURCING",
@@ -313,12 +312,25 @@ def audit(
             if any("firmware" in stage_id.lower() for stage_id in ids):
                 findings.append(f"fixture {name}: firmware stage selected")
             refs = set(result["references"])
-            if name in {"pi_usb", "pluto_v5"}:
-                if not any("/rf" in reference for reference in refs):
+            if name == "pi_usb":
+                if not any(reference.endswith("signal-integrity.md")
+                           for reference in refs):
                     findings.append(
-                        f"fixture {name}: signal-integrity references absent")
-            elif any("/rf" in reference for reference in refs):
-                findings.append(f"fixture {name}: RF references loaded unnecessarily")
+                        "fixture pi_usb: high-speed digital reference absent")
+                if any("/rf" in reference for reference in refs):
+                    findings.append("fixture pi_usb: RF references loaded")
+            elif name == "pluto_v5":
+                if not any("/rf" in reference for reference in refs):
+                    findings.append("fixture pluto_v5: RF references absent")
+                if any(reference.endswith("signal-integrity.md")
+                       for reference in refs):
+                    findings.append(
+                        "fixture pluto_v5: generic SI duplicates RF authority")
+            elif (any("/rf" in reference for reference in refs) or
+                  any(reference.endswith("signal-integrity.md")
+                      for reference in refs)):
+                findings.append(
+                    f"fixture {name}: SI/RF references loaded unnecessarily")
     except RouterValidationError as exc:
         findings.append(f"fixture resolution failed: {exc}")
 

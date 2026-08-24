@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import sys
+import types
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -12,11 +14,13 @@ sys.path.insert(0, str(SCRIPTS))
 
 from copper_graph import (  # noqa: E402
     canonical_copper_inventory,
+    connectivity_signature,
     diff_copper,
     endpoint_layer_closure,
     filled_zone_components,
     power_graph_delta,
     requested_net_regressions,
+    source_owned_copper_equivalence,
 )
 
 
@@ -43,6 +47,95 @@ class CopperInventoryTest(unittest.TestCase):
         delta = diff_copper(left, right)
         self.assertTrue(delta["changed"])
 
+    def test_collinear_split_is_equivalent_but_deletion_is_not(self):
+        whole = [track("CLK", [0, 0], [2, 0])]
+        split = [track("CLK", [0, 0], [1, 0]),
+                 track("CLK", [1, 0], [2, 0])]
+        self.assertFalse(diff_copper(whole, split)["changed"])
+        self.assertEqual(
+            source_owned_copper_equivalence(whole, split)["status"], "PASS")
+
+        deleted = split[:1]
+        self.assertTrue(diff_copper(whole, deleted)["changed"])
+        evidence = source_owned_copper_equivalence(whole, deleted)
+        self.assertEqual(evidence["status"], "FAIL")
+        self.assertEqual(evidence["counts"]["missing"], 1)
+
+    def test_pcbnew_via_width_is_queried_on_an_explicit_layer(self):
+        width_layers = []
+
+        class Layers:
+            def Seq(self):
+                return [0, 31]
+
+        class Point:
+            x, y = 1_000_000, 2_000_000
+
+        class Via:
+            def GetNetname(self): return "GND"
+            def GetLayerSet(self): return Layers()
+            def TopLayer(self): return 0
+            def BottomLayer(self): return 31
+            def GetPosition(self): return Point()
+            def GetWidth(self, layer):
+                width_layers.append(layer)
+                return 600_000
+            def GetDrillValue(self): return 300_000
+
+        class Arc:
+            pass
+
+        class Board:
+            def GetTracks(self): return [Via()]
+            def GetFootprints(self): return []
+            def Zones(self): return []
+            def GetLayerName(self, layer):
+                return {0: "F.Cu", 31: "B.Cu"}[layer]
+
+        fake = types.SimpleNamespace(PCB_VIA=Via, PCB_ARC=Arc)
+        with mock.patch.dict(sys.modules, {"pcbnew": fake}):
+            inventory = canonical_copper_inventory(Board())
+        self.assertEqual(inventory["counts"]["by_kind"]["via"], 1)
+        self.assertEqual(width_layers, [0])
+
+    def test_pcbnew_via_width_falls_back_for_kicad_7(self):
+        width_calls = []
+
+        class Layers:
+            def Seq(self): return [0, 31]
+
+        class Point:
+            x, y = 1_000_000, 2_000_000
+
+        class Via:
+            def GetNetname(self): return "GND"
+            def GetLayerSet(self): return Layers()
+            def TopLayer(self): return 0
+            def BottomLayer(self): return 31
+            def GetPosition(self): return Point()
+            def GetWidth(self, *args):
+                width_calls.append(args)
+                if args:
+                    raise TypeError("KiCad 7 has no layer overload")
+                return 600_000
+            def GetDrillValue(self): return 300_000
+
+        class Arc:
+            pass
+
+        class Board:
+            def GetTracks(self): return [Via()]
+            def GetFootprints(self): return []
+            def Zones(self): return []
+            def GetLayerName(self, layer):
+                return {0: "F.Cu", 31: "B.Cu"}[layer]
+
+        fake = types.SimpleNamespace(PCB_VIA=Via, PCB_ARC=Arc)
+        with mock.patch.dict(sys.modules, {"pcbnew": fake}):
+            inventory = canonical_copper_inventory(Board())
+        self.assertEqual(inventory["counts"]["by_kind"]["via"], 1)
+        self.assertEqual(width_calls, [(0,), ()])
+
     def test_unowned_net_mutation_is_rejected(self):
         before = [track("SCL", [0, 0], [1, 0])]
         after = before + [track("SDA", [0, 1], [1, 1])]
@@ -55,6 +148,22 @@ class CopperInventoryTest(unittest.TestCase):
 
 
 class ConnectivityTest(unittest.TestCase):
+    def test_collinear_normalization_does_not_erase_a_branch_node(self):
+        board = {"items": [
+            {"kind": "pad", "net": "CLK", "ref": "U1", "pad": "1",
+             "at": [0, 0], "layer": "F.Cu"},
+            {"kind": "pad", "net": "CLK", "ref": "U2", "pad": "1",
+             "at": [2, 0], "layer": "F.Cu"},
+            {"kind": "pad", "net": "CLK", "ref": "U3", "pad": "1",
+             "at": [1, 1], "layer": "F.Cu"},
+            track("CLK", [0, 0], [1, 0]),
+            track("CLK", [1, 0], [2, 0]),
+            track("CLK", [1, 0], [1, 1]),
+        ]}
+        result = connectivity_signature(board, ["CLK"])
+        self.assertEqual(result["nets"]["CLK"]["components"],
+                         [["U1.1", "U2.1", "U3.1"]])
+
     def test_requested_opens_increase_is_rejected_but_unrelated_opens_are_ignored(self):
         before = {"connectivity": {
             "REQ": {"components": [["U1.1", "U2.1"]]},

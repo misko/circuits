@@ -106,10 +106,12 @@ def parse_status(value):
         "copper_graph.py",
         "pipeline_catalog.py",
         "pipeline_contract.py",
+        "pipeline_applicability.py",
         "pipeline_execution.py",
         "pipeline_shadow.py",
         "pipeline_xtrace.py",
         "placement_cell_checks.py",
+        "process_runner.py",
         "route_acceptance_core.py",
     )})
     r = must_pass(run([KPY, TOOL, "--root", d]),

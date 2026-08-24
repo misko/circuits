@@ -16,9 +16,12 @@ sys.path.insert(0, str(SCRIPTS))
 from board_authority import (  # noqa: E402
     AuthoritySchemaError,
     AuthorityVerificationError,
+    LEGACY_AUTHORITY,
+    STACK_ROLE_OWNER,
     adapt_legacy_stack,
     canonical_sha256,
     compile_source_prep_authority,
+    inspect_legacy_authority,
     normalize_observed_facts,
     normalize_route_plan,
     normalize_stack_contract,
@@ -30,6 +33,7 @@ from board_authority import (  # noqa: E402
     resolve_route_waves,
     resolve_routing_classes,
     verify_authority,
+    verify_authority_structure,
     write_authority,
 )
 
@@ -81,6 +85,7 @@ def stack6():
             "usb_hs": {
                 "allowed_layers": ["B.Cu", "F.Cu"],
                 "references": {"F.Cu": "In1.Cu", "B.Cu": "In4.Cu"},
+                "reference_required": True,
             },
             "control": {"allowed_layers": ["In3.Cu"]},
         },
@@ -215,6 +220,11 @@ class StackContractTest(unittest.TestCase):
         authority = compile_source_prep_authority(
             stack=stack2(), observed=observed2(), route_plan=route2())
         self.assertEqual(authority["verdict"], "PASS")
+        self.assertEqual(authority["ownership"], {
+            "physical_stack": STACK_ROLE_OWNER,
+            "semantic_layer_roles": STACK_ROLE_OWNER,
+            "legacy_adapters": LEGACY_AUTHORITY,
+        })
         self.assertEqual(authority["stack"]["physical_order"], ["F.Cu", "B.Cu"])
         self.assertEqual(authority["defaults"]["reference_plane_checks"], [])
         self.assertEqual(authority["defaults"]["stitch"]["reference_nets"], [])
@@ -223,7 +233,7 @@ class StackContractTest(unittest.TestCase):
                          authority["defaults"]["stitch"])
         self.assertGreater(authority["coverage"]["copper_layers"], 0)
         self.assertEqual(authority["findings"], [])
-        self.assertTrue(verify_authority(authority)[0])
+        self.assertTrue(verify_authority_structure(authority)[0])
 
     def test_six_layer_roles_classes_references_and_vias_resolve(self):
         authority = compile_source_prep_authority(
@@ -275,6 +285,25 @@ class StackContractTest(unittest.TestCase):
         self.assertEqual(result["classes"]["inner"]["references"], {})
         self.assertEqual(result["classes"]["inner"]["unresolved_references"],
                          ["In2.Cu"])
+
+    def test_usb_hs_explicitly_required_missing_reference_fails(self):
+        source = stack2()
+        source["routing_classes"] = {"usb_hs": {
+            "allowed_layers": ["F.Cu", "B.Cu"],
+            "reference_required": True,
+        }}
+        result = resolve_routing_classes(source)
+        required = [row for row in result["findings"]
+                    if row["code"] == "S-REFERENCE-REQUIRED"]
+        self.assertEqual(
+            {row["subject"] for row in required},
+            {"usb_hs:F.Cu", "usb_hs:B.Cu"})
+
+        plan = route2()
+        plan["waves"][0]["routing_class"] = "usb_hs"
+        authority = compile_source_prep_authority(
+            stack=source, observed=observed2(), route_plan=plan)
+        self.assertEqual(authority["verdict"], "FAIL")
 
     def test_stack_and_nested_rows_are_closed(self):
         cases = []
@@ -463,50 +492,57 @@ class ReceiptTest(unittest.TestCase):
         self.assertEqual(first["verdict"], "PASS")
 
         root = Path(tempfile.mkdtemp(prefix="board-authority-"))
-        path = write_authority(root / "authority.json", first)
+        path = write_authority(
+            root / "authority.json", first, stack=stack2(),
+            observed=observed2(), route_plan=route2(), migration=None)
         reopened = reopen_authority(
-            path, stack=stack2(), observed=observed2(), route_plan=route2())
+            path, stack=stack2(), observed=observed2(), route_plan=route2(),
+            migration=None)
         self.assertEqual(reopened, first)
 
     def test_changed_input_invalidates_reopened_receipt(self):
         authority = compile_source_prep_authority(
             stack=stack2(), observed=observed2(), route_plan=route2())
         root = Path(tempfile.mkdtemp(prefix="board-authority-"))
-        path = write_authority(root / "authority.json", authority)
+        path = write_authority(
+            root / "authority.json", authority, stack=stack2(),
+            observed=observed2(), route_plan=route2(), migration=None)
         changed = observed2()
         changed["nets"].append("NEW_LIVE_NET")
         with self.assertRaisesRegex(AuthorityVerificationError,
                                     "input subject changed"):
             reopen_authority(path, stack=stack2(), observed=changed,
-                             route_plan=route2())
+                             route_plan=route2(), migration=None)
 
-    def test_migration_only_argument_cannot_bypass_input_verification(self):
+    def test_promotion_apis_require_every_exact_input(self):
         authority = compile_source_prep_authority(
             stack=stack2(), observed=observed2(), route_plan=route2())
         root = Path(tempfile.mkdtemp(prefix="board-authority-"))
-        path = write_authority(root / "authority.json", authority)
-        with self.assertRaisesRegex(AuthorityVerificationError,
-                                    "all required for input verification"):
-            reopen_authority(path, migration=migration())
+        with self.assertRaises(TypeError):
+            write_authority(root / "authority.json", authority)
 
     def test_content_tamper_fails_self_hash(self):
         authority = compile_source_prep_authority(
             stack=stack2(), observed=observed2(), route_plan=route2())
         root = Path(tempfile.mkdtemp(prefix="board-authority-"))
-        path = write_authority(root / "authority.json", authority)
+        path = write_authority(
+            root / "authority.json", authority, stack=stack2(),
+            observed=observed2(), route_plan=route2(), migration=None)
         payload = json.loads(path.read_text())
         payload["coverage"]["live_nets"] = 999
         path.write_text(json.dumps(payload))
         with self.assertRaisesRegex(AuthorityVerificationError,
                                     "content hash changed"):
-            reopen_authority(path)
+            reopen_authority(
+                path, stack=stack2(), observed=observed2(),
+                route_plan=route2(), migration=None)
 
     def test_rehashed_structural_omission_is_still_rejected(self):
         authority = compile_source_prep_authority(
             stack=stack2(), observed=observed2(), route_plan=route2())
         authority.pop("defaults")
         rehash(authority)
-        valid, failures = verify_authority(authority)
+        valid, failures = verify_authority_structure(authority)
         self.assertFalse(valid)
         self.assertTrue(any("missing key" in row for row in failures))
 
@@ -516,10 +552,34 @@ class ReceiptTest(unittest.TestCase):
         authority["defaults"]["stitch"]["cleanup_scope"] = "all"
         rehash(authority)
         valid, failures = verify_authority(
-            authority, stack=stack2(), observed=observed2(), route_plan=route2())
+            authority, stack=stack2(), observed=observed2(),
+            route_plan=route2(), migration=None)
         self.assertFalse(valid)
         self.assertIn("authority does not match recompilation from exact inputs",
                       failures)
+
+    def test_rehashed_legacy_stack_role_ownership_claim_is_rejected(self):
+        authority = compile_source_prep_authority(
+            stack=stack2(), observed=observed2(), route_plan=route2())
+        authority["ownership"]["semantic_layer_roles"] = \
+            "legacy-route-adapter"
+        rehash(authority)
+        valid, failures = verify_authority_structure(authority)
+        self.assertFalse(valid)
+        self.assertTrue(any("canonical stack/role owner" in row
+                            for row in failures))
+
+    def test_pre_ownership_receipt_is_diagnostic_only(self):
+        authority = compile_source_prep_authority(
+            stack=stack2(), observed=observed2(), route_plan=route2())
+        authority.pop("ownership")
+        rehash(authority)
+        self.assertFalse(verify_authority_structure(authority)[0])
+        diagnostic = inspect_legacy_authority(authority)
+        self.assertIs(diagnostic["authoritative"], False)
+        self.assertEqual(diagnostic["authority_class"], LEGACY_AUTHORITY)
+        self.assertIsNone(diagnostic["execution_authority"])
+        self.assertTrue(diagnostic["self_hash_valid"])
 
     def test_failed_receipt_still_has_findings_verdict_and_nonzero_coverage(self):
         plan = route2()
@@ -531,7 +591,7 @@ class ReceiptTest(unittest.TestCase):
         self.assertEqual(authority["verdict"], "FAIL")
         self.assertGreater(len(authority["findings"]), 0)
         self.assertGreater(authority["coverage"]["copper_layers"], 0)
-        self.assertTrue(verify_authority(authority)[0])
+        self.assertTrue(verify_authority_structure(authority)[0])
 
 
 class CompatibilityTest(unittest.TestCase):
@@ -546,6 +606,7 @@ class CompatibilityTest(unittest.TestCase):
         result = adapt_legacy_stack(floorplan, legacy_route, {})
         self.assertEqual(result["schema"], "legacy-stack-adapter-v1")
         self.assertIs(result["authoritative"], False)
+        self.assertEqual(result["authority_class"], LEGACY_AUTHORITY)
         self.assertIsNone(result["execution_authority"])
         self.assertEqual(result["candidate"]["schema"], "stackup-v1")
         # Passing the adapter wrapper cannot silently select its candidate.

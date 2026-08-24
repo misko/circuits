@@ -44,6 +44,7 @@ KPY = "/usr/bin/python3"
 MAX_HANDOFF_BYTES = 16 * 1024
 EXIT_CONFIG, EXIT_STALE, EXIT_BUDGET = 1, 2, 6
 SCHEMA = 2
+DEFAULT_STAGE_TIMEOUT_S = 60 * 60
 
 STAGES = (
     "legacy_unmigrated", "architecture", "sourcing", "schematic",
@@ -345,22 +346,33 @@ def _rf_enabled_for_review_provenance(ctx: FlowContext) -> bool:
     return rf["enabled"]
 
 
+def _git_provenance_run(args: list[str], *, cwd: Path,
+                        **kwargs: Any) -> subprocess.CompletedProcess:
+    """Bound the small local Git probes that precede engineering execution."""
+
+    try:
+        return subprocess.run(
+            args, cwd=cwd, timeout=30, check=False, **kwargs)
+    except subprocess.TimeoutExpired as exc:
+        raise FlowError(f"local Git provenance probe timed out: {args[1]}") from exc
+
+
 def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
     """Fail closed unless signed layout bytes and their producers equal COMMIT."""
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise FlowError("--reviewed-commit requires a full 40-character SHA")
-    repo_run = subprocess.run(
+    repo_run = _git_provenance_run(
         ["git", "rev-parse", "--show-toplevel"], cwd=ctx.root,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     if repo_run.returncode:
         raise FlowError("--reviewed-commit requires a Git worktree")
     repo = Path(repo_run.stdout.strip()).resolve()
-    exists = subprocess.run(
+    exists = _git_provenance_run(
         ["git", "cat-file", "-e", f"{commit}^{{commit}}"], cwd=repo,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if exists.returncode:
         raise FlowError(f"reviewed commit {commit} does not identify a commit")
-    ancestor = subprocess.run(
+    ancestor = _git_provenance_run(
         ["git", "merge-base", "--is-ancestor", commit, "HEAD"], cwd=repo,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     if ancestor.returncode:
@@ -376,7 +388,7 @@ def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
     def committed_under(values: Iterable[str], *, parts_only: bool = False) -> set[str]:
         roots = [_inside(ctx.root, value, "flow input").relative_to(repo).as_posix()
                  for value in values]
-        result = subprocess.run(
+        result = _git_provenance_run(
             ["git", "ls-tree", "-r", "--name-only", commit, "--", *roots],
             cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if result.returncode:
@@ -399,7 +411,7 @@ def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
                  for suffix in (".kicad_sch", ".kicad_pro", ".kicad_dru"))
     for path in exact:
         rel = path.resolve().relative_to(repo).as_posix()
-        exists_at_commit = subprocess.run(
+        exists_at_commit = _git_provenance_run(
             ["git", "cat-file", "-e", f"{commit}:{rel}"], cwd=repo,
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
         if exists_at_commit:
@@ -419,7 +431,7 @@ def reviewed_commit_provenance(ctx: FlowContext, commit: str) -> dict[str, str]:
             rel = path.resolve().relative_to(repo).as_posix()
         except ValueError as exc:
             raise FlowError(f"reviewed input is outside the Git worktree: {path}") from exc
-        blob = subprocess.run(
+        blob = _git_provenance_run(
             ["git", "show", f"{commit}:{rel}"], cwd=repo,
             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if blob.returncode:
@@ -640,8 +652,9 @@ def run_timed(ctx: FlowContext, stage: str, command: list[str],
     heartbeat_s = configured_heartbeat(ctx.cfg)
     safe_stage = re.sub(r"[^A-Za-z0-9_.-]+", "_", stage)
     result = run_bounded(
-        command, cwd=ctx.root, timeout_s=timeout_s, heartbeat_s=heartbeat_s,
-        label=stage, state_path=ctx.state_dir / "pipeline_state" /
+        command, cwd=ctx.root, env=dict(os.environ), timeout_s=timeout_s,
+        heartbeat_s=heartbeat_s, label=stage,
+        state_path=ctx.state_dir / "pipeline_state" /
         f"{safe_stage}.json")
     elapsed = result.elapsed_s
     record_perf(ctx, stage, command, elapsed, result.returncode, budget_s,
@@ -665,6 +678,8 @@ def configured_timeout(cfg: dict[str, Any], stage: str) -> float | None:
     """Return a hard deadline, distinct from a performance budget."""
     timeouts = ((cfg.get("flow") or {}).get("timeouts_s") or {})
     value = timeouts.get(stage, timeouts.get("default"))
+    if value is None:
+        value = DEFAULT_STAGE_TIMEOUT_S
     try:
         value = float(value) if value is not None else None
     except (TypeError, ValueError) as exc:

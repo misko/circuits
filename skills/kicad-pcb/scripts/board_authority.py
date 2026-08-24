@@ -36,6 +36,10 @@ MIGRATION_SCHEMA = "topology-migration-v1"
 ROUTE_SCHEMA = "route-plan-v1"
 AUTHORITY_SCHEMA = "source-prep-authority-v1"
 LEGACY_ADAPTER_SCHEMA = "legacy-stack-adapter-v1"
+LEGACY_AUTHORITY_DIAGNOSTIC_SCHEMA = \
+    "legacy-source-prep-authority-diagnostic-v1"
+STACK_ROLE_OWNER = "board_authority.py:stackup-v1"
+LEGACY_AUTHORITY = "NON_AUTHORITATIVE"
 
 SEMANTIC_ROLES = frozenset({
     "signal", "reference_plane", "power", "mixed",
@@ -193,7 +197,7 @@ def normalize_stack_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
     classes: dict[str, Any] = {}
     for name, raw_value in _named_items(raw_classes, "stack.routing_classes"):
         raw = _mapping(raw_value, f"stack.routing_classes.{name}")
-        _closed(raw, {"allowed_layers", "references"},
+        _closed(raw, {"allowed_layers", "references", "reference_required"},
                 f"stack.routing_classes.{name}")
         allowed = _string_list(raw.get("allowed_layers"),
                                f"stack.routing_classes.{name}.allowed_layers",
@@ -205,9 +209,14 @@ def normalize_stack_contract(contract: Mapping[str, Any]) -> dict[str, Any]:
             references[source_layer] = _nonempty_string(
                 reference_value,
                 f"stack.routing_classes.{name}.references.{source_layer}")
+        reference_required = raw.get("reference_required", False)
+        if not isinstance(reference_required, bool):
+            raise AuthoritySchemaError(
+                f"stack.routing_classes.{name}.reference_required must be boolean")
         classes[name] = {"allowed_layers": sorted(allowed, key=names.index)
                          if set(allowed) <= set(names) else sorted(allowed),
-                         "references": references}
+                         "references": references,
+                         "reference_required": reference_required}
 
     raw_families = source.get("via_families", {})
     families: dict[str, Any] = {}
@@ -360,7 +369,10 @@ def resolve_routing_classes(contract: Mapping[str, Any]) -> dict[str, Any]:
 
         unresolved: list[str] = []
         for layer in legal:
-            if layer in references or layer in spec["references"]:
+            if layer in references:
+                continue
+            if layer in spec["references"]:
+                unresolved.append(layer)
                 continue
             adjacent = _adjacent_reference(stack, layer)
             if adjacent is None:
@@ -370,11 +382,17 @@ def resolve_routing_classes(contract: Mapping[str, Any]) -> dict[str, Any]:
                 "layer": adjacent, "net": copper[adjacent]["plane_net"],
                 "source": "adjacent-role",
             }
+        if spec["reference_required"]:
+            findings.extend(_finding(
+                "S-REFERENCE-REQUIRED", f"{class_name}:{layer}",
+                "routing class explicitly requires an adjacent reference, "
+                "but none resolved") for layer in unresolved)
         resolved[class_name] = {
             "allowed_layers": sorted(legal, key=names.index),
             "references": {key: references[key]
                            for key in sorted(references, key=names.index)},
             "unresolved_references": sorted(unresolved, key=names.index),
+            "reference_required": spec["reference_required"],
         }
 
     return {
@@ -891,6 +909,11 @@ def compile_source_prep_authority(
     authority: dict[str, Any] = {
         "schema": AUTHORITY_SCHEMA,
         "verdict": "FAIL" if findings else "PASS",
+        "ownership": {
+            "physical_stack": STACK_ROLE_OWNER,
+            "semantic_layer_roles": STACK_ROLE_OWNER,
+            "legacy_adapters": LEGACY_AUTHORITY,
+        },
         "binding": {
             "algorithm": "sha256",
             "subject_sha256": canonical_sha256(bundle),
@@ -914,17 +937,17 @@ def compile_source_prep_authority(
     return authority
 
 
-def verify_authority(
+def _verify_authority(
         authority: Mapping[str, Any], *,
         stack: Mapping[str, Any] | None = None,
         observed: Mapping[str, Any] | None = None,
         route_plan: Mapping[str, Any] | None = None,
         migration: Mapping[str, Any] | None = None) -> tuple[bool, list[str]]:
-    """Verify receipt structure/self-hash and, when supplied, exact inputs."""
+    """Internal structural verifier with optional exact-input recompilation."""
     failures: list[str] = []
     if not isinstance(authority, Mapping):
         return False, ["authority must be a mapping"]
-    allowed = {"schema", "verdict", "binding", "inputs", "coverage",
+    allowed = {"schema", "verdict", "ownership", "binding", "inputs", "coverage",
                "findings", "checks", "stack", "live", "migration", "routes",
                "defaults"}
     try:
@@ -936,6 +959,15 @@ def verify_authority(
         failures.append(f"authority is missing key(s): {missing}")
     if authority.get("schema") != AUTHORITY_SCHEMA:
         failures.append("authority schema is invalid")
+    expected_ownership = {
+        "physical_stack": STACK_ROLE_OWNER,
+        "semantic_layer_roles": STACK_ROLE_OWNER,
+        "legacy_adapters": LEGACY_AUTHORITY,
+    }
+    if authority.get("ownership") != expected_ownership:
+        failures.append(
+            "authority ownership must retain canonical stack/role owner and "
+            "non-authoritative legacy adapters")
 
     findings = authority.get("findings")
     if not isinstance(findings, list):
@@ -1129,9 +1161,85 @@ def verify_authority(
     return not failures, failures
 
 
-def write_authority(path: Path | str, authority: Mapping[str, Any]) -> Path:
-    """Atomically write a verified authority mapping as deterministic JSON."""
-    ok, failures = verify_authority(authority)
+def verify_authority_structure(
+        authority: Mapping[str, Any]) -> tuple[bool, list[str]]:
+    """Check closed schema and self-hash without conferring promotion authority."""
+    return _verify_authority(authority)
+
+
+def inspect_legacy_authority(
+        authority: Mapping[str, Any]) -> dict[str, Any]:
+    """Inspect a pre-ownership schema-1 receipt without granting authority.
+
+    ``source-prep-authority-v1`` existed briefly without its mandatory
+    ownership declaration.  Those bytes remain readable for diagnostics, but
+    cannot pass either structural or exact-input authority verification.
+    """
+    source = _mapping(authority, "legacy authority")
+    if source.get("schema") != AUTHORITY_SCHEMA or "ownership" in source:
+        raise AuthoritySchemaError(
+            "legacy authority diagnostic requires schema-1 bytes with no ownership")
+    old_fields = {
+        "schema", "verdict", "binding", "inputs", "coverage", "findings",
+        "checks", "stack", "live", "migration", "routes", "defaults",
+    }
+    _closed(source, old_fields, "legacy authority")
+    missing = sorted(old_fields - set(source))
+    if missing:
+        raise AuthoritySchemaError(
+            f"legacy authority is missing diagnostic key(s): {missing}")
+    binding = source.get("binding")
+    expected_hash = (binding.get("authority_sha256")
+                     if isinstance(binding, Mapping) else None)
+    try:
+        self_hash_valid = expected_hash == _authority_digest(source)
+    except (AuthoritySchemaError, TypeError, ValueError):
+        self_hash_valid = False
+    return {
+        "schema": LEGACY_AUTHORITY_DIAGNOSTIC_SCHEMA,
+        "authoritative": False,
+        "authority_class": LEGACY_AUTHORITY,
+        "execution_authority": None,
+        "source_schema": AUTHORITY_SCHEMA,
+        "source_sha256": canonical_sha256(source),
+        "self_hash_valid": self_hash_valid,
+        "diagnostics": [
+            "canonical physical-stack and semantic-role ownership is absent; "
+            "recompile from exact stack/observed/route-plan/migration inputs",
+        ],
+    }
+
+
+def read_legacy_authority_diagnostic(path: Path | str) -> dict[str, Any]:
+    """Read old receipt bytes into a non-authoritative diagnostic wrapper."""
+    target = Path(path)
+    try:
+        value = json.loads(target.read_text(encoding="utf-8-sig"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise AuthorityVerificationError(
+            f"legacy authority cannot be read diagnostically: {exc}") from exc
+    return inspect_legacy_authority(value)
+
+
+def verify_authority(
+        authority: Mapping[str, Any], *, stack: Mapping[str, Any],
+        observed: Mapping[str, Any], route_plan: Mapping[str, Any],
+        migration: Mapping[str, Any] | None) -> tuple[bool, list[str]]:
+    """Verify an authority receipt by recompiling all exact source inputs."""
+    return _verify_authority(
+        authority, stack=stack, observed=observed, route_plan=route_plan,
+        migration=migration)
+
+
+def write_authority(
+        path: Path | str, authority: Mapping[str, Any], *,
+        stack: Mapping[str, Any], observed: Mapping[str, Any],
+        route_plan: Mapping[str, Any], migration: Mapping[str, Any] | None,
+        ) -> Path:
+    """Atomically write only after exact-input authority verification."""
+    ok, failures = verify_authority(
+        authority, stack=stack, observed=observed, route_plan=route_plan,
+        migration=migration)
     if not ok:
         raise AuthorityVerificationError("; ".join(failures))
     target = Path(path)
@@ -1145,11 +1253,10 @@ def write_authority(path: Path | str, authority: Mapping[str, Any]) -> Path:
 
 
 def reopen_authority(
-        path: Path | str, *, stack: Mapping[str, Any] | None = None,
-        observed: Mapping[str, Any] | None = None,
-        route_plan: Mapping[str, Any] | None = None,
-        migration: Mapping[str, Any] | None = None) -> dict[str, Any]:
-    """Read and verify an authority receipt, optionally against live inputs."""
+        path: Path | str, *, stack: Mapping[str, Any],
+        observed: Mapping[str, Any], route_plan: Mapping[str, Any],
+        migration: Mapping[str, Any] | None) -> dict[str, Any]:
+    """Read and verify an authority receipt against every exact input."""
     target = Path(path)
     try:
         value = json.loads(target.read_text(encoding="utf-8-sig"))
@@ -1253,6 +1360,7 @@ def adapt_legacy_stack(
                 layers, f"legacy route.routability.class_layers.{name}",
                 nonempty=True),
             "references": {},
+            "reference_required": False,
         }
     candidate = {"schema": STACK_SCHEMA, "copper": copper,
                  "routing_classes": routing_classes, "via_families": {}}
@@ -1262,6 +1370,7 @@ def adapt_legacy_stack(
     return {
         "schema": LEGACY_ADAPTER_SCHEMA,
         "authoritative": False,
+        "authority_class": LEGACY_AUTHORITY,
         "execution_authority": None,
         "candidate": candidate,
         "notes": sorted(notes),
@@ -1269,14 +1378,19 @@ def adapt_legacy_stack(
 
 
 __all__ = [
-    "AUTHORITY_SCHEMA", "LEGACY_ADAPTER_SCHEMA", "MIGRATION_SCHEMA",
+    "AUTHORITY_SCHEMA", "LEGACY_ADAPTER_SCHEMA", "LEGACY_AUTHORITY",
+    "LEGACY_AUTHORITY_DIAGNOSTIC_SCHEMA",
+    "MIGRATION_SCHEMA",
     "OBSERVED_SCHEMA", "ROUTE_SCHEMA", "SEMANTIC_ROLES", "STACK_SCHEMA",
+    "STACK_ROLE_OWNER",
     "AuthoritySchemaError", "AuthorityVerificationError",
     "adapt_legacy_stack", "canonical_sha256", "compile_source_prep_authority",
     "derive_reference_and_stitch_defaults", "normalize_observed_facts",
     "normalize_route_plan", "normalize_stack_contract",
     "normalize_topology_migration", "physical_copper_order",
-    "physical_via_span", "reconcile_topology_migration", "reopen_authority",
+    "inspect_legacy_authority", "physical_via_span",
+    "read_legacy_authority_diagnostic", "reconcile_topology_migration",
+    "reopen_authority",
     "resolve_route_waves", "resolve_routing_classes", "verify_authority",
-    "write_authority",
+    "verify_authority_structure", "write_authority",
 ]

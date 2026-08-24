@@ -1471,7 +1471,7 @@ def t_rf_module_stage_order():
               f"{path.name}: RF module added a reviewer/wait stage")
 
 
-@test("both rebuild drivers shadow-publish all three early prevention boundaries")
+@test("both rebuild drivers emit all three fail-closed boundary holds")
 def t_early_boundary_wiring():
     for path in (ALL, REUSE):
         txt = path.read_text()

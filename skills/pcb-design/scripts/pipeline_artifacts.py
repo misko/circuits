@@ -339,6 +339,22 @@ class ArtifactBundleTransaction:
                 raise ArtifactDeclarationError(
                     f"duplicate normalized input name: {clean!r}")
             self.inputs[clean] = Path(path).expanduser().resolve(strict=True)
+        for name, input_path in self.inputs.items():
+            if (input_path == self.accepted_dir or
+                    input_path.is_relative_to(self.accepted_dir)):
+                raise ArtifactDeclarationError(
+                    "accepted bundle may not equal or contain declared input "
+                    f"{name}: {input_path}")
+            if self.accepted_dir.exists():
+                try:
+                    aliases = os.path.samefile(self.accepted_dir, input_path)
+                except OSError as exc:
+                    raise ArtifactDeclarationError(
+                        f"bundle/input identity could not be verified for "
+                        f"{name}: {exc}") from exc
+                if aliases:
+                    raise ArtifactDeclarationError(
+                        f"accepted bundle aliases declared input {name}")
 
         if not outputs:
             raise ArtifactDeclarationError("at least one declared output is required")
@@ -380,6 +396,10 @@ class ArtifactBundleTransaction:
                 raise ArtifactValidationError(
                     f"bundle contains symlink instead of declared output: {relative}")
             if stat.S_ISREG(info.st_mode):
+                if info.st_nlink != 1:
+                    raise ArtifactValidationError(
+                        "bundle contains multiply-linked regular file instead "
+                        f"of an independent output: {relative}")
                 actual.add(relative)
             elif stat.S_ISDIR(info.st_mode):
                 directories.add(relative)

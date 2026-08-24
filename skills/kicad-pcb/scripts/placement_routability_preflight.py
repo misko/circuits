@@ -35,9 +35,8 @@ import argparse
 import hashlib
 import json
 import os
-import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping, Sequence
 
 import pcbnew
 import yaml
@@ -53,10 +52,23 @@ PCB_PIPELINE = Path(__file__).resolve().parents[2] / "pcb-design" / "scripts"
 if str(PCB_PIPELINE) not in __import__("sys").path:
     __import__("sys").path.insert(0, str(PCB_PIPELINE))
 from pipeline_identity import TypedIdentityInput, subject_identity  # noqa: E402
-from pipeline_stage_evidence import publish_stage_evidence  # noqa: E402
+from pipeline_contract import StageResult  # noqa: E402
+from pipeline_stage_evidence import (  # noqa: E402
+    new_run_id, require_safe_output_layout, utc_now, write_json_atomic,
+)
 
 
 KINDS = {"shunt", "series_flow_through", "series_directional"}
+SHADOW_INPUTS = frozenset({
+    "placement_cells", "stack_authority", "route_plan_authority",
+    "topology_migration", "circuit", "functional_cell_observations",
+})
+AUTHORITATIVE_CHECKS = frozenset({
+    "physical_placement", "critical_route_contract", "route_ownership",
+    "endpoint_topology", "layer_eligibility", "connector_lane_order",
+    "series_power_paths",
+})
+CHECK_STATUSES = frozenset({"PASS", "N-A", "FAIL", "INCOMPLETE"})
 
 
 def _record(path: Path) -> dict[str, Any]:
@@ -73,39 +85,132 @@ def _atomic_json(path: Path, value: dict[str, Any]) -> None:
     os.replace(temporary, path)
 
 
-def _functional_cell_shadow(config_path: Path, board: Any) -> dict[str, Any]:
+def _functional_cell_needs_obstacles(contract: Mapping[str, Any]) -> bool:
+    replicas = contract.get("replicas") or []
+    if isinstance(replicas, list) and replicas:
+        return True
+    cells = contract.get("cells") or []
+    if not isinstance(cells, list):
+        return True
+    return any(isinstance(cell, Mapping) and any(
+        cell.get(name) for name in (
+            "reservations", "route_reservations", "constrained_pads",
+            "escape_decisions", "ground_egress", "ground_egresses",
+            "critical_ground_egress")) for cell in cells)
+
+
+def _functional_cell_shadow(
+        config_path: Path, board: Any, *,
+        observed_parts: Mapping[str, Any] | None = None,
+        observed_obstacles: Sequence[Mapping[str, Any]] | None = None,
+        observed_fabrication: Mapping[str, Any] | None = None,
+        ) -> dict[str, Any]:
     """Grade the schema-1 functional-cell contract without owning admission.
 
-    The first deployment is deliberately shadow-only: several predicates use
-    authored local-clearance evidence until the pcbnew measurement adapter is
-    proven on fleet canaries.  A result is still exact-config/board bound by
-    the parent receipt and cannot silently disappear once configured.
+    MPNs come from footprint properties or an independently generated
+    ref-to-MPN observation supplied by the caller.  Obstacles and fabrication
+    capability likewise come only from explicit observation inputs.  An
+    authored ``snapshot`` block is ignored: it may describe an intended
+    fixture, but its booleans cannot serve as the measurement that grades the
+    same declaration.
     """
     contract = yaml.safe_load(
         config_path.read_text(encoding="utf-8-sig")) or {}
     if not isinstance(contract, dict):
         raise ValueError("placement_cells.yaml must contain a mapping")
-    snapshot = placement_cell_checks.snapshot_from_pcbnew(board)
-    measured = contract.get("snapshot") or {}
-    if not isinstance(measured, dict):
+    if "snapshot" in contract and not isinstance(contract["snapshot"], Mapping):
         raise ValueError("placement_cells.snapshot must be a mapping")
-    forbidden = sorted(set(measured) - {"obstacles", "fabrication", "stackup"})
-    if forbidden:
-        raise ValueError(
-            "placement_cells.snapshot has unsupported keys: " +
-            ", ".join(forbidden))
-    snapshot.update(measured)
+    snapshot = placement_cell_checks.snapshot_from_pcbnew(
+        board, observed_parts=observed_parts)
+    if observed_obstacles is not None:
+        if (not isinstance(observed_obstacles, Sequence) or
+                isinstance(observed_obstacles, (str, bytes)) or
+                any(not isinstance(row, Mapping) for row in observed_obstacles)):
+            raise ValueError("observed functional-cell obstacles must be a list of mappings")
+        snapshot["obstacles"] = [dict(row) for row in observed_obstacles]
+    if observed_fabrication is not None:
+        if not isinstance(observed_fabrication, Mapping):
+            raise ValueError("observed fabrication facts must be a mapping")
+        snapshot["fabrication"] = dict(observed_fabrication)
     report = placement_cell_checks.evaluate_placement_cells(contract, snapshot)
+    observation_findings = []
+    if (_functional_cell_needs_obstacles(contract) and
+            observed_obstacles is None):
+        observation_findings.append(
+            "applicable collision/replica checks lack independently observed "
+            "obstacle data")
+    status = "INCOMPLETE" if observation_findings else report["status"]
     return {
-        "status": report["status"],
-        "detail": (f"{report['coverage']['graded']}/"
+        "status": status,
+        "detail": ("; ".join(observation_findings) if observation_findings else
+                   f"{report['coverage']['graded']}/"
                    f"{report['coverage']['total']} functional-cell facts graded"),
         "report": report,
+        "observation_findings": observation_findings,
+        "observations": {
+            "mpn_source": ("caller" if observed_parts is not None
+                           else "footprint_properties"),
+            "obstacles_observed": observed_obstacles is not None,
+            "obstacle_count": (len(observed_obstacles)
+                               if observed_obstacles is not None else None),
+            "fabrication_observed": observed_fabrication is not None,
+            "authored_snapshot_ignored": "snapshot" in contract,
+        },
         "authority": "SHADOW",
         "promotion_note": (
-            "authored local-clearance predicates remain shadow-only until "
-            "pcbnew-measured canary equivalence is demonstrated"),
+            "independent MPN/obstacle adapters and pcbnew-measured canary "
+            "equivalence are required before promotion"),
     }
+
+
+def _functional_observations(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8-sig"))
+    if not isinstance(value, Mapping):
+        raise ValueError("functional-cell observations must contain a mapping")
+    required = {"schema", "kind", "parts", "obstacles"}
+    allowed = required | {"fabrication"}
+    if not required <= set(value) or set(value) - allowed:
+        raise ValueError(
+            "functional-cell observation fields differ "
+            f"(missing={sorted(required - set(value))}, "
+            f"unknown={sorted(set(value) - allowed)})")
+    if (value["schema"] != 1 or
+            value["kind"] != "functional-cell-observations-v1"):
+        raise ValueError("unsupported functional-cell observation schema/kind")
+    if not isinstance(value["parts"], Mapping):
+        raise ValueError("functional-cell observations.parts must be a mapping")
+    if (not isinstance(value["obstacles"], list) or
+            any(not isinstance(row, Mapping) for row in value["obstacles"])):
+        raise ValueError("functional-cell observations.obstacles must be a list")
+    if not isinstance(value.get("fabrication", {}), Mapping):
+        raise ValueError("functional-cell observations.fabrication must be a mapping")
+    return {
+        "parts": dict(value["parts"]),
+        "obstacles": [dict(row) for row in value["obstacles"]],
+        "fabrication": (dict(value["fabrication"])
+                        if "fabrication" in value else None),
+    }
+
+
+def _observed_part_identities(circuit_json: Path | None) -> dict[str, dict[str, str]]:
+    """Read independent exact ref-to-MPN identity from generated circuit JSON."""
+    if circuit_json is None or not circuit_json.is_file():
+        return {}
+    payload = json.loads(circuit_json.read_text(encoding="utf-8-sig"))
+    if not isinstance(payload, list):
+        raise ValueError("circuit.json must contain a list")
+    result: dict[str, dict[str, str]] = {}
+    for row in payload:
+        if not isinstance(row, Mapping) or row.get("type") != "source_component":
+            continue
+        ref = str(row.get("name") or "").strip()
+        mpn = str(row.get("manufacturer_part_number") or "").strip()
+        if not ref or not mpn:
+            continue
+        if ref in result and result[ref]["mpn"] != mpn:
+            raise ValueError(f"circuit.json assigns conflicting exact MPNs to {ref}")
+        result[ref] = {"mpn": mpn}
+    return result
 
 
 def _observed_source_facts(board: Any,
@@ -127,17 +232,8 @@ def _observed_source_facts(board: Any,
             if net:
                 nets.add(net)
 
-    mpns: set[str] = set()
-    if circuit_json is not None and circuit_json.is_file():
-        payload = json.loads(circuit_json.read_text(encoding="utf-8-sig"))
-        if not isinstance(payload, list):
-            raise ValueError("circuit.json must contain a list")
-        for row in payload:
-            if not isinstance(row, dict) or row.get("type") != "source_component":
-                continue
-            mpn = str(row.get("manufacturer_part_number") or "").strip()
-            if mpn:
-                mpns.add(mpn)
+    mpns = {row["mpn"] for row in
+            _observed_part_identities(circuit_json).values()}
     return {
         "schema": "observed-source-facts-v1",
         "refs": sorted(refs),
@@ -520,6 +616,7 @@ def _series_power_paths(route_cfg: dict[str, Any], board: Any) -> dict[str, Any]
 def grade(project: Path, board_path: Path, *, board_name: str | None = None,
           placement_config: Path | None = None,
           functional_cells_config: Path | None = None,
+          functional_cell_observations: Path | None = None,
           stack_authority: Path | None = None,
           route_plan_authority: Path | None = None,
           topology_migration: Path | None = None) -> dict[str, Any]:
@@ -571,7 +668,6 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
     except Exception as exc:
         checks["route_ownership"] = {"status": "INCOMPLETE", "detail": str(exc)}
     board = pcbnew.LoadBoard(str(board_path))
-    shadow_checks: dict[str, dict[str, Any]] = {}
     try:
         checks["endpoint_topology"] = _topology(route_cfg, board, project)
     except Exception as exc:
@@ -588,73 +684,6 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
         checks["series_power_paths"] = _series_power_paths(route_cfg, board)
     except Exception as exc:
         checks["series_power_paths"] = {"status": "INCOMPLETE", "detail": str(exc)}
-    cells_path: Path | None
-    if functional_cells_config is not None:
-        cells_path = functional_cells_config.resolve()
-        if not cells_path.is_file():
-            shadow_checks["functional_cells"] = {
-                "status": "INCOMPLETE",
-                "detail": f"functional-cell contract does not exist: {cells_path}",
-                "authority": "SHADOW"}
-            cells_path = None
-    else:
-        cells_path, _ = board_scoped(
-            project, "rules/placement_cells.yaml", board_name)
-    if cells_path is not None and cells_path.is_file():
-        try:
-            shadow_checks["functional_cells"] = _functional_cell_shadow(
-                cells_path.resolve(), board)
-        except Exception as exc:
-            shadow_checks["functional_cells"] = {
-                "status": "INCOMPLETE", "detail": str(exc),
-                "authority": "SHADOW"}
-
-    authority_errors: list[str] = []
-
-    def authority_path(explicit: Path | None, relative: str) -> Path | None:
-        if explicit is not None:
-            resolved = explicit.resolve()
-            if not resolved.is_file():
-                authority_errors.append(
-                    f"source-authority input does not exist: {resolved}")
-                return None
-            return resolved
-        candidate, _ = board_scoped(project, relative, board_name)
-        return candidate.resolve() if candidate is not None and candidate.is_file() \
-            else None
-
-    stack_path = authority_path(stack_authority, "rules/stackup.yaml")
-    plan_path = authority_path(route_plan_authority, "rules/route_plan.yaml")
-    migration_path = authority_path(
-        topology_migration, "rules/topology_migration.yaml")
-    authority_configured = bool(authority_errors) or any(
-        (stack_path, plan_path, migration_path))
-    circuit_path = project / "03_tscircuit/build/circuit.json"
-    if authority_configured:
-        if authority_errors:
-            shadow_checks["source_prep_authority"] = {
-                "status": "INCOMPLETE", "detail": "; ".join(authority_errors),
-                "authority": "SHADOW"}
-        elif stack_path is None or plan_path is None:
-            missing = [name for name, value in (
-                ("stackup.yaml", stack_path), ("route_plan.yaml", plan_path))
-                       if value is None]
-            shadow_checks["source_prep_authority"] = {
-                "status": "INCOMPLETE",
-                "detail": "configured source authority is missing " +
-                          ", ".join(missing),
-                "authority": "SHADOW",
-            }
-        else:
-            try:
-                shadow_checks["source_prep_authority"] = (
-                    _source_authority_shadow(
-                        stack_path, plan_path, migration_path, board,
-                        circuit_path if circuit_path.is_file() else None))
-            except Exception as exc:
-                shadow_checks["source_prep_authority"] = {
-                    "status": "INCOMPLETE", "detail": str(exc),
-                    "authority": "SHADOW"}
     statuses = {row["status"] for row in checks.values()}
     verdict = ("INCOMPLETE" if "INCOMPLETE" in statuses else
                "REJECTED" if "FAIL" in statuses else "ACCEPTED")
@@ -662,15 +691,6 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
               "nets": _record(nets_path)}
     if placement_config is not None and placement_config.is_file():
         inputs["placement_config"] = _record(placement_config.resolve())
-    if cells_path is not None and cells_path.is_file():
-        inputs["placement_cells"] = _record(cells_path.resolve())
-    for name, path in (("stack_authority", stack_path),
-                       ("route_plan_authority", plan_path),
-                       ("topology_migration", migration_path)):
-        if path is not None:
-            inputs[name] = _record(path)
-    if authority_configured and circuit_path.is_file():
-        inputs["circuit"] = _record(circuit_path.resolve())
     for row in checks.get("endpoint_topology", {}).get("rows", []):
         if row.get("part_yaml"):
             key = "part_" + row["part_mpn"].lower().replace("/", "_")
@@ -679,14 +699,63 @@ def grade(project: Path, board_path: Path, *, board_name: str | None = None,
         "schema": 1, "kind": "placement-routability-receipt-v1",
         "verdict": verdict, "subject": inputs["board"], "inputs": inputs,
         "checks": checks,
-        "shadow_checks": shadow_checks,
         "coverage": {"passing": sum(row["status"] in {"PASS", "N-A"}
                                      for row in checks.values()),
                      "total": len(checks)},
-        "shadow_coverage": {
-            "passing": sum(row["status"] in {"PASS", "N-A"}
-                           for row in shadow_checks.values()),
-            "total": len(shadow_checks),
+    }
+
+
+def _placement_shadow_request(
+        project: Path, subject: Mapping[str, Any], *,
+        board_name: str | None = None,
+        functional_cells_config: Path | None = None,
+        functional_cell_observations: Path | None = None,
+        stack_authority: Path | None = None,
+        route_plan_authority: Path | None = None,
+        topology_migration: Path | None = None) -> dict[str, Any]:
+    """Describe deferred placement shadows without executing them."""
+    project = Path(project)
+
+    def configured(explicit: Path | None, relative: str) -> Path | None:
+        del relative
+        return Path(explicit) if explicit is not None else None
+
+    cells = configured(functional_cells_config, "rules/placement_cells.yaml")
+    observations = (Path(functional_cell_observations)
+                    if functional_cell_observations is not None else None)
+    stack = configured(stack_authority, "rules/stackup.yaml")
+    plan = configured(route_plan_authority, "rules/route_plan.yaml")
+    migration = configured(
+        topology_migration, "rules/topology_migration.yaml")
+    functional_requested = cells is not None or observations is not None
+    source_requested = any(path is not None for path in (stack, plan, migration))
+
+    def pending(requested: bool, detail: str) -> dict[str, Any]:
+        return {
+            "status": "INCOMPLETE" if requested else "N-A",
+            "detail": detail if requested else "no shadow contract selected",
+            "authority": "SHADOW",
+        }
+
+    return {
+        "schema": 1, "kind": "placement-routability-shadow-v1",
+        "authority": "SHADOW", "subject": dict(subject),
+        "checks": {
+            "functional_cells": pending(
+                functional_requested,
+                "requested; run in a separate bounded placement-shadow task"),
+            "source_prep_authority": pending(
+                source_requested,
+                "requested; run in a separate bounded source-authority task"),
+        },
+        "requested_paths": {
+            name: str(path) if path is not None else None
+            for name, path in (
+                ("functional_cells", cells),
+                ("functional_cell_observations", observations),
+                ("stack_authority", stack), ("route_plan_authority", plan),
+                ("topology_migration", migration),
+            )
         },
     }
 
@@ -697,76 +766,94 @@ def verify(receipt_path: Path) -> tuple[bool, list[str]]:
         receipt = json.loads(receipt_path.read_text(encoding="utf-8-sig"))
     except Exception as exc:
         return False, [f"receipt cannot be read: {exc}"]
+    if not isinstance(receipt, Mapping):
+        return False, ["placement-routability receipt must be a mapping"]
     if (receipt.get("schema") != 1 or
             receipt.get("kind") != "placement-routability-receipt-v1"):
         failures.append("unsupported receipt schema/kind")
-    for name, record in sorted((receipt.get("inputs") or {}).items()):
+    inputs = receipt.get("inputs")
+    if not isinstance(inputs, Mapping):
+        failures.append("receipt inputs must be a mapping")
+        inputs = {}
+    required_inputs = {"board", "route", "nets"}
+    if not required_inputs <= set(inputs):
+        failures.append(
+            f"receipt inputs omit required authority: "
+            f"{sorted(required_inputs - set(inputs))}")
+    for name, record in sorted(inputs.items()):
+        if (not isinstance(record, Mapping) or
+                set(record) != {"path", "sha256", "size"}):
+            failures.append(f"input record is malformed: {name}")
+            continue
+        if name in SHADOW_INPUTS:
+            continue
         path = Path(str(record.get("path") or ""))
         if not path.is_file() or _record(path) != record:
             failures.append(f"input moved or changed: {name}")
-    if receipt.get("verdict") == "ACCEPTED":
-        bad = [name for name, row in (receipt.get("checks") or {}).items()
-               if row.get("status") not in {"PASS", "N-A"}]
-        if bad:
-            failures.append(f"accepted receipt contains bad checks: {bad}")
+    if receipt.get("subject") != inputs.get("board"):
+        failures.append("receipt subject must equal the exact board input record")
+
+    checks = receipt.get("checks")
+    if not isinstance(checks, Mapping):
+        failures.append("receipt checks must be a mapping")
+        checks = {}
+    if set(checks) != AUTHORITATIVE_CHECKS:
+        failures.append(
+            "authoritative check inventory differs "
+            f"(missing={sorted(AUTHORITATIVE_CHECKS - set(checks))}, "
+            f"unknown={sorted(set(checks) - AUTHORITATIVE_CHECKS)})")
+    statuses: list[str] = []
+    for name, row in sorted(checks.items()):
+        if not isinstance(row, Mapping) or row.get("status") not in CHECK_STATUSES:
+            failures.append(f"authoritative check status is malformed: {name}")
+            continue
+        statuses.append(str(row["status"]))
+    if statuses and len(statuses) == len(AUTHORITATIVE_CHECKS):
+        expected_verdict = (
+            "INCOMPLETE" if "INCOMPLETE" in statuses else
+            "REJECTED" if "FAIL" in statuses else "ACCEPTED")
+        if receipt.get("verdict") != expected_verdict:
+            failures.append(
+                "receipt verdict disagrees with authoritative check statuses")
+        expected_coverage = {
+            "passing": sum(status in {"PASS", "N-A"}
+                           for status in statuses),
+            "total": len(AUTHORITATIVE_CHECKS),
+        }
+        if receipt.get("coverage") != expected_coverage:
+            failures.append(
+                "receipt coverage disagrees with closed authoritative inventory")
+    elif receipt.get("verdict") == "ACCEPTED":
+        failures.append("accepted receipt has zero or incomplete check coverage")
     return not failures, failures
 
 
 def _publish_feasibility(receipt: dict[str, Any], receipt_path: Path,
                          bundle_path: Path, stage_path: Path) -> None:
-    if receipt.get("verdict") != "ACCEPTED":
-        raise ValueError("P-FEASIBILITY cannot publish non-accepted evidence")
+    """Write one bounded shadow request; never accept a P-FEAS bundle."""
+    del receipt_path, bundle_path
     semantic = {
-        "checks": {
-            name: {"status": row.get("status"), "detail": row.get("detail")}
-            for name, row in sorted(receipt["checks"].items())
-        },
-        "topology": (receipt["checks"].get("endpoint_topology") or {})
-                    .get("rows", []),
-        "layers": receipt["checks"].get("layer_eligibility", {}),
+        "legacy_verdict": receipt.get("verdict"),
+        "subject": receipt.get("subject"),
+        "required_checks": sorted(AUTHORITATIVE_CHECKS),
     }
-    shadow_inputs = {
-        "placement_cells", "stack_authority", "route_plan_authority",
-        "topology_migration", "circuit",
-    }
-    authoritative_inputs = {
-        name: record for name, record in receipt["inputs"].items()
-        if name not in shadow_inputs
-    }
-    authoritative_receipt = {
-        "schema": receipt["schema"], "kind": receipt["kind"],
-        "verdict": receipt["verdict"], "subject": receipt["subject"],
-        "inputs": authoritative_inputs, "checks": receipt["checks"],
-        "coverage": receipt["coverage"],
-    }
-    authoritative_bytes = (json.dumps(
-        authoritative_receipt, indent=2, sort_keys=True) + "\n").encode("utf-8")
+    authoritative_bytes = json.dumps(
+        semantic, sort_keys=True, separators=(",", ":")).encode("utf-8")
     identity = subject_identity("placement-feasibility", 1, [TypedIdentityInput(
         "placement", "mapping", semantic, authoritative_bytes)])
-    inputs = {name: Path(record["path"])
-              for name, record in authoritative_inputs.items()}
-    coverage = receipt["coverage"]
-    # Publish only the authoritative projection. Shadow diagnostics remain in
-    # the caller's receipt but cannot churn the accepted P-FEASIBILITY subject
-    # or invalidate downstream evidence.
-    with tempfile.TemporaryDirectory(prefix="p-feas-authority-") as temporary:
-        measurement = Path(temporary) / "placement_feasibility.json"
-        measurement.write_bytes(authoritative_bytes)
-        publish_stage_evidence(
-            stage_id="P-FEASIBILITY",
-            output_symbol="placement_feasibility_report",
-            producer="placement_routability_preflight.py",
-            producer_version="schema-1-shadow",
-            subject=identity,
-            inputs=inputs,
-            measurement_path=measurement,
-            measurement_name="placement_feasibility.json",
-            accepted_dir=bundle_path,
-            stage_result_path=stage_path,
-            status="PASS",
-            graded=coverage["passing"],
-            total=coverage["total"],
-        )
+    now = utc_now()
+    result = StageResult(
+        stage_id="P-FEASIBILITY", run_id=new_run_id(), subject=identity,
+        applicability="APPLIES", applicability_reason=None,
+        status="INCOMPLETE", started_at=now, finished_at=now, elapsed_s=0.0,
+        graded=0, total=len(AUTHORITATIVE_CHECKS), outputs=[],
+        findings=[{
+            "code": "P-FEAS-PROMOTION-DISABLED",
+            "detail": ("receipt reopening is structural only; independent "
+                       "seven-predicate regrade is not implemented"),
+        }], resume=None,
+    )
+    write_json_atomic(stage_path, result.to_mapping())
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -778,6 +865,7 @@ def main(argv: list[str] | None = None) -> int:
     grade_parser.add_argument("--board-name")
     grade_parser.add_argument("--placement-config", type=Path)
     grade_parser.add_argument("--functional-cells", type=Path)
+    grade_parser.add_argument("--functional-cell-observations", type=Path)
     grade_parser.add_argument("--stack-authority", type=Path)
     grade_parser.add_argument("--route-plan-authority", type=Path)
     grade_parser.add_argument("--topology-migration", type=Path)
@@ -793,21 +881,60 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  FAIL {failure}")
         print(f"PLACEMENT-ROUTABILITY RECEIPT {'PASS' if valid else 'FAIL'}")
         return 0 if valid else 1
+    if bool(args.stage_bundle) != bool(args.stage_result):
+        print("PLACEMENT-ROUTABILITY INCOMPLETE: --stage-bundle and "
+              "--stage-result must be supplied together")
+        return 2
+    shadow_path = args.json.with_name(f"{args.json.stem}.shadow.json")
+    output_paths = {"receipt": args.json, "shadow": shadow_path}
+    if args.stage_bundle:
+        output_paths.update({"stage_bundle": args.stage_bundle,
+                             "stage_result": args.stage_result})
+    try:
+        require_safe_output_layout(
+            output_paths,
+            directory_outputs=("stage_bundle",) if args.stage_bundle else (),
+            protected_paths={"project": args.project, "board": args.board},
+        )
+    except ValueError as exc:
+        print(f"PLACEMENT-ROUTABILITY INCOMPLETE: {exc}")
+        return 2
     try:
         receipt = grade(args.project, args.board, board_name=args.board_name,
                         placement_config=args.placement_config,
                         functional_cells_config=args.functional_cells,
+                        functional_cell_observations=(
+                            args.functional_cell_observations),
                         stack_authority=args.stack_authority,
                         route_plan_authority=args.route_plan_authority,
                         topology_migration=args.topology_migration)
     except Exception as exc:
         print(f"PLACEMENT-ROUTABILITY INCOMPLETE: {exc}")
         return 2
-    _atomic_json(args.json, receipt)
-    if bool(args.stage_bundle) != bool(args.stage_result):
-        print("PLACEMENT-ROUTABILITY INCOMPLETE: --stage-bundle and "
-              "--stage-result must be supplied together")
+    try:
+        require_safe_output_layout(
+            output_paths,
+            directory_outputs=("stage_bundle",) if args.stage_bundle else (),
+            protected_paths={
+                "project": args.project,
+                **{f"input_{name}": Path(record["path"])
+                   for name, record in (receipt.get("inputs") or {}).items()},
+            },
+        )
+    except ValueError as exc:
+        print(f"PLACEMENT-ROUTABILITY INCOMPLETE: {exc}")
         return 2
+    _atomic_json(args.json, receipt)
+    try:
+        _atomic_json(shadow_path, _placement_shadow_request(
+            args.project, receipt["subject"], board_name=args.board_name,
+            functional_cells_config=args.functional_cells,
+            functional_cell_observations=args.functional_cell_observations,
+            stack_authority=args.stack_authority,
+            route_plan_authority=args.route_plan_authority,
+            topology_migration=args.topology_migration))
+    except Exception as exc:
+        print(f"PLACEMENT-ROUTABILITY SHADOW INCOMPLETE: {exc}")
     if args.stage_bundle:
         try:
             _publish_feasibility(receipt, args.json.resolve(),
@@ -815,7 +942,8 @@ def main(argv: list[str] | None = None) -> int:
                                  args.stage_result.resolve())
         except Exception as exc:
             print(f"PLACEMENT-ROUTABILITY INCOMPLETE: shadow stage evidence: {exc}")
-            return 2
+            # Optional shadow publication cannot alter the legacy compositor
+            # result or turn a prior accepted bundle into current authority.
     coverage = receipt["coverage"]
     print(f"PLACEMENT-ROUTABILITY {receipt['verdict']}: "
           f"{coverage['passing']}/{coverage['total']} checks passing or N-A; "

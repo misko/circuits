@@ -27,7 +27,7 @@ authored closed contracts       independently observed source facts
                            |
                   source-prep-authority-v1
                            |
-              P-FEASIBILITY / route preparation adapters
+        future promoted P-FEASIBILITY / route-preparation adapters
                            |
                    realized-board verification
 ```
@@ -39,7 +39,9 @@ SHA-256 bound. Reopen the receipt with the same inputs before consuming it.
 Structural/self-hash verification without exact inputs is inspection only: an
 actor can rewrite a receipt and recompute an unkeyed digest. Every execution
 seam must reopen against the exact stack, observations, route plan and optional
-migration named by the accepted bundle.
+migration. During rollout, the placement hot path only records those inputs in
+a pending shadow request; a separately budgeted canary compiles and reopens the
+receipt. Only a future promoted consumer may rely on an accepted bundle.
 
 Use these public functions from
 `skills/kicad-pcb/scripts/board_authority.py`:
@@ -69,9 +71,11 @@ routing_classes:
   usb_hs:
     allowed_layers: [F.Cu, B.Cu]
     references: {F.Cu: In1.Cu}
+    reference_required: true
   control:
     allowed_layers: [In2.Cu]
     references: {}
+    reference_required: false
 via_families:
   ordinary_through:
     {from_layer: F.Cu, to_layer: B.Cu, kind: through}
@@ -81,10 +85,13 @@ Roles are `signal`, `mixed`, `reference_plane`, or `power`. Only `signal` and
 `mixed` are generically routable. A `reference_plane` or `power` layer must
 name its plane net. A routable layer must not also claim a plane net.
 
-Declare a routing-class reference when more than one adjacent reference could
-apply. The compiler may derive a reference only when exactly one adjacent
-`reference_plane` with an explicit net exists. Ambiguity remains unresolved;
-it is never guessed. Via kinds must agree with the physical span:
+Set `reference_required: true` from the interface/SI contract when every legal
+signal layer needs a continuous return reference. Do not infer this from a
+class name. Declare a routing-class reference when more than one adjacent
+reference could apply. The compiler may derive a reference only when exactly
+one adjacent `reference_plane` with an explicit net exists. Ambiguity or a
+missing required reference is a finding, never a guessed pass. Via kinds must
+agree with the physical span:
 
 - `through`: outermost to outermost;
 - `blind`: exactly one outer endpoint;
@@ -169,22 +176,27 @@ resolved route owners, and derived defaults. A PASS says these source facts are
 closed and internally consistent. It does not prove that a route exists or
 that the realized board matches the receipt.
 
-Roll out through dual authority:
+Roll out with one authority and separate diagnostics:
 
 ```text
-legacy prep/placement verdict ----------------------> execution decision
-                 |                                      ^
-                 +-> compile new receipt -> compare -----+
-                                           shadow only
+legacy prep/placement verdict ---------------------> execution decision
+                 |
+                 +-> pending request
+                         |
+                         +-> separate compile/reopen -> canary comparison
+                                                        diagnostic only
 ```
 
 During shadow operation:
 
-- record the new receipt and its exact subject/input hashes;
-- keep a shadow compiler/read/verification error inside the shadow result; it
-  must not replace the authoritative verdict or accepted-bundle identity;
+- let the placement hot path record only the pending request; it does not run
+  this compiler;
+- in a separately budgeted canary, record the new receipt and its exact
+  subject/input hashes;
+- keep a compiler/read/verification error inside that canary diagnostic; it
+  must not replace the authoritative verdict or legacy accepted-state identity;
 - never let a shadow PASS loosen a legacy fail, incomplete, or stop;
-- preserve the prior accepted prep/placement/route bundle on disagreement;
+- preserve the prior accepted prep/placement/route state on disagreement;
 - classify disagreement by input resolution, applicability, denominator,
   predicate, or backtrack owner;
 - change only the owning source, then regenerate downstream evidence.

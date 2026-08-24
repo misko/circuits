@@ -9,7 +9,9 @@ the emitted plan repeats its normalized contents.
 VACUITY: a valid profile resolves and exits zero when no board, project,
 artifact, or review exists. Resolution proves that the declared dependency
 graph is internally composable; it cannot prove that any selected procedure
-was executed or that a design satisfies it. Fixtured by
+was executed, applies to project source, or that a design satisfies it. Catalog
+``selects`` rules control disclosure only; engineering applicability belongs to
+the project source and the owning executable gate. Fixtured by
 ``t1_skill_progressive_disclosure.py::t_cli``.
 """
 from __future__ import annotations
@@ -124,42 +126,96 @@ def load_catalog(path: Path = CATALOG_PATH) -> Mapping[str, Any]:
         "catalog")
 
 
-def _rule_applies(rule: Mapping[str, Any], profile: CapabilityProfile) -> bool:
+def _rule_selects(rule: Mapping[str, Any], profile: CapabilityProfile) -> bool:
     if not isinstance(rule, Mapping) or not rule:
-        _fail("stage.applies: expected a non-empty mapping")
+        _fail("selection rule: expected a non-empty mapping")
     allowed = {"always", "signal_integrity", "foreign_mating", "targets"}
     unknown = set(rule) - allowed
     if unknown:
-        _fail(f"stage.applies: unknown keys {sorted(unknown)}")
+        _fail(f"selection rule: unknown keys {sorted(unknown)}")
     if rule.get("always") is True:
         if len(rule) != 1:
-            _fail("stage.applies: always cannot be combined with conditions")
+            _fail("selection rule: always cannot be combined with conditions")
         return True
     if "always" in rule:
-        _fail("stage.applies.always: expected true")
+        _fail("selection rule always: expected true")
 
     checks: list[bool] = []
     if "signal_integrity" in rule:
         values = rule["signal_integrity"]
         if (not isinstance(values, list) or values != sorted(set(values)) or
                 any(value not in SIGNAL_INTEGRITY for value in values)):
-            _fail("stage.applies.signal_integrity: expected sorted unique values")
+            _fail("selection rule signal_integrity: expected sorted unique values")
         checks.append(profile.signal_integrity in values)
     if "foreign_mating" in rule:
         values = rule["foreign_mating"]
         if (not isinstance(values, list) or values != sorted(set(values)) or
                 any(not isinstance(value, bool) for value in values)):
-            _fail("stage.applies.foreign_mating: expected sorted unique booleans")
+            _fail("selection rule foreign_mating: expected sorted unique booleans")
         checks.append(profile.foreign_mating in values)
     if "targets" in rule:
         values = rule["targets"]
         if (not isinstance(values, list) or values != sorted(set(values)) or
                 any(value not in TARGETS for value in values)):
-            _fail("stage.applies.targets: expected sorted unique targets")
+            _fail("selection rule targets: expected sorted unique targets")
         checks.append(profile.target in values)
     if not checks:
-        _fail("stage.applies: no supported condition")
+        _fail("selection rule: no supported condition")
     return all(checks)
+
+
+def _selection_reason(rule: Mapping[str, Any], selected: bool) -> str:
+    if rule == {"always": True}:
+        return "selected unconditionally"
+    state = "matched" if selected else "did not match"
+    return f"capability-profile disclosure selector {state}"
+
+
+def _stage_row(raw: Any, where: str) -> Mapping[str, Any]:
+    if not isinstance(raw, Mapping):
+        _fail(f"{where}: expected a mapping")
+    actual = set(raw)
+    selector_fields = actual & {"selects", "applies"}
+    if selector_fields not in ({"selects"}, {"applies"}):
+        _fail(f"{where}: requires exactly one of selects or legacy applies")
+    required = {"spec", "domains"} | selector_fields
+    allowed = required | {"conditional_domains"}
+    if not required <= actual or not actual <= allowed:
+        _fail(f"{where}: fields differ (missing={sorted(required - actual)}, "
+              f"unknown={sorted(actual - allowed)})")
+    normalized = dict(raw)
+    if "applies" in normalized:
+        # Input compatibility only.  The normalized plan still labels this as
+        # disclosure selection and never upgrades it to applicability proof.
+        normalized["selects"] = normalized.pop("applies")
+    return normalized
+
+
+def _conditional_domains(
+    raw: Any,
+    *,
+    where: str,
+    domains: Mapping[str, Mapping[str, Any]],
+) -> tuple[tuple[str, Mapping[str, Any]], ...]:
+    if raw is None:
+        return ()
+    if not isinstance(raw, list):
+        _fail(f"{where}: expected a list")
+    result: list[tuple[str, Mapping[str, Any]]] = []
+    for index, value in enumerate(raw):
+        item = _exact_mapping(
+            value, {"domain", "selects"}, f"{where}[{index}]")
+        domain_id = item["domain"]
+        if not isinstance(domain_id, str) or domain_id not in domains:
+            _fail(f"{where}[{index}].domain: unknown domain {domain_id!r}")
+        _rule_selects(item["selects"], CapabilityProfile(
+            signal_integrity="ordinary", assembly="none",
+            firmware="forbidden", foreign_mating=False, target="design"))
+        result.append((domain_id, item["selects"]))
+    ids = [item[0] for item in result]
+    if ids != sorted(set(ids)):
+        _fail(f"{where}: domains must be sorted and unique")
+    return tuple(result)
 
 
 def _domain_index(catalog: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
@@ -193,10 +249,15 @@ def resolve_profile(
         _fail("catalog.stages: expected a non-empty list")
 
     specs: list[StageSpec] = []
-    metadata: dict[str, tuple[tuple[str, ...], Mapping[str, Any]]] = {}
+    metadata: dict[
+        str,
+        tuple[
+            tuple[str, ...], Mapping[str, Any],
+            tuple[tuple[str, Mapping[str, Any]], ...],
+        ],
+    ] = {}
     for index, raw in enumerate(stage_rows):
-        row = _exact_mapping(raw, {"spec", "domains", "applies"},
-                             f"catalog.stages[{index}]")
+        row = _stage_row(raw, f"catalog.stages[{index}]")
         spec = StageSpec.from_mapping(row["spec"])
         domain_ids = row["domains"]
         if (not isinstance(domain_ids, list) or
@@ -208,16 +269,41 @@ def resolve_profile(
         specs.append(spec)
         if spec.id in metadata:
             _fail(f"duplicate stage id: {spec.id}")
-        metadata[spec.id] = (tuple(domain_ids), row["applies"])
+        metadata[spec.id] = (
+            tuple(domain_ids), row["selects"],
+            _conditional_domains(
+                row.get("conditional_domains"),
+                where=f"catalog.stages[{index}].conditional_domains",
+                domains=domains,
+            ),
+        )
 
-    available: set[str] = set()
-    if profile.signal_integrity == "ordinary":
-        available.update({
-            "rf_source_clearance", "rf_realized_clearance",
-            "rf_fab_clearance",
-        })
-    if not profile.foreign_mating:
-        available.add("mating_clearance")
+    # Dependency closure needs placeholders for products of adapters that this
+    # disclosure profile does not select.  These are planning tokens only: in
+    # particular they are not N/A engineering evidence and cannot be consumed
+    # by an executor or an owning gate.
+    dependency_placeholders: dict[str, dict[str, Any]] = {}
+    required_outputs = {
+        requirement for candidate in specs for requirement in candidate.requires
+    }
+    for spec in specs:
+        _, rule, _ = metadata[spec.id]
+        selected = _rule_selects(rule, profile)
+        if selected:
+            continue
+        for output in spec.produces:
+            if output not in required_outputs:
+                continue
+            prior = dependency_placeholders.get(output)
+            if prior is not None:
+                _fail(f"optional output {output!r} has multiple producers")
+            dependency_placeholders[output] = {
+                "stage_id": spec.id,
+                "selection_reason": _selection_reason(rule, False),
+                "authority": "DISCLOSURE_ONLY",
+                "engineering_applicability": "UNKNOWN",
+            }
+    available = set(dependency_placeholders)
 
     registry = StageRegistry(specs)
     target = TARGET_STAGE[profile.target]
@@ -226,12 +312,24 @@ def resolve_profile(
     entries: list[dict[str, Any]] = []
     all_references: list[str] = []
     for spec in plan:
-        domain_ids, rule = metadata[spec.id]
-        if not _rule_applies(rule, profile):
-            _fail(f"{spec.id}: selected by dependency graph but capability "
-                  "applicability is false")
+        domain_ids, rule, optional_domains = metadata[spec.id]
+        selected = _rule_selects(rule, profile)
+        if not selected:
+            _fail(f"{spec.id}: selected by dependency graph but disclosure "
+                  "selection is false")
+        selected_domain_ids = list(domain_ids)
+        conditional_selection: list[dict[str, Any]] = []
+        for domain_id, domain_rule in optional_domains:
+            domain_selected = _rule_selects(domain_rule, profile)
+            conditional_selection.append({
+                "domain": domain_id,
+                "selected": domain_selected,
+                "reason": _selection_reason(domain_rule, domain_selected),
+            })
+            if domain_selected:
+                selected_domain_ids.append(domain_id)
         references: list[str] = []
-        for domain_id in domain_ids:
+        for domain_id in selected_domain_ids:
             for reference in domains[domain_id]["references"]:
                 if reference not in references:
                     references.append(reference)
@@ -239,8 +337,10 @@ def resolve_profile(
                     all_references.append(reference)
         entries.append({
             "spec": spec.to_mapping(),
-            "domains": list(domain_ids),
+            "domains": selected_domain_ids,
             "references": references,
+            "selection_reason": _selection_reason(rule, True),
+            "conditional_domain_selection": conditional_selection,
         })
 
     if at_stage is not None and at_stage not in {item.id for item in plan}:
@@ -254,9 +354,12 @@ def resolve_profile(
 
     return {
         "schema": 1,
+        "kind": "skill-disclosure-plan-v1",
+        "authority": "DISCLOSURE_ONLY",
         "profile": profile.to_mapping(),
         "target_stage": target,
-        "external_clearances": sorted(available),
+        "external_clearances": [],
+        "dependency_placeholders": dependency_placeholders,
         "firmware_handoff_required": profile.firmware == "requested",
         "stages": entries,
         "references": all_references,
@@ -282,7 +385,8 @@ def _text_plan(result: Mapping[str, Any]) -> str:
         spec = entry["spec"]
         lines.append(
             f"  {index:02d} {spec['id']} owner={spec['owner']} "
-            f"lifecycle={spec['lifecycle']}")
+            f"lifecycle={spec['lifecycle']} "
+            f"selection={entry['selection_reason']}")
         for reference in entry["references"]:
             lines.append(f"       read {reference}")
     lines.append("LOAD_NOW")

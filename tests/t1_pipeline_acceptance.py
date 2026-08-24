@@ -4,6 +4,7 @@ import hashlib
 import json
 import sys
 from pathlib import Path
+from unittest import mock
 
 import yaml
 
@@ -247,6 +248,109 @@ def t_route_acceptance_optional_na():
     eq(required_not_pass, [], "required closure")
 
 
+@test("shadow route admission cannot tighten legacy acceptance")
+def t_route_acceptance_shadow_is_observational():
+    original = route_acceptance_gate.route_acceptance_core.admit
+    route_acceptance_gate.route_acceptance_core.admit = lambda *_args, **_kwargs: {
+        "verdict": "INCOMPLETE", "required_not_pass": ["invented_shadow_gap"]}
+    try:
+        verdict, coverage, required_not_pass = route_acceptance_gate._admission(
+            {"native_drc": {"status": "PASS"}}, ["native_drc"])
+    finally:
+        route_acceptance_gate.route_acceptance_core.admit = original
+    eq(verdict, "ACCEPTED", "legacy admission remains authoritative")
+    eq(coverage["required_pass"], 1, "legacy required denominator")
+    eq(required_not_pass, [], "shadow findings stay outside authority")
+
+
+@test("route shadow failure becomes diagnostic INCOMPLETE")
+def t_route_acceptance_shadow_exception_is_contained():
+    original = route_acceptance_gate.route_acceptance_core.admit
+    route_acceptance_gate.route_acceptance_core.admit = lambda *_args, **_kwargs: (
+        (_ for _ in ()).throw(RuntimeError("shadow exploded")))
+    try:
+        shadow = route_acceptance_gate._shadow_admission(
+            {"native_drc": {"status": "PASS"}}, ["native_drc"], "full")
+    finally:
+        route_acceptance_gate.route_acceptance_core.admit = original
+    eq(shadow["authority"], "SHADOW", "shadow authority label")
+    eq(shadow["status"], "INCOMPLETE", "shadow exception status")
+    check("shadow exploded" in shadow["detail"], "shadow failure detail")
+
+
+@test("route CLI records a pending shadow without executing shared policy")
+def t_route_cli_shadow_is_pending_only():
+    project = tmpdir("route_pending_shadow_")
+    (project / "03_src/rules").mkdir(parents=True)
+    route = project / "03_src/route.yaml"
+    nets = project / "03_src/rules/nets.yaml"
+    board = project / "board.kicad_pcb"
+    route.write_text("route: {}\n")
+    nets.write_text("schema: 1\n")
+    board.write_text("board")
+    output = project / "route.json"
+    receipt = {
+        "schema": 1, "kind": "route-acceptance-receipt-v1",
+        "mode": "quick", "verdict": "ACCEPTED", "subject": record(board),
+        "inputs": {"board": record(board), "route": record(route),
+                   "nets": record(nets)},
+        "checks": {}, "required_checks": [], "required_not_pass": [],
+        "coverage": {"pass": 0, "non_applicable": 0, "fail": 0,
+                     "incomplete": 0, "required": 0,
+                     "required_pass": 0, "total": 0, "passing": 0},
+    }
+    with mock.patch("route_acceptance_gate.grade", return_value=receipt), \
+         mock.patch("route_acceptance_gate.verify", return_value=(True, [])), \
+         mock.patch("route_acceptance_gate.route_acceptance_core.admit",
+                    side_effect=AssertionError("shadow policy executed")):
+        rc = route_acceptance_gate.main([
+            "grade", str(project), "--board", str(board), "--mode", "quick",
+            "--json", str(output),
+        ])
+    eq(rc, 0)
+    shadow = json.loads((project / "route.shadow.json").read_text())
+    eq(shadow["status"], "INCOMPLETE")
+    check("separate bounded task" in shadow["requested"]["detail"],
+          "pending route shadow overclaimed execution")
+
+
+@test("route CLI never publishes a receipt that fails its fresh reopen",
+      kind="known_bad")
+def t_route_cli_failed_reopen_is_not_canonical():
+    project = tmpdir("route_failed_reopen_")
+    (project / "03_src/rules").mkdir(parents=True)
+    route = project / "03_src/route.yaml"
+    nets = project / "03_src/rules/nets.yaml"
+    board = project / "board.kicad_pcb"
+    route.write_text("route: {}\n")
+    nets.write_text("schema: 1\n")
+    board.write_text("board")
+    output = project / "route.json"
+    receipt = {
+        "schema": 1, "kind": "route-acceptance-receipt-v1",
+        "mode": "quick", "verdict": "ACCEPTED", "subject": record(board),
+        "inputs": {"board": record(board), "route": record(route),
+                   "nets": record(nets)},
+        "checks": {}, "required_checks": [], "required_not_pass": [],
+        "coverage": {"pass": 0, "non_applicable": 0, "fail": 0,
+                     "incomplete": 0, "required": 0,
+                     "required_pass": 0, "total": 0, "passing": 0},
+    }
+    with mock.patch("route_acceptance_gate.grade", return_value=receipt), \
+         mock.patch("route_acceptance_gate.verify",
+                    return_value=(False, ["forged row"])):
+        rc = route_acceptance_gate.main([
+            "grade", str(project), "--board", str(board), "--mode", "quick",
+            "--json", str(output),
+        ])
+    eq(rc, 2, "failed receipt reopen did not stop the route gate")
+    check(not output.exists(), "unverified ACCEPTED receipt became canonical")
+    check(not (project / "route.shadow.json").exists(),
+          "shadow request was emitted for an unverified receipt")
+    check(not list(project.glob(".route.json.verify-*")),
+          "failed provisional receipt was retained as authority-like evidence")
+
+
 @test("required route check cannot become accepted N-A", kind="known_bad")
 def t_route_acceptance_required_na():
     checks = {
@@ -336,7 +440,7 @@ def t_manufacturing_missing_footprint():
           "missing footprint diagnosis absent")
 
 
-@test("accepted prelayout readiness can shadow-publish S-PART-FREEZE")
+@test("accepted prelayout readiness emits only an incomplete S-PART request")
 def t_part_freeze_stage_evidence():
     project, circuit, assembly = manufacturing_tree(["C123"])
     receipt = project / "readiness.json"
@@ -365,27 +469,34 @@ def t_part_freeze_stage_evidence():
         project / "part-freeze.stage.json")
     stage = json.loads((project / "part-freeze.stage.json").read_text())
     eq(stage["stage_id"], "S-PART-FREEZE", "part-freeze stage id")
-    eq(stage["outputs"], ["part_freeze_report"], "part-freeze symbol")
+    eq(stage["status"], "INCOMPLETE", "part-freeze promotion status")
+    eq(stage["outputs"], [], "part-freeze request has no accepted symbol")
+    check(not (project / "bundle-parent/accepted").exists(),
+          "part-freeze request replaced an accepted bundle")
 
 
-@test("accepted placement receipt can shadow-publish P-FEASIBILITY")
+@test("structural placement receipt cannot publish accepted P-FEASIBILITY")
 def t_placement_feasibility_stage_evidence():
     project = tmpdir("placement_feasibility_")
     board = project / "board.kicad_pcb"
     route = project / "route.yaml"
+    nets = project / "nets.yaml"
     board.write_text("(kicad_pcb)\n")
     route.write_text("route: {}\n")
+    nets.write_text("schema: 1\n")
     receipt_path = project / "placement.json"
+    checks = {
+        name: {"status": "PASS", "detail": "fixture pass"}
+        for name in placement_routability_preflight.AUTHORITATIVE_CHECKS
+    }
+    checks["endpoint_topology"]["rows"] = []
     receipt = {
         "schema": 1, "kind": "placement-routability-receipt-v1",
         "verdict": "ACCEPTED", "subject": record(board),
-        "inputs": {"board": record(board), "route": record(route)},
-        "checks": {
-            "endpoint_topology": {"status": "PASS", "detail": "1/1",
-                                  "rows": []},
-            "layer_eligibility": {"status": "PASS", "detail": "2 layers"},
-        },
-        "coverage": {"passing": 2, "total": 2},
+        "inputs": {"board": record(board), "route": record(route),
+                   "nets": record(nets)},
+        "checks": checks,
+        "coverage": {"passing": len(checks), "total": len(checks)},
         "shadow_checks": {
             "functional_cells": {"status": "INCOMPLETE",
                                  "detail": "diagnostic only"}},
@@ -393,13 +504,17 @@ def t_placement_feasibility_stage_evidence():
     }
     receipt_path.write_text(json.dumps(receipt))
     (project / "bundle-parent").mkdir()
+    stage_path = project / "feasibility.stage.json"
+    stage_path.write_text('{"status":"PASS","outputs":["unsafe"]}\n')
     placement_routability_preflight._publish_feasibility(
         receipt, receipt_path, project / "bundle-parent/accepted",
-        project / "feasibility.stage.json")
-    stage = json.loads((project / "feasibility.stage.json").read_text())
+        stage_path)
+    stage = json.loads(stage_path.read_text())
     eq(stage["stage_id"], "P-FEASIBILITY", "feasibility stage id")
-    eq(stage["outputs"], ["placement_feasibility_report"],
-       "feasibility symbol")
+    eq(stage["status"], "INCOMPLETE", "structural receipt cannot pass")
+    eq(stage["outputs"], [], "no accepted feasibility output")
+    check(not (project / "bundle-parent/accepted").exists(),
+          "structural receipt created an accepted bundle")
     first_subject = stage["subject"]
 
     # Changing only a shadow diagnostic must not churn the authoritative stage
@@ -412,11 +527,70 @@ def t_placement_feasibility_stage_evidence():
         project / "feasibility-2.stage.json")
     second = json.loads((project / "feasibility-2.stage.json").read_text())
     eq(second["subject"], first_subject, "shadow-isolated feasibility subject")
-    measurements = list((project / "bundle-parent-2").rglob(
-        "placement_feasibility.json"))
-    check(len(measurements) == 1, "accepted feasibility measurement missing")
-    check("shadow_checks" not in json.loads(measurements[0].read_text()),
-          "shadow diagnostics leaked into authoritative measurement")
+    eq(second["status"], "INCOMPLETE", "second shadow result remains blocked")
+    check(not (project / "bundle-parent-2/accepted").exists(),
+          "shadow-only change created an accepted bundle")
+
+
+@test("placement rejects stage-result alias before grading", kind="known_bad")
+def t_placement_output_alias_is_rejected():
+    project = tmpdir("placement_alias_")
+    board = project / "board.kicad_pcb"
+    board.write_text("board sentinel")
+    output = project / "placement.json"
+    output.write_text("receipt sentinel")
+    with mock.patch("placement_routability_preflight.grade") as grade:
+        rc = placement_routability_preflight.main([
+            "grade", str(project), "--board", str(board),
+            "--json", str(output),
+            "--stage-bundle", str(project / "bundle"),
+            "--stage-result", str(output),
+        ])
+    eq(rc, 2, "placement output alias was accepted")
+    grade.assert_not_called()
+    eq(output.read_text(), "receipt sentinel", "placement receipt overwritten")
+
+
+@test("route rejects native DRC alias before grading", kind="known_bad")
+def t_route_output_alias_is_rejected():
+    project = tmpdir("route_alias_")
+    (project / "03_src/rules").mkdir(parents=True)
+    (project / "03_src/route.yaml").write_text("route: {}\n")
+    (project / "03_src/rules/nets.yaml").write_text("schema: 1\n")
+    board = project / "board.kicad_pcb"
+    board.write_text("board sentinel")
+    output = project / "route.json"
+    output.write_text("receipt sentinel")
+    with mock.patch("route_acceptance_gate.grade") as grade:
+        rc = route_acceptance_gate.main([
+            "grade", str(project), "--board", str(board), "--mode", "full",
+            "--drc-json", str(output), "--json", str(output),
+        ])
+    eq(rc, 2, "route output alias was accepted")
+    grade.assert_not_called()
+    eq(output.read_text(), "receipt sentinel", "route receipt overwritten")
+
+
+@test("route rejects native DRC hardlink to its board", kind="known_bad")
+def t_route_output_hardlink_is_rejected():
+    project = tmpdir("route_hardlink_")
+    (project / "03_src/rules").mkdir(parents=True)
+    (project / "03_src/route.yaml").write_text("route: {}\n")
+    (project / "03_src/rules/nets.yaml").write_text("schema: 1\n")
+    board = project / "board.kicad_pcb"
+    board.write_text("board sentinel")
+    drc = project / "drc.json"
+    drc.hardlink_to(board)
+    output = project / "route.json"
+    with mock.patch("route_acceptance_gate.grade") as grade:
+        rc = route_acceptance_gate.main([
+            "grade", str(project), "--board", str(board), "--mode", "full",
+            "--drc-json", str(drc), "--json", str(output),
+        ])
+    eq(rc, 2, "hardlinked DRC output was accepted")
+    grade.assert_not_called()
+    eq(board.read_text(), "board sentinel", "hardlink truncated live board")
+    check(not output.exists(), "receipt was written after hardlink rejection")
 
 
 def rehearsal_tree():
@@ -497,6 +671,72 @@ def t_rehearsal_blocked_sourcing_receipt():
     valid, failures = release_rehearsal.verify(receipt)
     check(valid and not failures,
           f"declared informational sourcing block refused: {failures}")
+
+
+@test("S-PART shadow publication failure preserves readiness exit")
+def t_part_freeze_shadow_failure_is_nonblocking():
+    project = tmpdir("part_freeze_shadow_failure_")
+    output = project / "readiness.json"
+    receipt = {
+        "verdict": "ACCEPTED", "phase": "prelayout",
+        "coverage": {"passing": 2, "total": 2}}
+    with mock.patch("manufacturing_readiness.grade", return_value=receipt), \
+         mock.patch("manufacturing_readiness._publish_part_freeze",
+                    side_effect=OSError("shadow disk unavailable")):
+        rc = manufacturing_readiness.main([
+            "grade", str(project), "--phase", "prelayout",
+            "--json", str(output),
+            "--stage-bundle", str(project / "bundle"),
+            "--stage-result", str(project / "stage.json"),
+        ])
+    eq(rc, 0, "shadow publisher changed accepted readiness exit")
+    check(output.is_file(), "legacy readiness receipt was not retained")
+
+
+@test("S-PART rejects output aliases before grading", kind="known_bad")
+def t_part_freeze_output_alias_is_rejected():
+    project = tmpdir("part_freeze_alias_")
+    output = project / "readiness.json"
+    output.write_text("sentinel")
+    with mock.patch("manufacturing_readiness.grade") as grade:
+        rc = manufacturing_readiness.main([
+            "grade", str(project), "--phase", "prelayout",
+            "--json", str(output),
+            "--stage-bundle", str(project / "bundle"),
+            "--stage-result", str(output),
+        ])
+    eq(rc, 2, "aliased S-PART output was accepted")
+    grade.assert_not_called()
+    eq(output.read_text(), "sentinel", "S-PART overwrote aliased receipt")
+
+
+@test("S-PART stage request leaves prior accepted bundle untouched")
+def t_part_freeze_request_never_promotes_bundle():
+    project = tmpdir("part_freeze_no_promote_")
+    source = project / "source.yaml"
+    source.write_text("parts: [U1]\n")
+    output = project / "readiness.json"
+    stage = project / "stage.json"
+    bundle = project / "bundle"
+    bundle.mkdir()
+    (bundle / "sentinel.txt").write_text("accepted")
+    receipt = {
+        "schema": 1, "kind": "manufacturing-readiness-receipt-v1",
+        "phase": "prelayout", "verdict": "ACCEPTED", "project": "fixture",
+        "inputs": {"source": record(source)},
+        "checks": {"exact_code_identity": {
+            "status": "PASS", "detail": "fixture", "rows": []}},
+        "coverage": {"passing": 1, "total": 1},
+    }
+    with mock.patch("manufacturing_readiness.grade", return_value=receipt):
+        rc = manufacturing_readiness.main([
+            "grade", str(project), "--phase", "prelayout",
+            "--json", str(output), "--stage-bundle", str(bundle),
+            "--stage-result", str(stage),
+        ])
+    eq(rc, 0)
+    eq((bundle / "sentinel.txt").read_text(), "accepted")
+    eq(json.loads(stage.read_text())["status"], "INCOMPLETE")
 
 
 if __name__ == "__main__":

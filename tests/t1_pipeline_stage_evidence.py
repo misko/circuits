@@ -13,7 +13,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "skills" / "pcb-design" / "scripts"))
 
 from pipeline_identity import SubjectIdentity  # noqa: E402
-from pipeline_stage_evidence import publish_stage_evidence  # noqa: E402
+from pipeline_stage_evidence import (  # noqa: E402
+    publish_stage_evidence, write_shadow_stage_result,
+)
 
 
 def fixture():
@@ -25,31 +27,46 @@ def fixture():
     return root, source, measurement
 
 
-@test("passing domain evidence publishes one atomic bundle and typed result")
-def t_publish():
+@test("unsafe two-target promotion is disabled before filesystem mutation",
+      kind="known_bad")
+def t_publish_is_disabled():
     root, source, measurement = fixture()
-    published = publish_stage_evidence(
-        stage_id="S-PART-FREEZE",
-        output_symbol="part_freeze_report",
-        producer="fixture",
-        producer_version="v1",
+    before = {source: source.read_bytes(), measurement: measurement.read_bytes()}
+    try:
+        publish_stage_evidence(
+            stage_id="S-PART-FREEZE", output_symbol="part_freeze_report",
+            producer="fixture", producer_version="v1",
+            subject=SubjectIdentity("1" * 64, "2" * 64),
+            inputs={"source.yaml": source}, measurement_path=measurement,
+            measurement_name="part_freeze.json",
+            # This historically could replace the whole fixture root.
+            accepted_dir=root, stage_result_path=root / "stage.json",
+            status="PASS", graded=3, total=3)
+    except RuntimeError as exc:
+        check("disabled" in str(exc), "refusal did not name disabled promotion")
+    else:
+        raise AssertionError("unsafe two-target promotion was accepted")
+    for path, content in before.items():
+        eq(path.read_bytes(), content, f"{path.name} changed")
+    check(not (root / "stage.json").exists(), "stage result was partially written")
+
+
+@test("boundary hold replaces unsafe PASS but no accepted bundle")
+def t_shadow_result():
+    root, _source, _measurement = fixture()
+    stage_path = root / "stage.json"
+    stage_path.write_text('{"status":"PASS","outputs":["unsafe"]}\n')
+    result = write_shadow_stage_result(
+        stage_id="E-CLOSURE",
         subject=SubjectIdentity("1" * 64, "2" * 64),
-        inputs={"source.yaml": source},
-        measurement_path=measurement,
-        measurement_name="part_freeze.json",
-        accepted_dir=root / "accepted",
-        stage_result_path=root / "stage.json",
-        status="PASS",
-        graded=3,
-        total=3,
-    )
-    eq(published.result.outputs, ("part_freeze_report",), "output symbol")
-    eq(json.loads((root / "stage.json").read_text())["status"], "PASS",
-       "durable stage status")
-    eq(json.loads((root / "accepted/bundle.json").read_text())["status"],
-       "PASS", "bundle status")
-    check((root / "accepted/part_freeze.json").is_file(),
-          "measurement was not promoted")
+        stage_result_path=stage_path, total=9,
+        finding_code="PROMOTION-DISABLED",
+        finding_detail="pending independent regrade")
+    eq(result.status, "INCOMPLETE", "boundary hold status")
+    payload = json.loads(stage_path.read_text())
+    eq(payload["status"], "INCOMPLETE", "unsafe PASS survived rollback")
+    eq(payload["outputs"], [], "boundary hold output symbols")
+    check(not (root / "accepted").exists(), "hold created accepted bundle")
 
 
 @test("failed or vacuous evidence cannot become an accepted bundle",
@@ -68,7 +85,7 @@ def t_reject_nonpassing():
                 stage_result_path=root / f"stage-{status}-{total}.json",
                 status=status, graded=graded, total=total,
             )
-        except ValueError:
+        except RuntimeError:
             pass
         else:
             raise AssertionError("inadmissible evidence was published")

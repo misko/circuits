@@ -122,6 +122,7 @@ import math
 import os
 import re
 import shutil
+import stat
 import sys
 import threading
 import time
@@ -168,6 +169,63 @@ def load_cfg(path, root=None):
 def rel(cfg, p):
     p = Path(os.path.expanduser(str(p)))
     return p if p.is_absolute() else (cfg["_root"] / p)
+
+
+def _target_board(cfg, target_board=None):
+    """Resolve a transaction board; explicit overrides stay in build output.
+
+    The configured legacy board retains its existing path behavior.  An
+    override is a new write authority and is therefore narrower: project-
+    relative, beneath ``project.build_dir``, no parent traversal, and no
+    symlink at any existing component.
+    """
+    if target_board is None:
+        return rel(cfg, cfg["project"]["board"]).resolve()
+    raw = Path(str(target_board))
+    if raw.is_absolute():
+        die("--target-board must be project-relative, not absolute")
+    if ".." in raw.parts:
+        die("--target-board may not traverse outside the project")
+    root = Path(cfg["_root"]).resolve()
+    current = root
+    for part in raw.parts:
+        if part in {"", "."}:
+            continue
+        current = current / part
+        if current.is_symlink():
+            die(f"--target-board may not traverse symlink: {current}")
+    target = (root / raw).resolve(strict=False)
+    build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
+    try:
+        build = build.resolve(strict=False)
+        build.relative_to(root)
+    except ValueError:
+        die("project.build_dir must resolve inside the declared project workspace")
+    live_board = rel(cfg, cfg["project"]["board"]).resolve(strict=False)
+    if live_board == build or live_board.is_relative_to(build):
+        die("project.build_dir may not contain the configured live board")
+    try:
+        target.relative_to(build)
+    except ValueError:
+        die("--target-board must resolve beneath project.build_dir")
+    if target == live_board:
+        die("--target-board may not name the configured live board")
+    if target.exists():
+        try:
+            identity = target.lstat()
+            if not stat.S_ISREG(identity.st_mode):
+                die("--target-board must be an independent regular file")
+            if identity.st_nlink != 1:
+                die("--target-board must be an independent regular file, not a hardlink")
+        except OSError as exc:
+            die(f"--target-board link identity could not be verified: {exc}")
+    if target.exists() and live_board.exists():
+        try:
+            if os.path.samefile(target, live_board):
+                die("--target-board may not alias the configured live board")
+        except OSError as exc:
+            die(f"--target-board identity could not be verified: {exc}")
+    return target
 
 
 def get(cfg, dotted, default=None):
@@ -972,7 +1030,8 @@ def _wave_chain(cfg, py, krt, waves, tier, common, workdir, cur, env=None,
         if not tag:
             _grade_route_candidate(
                 cfg, workdir, prepared, nxt,
-                _wave_net_inventory(waves, i, workdir), f"wave-{i}-{name}")
+                _wave_net_inventory(waves, i, workdir), f"wave-{i}-{name}",
+                touched_nets=list(nets), mutation_baseline=cur)
             _route_progress_observe(
                 cfg, workdir, i, name, [], [],
                 {"requested": len(nets), "queued": len(nets), "ripups": 0})
@@ -1065,40 +1124,50 @@ def _candidate_authority_sha(r0):
     return digest.hexdigest()
 
 
-def _grade_route_candidate(cfg, build, r0, candidate, required_nets, label):
+def _grade_route_candidate(cfg, build, r0, candidate, required_nets, label,
+                           *, touched_nets=None, mutation_baseline=None):
     """Run the shared immutable-workspace grader when the board opts in."""
     spec = _control_spec(
-        get(cfg, "route.candidate_grade", False), "candidate_grade", set())
+        get(cfg, "route.candidate_grade", False), "candidate_grade",
+        {"shadow_native_drc", "shadow_semantic_copper",
+         "semantic_copper_timeout_s"})
     if spec is None:
         return None
     from route_candidate_workspace import grade_candidate, verify_receipt
 
     r0, candidate, build = Path(r0), Path(candidate), Path(build)
+    required_nets = sorted(set(str(net) for net in required_nets))
+    touched_nets = sorted(set(str(net) for net in (touched_nets or [])))
+    mutation_baseline = (Path(mutation_baseline)
+                         if mutation_baseline is not None else None)
     stem = (f"{re.sub(r'[^A-Za-z0-9_.-]+', '-', label)}-"
             f"{_sha256(candidate)[:12]}-{_candidate_authority_sha(r0)[:12]}")
     base = build / "candidate_grades" / stem
     workspace = base
     suffix = 1
+    # A receipt self-digest is tamper evidence, not an authorization token.
+    # Never skip authoritative tools by replaying an existing workspace.
     while workspace.exists():
-        receipt_path = workspace / "receipt.json"
-        valid, _failures = verify_receipt(receipt_path)
-        if valid:
-            receipt = json.loads(receipt_path.read_text(encoding="utf-8-sig"))
-            origins = receipt.get("origins") or {}
-            if (origins.get("candidate") or {}).get("sha256") == _sha256(candidate) \
-                    and (origins.get("prepared") or {}).get("sha256") == _sha256(r0):
-                print(f"{label}: reused authenticated candidate receipt -> "
-                      f"{receipt_path}")
-                if receipt.get("verdict") != "ACCEPTED" and spec["mode"] == "enforce":
-                    die(f"{label}: immutable candidate verdict is "
-                        f"{receipt.get('verdict')}: {receipt_path}")
-                return receipt
         suffix += 1
         workspace = Path(f"{base}-run{suffix}")
 
     receipt = grade_candidate(
-        r0, candidate, workspace, required_nets=list(required_nets),
+        r0, candidate, workspace, required_nets=required_nets,
+        touched_nets=touched_nets, mutation_baseline=mutation_baseline,
+        shadow_native_drc=bool(spec.get("shadow_native_drc", False)),
+        shadow_semantic_copper=bool(
+            spec.get("shadow_semantic_copper", False)),
+        semantic_copper_timeout_s=int(
+            spec.get("semantic_copper_timeout_s", 120)),
         kicad_python=get(cfg, "route.kicad_python", "/usr/bin/python3"))
+    valid, failures = verify_receipt(workspace / "receipt.json")
+    if not valid:
+        message = (f"{label}: candidate receipt failed independent verification: "
+                   + "; ".join(failures))
+        if spec["mode"] == "enforce":
+            die(message)
+        print("WARNING: " + message + " (observe mode; legacy behavior retained)")
+        return receipt
     print(f"{label}: immutable candidate {receipt['verdict']} -> "
           f"{workspace / 'receipt.json'}")
     if receipt["verdict"] != "ACCEPTED":
@@ -1414,9 +1483,11 @@ def _route_prefix(cfg, build, waves, r0):
     _wave_drc_gate(cfg, staged, "route-prefix:physical-drc",
                    build / "prefix_physical_drc.json")
     _critical_route_gate(cfg, require_connected=True, board=staged)
+    prefix_nets = _wave_net_inventory(waves, through, build)
     _grade_route_candidate(
-        cfg, build, r0, staged, _wave_net_inventory(waves, through, build),
-        f"prefix-through-{through}")
+        cfg, build, r0, staged, prefix_nets,
+        f"prefix-through-{through}", touched_nets=prefix_nets,
+        mutation_baseline=r0)
     receipt = {
         "through_index": through,
         "through_wave": spec["through_wave"],
@@ -1653,9 +1724,11 @@ def _cmd_route_race(cfg, py, krt, waves, tier, common, build, n):
             f"promote a least-bad route; inspect {build / 'race_log.json'}")
     chain = Path(ok[best]["chain"])
     r0 = build / get(cfg, "prep.out", "r0.kicad_pcb")
+    race_nets = _wave_net_inventory(waves, len(waves), build)
     _grade_route_candidate(
-        cfg, build, r0, chain, _wave_net_inventory(waves, len(waves), build),
-        f"race-winner-c{best}")
+        cfg, build, r0, chain, race_nets,
+        f"race-winner-c{best}", touched_nets=race_nets,
+        mutation_baseline=r0)
     print(f"race winner: c{best} ({ok[best]['unconnected']} unconnected, "
           f"{ok[best]['violations']} violations) -> {chain}")
     print(f"race log -> {build / 'race_log.json'}")
@@ -1717,9 +1790,12 @@ def _import_may_fill(cfg):
     return True
 
 
-def cmd_import(cfg, route_source=None):
+def cmd_import(cfg, route_source=None, target_board=None):
     """Import the final chain file ONCE into the segment-free base."""
-    _critical_route_gate(cfg)
+    target = _target_board(cfg, target_board)
+    if not target.is_file():
+        die(f"import target board not found: {target}")
+    _critical_route_gate(cfg, board=target)
     import pcbnew
     build = rel(cfg, get(cfg, "project.build_dir", "06_build/route"))
     # Selection is a declared policy, not filesystem precedence.  A stale
@@ -1758,7 +1834,6 @@ def cmd_import(cfg, route_source=None):
             route_source, chain = available[0]
     if not chain.is_file():
         die(f"chain file {chain} not found")
-    target = rel(cfg, cfg["project"]["board"])
     b = pcbnew.LoadBoard(str(target))
     copper = list(b.GetTracks())
     segments = [item for item in copper if item.GetClass() != "PCB_VIA"]
@@ -1784,7 +1859,8 @@ def cmd_import(cfg, route_source=None):
     r = run_bounded(
         cmd, timeout_s=_timeout_s(cfg, "route_import", 300),
         heartbeat_s=_heartbeat_s(cfg), label="route-import",
-        state_path=build / "import_state.json")
+        state_path=(build / "import_state.json" if target_board is None else
+                    Path(str(target) + ".import_state.json")))
     if r.returncode != 0:
         die(f"import_krt exited {r.returncode}")
     receipt = {
@@ -1799,8 +1875,10 @@ def cmd_import(cfg, route_source=None):
         "started_ns": started_ns, "finished_ns": time.time_ns(),
         "elapsed_s": round(r.elapsed_s, 3),
     }
-    _atomic_json(build / "import_provenance.json", receipt)
-    print(f"import provenance -> {build / 'import_provenance.json'} "
+    provenance = (build / "import_provenance.json" if target_board is None else
+                  Path(str(target) + ".import_provenance.json"))
+    _atomic_json(provenance, receipt)
+    print(f"import provenance -> {provenance} "
           f"(source={route_source}, sha256={receipt['chain_sha256'][:12]})")
     return 0
 
@@ -2002,7 +2080,7 @@ def _route_one_tap(pcbnew, tk, t, i, vs, vd, htc=None):
     return None
 
 
-def cmd_taps(cfg):
+def cmd_taps(cfg, target_board=None):
     """Collision-checked tap connections KRT cannot thread (pour-fed sense
     pins, boxed-in connector pads, plane drops) — the bespoke tail every
     dense power board wrote by hand (usb-pwr-hub-3s route_taps.py was the
@@ -2037,7 +2115,9 @@ def cmd_taps(cfg):
     vs, vd = float(via.get("size", 0.6)), float(via.get("drill", 0.3))
     htc = float(via["hole_to_copper"]) \
         if "hole_to_copper" in via else None
-    target = rel(cfg, cfg["project"]["board"])
+    target = _target_board(cfg, target_board)
+    if not target.is_file():
+        die(f"tap target board not found: {target}")
     clr = float(get(cfg, "taps.clearance", 0.15))
     bref = pcbnew.LoadBoard(str(target))   # read-only, for endpoint geometry
 
@@ -5616,13 +5696,15 @@ def _stitch_tier_geometry(cfg):
                       "stitch.astar_fallback.via", keymap=_VIA_KEYMAP)
 
 
-def cmd_stitch(cfg):
+def cmd_stitch(cfg, target_board=None):
     global MM
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     import pcbnew
     MM = pcbnew.ToMM
     _stitch_tier_geometry(cfg)     # tier floors BEFORE any via is emitted
-    target = rel(cfg, cfg["project"]["board"])
+    target = _target_board(cfg, target_board)
+    if not target.is_file():
+        die(f"stitch target board not found: {target}")
 
     # Stitch can cross explicit fresh-interpreter barriers after removals.
     # Each process must have a stable but DISJOINT UUID stream: reseeding every
@@ -5651,9 +5733,11 @@ def cmd_stitch(cfg):
         print(f"   SWIG barrier ({why}): saved, re-execing into a fresh "
               f"interpreter at pass {next_i}/{len(order)}")
         sys.stdout.flush()
-        os.execv(sys.executable,
-                 [sys.executable, os.path.abspath(__file__), "stitch",
-                  str(cfg["_path"]), "--root", str(cfg["_root"])])
+        command = [sys.executable, os.path.abspath(__file__), "stitch",
+                   str(cfg["_path"]), "--root", str(cfg["_root"])]
+        if target_board is not None:
+            command.extend(["--target-board", str(target_board)])
+        os.execv(sys.executable, command)
 
     start = ctx.load_state()
     if start != resume_hint:
@@ -5700,7 +5784,7 @@ def cmd_stitch(cfg):
     print(f"\nsaved {ctx.path}")
     rc = verify_saved_fill(ctx.path)
     if rc == 0:
-        _critical_route_gate(cfg, require_connected=True)
+        _critical_route_gate(cfg, require_connected=True, board=target)
     print("NEXT: run your rules generator LAST — this save did not touch "
           ".kicad_pro, but any pcbnew save in the chain clobbers netclasses.")
     return rc
@@ -5792,6 +5876,9 @@ def main(argv=None):
     ap.add_argument("--board", default=None,
                     help="quick: evaluate THIS board instead of project.board "
                          "(race candidates)")
+    ap.add_argument("--target-board", default=None,
+                    help="import/taps/stitch/all: mutate this transaction-local "
+                         "board instead of project.board")
     ap.add_argument("--json", default=None,
                     help="quick: write the JSON summary here instead of "
                          "<build_dir>/quick.json")
@@ -5813,6 +5900,9 @@ def main(argv=None):
                     help="import: select route lineage explicitly (overrides "
                          "route.import_source)")
     a = ap.parse_args(argv)
+    if a.target_board is not None and a.command not in {
+            "import", "taps", "stitch", "verify-fill", "all"}:
+        ap.error("--target-board applies only to import/taps/stitch/verify-fill/all")
     cfg = load_cfg(a.config, a.root)
     try:
         if a.command == "prep":
@@ -5822,13 +5912,14 @@ def main(argv=None):
                              skip_preflight=a.skip_preflight, resume=a.resume,
                              through_wave=a.through_wave)
         if a.command == "import":
-            return cmd_import(cfg, a.route_source)
+            return cmd_import(
+                cfg, a.route_source, target_board=a.target_board)
         if a.command == "taps":
-            return cmd_taps(cfg)
+            return cmd_taps(cfg, target_board=a.target_board)
         if a.command == "quick":
             return cmd_quick(cfg, board=a.board, json_out=a.json)
         if a.command == "stitch":
-            return cmd_stitch(cfg)
+            return cmd_stitch(cfg, target_board=a.target_board)
         if a.command == "verify-fill":
             # THE READ-BACK, CALLABLE AFTER THE **LAST** BOARD WRITE.
             # `cmd_stitch` already runs it, but a per-board post-stitch script
@@ -5837,16 +5928,16 @@ def main(argv=None):
             # section 6 (added in v1.6) unfilled to place vias and never
             # refilled before its save, and it holds the LAST save in the
             # chain. A guard that runs before the last writer guards nothing.
-            return verify_saved_fill(rel(cfg, cfg["project"]["board"]))
+            return verify_saved_fill(_target_board(cfg, a.target_board))
         for fn in (cmd_prep, cmd_route):
             rc = fn(cfg)
             if rc:
                 return rc
-        rc = cmd_import(cfg, "build")
+        rc = cmd_import(cfg, "build", target_board=a.target_board)
         if rc:
             return rc
         for fn in (cmd_taps, cmd_stitch):
-            rc = fn(cfg)
+            rc = fn(cfg, target_board=a.target_board)
             if rc:
                 return rc
         return 0

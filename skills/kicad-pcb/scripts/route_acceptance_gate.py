@@ -14,7 +14,8 @@ import argparse
 import hashlib
 import json
 import os
-import subprocess
+import sys
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,12 @@ import route_acceptance_core
 import route_ownership_preflight
 import via_ampacity_check
 from tier_preflight import board_scoped
+from process_runner import run_bounded
+
+PCB_PIPELINE = Path(__file__).resolve().parents[2] / "pcb-design" / "scripts"
+if str(PCB_PIPELINE) not in sys.path:
+    sys.path.insert(0, str(PCB_PIPELINE))
+from pipeline_stage_evidence import require_safe_output_layout  # noqa: E402
 
 
 def _record(path: Path) -> dict[str, Any]:
@@ -84,10 +91,12 @@ def _required_checks(mode: str, critical_nets: list[str],
 
 def _admission(checks: dict[str, dict[str, Any]],
                required_checks: list[str]) -> tuple[str, dict[str, int], list[str]]:
-    """Preserve schema-1 authority while fail-closed shadowing shared core.
+    """Preserve schema-1 authority while observing the shared core in shadow.
 
-    The shared core is intentionally not the sole admission authority during
-    migration.  A disagreement can only make the result stricter.
+    Until an explicit promotion canary transfers authority, a shared-core
+    disagreement is evidence only: it cannot loosen *or tighten* the legacy
+    verdict.  The CLI records only a pending sibling request; a separately
+    budgeted canary may call ``_shadow_admission``.
     """
     missing = sorted(set(required_checks) - set(checks))
     required_not_pass = sorted(
@@ -114,25 +123,47 @@ def _admission(checks: dict[str, dict[str, Any]],
     }
     coverage["passing"] = coverage["pass"]
 
-    effective_required = sorted(set(required_checks) | {
-        name for name, row in checks.items()
-        if str(row.get("status")) != "N-A"
-    })
-    native = checks.get("native_drc") or {}
-    profile = ("final" if native.get("kind") == "native-drc-result-v1"
-               and native.get("profile") == "final" else "wave")
-    decision = route_acceptance_core.admit(profile, {
-        **checks,
-        "_meta": {"required_checks": effective_required},
-    })
-    core_verdict = str(decision["verdict"])
-    # Preserve an existing blocker exactly.  The shadow can only tighten a
-    # legacy ACCEPTED result; it never reclassifies a known rejection.
-    verdict = (legacy_verdict if legacy_verdict != "ACCEPTED" else
-               core_verdict)
-    not_pass = sorted(set(missing + required_not_pass +
-                          list(decision["required_not_pass"])))
-    return verdict, coverage, not_pass
+    return legacy_verdict, coverage, sorted(set(missing + required_not_pass))
+
+
+def _shadow_admission(checks: dict[str, dict[str, Any]],
+                      required_checks: list[str], mode: str) -> dict[str, Any]:
+    """Derive the shared-core comparison without joining receipt authority."""
+    try:
+        decision = route_acceptance_core.admit(
+            "final" if mode == "full" else "wave", {
+                **checks,
+                "_meta": {"required_checks": sorted(set(required_checks) | {
+                    name for name, row in checks.items()
+                    if str(row.get("status")) != "N-A"
+                })},
+            })
+        return {
+            "schema": 1, "kind": "route-acceptance-shadow-v1",
+            "authority": "SHADOW", "status": "OBSERVED",
+            "decision": decision,
+        }
+    except Exception as exc:
+        return {
+            "schema": 1, "kind": "route-acceptance-shadow-v1",
+            "authority": "SHADOW", "status": "INCOMPLETE",
+            "detail": str(exc),
+        }
+
+
+def _pending_shadow_admission(receipt: dict[str, Any]) -> dict[str, Any]:
+    """Describe a shared-core comparison without executing it in this run."""
+
+    return {
+        "schema": 1, "kind": "route-acceptance-shadow-v1",
+        "authority": "SHADOW", "status": "INCOMPLETE",
+        "subject": receipt.get("subject"),
+        "requested": {
+            "mode": receipt.get("mode"),
+            "required_checks": receipt.get("required_checks"),
+            "detail": "run shared-core admission in a separate bounded task",
+        },
+    }
 
 
 def _simple_conductor(project: Path, board: Path,
@@ -236,10 +267,10 @@ def _route_paths(project: Path, board_name: str | None = None) -> tuple[Path, Pa
 
 
 def _run(command: list[str], cwd: Path) -> tuple[int, str]:
-    completed = subprocess.run(command, cwd=cwd, capture_output=True, text=True,
-                               timeout=600, check=False)
-    return completed.returncode, ((completed.stdout or "")
-                                  + (completed.stderr or ""))
+    completed = run_bounded(
+        command, cwd=cwd, timeout_s=600, heartbeat_s=10,
+        label="route-acceptance-gate-child", echo=False)
+    return completed.returncode, completed.output
 
 
 def grade(project: Path, board: Path, *, mode: str,
@@ -346,14 +377,6 @@ def grade(project: Path, board: Path, *, mode: str,
         mode, critical_nets, route_cfg, prepared)
     verdict, coverage, required_not_pass = _admission(
         checks, required_checks)
-    shadow_admission = route_acceptance_core.admit(
-        "final" if mode == "full" else "wave", {
-            **checks,
-            "_meta": {"required_checks": sorted(set(required_checks) | {
-                name for name, row in checks.items()
-                if str(row.get("status")) != "N-A"
-            })},
-        })
     inputs = {"board": _record(board), "route": _record(route_path),
               "nets": _record(nets_path)}
     if prepared is not None:
@@ -364,7 +387,6 @@ def grade(project: Path, board: Path, *, mode: str,
         "inputs": inputs, "checks": checks,
         "required_checks": required_checks,
         "required_not_pass": required_not_pass,
-        "shadow_admission": shadow_admission,
         "coverage": coverage,
     }
 
@@ -394,6 +416,31 @@ def verify(receipt_path: Path) -> tuple[bool, list[str]]:
     native_subject = (checks.get("native_drc") or {}).get("subject") or {}
     if native_subject and native_subject != (receipt.get("inputs") or {}).get("board"):
         failures.append("native DRC subject differs from receipt board")
+    if "native_drc" in checks:
+        native = checks.get("native_drc") or {}
+        binding_valid, binding_failures = \
+            route_acceptance_core.verify_native_drc_binding(
+                native)
+        if not binding_valid:
+            failures.extend(binding_failures)
+        if native_evidence.get("path") and Path(str(native_evidence["path"])).is_file():
+            regraded = route_acceptance_core.classify_native_drc_result(
+                returncode=native.get("process_exit"),
+                report_path=Path(str(native_evidence["path"])),
+                profile=str(native.get("profile") or "final"),
+                evidence_fresh=True, evidence_complete=True)
+            for field in ("status", "counts", "finding_signatures"):
+                if native.get(field) != regraded.get(field):
+                    failures.append(
+                        f"native DRC {field} differs from reopened report")
+            try:
+                rebound = route_acceptance_core.bind_native_drc_result(
+                    regraded, (receipt.get("inputs") or {}).get("board") or {})
+                if rebound.get("binding") != native.get("binding"):
+                    failures.append(
+                        "native DRC binding differs after report reclassification")
+            except Exception as exc:
+                failures.append(f"native DRC cannot be rebound: {exc}")
     try:
         route_record = (receipt.get("inputs") or {})["route"]
         route_path = Path(str(route_record["path"]))
@@ -413,17 +460,6 @@ def verify(receipt_path: Path) -> tuple[bool, list[str]]:
             failures.append("receipt coverage disagrees with check statuses")
         if receipt.get("required_not_pass") != expected_not_pass:
             failures.append("required-not-pass list disagrees with check statuses")
-        if "shadow_admission" in receipt:
-            expected_shadow = route_acceptance_core.admit(
-                "final" if receipt.get("mode") == "full" else "wave", {
-                    **checks,
-                    "_meta": {"required_checks": sorted(set(expected_required) | {
-                        name for name, row in checks.items()
-                        if str(row.get("status")) != "N-A"
-                    })},
-                })
-            if receipt.get("shadow_admission") != expected_shadow:
-                failures.append("shared-core shadow admission does not reproduce")
     except Exception as exc:
         failures.append(f"cannot re-derive route applicability: {exc}")
     return not failures, failures
@@ -450,6 +486,26 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  FAIL {failure}")
         print(f"ROUTE-ACCEPTANCE RECEIPT {'PASS' if valid else 'FAIL'}")
         return 0 if valid else 1
+    shadow_path = args.json.with_name(f"{args.json.stem}.shadow.json")
+    output_paths = {"receipt": args.json, "shadow": shadow_path}
+    if args.mode == "full":
+        output_paths["native_drc"] = (
+            args.drc_json or args.project /
+            "06_build/verification/route_acceptance_drc.json")
+    try:
+        route_input, nets_input = _route_paths(args.project.resolve(),
+                                                args.board_name)
+        protected_paths = {
+            "project": args.project, "board": args.board,
+            "route": route_input, "nets": nets_input,
+        }
+        if args.prepared:
+            protected_paths["prepared"] = args.prepared
+        require_safe_output_layout(output_paths,
+                                   protected_paths=protected_paths)
+    except (OSError, ValueError) as exc:
+        print(f"ROUTE-ACCEPTANCE INCOMPLETE: {exc}")
+        return 2
     try:
         receipt = grade(
             args.project, args.board, mode=args.mode, prepared=args.prepared,
@@ -458,7 +514,45 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as exc:
         print(f"ROUTE-ACCEPTANCE INCOMPLETE: {exc}")
         return 2
-    _atomic_json(args.json, receipt)
+    try:
+        require_safe_output_layout(
+            output_paths,
+            protected_paths={
+                "project": args.project,
+                **{f"input_{name}": Path(record["path"])
+                   for name, record in (receipt.get("inputs") or {}).items()},
+            },
+        )
+    except ValueError as exc:
+        print(f"ROUTE-ACCEPTANCE INCOMPLETE: {exc}")
+        return 2
+    # A receipt becomes canonical only after an independent reopen verifies
+    # its exact bytes.  A failed fresh check must not leave an ACCEPTED-looking
+    # file at the caller's authoritative path.
+    provisional = args.json.with_name(
+        f".{args.json.name}.verify-{uuid.uuid4().hex}")
+    _atomic_json(provisional, receipt)
+    try:
+        verified, verification_failures = verify(provisional)
+    except Exception as exc:
+        verified, verification_failures = False, [
+            f"independent receipt verification raised: {exc}"]
+    if not verified:
+        provisional.unlink(missing_ok=True)
+        for failure in verification_failures:
+            print(f"  FAIL {failure}")
+        print("ROUTE-ACCEPTANCE INCOMPLETE: freshly written receipt did not "
+              "survive independent verification")
+        return 2
+    os.replace(provisional, args.json)
+    try:
+        _atomic_json(shadow_path, _pending_shadow_admission(receipt))
+    except Exception as exc:
+        # Shadow diagnostics cannot invalidate the independently verified
+        # authoritative receipt already published above.  This small sibling
+        # write is synchronous; it performs no engineering check or child
+        # process and has only ordinary output-filesystem latency.
+        print(f"ROUTE-ACCEPTANCE SHADOW INCOMPLETE: {exc}")
     coverage = receipt["coverage"]
     print(f"ROUTE-ACCEPTANCE {receipt['verdict']}: "
           f"{coverage['pass']} PASS / {coverage['non_applicable']} N-A / "

@@ -29,6 +29,13 @@ prepared `.kicad_pro`/`.kicad_dru` under both baseline and subject basenames,
 then copies only candidate PCB bytes as the subject. A prepared sibling
 `fp-lib-table` may be copied for reproducible lookup; it is not rule authority.
 
+An explicit target-board override is transaction-local, project-relative,
+an independent file with one hard-link, non-symlinked, and contained beneath
+the configured `project.build_dir`. An absolute path, parent traversal,
+hard-link alias, or symlink-resolved escape is an input error. The old
+live-board target remains a named compatibility mode; it must not be confused
+with an isolated transaction.
+
 This is the unit of rollback. A rejected, incomplete, timed-out, or late
 transaction cannot replace the last accepted chain. A new attempt uses a new
 workspace and a new receipt; it does not repair an old receipt in place.
@@ -58,22 +65,33 @@ predicate:
 - any missing report, abnormal tool exit, or unparsable evidence is
   `INCOMPLETE`, never clean.
 
-Run authoritative grading first. Enclose the complete shadow invocation,
-report read, classification and timeout in a separate failure boundary. A
-shadow crash or malformed baseline records shadow `INCOMPLETE`; it cannot skip
-authoritative candidate DRC, change the authoritative verdict, consume the
-authoritative timeout budget, or invalidate the accepted pointer.
+Run authoritative grading first. Semantic copper shadowing does not execute in
+the authoritative candidate transaction because its full-board adapter exceeds
+the canary resource budget. Candidate grade flags record only a pending request
+in `shadow_receipt.json`; they do not execute native DRC or copper inventory in
+the authoritative process. A separately budgeted canary runner may invoke those
+standalone tools, but its crash, timeout or report churn cannot skip candidate
+DRC, change the receipt binding, or invalidate an accepted pointer. Candidate
+grading performs no shadow engineering command; it does synchronously write
+one small pending request after the authoritative receipt, so that write has
+ordinary output-filesystem latency. The memory-heavy adapter must use one
+bounded disposable process and one reused before/after inventory; an
+in-process `try/except` is not containment.
 
 The workspace receipt binds the original prepared/candidate identities and
-every local artifact. It records shadow results separately. `ACCEPTED` is not
-route promotion by itself; the route driver must persist its own exclusive
-accepted pointer/progress state only after receipt verification.
+every authoritative local artifact. The later `shadow_receipt.json` is outside
+that artifact census and binding. `ACCEPTED` is not route promotion by itself.
+Content-addressed accepted bundles are currently an
+explicit experimental seam, not a live-driver invariant: until their
+independent regrading and import canaries are promoted, the existing driver
+remains authority and must not claim that its mutable `FINAL` is such a bundle.
 
 ## Native DRC provenance
 
 The established candidate check keeps its original invocation during the
-compatibility rollout. The full semantic baseline/subject dual-run is opt-in
-with `--shadow-native-drc`; it uses the same immutable prepared sidecars and
+compatibility rollout. `--shadow-native-drc` records a request only; a
+separately budgeted full semantic baseline/subject dual-run must use the same
+immutable prepared sidecars and
 the exact native options:
 
 ```text
@@ -112,32 +130,43 @@ or forge native DRC by supplying a PASS label or an empty required-check list.
 
 ## Shared semantic checks and profiles
 
-`route_acceptance_core.py` derives applicable checks from the transaction's
-declared touched semantics. Depending on nets, endpoints, zones and power, the
-shared core can require semantic copper delta, connectivity regression,
-endpoint-layer closure, power-graph delta, native DRC, and a route objective.
-Missing applicable evidence is `INCOMPLETE`.
+When separately invoked, `route_acceptance_core.py` derives applicable checks
+from a transaction's declared touched semantics. Candidate-grade shadow flags
+do not invoke it. Depending on nets, endpoints, zones and power, the shared core
+can require semantic copper delta, connectivity regression, endpoint-layer
+closure, power-graph delta, native DRC, and a route objective. Missing
+applicable evidence is `INCOMPLETE`.
 
 During compatibility rollout these results do not replace established
 admission:
 
-- candidate semantic DRC comparison is
-  `shadow_checks.native_drc_delta`;
-- candidate before/after copper inventory is `shadow_checks.copper_delta`;
-- full/quick shared composition is `shadow_admission` in the final-route
+- candidate semantic DRC pending request is
+  `shadow_receipt.json:checks.native_drc_delta`;
+- candidate before/after copper pending request is
+  `shadow_receipt.json:checks.copper_delta`;
+- a full/quick shared-composition **request** is written beside the final-route
+  receipt as `*.shadow.json`; the hot path does not run shared admission, and
+  the request is not a field in or verifier requirement of the authoritative
   receipt.
+
+A separately budgeted runner writes its canary result to a distinct artifact;
+it must not overwrite the pending request or join authoritative receipt
+identity.
 
 The real-board copper graph currently approximates some pad/hole connectivity.
 It may expose a possible unowned mutation, lost endpoint, split power zone, or
 missing declared zone, but it cannot be the sole promotion authority until
 measured adapters prove those geometries. A shadow PASS never weakens a legacy
-FAIL or INCOMPLETE. A disagreement preserves the previous accepted chain and
-opens an investigation.
+FAIL or INCOMPLETE, and a shadow rejection cannot tighten a legacy acceptance.
+A disagreement preserves the previous accepted chain and opens an
+investigation.
 
-`required_nets` is connectivity coverage, not mutation ownership. The grader
-therefore accepts separate `--touched-net` transaction ownership and grades
-actual changed nets against it. Copper delta still cannot promote until the
-real-board geometry/connectivity adapter passes the documented canaries.
+`required_nets` is authoritative connectivity coverage, not mutation
+ownership. `--touched-net` and `--mutation-baseline` are stored only in the
+separate shadow request; they do not change the authoritative receipt identity.
+A separately budgeted copper canary must grade actual changed nets against that
+scope. A pending request is not evidence, and copper delta cannot promote until
+the real-board geometry/connectivity adapter passes the documented canaries.
 
 The shared objective is a minimization vector over every observed applicable
 dimension: incomplete checks, DRC/parity/open counts, undeclared/unowned
@@ -151,12 +180,17 @@ Receipt verification is relocatable: artifact paths are workspace-relative,
 but every byte hash must still match. Verification fails if an artifact is
 missing or changed, a path escapes the workspace, an accepted receipt contains
 a nonpassing authoritative check, a native report no longer matches, or the
-native subject differs from the receipt board.
+native subject differs from the receipt board. Every path component is checked;
+an intermediate symlink is an escape even when the final path is a regular
+file.
 
-Do not trust mutable verdict/check fields merely because artifact hashes still
-match. Verification must rederive authoritative checks and verdict from the
-bound reports/inputs, cross-bind origins to the local baseline/subject/
-sidecars, and reject a receipt whose verdict or check statuses were rewritten.
+An unkeyed self-digest detects accidental edits only; it does not authenticate
+the producer. Do not trust mutable verdict/check fields merely because a caller
+recomputed that digest. Authoritative promotion must require the closed check
+inventory, reopen exact baseline/subject/sidecars, independently rederive every
+check and verdict, and receive the expected prepared-authority identity from
+its caller. If any predicate cannot be reproduced, promotion is unavailable;
+the experimental bundle code stays shadow-only.
 
 ### Minimal acceptance tests
 
@@ -167,16 +201,21 @@ sidecars, and reject a receipt whose verdict or check statuses were rewritten.
 | Workspace already exists | refuse; do not append or overwrite |
 | Workspace sidecar changes after receipt | verification fails |
 | Receipt verdict/check statuses are rewritten without changing artifacts | verification fails after re-derivation |
+| Receipt is rebound after inventing PASS checks | promotion refuses missing/rederived authority |
+| Artifact parent is a symlink outside workspace | verification refuses the escape |
 | Entire accepted workspace is relocated | receipt still verifies |
 | Required net remains open | `REJECTED` |
-| Counts-only nonzero DRC baseline | shadow semantic result `INCOMPLETE` |
+| Counts-only nonzero DRC baseline in a separately run canary | shadow semantic result `INCOMPLETE` |
 | Final native report is 0/1/0 but labeled PASS | final admission rejects |
 | Board changes while native DRC runs | `INCOMPLETE` |
-| Shadow checker passes a legacy hard violation | legacy rejection wins |
-| Shadow baseline is malformed or times out | shadow `INCOMPLETE`; authoritative candidate grade still runs |
+| Separately run shadow checker passes a legacy hard violation | legacy rejection wins |
+| Separately run shadow baseline is malformed or times out | shadow `INCOMPLETE`; authoritative candidate receipt remains available |
+| Separately run full-board copper canary exceeds its deadline/resource budget | shadow `INCOMPLETE`; authoritative receipt remains available |
 
 Promote one shared predicate only after focused known-bads plus USB Hub v4,
 Pluto RX2 8-way v4, and USB-controlled-debug-hub canaries agree on
 applicability, denominator, subject, verdict, blocker and backtrack target.
 Remove its replaced legacy predicate in that same promotion change. Until
-then, retain dual evidence and one execution authority.
+then, retain one authoritative receipt plus separate pending requests or
+independently produced canary evidence. A pending request is not evidence, and
+there remains exactly one execution authority.

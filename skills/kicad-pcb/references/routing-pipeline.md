@@ -148,45 +148,17 @@ once quick is clean. quick is a loop tool — the severity-all 0/0/0 full
 DRC after stitch remains authoritative, but is one predicate inside the
 single final-route acceptance receipt rather than an isolated green claim.
 
-### Final-route acceptance (mandatory promotion boundary)
+### Final-route acceptance boundary
 
-Read `route-candidate-contract.md` before this boundary. Every mutation first
-enters a fresh candidate workspace bound to the immutable prepared board and
-prepared `.kicad_pro`/`.kicad_dru`; candidate-owned sidecars never grade their
-own copper. Verify that workspace receipt before updating route progress or an
-accepted pointer.
-
-Run quick mode after an accepted candidate mutation and full mode before route
-promotion, layout seal, release review, or fabrication export:
-
-```text
-route_acceptance_gate.py grade PROJECT --board BOARD --mode quick \
-  --json 06_build/verification/route_acceptance_quick.json
-
-route_acceptance_gate.py grade PROJECT --board BOARD --mode full \
-  --drc-json 06_build/drc/route_acceptance.json \
-  --json 06_build/verification/route_acceptance_receipt.json
-```
-
-The compositor owns no replacement engineering rule. Quick mode calls the
-existing route-base (when supplied), critical-connectivity, route-ownership
-and realized-copper topology predicates, plus the exact saved-board via-aspect
-census. Full mode adds declared copper length, reference-plane and via-ampacity
-checks and fresh KiCad DRC/parity. An expected check that cannot run makes the
-receipt `INCOMPLETE`; a failed predicate makes it `REJECTED`. Only `ACCEPTED`
-promotes.
-
-`realized_via_aspect_check.py` is the one new leaf predicate: tier entry checks
-configured drill families, while this checker inventories every saved
-`PCB_VIA` against actual board thickness and the selected tier ceiling. Blind
-and buried spans conservatively use full thickness until final fabricator
-stackup evidence supplies a smaller plated span.
-
-Use the exact native-DRC provenance and compatibility rules in
-`route-candidate-contract.md`. Full promotion requires a fresh, hash-bound,
-unchanged-board `0/0/0` report. Shared semantic admission/copper results remain
-shadow during canary rollout; approximate real-board connectivity cannot own
-promotion.
+Read `route-candidate-contract.md` for the sole workspace, evidence, native-DRC,
+admission, and verification contract. Its content-addressed accepted-bundle
+publisher is experimental and currently refuses promotion. This flow only owns
+the order: run quick grading after a candidate mutation, and full grading before
+the existing driver may promote a route, seal layout, start release review, or
+export fabrication data. A failed, incomplete, stale, or timed-out transaction
+cannot authorize that legacy progression; the existing driver and mutable
+`FINAL` path retain promotion and rollback authority. `route-exploration.md`
+alone owns retry, stagnation, Pareto, and typed-backtrack decisions.
 
 Two stitch passes earn a special note here. Put **`fresh_reload`** after the
 last `fill`: it unconditionally saves and re-execs in a fresh pcbnew process,
@@ -310,20 +282,7 @@ to the critical copper and complicates provenance.
 
 The public lifecycle stage remains `KICAD-ROUTING`; these are internal seams,
 not new orchestration stages. Existing project configs retain their old
-behavior until they opt in. The skill-owned route template enables all three
-for new boards:
-
-```yaml
-route:
-  ownership_preflight: {mode: enforce}
-  candidate_grade: {mode: enforce}
-  exploration_guard:
-    mode: enforce
-    plateau_attempts: 2
-    max_attempts: 5
-    max_novel_signatures: 3
-    max_operation_amplification: 8
-```
+behavior until their canaries explicitly promote each predicate.
 
 Read `route-ownership.md` before adding topology/corridor declarations,
 `route-candidate-contract.md` before promotion or manual grading, and
@@ -338,14 +297,9 @@ ownership preflight -> KRT wave -> legacy fast wave gates
        unresolved -> Pareto + novelty budget -> retry or typed D-BACK
 ```
 
-`observe` mode records an incompatibility without changing legacy promotion;
-use it only for fleet migration. New projects may enforce the established
-candidate receipt while its new shared semantic subchecks remain shadow. A
-candidate that is REJECTED or INCOMPLETE in enforce mode never writes route
-progress or `FINAL`.
-
-The exploration guard signs unresolved nets, hard finding types/owners, and
-frontier ownership while ignoring coordinate/hash churn. When objective data
-is present, require complete Pareto comparison across every active dimension.
-Stop at the owning semantic/attempt/operation bounds and obey the emitted typed
-backtrack. `route-exploration.md` alone owns exact defaults and retention rules.
+Shadow diagnostics record an incompatibility without changing verdict, stage
+identity, accepted pointer, or runtime behavior. No live dual mode may tighten
+or loosen admission. Authority moves only in a separate promotion change after
+its canaries agree, and that change removes the replaced duplicate predicate.
+Exact mode defaults, receipt schemas, semantic objectives, attempt budgets, and
+retention rules live only in the three linked owner references above.

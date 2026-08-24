@@ -202,6 +202,20 @@ class WriterScope:
     def to_mapping(self) -> dict[str, Any]:
         return {"mode": self.mode, "paths": list(self.paths)}
 
+    def allows(self, path: str) -> bool:
+        """Return whether ``path`` is covered by this declared writer scope.
+
+        This is a lexical project-relative check.  The runtime separately
+        resolves existing symlinks before launch and compares filesystem
+        snapshots after execution; neither operation is an OS write sandbox.
+        """
+        candidate = PurePosixPath(_relative_path(path, "writer path"))
+        if self.mode != "EXCLUSIVE":
+            return False
+        return any(candidate == PurePosixPath(owned) or
+                   PurePosixPath(owned) in candidate.parents
+                   for owned in self.paths)
+
 
 @dataclass(frozen=True)
 class TaskEnvelope:
@@ -619,11 +633,57 @@ def verify_input_packet(envelope: TaskEnvelope,
     return not failures, failures
 
 
+def writer_scope_receipt(
+        scope: WriterScope | Mapping[str, Any], changed_paths: Sequence[str], *,
+        before_sha256: str, after_sha256: str,
+        protected_paths: Sequence[str] = ()) -> dict[str, Any]:
+    """Grade net filesystem changes against a declared writer scope.
+
+    The caller owns snapshotting and supplies the two canonical tree hashes.
+    This function is intentionally a receipt composer, not a claim of
+    hermetic or network isolation: writes which are created and then removed
+    between snapshots cannot be observed here.
+    """
+    parsed = (WriterScope.from_mapping(scope)
+              if isinstance(scope, Mapping) else scope)
+    if not isinstance(parsed, WriterScope):
+        _fail("writer_scope_receipt.scope: expected WriterScope or mapping")
+    for value, where in ((before_sha256, "before_sha256"),
+                         (after_sha256, "after_sha256")):
+        if not isinstance(value, str) or SHA256_RE.fullmatch(value) is None:
+            _fail(f"writer_scope_receipt.{where}: expected SHA-256")
+
+    changed = tuple(_relative_path(path, "changed_paths[]")
+                    for path in changed_paths)
+    protected = tuple(_relative_path(path, "protected_paths[]")
+                      for path in protected_paths)
+    if list(changed) != sorted(set(changed)):
+        _fail("changed_paths: paths must be sorted and unique")
+    if list(protected) != sorted(set(protected)):
+        _fail("protected_paths: paths must be sorted and unique")
+
+    protected_set = frozenset(protected)
+    violations = tuple(
+        path for path in changed
+        if path in protected_set or not parsed.allows(path))
+    return {
+        "schema": SCHEMA,
+        "status": "PASS" if not violations else "FAIL",
+        "mode": parsed.mode,
+        "paths": list(parsed.paths),
+        "before_sha256": before_sha256,
+        "after_sha256": after_sha256,
+        "changed_paths": list(changed),
+        "protected_paths": list(protected),
+        "violations": list(violations),
+    }
+
+
 __all__ = [
     "AGENT_ROLES", "AgentSpan", "ATTEMPT_STATUSES", "CONTEXT_MODES",
     "EXECUTION_CLASSES", "EXECUTORS", "ExecutionValidationError",
     "MANDATORY_FRESH_BOUNDARIES", "PacketItem", "SCHEMA", "TaskAttempt",
     "TaskEnvelope", "TokenUsage", "WriterScope", "aggregate_token_usage",
     "context_handoff_decision", "envelope_sha256", "replacement_admissible",
-    "verify_input_packet",
+    "verify_input_packet", "writer_scope_receipt",
 ]

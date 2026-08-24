@@ -41,10 +41,9 @@ EXPECTED = {
     ),
     "pi_usb": (
         "PCB-COMMISSION", "PCB-ARCHITECTURE", "PCB-SOURCING",
-        "KICAD-RF-CONTEXT", "KICAD-RF-SOURCE", "KICAD-SCHEMATIC",
-        "KICAD-PLACEMENT", "KICAD-ROUTING", "KICAD-RF-REALIZED",
+        "KICAD-SCHEMATIC", "KICAD-PLACEMENT", "KICAD-ROUTING",
         "KICAD-LAYOUT-SEAL", "JLC-FABRICATION", "JLC-ASSEMBLY-VERIFY",
-        "JLC-RF-FAB-REVIEW", "PCB-RELEASE-REVIEW", "PCB-RELEASE-SEAL",
+        "PCB-RELEASE-REVIEW", "PCB-RELEASE-SEAL",
     ),
     "pluto_v5": (
         "PCB-COMMISSION", "PCB-ARCHITECTURE", "PCB-SOURCING",
@@ -81,16 +80,26 @@ def t_profile_traces():
               f"{name} contains a firmware stage")
 
 
-@test("SI references load for high-speed/RF and stay absent for ordinary boards")
-def t_rf_progressive_disclosure():
+@test("ordinary, high-speed digital, and RF select distinct reference modules")
+def t_signal_integrity_progressive_disclosure():
     for name in ("simple", "usb_hub_v4"):
         refs = resolve_profile(profile(name))["references"]
         check(not any("/rf" in ref for ref in refs),
               f"{name} loaded RF references: {refs}")
-    for name in ("pi_usb", "pluto_v5"):
-        refs = resolve_profile(profile(name))["references"]
-        check(any("/rf/" in ref for ref in refs),
-              f"{name} did not load the signal-integrity module: {refs}")
+        check(not any(ref.endswith("signal-integrity.md") for ref in refs),
+              f"{name} loaded high-speed references: {refs}")
+
+    pi_refs = resolve_profile(profile("pi_usb"))["references"]
+    check(any(ref.endswith("signal-integrity.md") for ref in pi_refs),
+          f"Pi high-speed adapter absent: {pi_refs}")
+    check(not any("/rf" in ref for ref in pi_refs),
+          f"RF leaked into Pi high-speed plan: {pi_refs}")
+
+    pluto_refs = resolve_profile(profile("pluto_v5"))["references"]
+    check(any("/rf/" in ref for ref in pluto_refs),
+          f"Pluto RF module absent: {pluto_refs}")
+    check(not any(ref.endswith("signal-integrity.md") for ref in pluto_refs),
+          f"generic digital SI duplicated Pluto RF authority: {pluto_refs}")
 
 
 @test("stage-local disclosure for Pi routing loads no JLC, RF, or release procedure")
@@ -99,12 +108,94 @@ def t_stage_local_disclosure():
     refs = result["load_now"]
     check(any(ref.endswith("routing-pipeline.md") for ref in refs),
           f"routing procedure absent: {refs}")
+    check(any(ref.endswith("source-to-prep-authority.md") for ref in refs),
+          f"source authority absent: {refs}")
+    check(any(ref.endswith("route-candidate-contract.md") for ref in refs),
+          f"candidate transaction authority absent: {refs}")
+    check(any(ref.endswith("route-exploration.md") for ref in refs),
+          f"route exploration authority absent: {refs}")
+    check(any(ref.endswith("signal-integrity.md") for ref in refs),
+          f"high-speed digital adapter absent: {refs}")
     check(not any("jlcpcb-fab" in ref for ref in refs),
           f"JLC leaked into routing stage: {refs}")
     check(not any("/rf" in ref for ref in refs),
           f"RF leaked into Pi routing stage: {refs}")
     check(not any(ref.endswith("review-and-publication.md") for ref in refs),
           f"release procedure leaked into routing stage: {refs}")
+
+
+@test("placement discloses source-to-prep authority without routing mechanics")
+def t_placement_local_disclosure():
+    refs = resolve_profile(profile("pi_usb"), at_stage="KICAD-PLACEMENT")["load_now"]
+    check(any(ref.endswith("source-to-prep-authority.md") for ref in refs),
+          f"placement source authority absent: {refs}")
+    check(not any(ref.endswith("route-candidate-contract.md") for ref in refs),
+          f"candidate mechanics leaked into placement: {refs}")
+    check(not any(ref.endswith("route-exploration.md") for ref in refs),
+          f"exploration mechanics leaked into placement: {refs}")
+    check(any(ref.endswith("signal-integrity.md") for ref in refs),
+          f"high-speed placement guidance absent: {refs}")
+    check(not any("/rf/" in ref for ref in refs),
+          f"RF guidance leaked into digital placement: {refs}")
+
+
+@test("digital fabrication and first article disclose SI without RF stages")
+def t_high_speed_fabrication_disclosure():
+    fab = resolve_profile(
+        profile("pi_usb"), at_stage="JLC-FABRICATION")["load_now"]
+    check(any(ref.endswith("signal-integrity.md") for ref in fab),
+          f"digital fabrication guidance absent: {fab}")
+    check(not any("/rf/" in ref for ref in fab),
+          f"RF guidance leaked into digital fabrication: {fab}")
+
+    item = profile("pi_usb").to_mapping()
+    item["target"] = "first_article"
+    first = resolve_profile(
+        CapabilityProfile.from_mapping(item),
+        at_stage="PCB-FIRST-ARTICLE")["load_now"]
+    check(any(ref.endswith("signal-integrity.md") for ref in first),
+          f"digital first-article guidance absent: {first}")
+    check(not any("/rf/" in ref for ref in first),
+          f"RF guidance leaked into digital first article: {first}")
+
+
+@test("router labels disclosure selection without fabricating N-A evidence")
+def t_selection_is_not_engineering_applicability():
+    result = resolve_profile(profile("pi_usb"))
+    eq(result["authority"], "DISCLOSURE_ONLY", "router authority boundary")
+    check(all(row["selection_reason"] for row in result["stages"]),
+          "stage selection reasons missing")
+    placeholders = result["dependency_placeholders"]
+    eq(placeholders["rf_source_clearance"]["stage_id"], "KICAD-RF-SOURCE",
+       "RF source placeholder producer")
+    eq(placeholders["rf_realized_clearance"]["stage_id"], "KICAD-RF-REALIZED",
+       "RF realized placeholder producer")
+    check(all(row["authority"] == "DISCLOSURE_ONLY" and
+              row["engineering_applicability"] == "UNKNOWN"
+              for row in placeholders.values()),
+          "a planning placeholder claimed engineering applicability")
+    eq(result["external_clearances"], [],
+       "planning placeholders were mislabeled external evidence")
+
+
+@test("router accepts the frozen applies spelling only as a disclosure alias")
+def t_legacy_applies_catalog_adapter():
+    catalog = copy.deepcopy(load_catalog())
+    for row in catalog["stages"]:
+        row["applies"] = row.pop("selects")
+    current = resolve_profile(profile("pi_usb"))
+    adapted = resolve_profile(profile("pi_usb"), catalog=catalog)
+    eq(adapted["stages"], current["stages"], "legacy catalog stage adapter")
+    eq(adapted["authority"], "DISCLOSURE_ONLY",
+       "legacy selector spelling gained execution authority")
+
+
+@test("runtime documentation does not overclaim hermetic containment")
+def t_runtime_truth_boundary():
+    text = (ROOT / "skills/pcb-design/references/execution-runtime.md").read_text()
+    contains(text, "bounded, not hermetic", "bounded-versus-hermetic truth")
+    contains(text, "actually enforces it", "network enforcement truth")
+    contains(text, "cannot update a live board", "runtime authority boundary")
 
 
 @test("an explicit firmware request creates only a handoff, never a PCB stage")

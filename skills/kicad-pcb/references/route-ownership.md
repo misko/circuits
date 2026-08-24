@@ -55,4 +55,4 @@ Run before KRT:
 | Deterministic trunk also requested by KRT | `O-DOUBLE` fail |
 | Deterministic trunk excluded from KRT | pass |
 | Flexible wave claims a shared corridor before F.Cu-only crystal | `O-FLEX` fail |
-| Simple point-to-point board with no special facts | N-A/pass with no ceremony |
+| Simple point-to-point board with no special facts | typed N-A with a non-empty reason and zero denominator; never PASS |

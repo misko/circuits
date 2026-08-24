@@ -17,7 +17,6 @@ import hashlib
 import json
 import os
 import re
-import subprocess
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -30,9 +29,15 @@ SCRIPTS = Path(__file__).resolve().parent
 PCB_PIPELINE = SCRIPTS.parents[1] / "pcb-design" / "scripts"
 if str(PCB_PIPELINE) not in __import__("sys").path:
     __import__("sys").path.insert(0, str(PCB_PIPELINE))
+KICAD_SCRIPTS = SCRIPTS.parents[1] / "kicad-pcb" / "scripts"
+if str(KICAD_SCRIPTS) not in __import__("sys").path:
+    __import__("sys").path.insert(0, str(KICAD_SCRIPTS))
 
 from pipeline_identity import TypedIdentityInput, subject_identity  # noqa: E402
-from pipeline_stage_evidence import publish_stage_evidence  # noqa: E402
+from pipeline_stage_evidence import (  # noqa: E402
+    require_safe_output_layout, write_shadow_stage_result,
+)
+from process_runner import run_bounded  # noqa: E402
 
 
 def _record(path: Path) -> dict[str, Any]:
@@ -51,20 +56,14 @@ def _atomic_json(path: Path, value: dict[str, Any]) -> None:
 
 def _run(label: str, command: list[str], cwd: Path) -> dict[str, Any]:
     started = time.monotonic()
-    try:
-        completed = subprocess.run(
-            command, cwd=cwd, capture_output=True, text=True,
-            timeout=900, check=False)
-    except subprocess.TimeoutExpired as exc:
-        return {"status": "INCOMPLETE", "detail": f"{label} timed out",
-                "elapsed_s": round(time.monotonic() - started, 6),
-                "output": ((exc.stdout or "") + (exc.stderr or ""))[-4000:]}
+    completed = run_bounded(
+        command, cwd=cwd, timeout_s=900, heartbeat_s=10,
+        label=f"manufacturing-readiness-{label}", echo=False)
     status = "PASS" if completed.returncode == 0 else (
         "FAIL" if completed.returncode == 1 else "INCOMPLETE")
     return {"status": status, "detail": f"exit {completed.returncode}",
             "elapsed_s": round(time.monotonic() - started, 6),
-            "output": ((completed.stdout or "")
-                       + (completed.stderr or ""))[-8000:]}
+            "output": completed.output[-8000:]}
 
 
 def _pcba_check(receipt: Path | None, *, phase: str,
@@ -380,42 +379,31 @@ def verify(path: Path) -> tuple[bool, list[str]]:
 
 def _publish_part_freeze(result: dict[str, Any], receipt_path: Path,
                          bundle_path: Path, stage_path: Path) -> None:
-    """Shadow-publish accepted pre-layout sourcing as S-PART-FREEZE."""
+    """Emit a typed shadow request; never replace an accepted bundle."""
     if result.get("phase") != "prelayout":
         raise ValueError("S-PART-FREEZE publication requires phase prelayout")
     if result.get("verdict") != "ACCEPTED":
         raise ValueError("S-PART-FREEZE cannot publish non-accepted evidence")
     semantic = {
-        "phase": result["phase"],
-        "project": result["project"],
-        "checks": {
-            name: {"status": row.get("status"), "detail": row.get("detail")}
-            for name, row in sorted(result["checks"].items())
-        },
-        "part_identity": (result["checks"].get("exact_code_identity") or {})
-                         .get("rows", []),
+        "phase": result["phase"], "project": result.get("project"),
+        "legacy_verdict": result.get("verdict"),
+        "inputs": {name: record.get("sha256")
+                   for name, record in sorted(
+                       (result.get("inputs") or {}).items())},
     }
+    payload = json.dumps(
+        semantic, sort_keys=True, separators=(",", ":")).encode("utf-8")
     identity = subject_identity("part-freeze", 1, [TypedIdentityInput(
-        "readiness", "mapping", semantic, receipt_path.read_bytes())])
-    inputs = {
-        name: Path(record["path"])
-        for name, record in result["inputs"].items()
-    }
+        "readiness", "mapping", semantic, payload)])
+    del receipt_path, bundle_path
     coverage = result["coverage"]
-    publish_stage_evidence(
-        stage_id="S-PART-FREEZE",
-        output_symbol="part_freeze_report",
-        producer="manufacturing_readiness.py",
-        producer_version="schema-1-shadow",
-        subject=identity,
-        inputs=inputs,
-        measurement_path=receipt_path,
-        measurement_name="part_freeze.json",
-        accepted_dir=bundle_path,
-        stage_result_path=stage_path,
-        status="PASS",
-        graded=coverage["passing"],
-        total=coverage["total"],
+    write_shadow_stage_result(
+        stage_id="S-PART-FREEZE", subject=identity,
+        stage_result_path=stage_path, total=coverage["total"],
+        finding_code="S-PART-PROMOTION-DISABLED",
+        finding_detail=(
+            "manufacturing-readiness receipt is legacy authority; accepted "
+            "bundle unchanged until one atomic pointer-last transaction exists"),
     )
 
 
@@ -443,6 +431,23 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  FAIL {failure}")
         print(f"MANUFACTURING-READINESS RECEIPT {'PASS' if valid else 'FAIL'}")
         return 0 if valid else 1
+    if bool(args.stage_bundle) != bool(args.stage_result):
+        print("MANUFACTURING-READINESS INCOMPLETE: --stage-bundle and "
+              "--stage-result must be supplied together")
+        return 2
+    output_paths = {"receipt": args.json}
+    if args.stage_bundle:
+        output_paths.update({"stage_bundle": args.stage_bundle,
+                             "stage_result": args.stage_result})
+    try:
+        require_safe_output_layout(
+            output_paths,
+            directory_outputs=("stage_bundle",) if args.stage_bundle else (),
+            protected_paths={"project": args.project},
+        )
+    except ValueError as exc:
+        print(f"MANUFACTURING-READINESS INCOMPLETE: {exc}")
+        return 2
     try:
         result = grade(args.project, phase=args.phase, release=args.release,
                        pcba_receipt=args.pcba_receipt,
@@ -452,11 +457,20 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as exc:
         print(f"MANUFACTURING-READINESS INCOMPLETE: {exc}")
         return 2
-    _atomic_json(args.json, result)
-    if bool(args.stage_bundle) != bool(args.stage_result):
-        print("MANUFACTURING-READINESS INCOMPLETE: --stage-bundle and "
-              "--stage-result must be supplied together")
+    try:
+        require_safe_output_layout(
+            output_paths,
+            directory_outputs=("stage_bundle",) if args.stage_bundle else (),
+            protected_paths={
+                "project": args.project,
+                **{f"input_{name}": Path(record["path"])
+                   for name, record in (result.get("inputs") or {}).items()},
+            },
+        )
+    except ValueError as exc:
+        print(f"MANUFACTURING-READINESS INCOMPLETE: {exc}")
         return 2
+    _atomic_json(args.json, result)
     if args.stage_bundle:
         try:
             _publish_part_freeze(result, args.json.resolve(),
@@ -464,7 +478,8 @@ def main(argv: list[str] | None = None) -> int:
                                  args.stage_result.resolve())
         except Exception as exc:
             print(f"MANUFACTURING-READINESS INCOMPLETE: shadow stage evidence: {exc}")
-            return 2
+            # Optional part-freeze publication remains shadow authority.
+            # Preserve the legacy readiness verdict and prior accepted bundle.
     coverage = result["coverage"]
     print(f"MANUFACTURING-READINESS {result['verdict']}: "
           f"{coverage['passing']}/{coverage['total']} checks pass; "

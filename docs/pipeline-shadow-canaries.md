@@ -150,3 +150,71 @@ passed 7/7. Stage-contract, registry, rebuild-template, and rotation-authority
 suites also remained green. This proves reference-selection and governance
 compatibility; it does not convert a static catalog check into board execution
 equivalence and does not authorize a driver migration.
+
+## 2026-08-24 robustness implementation canary
+
+Implementation was frozen at isolated baseline commit
+`ed0d53b9b3d2375ac69b072758ef22a71a68cf53`; the dirty main worktree, index,
+and branch were not used as a test workspace. The capability router is still a
+disclosure-only tool. Its simple, USB hub, Pi USB, and Pluto traces now separate
+ordinary, high-speed digital, and RF text selection: Pi USB loads the generic
+signal-integrity adapter and no RF stage/reference, while Pluto retains the RF
+stages. Unselected dependency products are labelled disclosure placeholders
+with engineering applicability `UNKNOWN`, not N/A evidence.
+
+The shared subprocess runtime is exercised with synthetic known-bads for
+inherited-pipe descendants, output-redirected quiet descendants, nested bounded
+children, deadline cleanup, stale pre/post inputs, writer-scope escapes,
+duplicate terminal output, and live heartbeat/PID state. Acceptance requires
+both the outer and nested-success regressions to prove that a command cannot
+return a successful terminal result while a member of its owned process group
+survives. This establishes bounded local execution behavior; it does not
+establish network isolation, OS-enforced write containment, or artifact
+acceptance. A descendant that starts a foreign session can escape process-group
+reaping; the runner bounds its inherited output transport and returns
+non-passing, but only cgroup/subreaper containment could guarantee that such a
+foreign-session process is killed and reaped.
+
+The first real-board semantic-copper measurement used the sealed
+USB-controlled-debug-hub-2A v0.1.1 board, SHA-256
+`de47f1053e9145b74cf75ab677caab2d4a287eb207acc233db2b316fb52c2a99`.
+One inventory of 3,503 primitives took 21.51 seconds and about 5,086,060 KiB
+maximum RSS on this host. A route candidate needs before/after evidence, so an
+unconditional in-process shadow could reproduce the pipeline's apparent
+lockups or be killed for memory. Semantic copper therefore does not execute in
+the authoritative candidate transaction. It remains non-authoritative; any
+canary must use one bounded disposable process and retain the established
+candidate verdict independently.
+
+The frozen v0.1.1 netlist, SHA-256
+`77d1bf722472929bcc27dd8de4657bc5d1b92977b60be6f25b5adeae42955590`,
+does independently expose `U_PD` pins 9/2/3 as
+`GND/PD_VDD/PD_VDD`. That is useful wiring evidence, but the release does not
+contain a machine-readable, owner-verified CH224K strap decoder. Injecting a
+15 V interval into an operating-state fixture proves interval containment; it
+does not prove the board-to-15 V decode. The applicability receipt therefore
+remains structural `SHADOW`. This exact frozen project has no legacy
+`operating_states.yaml`, so E-CLOSURE ran its historical nine-check battery and
+the new applicability path emitted only a pending sibling request: no additional
+operating-state checker ran and no admissible operating-state receipt exists.
+Projects that already carry the legacy file retain its authoritative tenth
+check. A separately budgeted diagnostic remains
+unverified until closed owner receipts and typed extractors can be reopened. A
+file digest plus a prose locator is citation evidence, not numeric measurement
+authority.
+
+The three early boundary adapters are also explicitly fail-closed.
+`S-PART-FREEZE`, `E-CLOSURE`, and `P-FEASIBILITY` emit canonical typed
+`INCOMPLETE` boundary holds with empty outputs. These intentionally replace an
+unsafe prior PASS StageResult at the same path, while creating or replacing no
+accepted bundle. The common publisher refuses the former two-target
+bundle/result sequence until it is redesigned as one independently regraded,
+pointer-last transaction.
+
+Route-bundle and source-authority helpers are likewise staged behind explicit
+promotion holds. Unkeyed self-digests detect accidental byte changes but do
+not authenticate caller-authored PASS facts. Accepted routing cannot move to
+the new bundle seam until promotion independently rederives the closed check
+set, refuses symlink/path escapes, and the live importer consumes only the
+verified subject. These stricter findings are successful canary outcomes: the
+new code remains shadow or fail-closed instead of manufacturing equivalence.

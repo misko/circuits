@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import sys
+import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -12,6 +14,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 
 import placement_cell_checks as checks  # noqa: E402
+import placement_routability_preflight as preflight  # noqa: E402
 
 
 def pad(x: float, y: float, *, net: str = "", size=(1.0, 1.0), **facts):
@@ -22,7 +25,223 @@ def part(mpn: str, **pads):
     return {"mpn": mpn, "pads": pads}
 
 
+def accepted_preflight_receipt(root: Path):
+    files = {}
+    for name in ("board", "route", "nets", "placement_cells"):
+        path = root / f"{name}.txt"
+        path.write_text(name + "\n")
+        files[name] = path
+    checks_by_name = {
+        name: {"status": "PASS", "detail": "fixture"}
+        for name in preflight.AUTHORITATIVE_CHECKS
+    }
+    receipt = {
+        "schema": 1, "kind": "placement-routability-receipt-v1",
+        "verdict": "ACCEPTED",
+        "inputs": {name: preflight._record(path)
+                   for name, path in files.items()},
+        "checks": checks_by_name,
+        "coverage": {"passing": len(checks_by_name),
+                     "total": len(checks_by_name)},
+    }
+    receipt["subject"] = receipt["inputs"]["board"]
+    return receipt, files
+
+
+class _Vector:
+    def __init__(self, x, y):
+        self.x, self.y = x, y
+
+
+class _Layers:
+    def Seq(self):
+        return []
+
+
+class _Pad:
+    def GetPosition(self):
+        return _Vector(0, 0)
+    def GetSize(self):
+        return _Vector(1_000_000, 1_000_000)
+    def GetLayerSet(self):
+        return _Layers()
+    def GetNumber(self):
+        return "1"
+    def GetNetname(self):
+        return "VIN"
+
+
+class _Footprint:
+    def GetReference(self):
+        return "U1"
+    def GetProperties(self):
+        return {"MPN": "UNTRUSTED-FOOTPRINT-MPN"}
+    def Pads(self):
+        return [_Pad()]
+
+
+class _Board:
+    def GetFootprints(self):
+        return [_Footprint()]
+    def GetLayerName(self, _layer):
+        return "F.Cu"
+
+
 class PlacementCellChecksTest(unittest.TestCase):
+    def test_shadow_input_staleness_cannot_invalidate_authoritative_receipt(self):
+        root = Path(tempfile.mkdtemp(prefix="p-feas-shadow-verify-"))
+        receipt, files = accepted_preflight_receipt(root)
+        receipt_path = root / "receipt.json"
+        receipt_path.write_text(json.dumps(receipt))
+        files["placement_cells"].write_text("changed shadow bytes\n")
+        self.assertTrue(preflight.verify(receipt_path)[0])
+        files["route"].write_text("changed authoritative bytes\n")
+        valid, failures = preflight.verify(receipt_path)
+        self.assertFalse(valid)
+        self.assertIn("input moved or changed: route", failures)
+
+    def test_zero_or_open_authoritative_check_inventory_is_rejected(self):
+        root = Path(tempfile.mkdtemp(prefix="p-feas-zero-checks-"))
+        receipt, _files = accepted_preflight_receipt(root)
+        receipt["checks"] = {}
+        receipt["coverage"] = {"passing": 0, "total": 0}
+        receipt_path = root / "receipt.json"
+        receipt_path.write_text(json.dumps(receipt))
+        valid, failures = preflight.verify(receipt_path)
+        self.assertFalse(valid)
+        self.assertTrue(any("check inventory differs" in row or
+                            "zero or incomplete" in row for row in failures))
+
+    def test_board_subject_must_equal_exact_board_input(self):
+        root = Path(tempfile.mkdtemp(prefix="p-feas-subject-"))
+        receipt, files = accepted_preflight_receipt(root)
+        receipt["subject"] = preflight._record(files["route"])
+        receipt_path = root / "receipt.json"
+        receipt_path.write_text(json.dumps(receipt))
+        valid, failures = preflight.verify(receipt_path)
+        self.assertFalse(valid)
+        self.assertIn(
+            "receipt subject must equal the exact board input record", failures)
+
+    def test_verdict_and_coverage_are_derived_from_closed_checks(self):
+        root = Path(tempfile.mkdtemp(prefix="p-feas-derived-"))
+        clean, _files = accepted_preflight_receipt(root)
+        for field, bad_value, expected in (
+                ("coverage", {"passing": 0, "total": 7},
+                 "coverage disagrees"),
+                ("verdict", "REJECTED", "verdict disagrees")):
+            receipt = json.loads(json.dumps(clean))
+            receipt[field] = bad_value
+            receipt_path = root / f"bad-{field}.json"
+            receipt_path.write_text(json.dumps(receipt))
+            valid, failures = preflight.verify(receipt_path)
+            self.assertFalse(valid)
+            self.assertTrue(any(expected in row for row in failures))
+
+    def test_pending_stage_does_not_reopen_or_promote_supplied_mapping(self):
+        root = Path(tempfile.mkdtemp(prefix="p-feas-persisted-"))
+        persisted, _files = accepted_preflight_receipt(root)
+        receipt_path = root / "receipt.json"
+        receipt_path.write_text(json.dumps(persisted))
+        supplied = json.loads(json.dumps(persisted))
+        supplied["shadow_checks"] = {
+            "invented": {"status": "PASS", "authority": "SHADOW"}}
+        with mock.patch.object(
+                Path, "read_text",
+                side_effect=AssertionError("pending stage reopened receipt")):
+            preflight._publish_feasibility(
+                supplied, receipt_path, root / "bundle", root / "stage.json")
+        stage = json.loads((root / "stage.json").read_text())
+        self.assertEqual(stage["status"], "INCOMPLETE")
+        self.assertEqual(stage["outputs"], [])
+        self.assertFalse((root / "bundle").exists())
+
+    def test_structural_pass_publishes_only_incomplete_shadow_result(self):
+        root = Path(tempfile.mkdtemp(prefix="p-feas-self-auth-"))
+        receipt, _files = accepted_preflight_receipt(root)
+        receipt_path = root / "receipt.json"
+        receipt_path.write_text(json.dumps(receipt))
+        preflight._publish_feasibility(
+            receipt, receipt_path, root / "accepted", root / "stage.json")
+        stage = json.loads((root / "stage.json").read_text())
+        self.assertEqual(stage["status"], "INCOMPLETE")
+        self.assertEqual(stage["outputs"], [])
+        self.assertFalse((root / "accepted").exists())
+
+    def test_requested_shadows_are_deferred_outside_authoritative_grade(self):
+        root = Path(tempfile.mkdtemp(prefix="placement-shadow-request-"))
+        cells = root / "placement_cells.yaml"
+        stack = root / "stackup.yaml"
+        cells.write_text("schema: 1\n")
+        stack.write_text("schema: stackup-v1\n")
+        subject = {"path": str(root / "board.kicad_pcb"),
+                   "sha256": "0" * 64, "size": 1}
+        with mock.patch(
+                "placement_routability_preflight._functional_cell_shadow",
+                side_effect=AssertionError("ran functional shadow")) as cells_run, \
+             mock.patch(
+                "placement_routability_preflight._source_authority_shadow",
+                side_effect=AssertionError("ran source shadow")) as source_run:
+            request = preflight._placement_shadow_request(
+                root, subject, functional_cells_config=cells,
+                stack_authority=stack)
+        cells_run.assert_not_called()
+        source_run.assert_not_called()
+        self.assertEqual(request["authority"], "SHADOW")
+        self.assertEqual(
+            request["checks"]["functional_cells"]["status"], "INCOMPLETE")
+        self.assertEqual(
+            request["checks"]["source_prep_authority"]["status"],
+            "INCOMPLETE")
+
+    def test_shadow_caller_uses_independent_mpn_and_obstacle_observations(self):
+        root = Path(tempfile.mkdtemp(prefix="placement-cell-caller-"))
+        config = root / "placement_cells.yaml"
+        config.write_text(json.dumps({
+            "schema": 1,
+            "selected_parts": {"U1": {
+                "mpn": "EXACT-A", "pad_roles": {"input": "1"},
+            }},
+            # This same-contract snapshot must never override observations.
+            "snapshot": {
+                "obstacles": [{"id": "authored", "bbox": [0, 0, 9, 9],
+                               "layer": "F.Cu"}],
+            },
+        }))
+        report = preflight._functional_cell_shadow(
+            config, _Board(), observed_parts={"U1": {"mpn": "EXACT-A"}},
+            observed_obstacles=[{
+                "id": "observed", "kind": "body", "bbox": [2, 2, 3, 3],
+                "layer": "F.Cu",
+            }])
+        self.assertEqual(report["status"], checks.PASS)
+        self.assertEqual(
+            report["report"]["checks"]["selected_part_pad_roles"]["status"],
+            checks.PASS)
+        self.assertTrue(report["observations"]["authored_snapshot_ignored"])
+        self.assertEqual(report["observations"]["obstacle_count"], 1)
+        self.assertEqual(report["observations"]["mpn_source"], "caller")
+
+    def test_authored_obstacle_snapshot_cannot_complete_shadow_measurement(self):
+        root = Path(tempfile.mkdtemp(prefix="placement-cell-authored-obstacle-"))
+        config = root / "placement_cells.yaml"
+        config.write_text(json.dumps({
+            "schema": 1,
+            "cells": [{"id": "pilot", "members": ["U1"]},
+                      {"id": "replica", "members": ["U1"]}],
+            "replicas": [{
+                "id": "same", "pilot": "pilot", "replica": "replica",
+                "ref_map": {"U1": "U1"},
+                "transform": {"translate": [0, 0]}, "tolerance_mm": 0.1,
+            }],
+            "snapshot": {"obstacles": []},
+        }))
+        report = preflight._functional_cell_shadow(
+            config, _Board(), observed_parts={"U1": {"mpn": "EXACT-A"}})
+        self.assertEqual(report["status"], checks.INCOMPLETE)
+        self.assertIn("independently observed obstacle data", report["detail"])
+        self.assertFalse(report["observations"]["obstacles_observed"])
+
     def test_wrong_regulator_orientation_fails_signed_functional_vector(self):
         contract = {
             "schema": 1,

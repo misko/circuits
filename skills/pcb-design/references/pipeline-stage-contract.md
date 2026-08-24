@@ -7,14 +7,14 @@ instrumentation. Domain predicates remain in `kicad-pcb` and `jlcpcb-fab`.
 ## Contents
 
 1. Ownership and typed stage/result schemas
-2. Execution envelopes and agent/session spans
-3. Subject identity and artifact transactions
-4. Review contracts and lifecycle facts
-5. Conditional RF adapter
-6. Migration and shadow implementation status
+2. Subject identity and artifact transactions
+3. Review contracts and lifecycle facts
+4. Conditional adapters
+5. Migration and shadow implementation status
 
-Migration/coverage IDs owned here: `GG-RESOLVE`, `GG-SHADOW`, `M-BOUND`,
-`M-COVER`, and `M-FRESH`.
+Migration/coverage IDs owned here: `GG-RESOLVE`, `GG-SHADOW`, `M-COVER`, and
+`M-FRESH`. Bounded attempt execution (`M-BOUND`) is owned by
+`execution-runtime.md`.
 
 ## Ownership
 
@@ -103,58 +103,13 @@ Rules:
 - the result names output symbols; the artifact bundle binds their paths and
   bytes.
 
-## Companion execution contracts
+## Companion execution contract
 
-Do not extend `StageSpec` with agent, prompt, context, token, writer-path or
-replacement details. `StageSpec` says what engineering work exists; the strict
-schema-1 contracts in `pipeline_execution.py` say how one bounded attempt is
-executed.
-
-`TaskEnvelope` is generated evidence under `06_build`, never another authored
-project policy:
-
-```yaml
-schema: 1
-task_id: route-wave-1
-stage_id: KICAD-ROUTING
-run_id: 20260824T120000Z-a1
-subject: {semantic_sha256: <64 hex>, raw_sha256: <64 hex>}
-executor: agent
-execution_class: local
-recommended_agent_role: mechanical
-agent_role: mechanical
-role_escalation_reason: null
-context_mode: FRESH
-input_handoff_id: handoff-a1
-input_packet:
-  - {name: handoff, path: 06_build/agent_handoff.yaml,
-     sha256: <64 hex>, size: 512}
-deadline_at: 2026-08-24T12:10:00Z
-max_nonimproving_attempts: 2
-replacement_limit: 1
-writer_scope: {mode: EXCLUSIVE, paths: [03_src/route/final.kicad_pcb]}
-output_path: 06_build/orchestration/attempts/route-wave-1.json
-```
-
-`execution_class` is the elapsed-time axis (`local`, `network`, `backoff`,
-`review_wait`, `operator_wait`). `agent_role` is the compute/judgment axis
-(`mechanical`, `authoring`, `judgment`). Escalation above the recommended role
-requires a reason. Model names never enter project authority.
-
-`FRESH` requires a non-empty content-addressed packet. Reviewers are always
-fresh. Non-agent work uses `NOT_APPLICABLE` context. Exclusive writers name a
-non-empty, sorted, traversal-free path set; read-only work claims none.
-
-`TaskAttempt` records a terminal bounded outcome. `TIMED_OUT`, `INCOMPLETE` and
-`HANDOFF_REQUIRED` require explicit unresolved rows; a PASS may carry none.
-The coordinator may launch no more replacements than the envelope permits and
-must not admit a late result from an earlier attempt.
-
-`AgentSpan` is a companion to, not a revision of, `StageSpan`. Optional token
-usage names its accounting authority and metric and retains input, cached
-input and output separately. Missing telemetry is `UNKNOWN`, never zero;
-different authorities or metrics such as `raw_rollout` and `normalized_goal`
-must never be summed.
+Do not extend `StageSpec` with argv, agent, prompt, context, token, writer-path,
+or replacement details. `StageSpec` says what engineering work exists;
+`execution-runtime.md` solely owns `TaskEnvelope`, `TaskAttempt`, `WriterScope`,
+process-group control, post-hoc writer detection, deadlines, replacement, and
+runtime truth claims.
 
 ## Subject identity
 
@@ -319,10 +274,15 @@ Required first pairs are PCBA orderability, supplier model availability, via/cur
 capacity, generated evidence, live/relocated DRC and review/publication
 identity.
 
-## Conditional RF adapter
+## Conditional adapters
 
-RF specialization is an adapter inside the existing lifecycle, not a fourth
+High-speed digital signal integrity and RF specialization are adapters inside
+the existing lifecycle, not a fourth
 pipeline owner and not a review-wait stage:
+
+- `signal-integrity.md` composes generic high-speed source and realized checks
+  into schematic and routing. It never selects an RF-named stage.
+- RF stages run only when the project RF contract is explicitly applicable.
 
 1. `rf_contract_check.py` resolves explicit applicability.
 2. `rf_context.py` selects local source cards with no network or reviewer.
@@ -359,8 +319,8 @@ The schema-1 foundation is available under `skills/pcb-design/scripts/`:
 - `pipeline_identity.py` — versioned typed semantic/raw subject identities;
 - `pipeline_registry.py` — dependency validation, cheap-first resolution and
   comparison with an observed legacy plan;
-- `pipeline_runtime.py` — bounded process-group execution, lossless logs and
-  work-class telemetry;
+- `pipeline_runtime.py` — shared bounded process-group execution; see
+  `execution-runtime.md` for its authority and current containment limits;
 - `pipeline_artifacts.py` — fresh validated bundle staging and atomic
   manifest-last promotion.
 - `pipeline_readiness.py` — strict closed receipt registries, coverage floors,
@@ -397,11 +357,19 @@ through `pipeline_readiness.py` for both single- and multi-group fixtures.
 comparison with the legacy ledger in default shadow mode. Projects may opt
 into `--readiness-authority receipts` after their closed registry and bundles
 pass clean, missing, stale, tampered, low-denominator and disagreement
-fixtures. Route acceptance and release rehearsal still emit only their
-hash-bound domain receipts. Manufacturing readiness and placement-routability
-now optionally shadow-publish `S-PART-FREEZE` and `P-FEASIBILITY` through the
-frozen `StageResult`/accepted-bundle seam; `electrical_closure.py` does the same
-for `E-CLOSURE`. Legacy invocations remain authoritative until canaries agree.
+fixtures. Route acceptance and release rehearsal retain their hash-bound domain
+receipts as authoritative outputs; any sibling shadow diagnostic remains
+outside those receipts and their identities. Manufacturing readiness,
+placement-routability, and electrical closure may each emit only a canonical
+typed `INCOMPLETE` boundary hold for `S-PART-FREEZE`, `P-FEASIBILITY`, or
+`E-CLOSURE`. Each invalidates any unsafe former PASS StageResult at that path,
+has zero accepted outputs, and creates or replaces no accepted bundle. The
+common two-target publisher refuses promotion until bundle and
+StageResult share one independently regraded, pointer-last transaction. Legacy
+invocations remain authoritative until canaries agree. In particular,
+E-CLOSURE retains its historical nine-check battery and the presence-selected
+tenth operating-state check for projects that had already opted into it; the
+new applicability shadow may neither delete nor replace that check.
 
 The first disposable reuse-driver observation on 2026-08-12 did not agree:
 USB Hub 3S v4 stopped after about 11.4 seconds at stale/missing pre-route review
@@ -418,3 +386,53 @@ procedure text is loaded, not which driver or gate executes. Its simple, USB,
 Pi USB, and Pluto fixtures pin the normalized composition trace; the existing
 USB and Pluto catalog canaries remain green. No execution authority moves on
 that evidence alone.
+
+The 2026-08-24 robustness slice moves bounded subprocess execution for the
+explicitly migrated paths: `process_runner.py` is now a compatibility adapter
+over the shared process-group runtime, with finite deadlines, heartbeat state,
+retention of all bytes read before any bounded transport cutoff, and cleanup of
+pipe-holding, output-redirected, and nested subgroup members. Nested execution
+requires Linux `/proc` discovery and is refused before launch without it. A
+hostile descendant that starts a foreign session can still escape reaping; the
+runtime cuts inherited transport and returns non-passing.
+
+This slice also makes intentional fail-closed authority rollbacks at unsafe
+publication and migration seams. Former shadow `PASS` StageResults for
+S-PART-FREEZE, E-CLOSURE, and P-FEASIBILITY are replaced by typed `INCOMPLETE`
+requests with zero outputs, and no accepted bundle is created or replaced.
+That can stop a downstream readiness consumer which relied on the former PASS;
+it is a visible migration hold, not receipt compatibility. Legacy domain
+verdicts remain authoritative, including E-CLOSURE's historical nine-or-ten
+check battery. An experimental shared route-admission core had also begun
+tightening otherwise-accepted route receipts before it had independent input
+authority or runtime isolation. That premature authority is removed: the
+original route admission verdict is restored and the shared comparison becomes
+a nonexecuting sibling request. Existing route receipt bytes and, where that
+experiment alone tightened a result, verdicts can therefore change; consumers
+must rebind deliberately rather than assuming receipt compatibility.
+Applicability, engineering-verdict, review, release, and publication authority
+otherwise do not move.
+
+All other new seams retain explicit rollout boundaries:
+
+- the capability router emits `DISCLOSURE_ONLY` plans and `UNKNOWN` dependency
+  placeholders, never N/A evidence;
+- the applicability compiler can run only as structural `SHADOW`; it cannot
+  authenticate its caller-supplied facts;
+- operating-state, functional-cell, and source-preparation shadow selections
+  write pending sibling requests and do not execute their compilers in the
+  authoritative hot path. Separately budgeted canary output remains diagnostic
+  until independent owner receipts and typed extractors can be reopened;
+- native-DRC and semantic-copper candidate flags likewise write pending
+  requests rather than executing expensive shadows. Final-route grading also
+  writes only a pending shared-admission request; a separately budgeted canary
+  may execute the comparison outside the authoritative receipt and identity;
+- transaction-local route targets and content-addressed bundle helpers are
+  experimental; the live importer and mutable `FINAL` path are unchanged, and
+  bundle promotion remains unavailable until every authoritative candidate
+  predicate can be independently rederived.
+
+High-speed digital disclosure now composes `signal-integrity.md` into the
+existing schematic/routing stages. It does not select RF stages. RF remains
+selected only by the RF capability/source path. See
+`docs/pipeline-shadow-canaries.md` for the measurements and promotion holds.

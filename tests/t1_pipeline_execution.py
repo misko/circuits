@@ -16,8 +16,9 @@ sys.path.insert(0, str(PIPELINE))
 
 from pipeline_execution import (  # noqa: E402
     AgentSpan, ExecutionValidationError, TaskAttempt, TaskEnvelope,
-    aggregate_token_usage, context_handoff_decision, envelope_sha256,
-    replacement_admissible, verify_input_packet,
+    WriterScope, aggregate_token_usage, context_handoff_decision,
+    envelope_sha256, replacement_admissible, verify_input_packet,
+    writer_scope_receipt,
 )
 from pipeline_identity import TypedIdentityInput, subject_identity  # noqa: E402
 
@@ -142,6 +143,24 @@ def t_writer_scope():
     rejects(lambda: TaskEnvelope.from_mapping(envelope_mapping(
         writer_scope={"mode": "EXCLUSIVE", "paths": ["../outside"]})),
         "traversal-free")
+
+
+@test("writer-scope receipts expose every net change outside ownership",
+      kind="known_bad")
+def t_writer_scope_receipt():
+    scope = WriterScope("EXCLUSIVE", ("03_src/route",))
+    check(scope.allows("03_src/route/final.kicad_pcb"),
+          "owned descendant was refused")
+    check(not scope.allows("03_src/route-escape/final.kicad_pcb"),
+          "prefix-adjacent escape was accepted")
+    receipt = writer_scope_receipt(
+        scope,
+        ("03_src/route/final.kicad_pcb", "08_reviews/foreign.md"),
+        before_sha256="a" * 64, after_sha256="b" * 64,
+        protected_paths=("06_build/orchestration/attempt.json",))
+    eq(receipt["status"], "FAIL", "scope receipt status")
+    eq(receipt["violations"], ["08_reviews/foreign.md"],
+       "exact scope escape")
 
 
 @test("semantic boundaries and D-BACK require a fresh successor")

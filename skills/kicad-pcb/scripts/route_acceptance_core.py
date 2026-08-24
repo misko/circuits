@@ -19,6 +19,7 @@ Primary APIs:
 """
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 import math
@@ -30,6 +31,8 @@ from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable
+
+from process_runner import run_bounded
 
 
 SCHEMA = 1
@@ -106,6 +109,96 @@ def _fingerprint(path: Path) -> dict[str, Any] | None:
     stat = path.stat()
     return {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
             "sha256": _sha256(path)}
+
+
+def _binding_record(value: Any, name: str) -> dict[str, Any]:
+    if isinstance(value, (str, Path)):
+        path = Path(value).resolve()
+        fingerprint = _fingerprint(path)
+        if fingerprint is None:
+            raise ValueError(f"{name} file is missing: {path}")
+        value = {"path": str(path), **fingerprint}
+    if not isinstance(value, Mapping):
+        raise ValueError(f"{name} must be a path or hash record")
+    digest = str(value.get("sha256") or "").lower()
+    try:
+        size = int(value.get("size"))
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{name} has no integer size") from exc
+    if re.fullmatch(r"[0-9a-f]{64}", digest) is None or size <= 0:
+        raise ValueError(f"{name} has no non-empty SHA-256 identity")
+    record = {"sha256": digest, "size": size}
+    if value.get("path"):
+        record["path"] = str(value["path"])
+    return record
+
+
+def _native_binding_payload(result: Mapping[str, Any]) -> dict[str, Any]:
+    subject = _binding_record(result.get("subject"), "native DRC subject")
+    evidence = _binding_record(result.get("evidence"), "native DRC evidence")
+    evidence_row = result.get("evidence") or {}
+    return {
+        "schema": SCHEMA, "kind": "native-drc-subject-binding-v1",
+        "profile": _profile(str(result.get("profile") or "")),
+        # Paths are display/provenance fields.  Byte identities make the
+        # binding relocatable and are the only values promoted here.
+        "subject": {key: subject[key] for key in ("sha256", "size")},
+        "evidence": {key: evidence[key] for key in ("sha256", "size")},
+        # Bind the interpretation as well as its two byte subjects.  A caller
+        # may not retain the report hash while rewriting PASS/counts/process
+        # provenance in the receipt.
+        "result": {
+            "status": str(result.get("status") or ""),
+            "counts": copy.deepcopy(result.get("counts")),
+            "finding_signatures": copy.deepcopy(
+                result.get("finding_signatures")),
+            "process_exit": result.get("process_exit"),
+            "fresh": evidence_row.get("fresh"),
+            "complete": evidence_row.get("complete"),
+        },
+    }
+
+
+def bind_native_drc_result(result: Mapping[str, Any],
+                           subject: str | Path | Mapping[str, Any]) \
+        -> dict[str, Any]:
+    """Return a copy whose report hash is cryptographically bound to a board.
+
+    Classification can operate on in-memory JSON and therefore cannot invent
+    a board identity.  The runner (or a synthetic test) must bind the exact
+    immutable subject explicitly before final admission.
+    """
+    if not isinstance(result, Mapping):
+        raise ValueError("native DRC result must be a mapping")
+    bound = copy.deepcopy(dict(result))
+    bound["subject"] = _binding_record(subject, "native DRC subject")
+    payload = _native_binding_payload(bound)
+    bound["binding"] = {
+        "algorithm": "sha256",
+        "kind": payload["kind"],
+        "sha256": hashlib.sha256(
+            _json_key(payload).encode("utf-8")).hexdigest(),
+    }
+    return bound
+
+
+def verify_native_drc_binding(result: Any) -> tuple[bool, list[str]]:
+    """Re-derive the report/subject binding without trusting its PASS label."""
+    if not isinstance(result, Mapping):
+        return False, ["native DRC result is not a mapping"]
+    failures: list[str] = []
+    try:
+        payload = _native_binding_payload(result)
+    except Exception as exc:
+        return False, [str(exc)]
+    binding = result.get("binding")
+    expected = hashlib.sha256(_json_key(payload).encode("utf-8")).hexdigest()
+    if (not isinstance(binding, Mapping) or
+            binding.get("algorithm") != "sha256" or
+            binding.get("kind") != payload["kind"] or
+            binding.get("sha256") != expected):
+        failures.append("native DRC report/subject hash binding changed")
+    return not failures, failures
 
 
 def _incomplete(detail: str, *, reasons: Sequence[str],
@@ -413,9 +506,10 @@ def run_native_drc(board: str | Path, report_path: str | Path, *,
                str(output_path), str(board_path)]
     try:
         if runner is None:
-            completed = subprocess.run(
-                command, cwd=run_cwd, capture_output=True, text=True,
-                timeout=timeout, check=False)
+            completed = run_bounded(
+                command, cwd=run_cwd, timeout_s=timeout,
+                heartbeat_s=min(10.0, max(1.0, timeout / 4)),
+                label="route-acceptance-native-drc", echo=False)
         else:
             try:
                 completed = runner(command, run_cwd)
@@ -428,7 +522,8 @@ def run_native_drc(board: str | Path, report_path: str | Path, *,
         else:
             returncode = getattr(completed, "returncode", None)
             stdout = str(getattr(completed, "stdout", "") or "")
-            stderr = str(getattr(completed, "stderr", "") or "")
+            stderr = str(getattr(completed, "stderr", "") or
+                         getattr(completed, "output", "") or "")
         classified = classify_native_drc_result(
             returncode=int(returncode) if returncode is not None else None,
             report_path=output_path, profile=profile, baseline=baseline,
@@ -443,12 +538,21 @@ def run_native_drc(board: str | Path, report_path: str | Path, *,
         classified = _incomplete(
             "board subject changed or disappeared during native DRC",
             reasons=["DRC_SUBJECT_CHANGED"], report_path=output_path)
-    classified["command"] = command
-    classified["subject"] = {
+    subject = {
         "path": str(board_path),
         "size": (board_after or {}).get("size"),
         "sha256": (board_after or {}).get("sha256"),
     }
+    if classified.get("status") in {"PASS", "FAIL"}:
+        try:
+            classified = bind_native_drc_result(classified, subject)
+        except Exception as exc:
+            classified = _incomplete(
+                f"native DRC evidence could not be bound to its board: {exc}",
+                reasons=["DRC_SUBJECT_BINDING_MISSING"],
+                report_path=output_path)
+    classified["command"] = command
+    classified.setdefault("subject", subject)
     classified["started_at_ns"] = started_at_ns
     classified["finished_at_ns"] = time.time_ns()
     return classified
@@ -476,7 +580,10 @@ def _semantic_tags(touched: Any) -> set[str]:
                 "power_net": "power"}
     tags = {synonyms.get(tag, tag) for tag in tags}
     aliases = {
-        "nets": {"nets", "requested_nets", "net_names"},
+        # Required/requested nets are a connectivity denominator, not a claim
+        # that this transaction owns or changed them.  Only touched names feed
+        # mutation applicability.
+        "nets": {"nets", "touched_nets", "net_names"},
         "copper": {"copper", "tracks", "arcs", "vias", "segments", "items"},
         "endpoints": {"endpoints", "pads", "endpoint_layers", "smd_endpoints"},
         "zones": {"zones", "filled_zones", "pours", "zone_fill"},
@@ -791,6 +898,7 @@ def admit(profile: str, checks: Mapping[str, Any]) -> dict[str, Any]:
         subject = native.get("subject") if isinstance(native, Mapping) else None
         evidence_sha = str((evidence or {}).get("sha256") or "")
         subject_sha = str((subject or {}).get("sha256") or "")
+        binding_valid, _binding_failures = verify_native_drc_binding(native)
         if (native.get("schema") != SCHEMA or
                 native.get("kind") != "native-drc-result-v1" or
                 native.get("profile") != "final" or
@@ -801,7 +909,8 @@ def admit(profile: str, checks: Mapping[str, Any]) -> dict[str, Any]:
                 re.fullmatch(r"[0-9a-f]{64}", evidence_sha) is None or
                 not isinstance(subject, Mapping) or
                 re.fullmatch(r"[0-9a-f]{64}", subject_sha) is None or
-                not subject.get("path") or not subject.get("size")):
+                not subject.get("path") or not subject.get("size") or
+                not binding_valid):
             incomplete.append("native_drc:exact_evidence")
         counts = native.get("counts") if isinstance(native, Mapping) else None
         absolute = [_int_value(counts, "violations", "drc_violations"),
@@ -859,7 +968,8 @@ def admit(profile: str, checks: Mapping[str, Any]) -> dict[str, Any]:
 
 __all__ = [
     "PROFILES", "BacktrackStage", "BacktrackAction",
-    "BacktrackRecommendation", "run_native_drc",
+    "BacktrackRecommendation", "run_native_drc", "bind_native_drc_result",
+    "verify_native_drc_binding",
     "classify_native_drc_result", "derive_required_checks",
     "objective_vector", "pareto_relation", "admit", "recommend_backtrack",
 ]

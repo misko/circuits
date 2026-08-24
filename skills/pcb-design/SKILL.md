@@ -71,7 +71,8 @@ Read these files directly when their condition applies. References longer than
 | Condition | Owner | Read completely |
 |---|---|---|
 | Commission, requirements, fact locks, sourcing, module/package choice | pcb-design | `references/commission-and-scope.md` |
-| Any stage execution, handoff, timeout, plateau, or backtrack | pcb-design | `references/lifecycle-and-backtrack.md` |
+| Stage ordering, handoff, plateau, or backtrack | pcb-design | `references/lifecycle-and-backtrack.md` |
+| Executing any bounded task, subprocess, or agent attempt | pcb-design | `references/execution-runtime.md` |
 | Pausing/resuming or asking for operator evidence | pcb-design | `references/operator-checkpoints.md` |
 | Human review, staging, seal, supersede, publication, readiness report | pcb-design | `references/review-and-publication.md` |
 | Adding/changing orchestration stages, identities, bundles, reviews, facts | pcb-design | `references/pipeline-stage-contract.md` |
@@ -83,7 +84,8 @@ Read these files directly when their condition applies. References longer than
 | Physical stack order, layer roles/references, topology migration and route-wave ownership | kicad-pcb | `../kicad-pcb/references/source-to-prep-authority.md` |
 | Route preparation, KRT, stitch, grind and DRC | kicad-pcb | `../kicad-pcb/references/routing-pipeline.md`, `../kicad-pcb/references/route-ownership.md`, `../kicad-pcb/references/route-candidate-contract.md`, `../kicad-pcb/references/route-exploration.md`, and `../kicad-pcb/references/fast-pcb-flow.md` |
 | Datasheet/reference-layout precedent selection | kicad-pcb | `../kicad-pcb/references/layout-precedents.md` |
-| RF/impedance/phase/isolation applies | kicad-pcb | `../kicad-pcb/references/rf/rf-context.md` plus the applicable RF review protocol linked here: `../kicad-pcb/references/rf-schematic-review-protocol.md`, `../kicad-pcb/references/rf-pcb-review-protocol.md`, `../kicad-pcb/references/rf-fab-review-protocol.md` |
+| High-speed digital paths such as USB | kicad-pcb | `../kicad-pcb/references/signal-integrity.md` |
+| Project source explicitly declares RF/microwave applicability | kicad-pcb | `../kicad-pcb/references/rf/rf-context.md` plus the applicable RF review protocol linked here: `../kicad-pcb/references/rf-schematic-review-protocol.md`, `../kicad-pcb/references/rf-pcb-review-protocol.md`, `../kicad-pcb/references/rf-fab-review-protocol.md` |
 | JLC BOM/CPL, stock, rotation, uploader review | jlcpcb-fab | `../jlcpcb-fab/references/assembly-and-order.md` |
 | JLC CAD twin, model transforms, bounding boxes/registration | jlcpcb-fab | `../jlcpcb-fab/references/digital-twin.md` |
 | Edge-mounted connector orientation, mating plane, directional 3D approval | jlcpcb-fab | `../jlcpcb-fab/references/connector-orientation.md` |
@@ -171,9 +173,10 @@ preliminary BOM exists and before placement spend, grade a quantity-expanded
 procurement policy and grade preorder cash, gross MOQ surplus cost, and
 nonrecoverable assembly excess cost separately from raw surplus quantity.
 These prevention gates never replace the final exact-BOM `order` allocation
-and quote receipt. Publish the accepted preliminary-BOM boundary as
-`S-PART-FREEZE` while legacy execution remains authoritative during canary
-migration.
+and quote receipt. Record the preliminary-BOM boundary through the legacy
+readiness receipt. An optional `S-PART-FREEZE` request writes only typed
+`INCOMPLETE` fail-closed boundary hold with no outputs or accepted bundle until one
+atomic, independently regraded promotion transaction exists.
 
 ## Schematic
 
@@ -205,8 +208,10 @@ does not route copper or add a lifecycle stage. Functional-cell evidence for
 selected-part pad roles, signed orientation, local paths, simultaneous
 reservations, constrained escapes, ground egress, hot-path lower bounds and
 pilot replicas remains shadow until its independent-observation canaries pass.
-Publish accepted stage evidence as `P-FEASIBILITY`; never let a shadow PASS
-weaken the legacy decision.
+Record `P-FEASIBILITY` as a typed `INCOMPLETE` boundary hold until the stage
+emitter can independently regrade all seven predicates. Never promote a
+structurally self-authenticating receipt or let shadow publication alter the
+legacy result.
 
 After native-model registration, close `P-ORIENT` for edge-mounted connectors
 with machine geometry plus exact, hash-bound human directional views. If the
@@ -214,11 +219,12 @@ fabrication twin substitutes a vendor model, require its automatic
 `P-MATE-REG` receipt before accepting final renders; never move a correct
 footprint to compensate for a wrong derivative model.
 
-For high-speed digital or RF, activate the conditional signal-integrity
-adapter and its source/realized/fab reviews. Bind physical P/N chains,
-layer/reference plane, differential engine, via policy, and length tolerance
-before routing. High-speed digital may defer coordinate geometry to placement;
-microwave designs may own it at source. Do not add a separate unbounded wait
+For high-speed digital, compose `signal-integrity.md` into the existing
+schematic and routing stages. Bind physical P/N chains, layer/reference plane,
+differential engine, via policy, and length tolerance before routing; do not
+select an RF-named stage or fabrication review. Activate the RF source,
+realized, solver, and fab-review module only when authoritative project source
+explicitly declares RF applicability. Neither adapter adds an unbounded wait
 stage.
 
 Route from a track-free, unfilled deterministic input. Run the mechanical grind
@@ -227,8 +233,11 @@ and regenerate. Treat each mutation as a fresh, immutable candidate
 transaction bound to the prepared board and sidecars. Candidate-owned rules
 never grade their own copper. Compare semantic objectives and stop after the
 bounded non-improvement budget; use the typed recommendation to backtrack.
-During dual-authority rollout, new semantic copper/admission results are shadow
-and may only tighten an accepted legacy result after promotion canaries pass.
+During rollout, semantic-copper flags create pending requests; separately run
+canary diagnostics and shared-admission comparisons remain shadow. A pending
+request is not evidence, and none of these may loosen or tighten an established
+result. Transfer authority only in a separate change after promotion canaries
+pass.
 Layout seal consumes one hash-bound final-route receipt. Its fresh native DRC
 must bind the unchanged board and report and show absolute zero violations,
 zero unconnected items, and zero schematic-parity findings.
