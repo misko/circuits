@@ -262,7 +262,8 @@ TEMPLATES = "skills/pcb-design/templates/contracts"
 #: script moves, and the basename is what every other artifact in this repo
 #: (design-policies.md, E-NETREF's consumer column) already uses.
 READER_DIRS = ("skills/kicad-pcb/scripts", "skills/jlcpcb-fab/scripts",
-               "skills/shopping-list/scripts", "scripts")
+               "skills/pcb-enclosure/scripts", "skills/shopping-list/scripts",
+               "scripts")
 
 #: `### keys: <family glob>` — the family is a project-relative glob, so the
 #: heading itself declares which files it governs and no list lives in here.
@@ -272,7 +273,8 @@ FAMILY_RE = re.compile(r"^###\s+keys:\s+(\S+)\s*$", re.M)
 #: registry: these are DIRECTORY globs over a project, and any file they find
 #: that no declared family matches is reported UNGOVERNED. `06_build`,
 #: `04_kicad` and `07_releases` are generated or sealed and are not source.
-SOURCE_GLOBS = ("01_docs/*.yaml", "03_src/*.yaml", "03_src/rules/*.yaml",
+SOURCE_GLOBS = ("01_docs/*.yaml", "03_src/*.yaml",
+                "03_src/mechanical/*.yaml", "03_src/rules/*.yaml",
                 "02_parts/*/part.yaml")
 
 #: reader-cell keywords. Anything else is read as a comma-separated script list.
@@ -280,8 +282,14 @@ ADVISORY, OWED = "ADVISORY", "OWED"
 
 #: THE RATCHET (see the docstring). Committed integers; a drop below either is
 #: a hard FAIL, and `t_governed_family_floor_is_pinned` refuses a lowering.
-GOVERNED_FLOOR = 19
-PROVEN_FLOOR = 698
+GOVERNED_FLOOR = 20
+PROVEN_FLOOR = 714
+#: 19 -> 20 governed families and 698 -> 714 PROVEN on 2026-08-24:
+#: enclosure design gained a declarative `03_src/mechanical/enclosure.yaml`
+#: contract whose twelve rows name real enclosure readers. Re-pinning also
+#: captured four already-proven rows the former floor lagged. Nested mechanical
+#: YAML joined SOURCE_GLOBS, with a known-bad proving that an undeclared
+#: geometry key is no longer invisible.
 #: `stitch.seed_stubs.*` and `taps.reattempt.*` bound to
 #: route_and_stitch_generic.py, which provably reads both. The floor
 #: rises in the commit that EARNS it — that is the whole ratchet.

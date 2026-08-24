@@ -1,0 +1,121 @@
+schema: 1
+kind: pcb-enclosure-config-v1
+name: sanitized-edge-panel-v1
+mode: derived
+subject:
+  release: synthetic-v1
+  pcb:
+    path: subject/board.snapshot.txt
+    sha256: 65c58fdff0f53641fe016df7e0abee76b173d51b519f1a0ba82be97f87465b99
+    size: 396
+  step:
+    path: subject/assembly.snapshot.txt
+    sha256: a840b98bfa8fbf63b4ff7e662cc27a3c1bd77d395f60e82126ef424743b5666d
+    size: 320
+  interface:
+    path: board-interface.json
+    sha256: 2d8a612d5831e34227e351e6df033e72df6d4bcf5c3c1293645b3991e27dda0b
+    size: 3454
+process:
+  method: fdm
+  material: PETG
+  nozzle_mm: 0.4
+  layer_mm: 0.2
+  support_policy: forbid_when_practical
+  minimum_wall_mm: 1.2
+cad:
+  engine: openscad
+  minimum_version: "2021.01"
+  printable_parts: [base, lid, insert_coupon, panel_north, panel_south, panel_east, panel_west]
+geometry:
+  topology: base_lid_panels
+  xy_clearance_mm: 6.0
+  wall_mm: 2.4
+  floor_mm: 2.4
+  roof_mm: 2.4
+  corner_radius_mm: 4.0
+  board_bottom_z_mm: 9.0
+  inside_top_z_mm: 22.0
+  seam_z_mm: 12.0
+  panel_thickness_mm: 2.4
+  panel_capture_mm: 1.2
+  panel_clearance_mm: 0.30
+  corner_post_mm: 8.0
+  lid_column_board_gap_mm: 0.2
+fasteners:
+  strategy: separate_perimeter
+  thread: M3-0.5
+  board_holes: [H1, H2, H3, H4]
+  case_holes_mm:
+    - [-43.0, -28.0]
+    - [-43.0, 28.0]
+    - [43.0, -28.0]
+    - [43.0, 28.0]
+  boss_d_mm: 8.0
+  case_post_d_mm: 8.0
+  minimum_radial_wall_mm: 0.9
+  insert:
+    family: E-Z-LOK-260-M3
+    installation: cold_press
+    hole_d_mm: 3.95
+    body_d_mm: 4.216
+    flange_d_mm: 5.537
+    flange_recess_d_mm: 6.10
+    flange_recess_depth_mm: 0.80
+    length_mm: 4.775
+    bottom_clearance_mm: 0.30
+  screw:
+    clearance_d_mm: 3.5
+    head_d_mm: 6.3
+    head_recess_depth_mm: 1.0
+    board_length_mm: 6.0
+    lid_length_mm: 6.0
+    minimum_engagement_mm: 3.5
+    minimum_tip_clearance_mm: 0.1
+interfaces:
+  - id: east-data
+    ref: J1
+    role: external-data
+    side: east
+    disposition: opening
+    center_mm: [43.0, 8.0, 14.0]
+    shape: rect
+    opening_mm: [18.0, 10.0]
+    plug_envelope_mm: [16.0, 8.0, 24.0]
+    clearance_mm: 1.0
+  - id: west-power
+    ref: J2
+    role: external-power
+    side: west
+    disposition: opening
+    center_mm: [-43.0, -8.0, 14.0]
+    shape: round
+    opening_mm: [14.0, 14.0]
+    plug_envelope_mm: [12.0, 12.0, 30.0]
+    clearance_mm: 1.0
+  - id: top-switch
+    ref: SW1
+    role: user-control
+    side: top
+    disposition: service_opening
+    center_mm: [0.0, 0.0, 22.0]
+    shape: arch
+    opening_mm: [14.0, 10.0]
+    plug_envelope_mm: [12.0, 8.0, 12.0]
+    clearance_mm: 1.0
+thermal:
+  risk: moderate
+  physical_soak_required: true
+  load_case: synthetic enclosed moderate-load fixture at warm ambient
+  vents:
+    - center_mm: [0.0, 10.0]
+      count: 5
+      length_mm: 24.0
+      width_mm: 2.0
+      pitch_mm: 4.0
+      axis: x
+physical_validation:
+  insert_coupon_required: true
+  board_drop_in_required: true
+  all_interfaces_mated_required: true
+  thermal_soak_required: true

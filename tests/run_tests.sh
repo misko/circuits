@@ -61,6 +61,7 @@ SUITES=(
   t1_rf_contract.py
   t1_rf_module.py
   t1_contracts.py
+  t1_pcb_enclosure.py
   t1_pipeline_foundation.py
   t1_pipeline_contract.py
   t1_skill_progressive_disclosure.py

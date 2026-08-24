@@ -1,0 +1,34 @@
+# contract: 03_src/mechanical/
+
+**Purpose** — hand-authored, board-coupled mechanical source for accessories
+that must track the exact PCB outline, mounting holes, and connector geometry.
+
+**Mutability** — hand-edited source of truth.
+
+## Allowed
+
+| Pattern | What |
+|---|---|
+| `enclosure.yaml` | Declarative enclosure identity, subject, process, CAD backend, geometry, fastener, access-interface, thermal and physical-validation contract |
+| `*.scad` | Parametric OpenSCAD source |
+| `README.md` | Dimensions, assumptions, export commands, print and assembly instructions |
+| `contracts.md` | This file |
+
+Generated interface/STL/PNG/report files belong in `06_build/mechanical/`; that folder is
+disposable and gitignored. Do not copy generated meshes into this source
+folder.
+
+## Validate
+
+From the project root, run the three OpenSCAD export commands in `README.md`.
+Each must exit zero and produce a non-empty STL under `06_build/mechanical/`.
+Render `part="assembly"` and visually confirm that all nine SMA openings, USB-C
+opening, service opening, and four fastener axes align with the reference board.
+
+## Repair
+
+- PCB outline, mounting, or connector placement changed: update the named board
+  parameters in the SCAD source from `04_kicad/pluto_rx2_8way_v5.kicad_pcb`,
+  regenerate all meshes, and repeat the fit checks in `README.md`.
+- Printer or insert fit differs: change only the exposed clearance/insert
+  parameters after printing the coupon; do not silently move PCB datums.

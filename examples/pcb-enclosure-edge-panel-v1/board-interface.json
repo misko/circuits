@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "kind": "pcb-enclosure-interface-v1",
+  "subject": {
+    "board": {
+      "name": "board.snapshot.txt",
+      "sha256": "65c58fdff0f53641fe016df7e0abee76b173d51b519f1a0ba82be97f87465b99",
+      "size": 396
+    }
+  },
+  "frame": {
+    "units": "mm",
+    "origin": "outline_bbox_center",
+    "board_to_case": [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]],
+    "z_zero": "pcb_back_surface",
+    "z_positive": "front"
+  },
+  "board": {
+    "thickness_mm": 1.6,
+    "outline": {
+      "contours_mm": [[[-40, -25], [40, -25], [40, 25], [-40, 25]]],
+      "bbox_mm": [-40, -25, 40, 25],
+      "size_mm": [80, 50]
+    },
+    "drills": [
+      {"ref": "H1", "pad": "", "position_mm": [-34, 19], "drill_mm": [3.2, 3.2], "attribute": "NPTH"},
+      {"ref": "H2", "pad": "", "position_mm": [34, 19], "drill_mm": [3.2, 3.2], "attribute": "NPTH"},
+      {"ref": "H3", "pad": "", "position_mm": [-34, -19], "drill_mm": [3.2, 3.2], "attribute": "NPTH"},
+      {"ref": "H4", "pad": "", "position_mm": [34, -19], "drill_mm": [3.2, 3.2], "attribute": "NPTH"}
+    ],
+    "mounting_holes": [
+      {"ref": "H1", "pad": "", "position_mm": [-34, 19], "drill_mm": [3.2, 3.2], "attribute": "NPTH"},
+      {"ref": "H2", "pad": "", "position_mm": [34, 19], "drill_mm": [3.2, 3.2], "attribute": "NPTH"},
+      {"ref": "H3", "pad": "", "position_mm": [-34, -19], "drill_mm": [3.2, 3.2], "attribute": "NPTH"},
+      {"ref": "H4", "pad": "", "position_mm": [34, -19], "drill_mm": [3.2, 3.2], "attribute": "NPTH"}
+    ],
+    "footprints": [
+      {"ref": "H1", "value": "MountingHole", "footprint": "MountingHole_3.2mm", "position_mm": [-34, 19], "rotation_deg": 0, "side": "front", "bbox_mm": [-36, 17, -32, 21], "model_declared": true},
+      {"ref": "H2", "value": "MountingHole", "footprint": "MountingHole_3.2mm", "position_mm": [34, 19], "rotation_deg": 0, "side": "front", "bbox_mm": [32, 17, 36, 21], "model_declared": true},
+      {"ref": "H3", "value": "MountingHole", "footprint": "MountingHole_3.2mm", "position_mm": [-34, -19], "rotation_deg": 0, "side": "front", "bbox_mm": [-36, -21, -32, -17], "model_declared": true},
+      {"ref": "H4", "value": "MountingHole", "footprint": "MountingHole_3.2mm", "position_mm": [34, -19], "rotation_deg": 0, "side": "front", "bbox_mm": [32, -21, 36, -17], "model_declared": true},
+      {"ref": "J1", "value": "DATA", "footprint": "Sanitized_Rect_Connector", "position_mm": [39, 8], "rotation_deg": 0, "side": "front", "bbox_mm": [33, 1, 41, 15], "model_declared": true},
+      {"ref": "J2", "value": "POWER", "footprint": "Sanitized_Round_Connector", "position_mm": [-39, -8], "rotation_deg": 0, "side": "front", "bbox_mm": [-41, -14, -33, -2], "model_declared": true},
+      {"ref": "SW1", "value": "SERVICE", "footprint": "Sanitized_Top_Control", "position_mm": [0, 0], "rotation_deg": 0, "side": "front", "bbox_mm": [-6, -4, 6, 4], "model_declared": true}
+    ],
+    "access_candidates": [
+      {"ref": "J1", "value": "DATA", "footprint": "Sanitized_Rect_Connector", "selection": "required", "position_mm": [39, 8]},
+      {"ref": "J2", "value": "POWER", "footprint": "Sanitized_Round_Connector", "selection": "required", "position_mm": [-39, -8]},
+      {"ref": "SW1", "value": "SERVICE", "footprint": "Sanitized_Top_Control", "selection": "required", "position_mm": [0, 0]}
+    ]
+  },
+  "coverage": {
+    "footprints": 7,
+    "drills": 4,
+    "mounting_holes": 4,
+    "access_candidates": 3
+  }
+}

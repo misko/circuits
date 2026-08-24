@@ -1,0 +1,7 @@
+pcb-enclosure sanitized board fixture v1
+units: millimetres
+outline: 60 x 40 rectangle centred at the case origin
+thickness: 1.6
+mounting holes: H1 (-25, 15), H2 (25, 15), H3 (-25, -15), H4 (25, -15)
+interfaces: J1 south-edge rectangular connector; J2 north-edge round connector
+This clean-room fixture contains no production netlist, routing, or component data.

@@ -26,7 +26,9 @@ design source on 2026-07-20; the fix is that the skill carries its own canon.
   skeleton — copied to the orchestration root per CAMPAIGN, not per project
   (it is not part of the commission copy list below).
 - Sub-stage contracts nest under `contracts/` exactly as they land in the
-  project (`contracts/01_docs/decisions/`, `contracts/03_src/{lib,rules}/`).
+  project (`contracts/01_docs/decisions/`,
+  `contracts/03_src/{lib,mechanical,rules}/`). The mechanical contract is
+  seeded only when commission explicitly selects enclosure work.
 
 ## Commission a new board (what the SKILL does)
 
@@ -58,6 +60,9 @@ cp <skill>/templates/contracts/01_docs/journal/contracts.md   projects/<name>/01
 cp <skill>/templates/contracts/01_docs/learnings/contracts.md projects/<name>/01_docs/learnings/
 cp <skill>/templates/contracts/03_src/lib/contracts.md        projects/<name>/03_src/lib/
 cp <skill>/templates/contracts/03_src/rules/contracts.md      projects/<name>/03_src/rules/
+# CONDITIONAL — only when enclosure scope selects `co_design` or `derived`:
+mkdir -p projects/<name>/03_src/mechanical
+cp <skill>/templates/contracts/03_src/mechanical/contracts.md projects/<name>/03_src/mechanical/
 ```
 
 Then derive the board: fill `01_docs`, author `03_tscircuit`, and replace the

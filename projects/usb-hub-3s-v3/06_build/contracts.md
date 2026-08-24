@@ -18,6 +18,7 @@
 | `cache/**` | **volatile market data**: stock, price, distributor attrs | hours |
 | `proof/**` | regenerated candidate boards for comparison against the sealed `04_kicad` (never written back) | regenerate |
 | `twin/**` | jlc_twin fetch/compare workspace | regenerate |
+| `mechanical/**` | generated PCB-interface snapshots, CAD/mesh exports, fit coupons, renders, verification reports and hash-bound candidate packages | regenerate from `03_src/mechanical/` plus the exact bound PCB subject |
 | `tmp/**` | scratch workspace for in-flight stage work | regenerate |
 | `pin_review/**` | fresh-context pin-review dossiers + verdicts | regenerate |
 | `easyeda_cache/**` | easyeda2kicad model cache (tool drops it in CWD — keep it HERE, not project root; usb-hub-3s 2026-07-21) | regenerate |

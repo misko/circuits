@@ -1,0 +1,5 @@
+pcb-enclosure sanitized assembly fixture v1
+board envelope: 60 x 40 x 1.6 millimetres
+nominal component height above board: 10 millimetres
+This fixture is intentionally not a STEP exchange file. It demonstrates fail-closed
+verification: generation is runnable, while exact-solid clearance remains INCOMPLETE.

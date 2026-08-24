@@ -1,0 +1,7 @@
+pcb-enclosure sanitized edge-panel board fixture v1
+units: millimetres
+outline: 80 x 50 rectangle centred at the case origin
+thickness: 1.6
+mounting holes: H1 (-34, 19), H2 (34, 19), H3 (-34, -19), H4 (34, -19)
+interfaces: J1 east-edge rectangular connector; J2 west-edge round connector; SW1 top service access
+This clean-room fixture contains no production netlist, routing, or component data.

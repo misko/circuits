@@ -1,0 +1,101 @@
+schema: 1
+kind: pcb-enclosure-config-v1
+name: sanitized-split-shell-v1
+mode: derived
+subject:
+  release: synthetic-v1
+  pcb:
+    path: subject/board.snapshot.txt
+    sha256: acd16d2510597586398203d0f918e9df368bca6e3fd5cbdd5c94a84702bf73c1
+    size: 363
+  step:
+    path: subject/assembly.snapshot.txt
+    sha256: 3b5996269c1848ae4febdccf802f2ba61f7fef68813f4867080c16d23f60120b
+    size: 309
+  interface:
+    path: board-interface.json
+    sha256: a9e2e4efd5fbd9c8ac48806b628674b7109c09af66f908f3eb4dc3dfa94153dd
+    size: 3132
+process:
+  method: fdm
+  material: PETG
+  nozzle_mm: 0.4
+  layer_mm: 0.2
+  support_policy: forbid_when_practical
+  minimum_wall_mm: 1.2
+cad:
+  engine: openscad
+  minimum_version: "2021.01"
+  printable_parts: [base, lid, insert_coupon]
+geometry:
+  topology: split_shell
+  xy_clearance_mm: 1.0
+  wall_mm: 2.4
+  floor_mm: 2.4
+  roof_mm: 2.4
+  corner_radius_mm: 4.0
+  board_bottom_z_mm: 8.0
+  inside_top_z_mm: 18.0
+  seam_z_mm: 14.0
+  panel_thickness_mm: 2.4
+  panel_capture_mm: 1.2
+  panel_clearance_mm: 0.25
+  corner_post_mm: 8.0
+  lid_column_board_gap_mm: 0.2
+fasteners:
+  strategy: shared_board
+  thread: M3-0.5
+  board_holes: [H1, H2, H3, H4]
+  case_holes_mm: []
+  boss_d_mm: 8.0
+  case_post_d_mm: 8.0
+  minimum_radial_wall_mm: 0.9
+  insert:
+    family: E-Z-LOK-260-M3
+    installation: cold_press
+    hole_d_mm: 3.95
+    body_d_mm: 4.216
+    flange_d_mm: 5.537
+    flange_recess_d_mm: 6.10
+    flange_recess_depth_mm: 0.80
+    length_mm: 4.775
+    bottom_clearance_mm: 0.30
+  screw:
+    clearance_d_mm: 3.5
+    head_d_mm: 6.3
+    head_recess_depth_mm: 2.0
+    board_length_mm: 6.0
+    lid_length_mm: 14.0
+    minimum_engagement_mm: 3.0
+    minimum_tip_clearance_mm: 0.2
+interfaces:
+  - id: south-data
+    ref: J1
+    role: external-data
+    side: south
+    disposition: opening
+    center_mm: [0.0, -21.0, 11.0]
+    shape: rect
+    opening_mm: [14.0, 10.0]
+    plug_envelope_mm: [12.0, 8.0, 20.0]
+    clearance_mm: 1.0
+  - id: north-coax
+    ref: J2
+    role: external-coax
+    side: north
+    disposition: opening
+    center_mm: [12.0, 21.0, 12.0]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 24.0]
+    clearance_mm: 1.0
+thermal:
+  risk: low
+  physical_soak_required: false
+  load_case: synthetic low-power fixture at room ambient
+  vents: []
+physical_validation:
+  insert_coupon_required: true
+  board_drop_in_required: true
+  all_interfaces_mated_required: true
+  thermal_soak_required: false

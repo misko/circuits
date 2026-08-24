@@ -151,7 +151,7 @@ def t_duplicate_authority_rejected():
       kind="vacuity", gate="skill_authority_check.py")
 def t_authority_lexical_vacuity():
     directory = tmpdir("skill_auth_vacuity_")
-    for skill in ("pcb-design", "kicad-pcb", "jlcpcb-fab"):
+    for skill in ("pcb-design", "pcb-enclosure", "kicad-pcb", "jlcpcb-fab"):
         shutil.copytree(ROOT / "skills" / skill,
                         directory / "skills" / skill)
     (directory / "tests").mkdir()

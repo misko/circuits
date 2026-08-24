@@ -1,0 +1,4 @@
+interface:
+  display_name: "PCB Enclosure"
+  short_description: "Design and verify printable PCB enclosures"
+  default_prompt: "Use $pcb-enclosure to design and verify a printable enclosure for this PCB."
