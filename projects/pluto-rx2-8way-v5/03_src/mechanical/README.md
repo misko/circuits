@@ -21,11 +21,10 @@ The default pocket targets the E-Z LOK E-Z Press flanged M3-0.5 insert
 
 FDM holes commonly print undersize. Print `insert_coupon.stl` first. Its four
 pockets, left to right when the recessed labels face you, are 4.15, 4.25,
-4.35, and 4.45 mm in the model. Press an insert into the smallest pocket that
-accepts it without cracking or visibly whitening the boss. Set
-`insert_hole_d` in the SCAD file to that value before exporting the base. Do
-not install an insert by melting it with a soldering iron: this insert family
-is intended to be cold-pressed.
+4.35, and 4.45 mm in the model. Physical coupon testing selected 4.25 mm as
+the smallest reliable fit, so the production base and enclosure contract use
+a 4.25 mm pilot. Do not install an insert by melting it with a soldering iron:
+this insert family is intended to be cold-pressed.
 
 The flange recess is deliberately 6.10 x 0.80 mm so the PCB rests on a plastic
 annulus rather than on the metal flange. Confirm this against one physical
@@ -93,8 +92,9 @@ both are intentional support-free features.
 
 ## Assembly
 
-1. Print and use the insert coupon. Re-export the base if another pocket size
-   fits better than the 3.95 mm default.
+1. Print and use the insert coupon. The current production pocket is 4.25 mm;
+   revise and re-export the base if a changed printer process needs another
+   size.
 2. Press four inserts squarely into the base with a vise or arbor/drill press.
    Support the floor directly beneath each boss and stop when the flange is
    seated in its recess. Do not pull an insert into place with a screw.

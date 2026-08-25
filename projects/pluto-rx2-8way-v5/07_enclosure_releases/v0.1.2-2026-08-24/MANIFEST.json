@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "kind": "pcb-enclosure-release-v1",
+  "artifact_id": "pluto-rx2-8way-v5-enclosure",
+  "version": "v0.1.2",
+  "date": "2026-08-24",
+  "status": "CAD_READY",
+  "based_on": {
+    "release": "v0.2.1-2026-08-14",
+    "manifest_sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+    "pcb_sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+    "step_sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f"
+  },
+  "cad_authority": {
+    "kind": "authored_scad",
+    "sha256": "9f83594e30f0230f08b67866e302a91c6faab2a41aebb09d445031607dd53771",
+    "size": 16773
+  },
+  "package": {
+    "path": "package/pluto-rx2-8way-v5-enclosure-pcb-v0.2.1-pilot-4.25-cad-ready.zip",
+    "sha256": "5631aef756366d3f2b4e441f8a9166594182401f056b75a3fddd7907353c8ab9",
+    "size": 16201000
+  },
+  "payloads": [
+    {"path": "README.md", "sha256": "4e84d1cc06a6e5443d75d956b483b5dc358ac7605873da00963348c9e6cecb80", "size": 1992},
+    {"path": "cad/pluto_rx2_8way_case.scad", "sha256": "9f83594e30f0230f08b67866e302a91c6faab2a41aebb09d445031607dd53771", "size": 16773},
+    {"path": "meshes/base.stl", "sha256": "ee3d8ff132b13eaa70f8ee8b5d3817f6fc2e351ad4df0db50f34eeb7f56108f1", "size": 1185376},
+    {"path": "meshes/insert_coupon.stl", "sha256": "865c95a00aeb8ea23794410ce86d24f9fe08923fb8d2efeb7bc12e3ad321aaed", "size": 1138803},
+    {"path": "meshes/lid.stl", "sha256": "83abf71d00b359a632e84902e21fd48dd8b8a4627d941ba9fd7a9f09c99baeb3", "size": 3459780},
+    {"path": "package/pluto-rx2-8way-v5-enclosure-pcb-v0.2.1-pilot-4.25-cad-ready.zip", "sha256": "5631aef756366d3f2b4e441f8a9166594182401f056b75a3fddd7907353c8ab9", "size": 16201000},
+    {"path": "renders/assembly.png", "sha256": "a97ce251cb9cae30a6b45e5f39853919782910e867ea9d35e9a9b6d894eef693", "size": 137932},
+    {"path": "renders/closed-assembly.png", "sha256": "125f5c2d208b3670801640660b311b288433b42604204d95fc708fa6d4b077e7", "size": 131943},
+    {"path": "renders/closed-case.png", "sha256": "30a919e5488747423b54e2ae85100c01808f930920ee1eb9855332de2cff385f", "size": 56533},
+    {"path": "renders/insert-coupon.png", "sha256": "93cfbf671e16de340c73dd9602c157d1ee089249718e124068b9e2a2243f59cb", "size": 50424},
+    {"path": "source/enclosure.yaml", "sha256": "c32106fca741af7884cc06052d51974448539653f7fe20e54b75f6e4a363e402", "size": 5577},
+    {"path": "verification/assembled-case.stl", "sha256": "2467f4c6446b2d2b4eab19ca49eec7ac707546b991c17c5cbfdae9442931ba6a", "size": 4444655},
+    {"path": "verification/clearance-intersection.stl", "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445", "size": 181},
+    {"path": "verification/collision.json", "sha256": "abfcdfab81e78626fa148439e6a12c23e3c0411b8d73aee62c8f33f3d78bfc6c", "size": 3072},
+    {"path": "verification/generation.json", "sha256": "f4576ba1bdc75ba4b930c6ade116470c69b77b5669d3959580992ff8b4f263a7", "size": 3877},
+    {"path": "verification/step-inspection.json", "sha256": "821e264587f5715d0984c7189de63e5e8c07a6504087c3eb28902f4e18b6d893", "size": 13561},
+    {"path": "verification/verification.json", "sha256": "ea0bae52b59318daa01499b326be3b09b786ee5111f2ed31f82aa6d2c5c2ada3", "size": 41189}
+  ]
+}
