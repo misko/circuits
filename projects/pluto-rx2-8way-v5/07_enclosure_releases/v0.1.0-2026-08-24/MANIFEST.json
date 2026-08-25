@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "kind": "pcb-enclosure-release-v1",
+  "artifact_id": "pluto-rx2-8way-v5-enclosure",
+  "version": "v0.1.0",
+  "date": "2026-08-24",
+  "status": "CAD_READY",
+  "based_on": {
+    "release": "v0.2.1-2026-08-14",
+    "manifest_sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+    "pcb_sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+    "step_sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f"
+  },
+  "cad_authority": {
+    "kind": "authored_scad",
+    "sha256": "a45b8e1db0c3366bf451ba38f858b553e9a5bd13249fd9164393193ec073a9b8",
+    "size": 16773
+  },
+  "package": {
+    "path": "package/pluto-rx2-8way-v5-enclosure-pcb-v0.2.1-cad-ready.zip",
+    "sha256": "0194d7927eb9f6d9ebcb295622426303616afbe12d87bb6cf78b9398faaafdf4",
+    "size": 16240077
+  },
+  "payloads": [
+    {"path": "README.md", "sha256": "b67c3113a2b1fe358119b01946f1c67fe28d2f63f127a551abac01c4be17aeb9", "size": 1551},
+    {"path": "cad/pluto_rx2_8way_case.scad", "sha256": "a45b8e1db0c3366bf451ba38f858b553e9a5bd13249fd9164393193ec073a9b8", "size": 16773},
+    {"path": "meshes/base.stl", "sha256": "5c46d65cbe217088ba66af76f22f451d7c1f3bde1de27d25849e64267f931a76", "size": 1184064},
+    {"path": "meshes/insert_coupon.stl", "sha256": "681ddf223a0fdddb3d70812d8cb4e3badbfba9aa6a73fd4a0c39dcaf3eb9b818", "size": 1540506},
+    {"path": "meshes/lid.stl", "sha256": "2b428ef432dfd987c4f6d05ccd9502f08c598030ccc566c8aa693beedf6ef7b3", "size": 3459780},
+    {"path": "package/pluto-rx2-8way-v5-enclosure-pcb-v0.2.1-cad-ready.zip", "sha256": "0194d7927eb9f6d9ebcb295622426303616afbe12d87bb6cf78b9398faaafdf4", "size": 16240077},
+    {"path": "renders/assembly.png", "sha256": "4ac1eca1f04b8105b7d899b6ce60c85f9343bef7d5fe96813dbd5971abd8726d", "size": 137905},
+    {"path": "renders/closed-assembly.png", "sha256": "75eb93601ce8c4cc52cdefa40360f290e6a1d7c76abf28f24c874daf5ed6b5f7", "size": 131926},
+    {"path": "renders/closed-case.png", "sha256": "2d9299f4bd3dfccd2693a89d9ee32b4ffb15e8af5802c567cd196d251699a39a", "size": 94086},
+    {"path": "source/enclosure.yaml", "sha256": "3623cb300c8dd78caedbea2f8a1fa6fee57dff9988019a8d35cfa89aa70f794e", "size": 5543},
+    {"path": "verification/assembled-case.stl", "sha256": "15f61ab507ec5ac72c624f5842721621379dedf79f9e016486ec41bbb19c584b", "size": 4443343},
+    {"path": "verification/clearance-intersection.stl", "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445", "size": 181},
+    {"path": "verification/collision.json", "sha256": "164aabcca4c726917a4ff1e52999060fd387e557150a96f952709c5b158c1c3e", "size": 3072},
+    {"path": "verification/generation.json", "sha256": "a72836ae09b0749aa9d98ba96085b77f24935aa300825ab685ef5789deb4f77f", "size": 3877},
+    {"path": "verification/step-inspection.json", "sha256": "821e264587f5715d0984c7189de63e5e8c07a6504087c3eb28902f4e18b6d893", "size": 13561},
+    {"path": "verification/verification.json", "sha256": "97e8eeec18b953bb9d8fa0825c7ee781b9b5343c8bbd1b4aed4b8f6cda6ddf17", "size": 41188}
+  ]
+}
