@@ -13,6 +13,7 @@ the board has no MCU.
 | `target/**` `host/**` | the TWO-SIDED split, when the board ships both: MCU firmware under `target/`, its host-side counterpart (the control tool that speaks the same protocol) under `host/`. Named here because the row above promises "arbitrary depth" and then enumerated exactly two folder names — MEASURED 2026-07-31, `programmable-usb2-hub` was the first board to split this way and all 4 of its C/H/PY sources under `target/`+`host/` failed C-ALLOW against a contract whose own prose said they were fine. A host tool that implements the wire protocol belongs beside the firmware that answers it, not in `03_src/` |
 | `Makefile` / build config | must take the MCU as a VARIABLE, not a constant |
 | `tests/` | host-runnable logic tests |
+| `rpi4-swd-bench-wiring.png` | bench SWD and independent-power wiring diagram referenced by `README.md` |
 | `README.md` | how to build, how to flash, which connector |
 | `contracts.md` | this file |
 

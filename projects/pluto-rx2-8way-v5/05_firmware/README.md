@@ -1,22 +1,81 @@
 # Firmware and field programming
 
+## First-article execution update — 2026-08-25
+
+The staged first-article procedure below has now been executed for article
+`stm32c011-4c0055000950313950363920`. Read-only SWD identification, two matching
+factory-flash reads, safe-hold programming, static-selector control and recovery,
+and autonomous Fast20 programming/readback/recovery all passed. The deployed
+Fast20 source is commit `5238fbd` on `codex/stm32-bringup` in `~/smateway`;
+the phase analyzer is commit `cd67b86` on the same branch; reusable Pluto
+capture support is commit `f495a1c` on `codex/safe-tone-stimulus` in
+`~/pluto-plus-utils`.
+
+After an accidental J12 power disconnect, the powered run was repeated. Both
+10-second captures contain 100 consecutive 100,000-sample frames and exactly
+10,000,000 FPGA-counted samples, with no missing samples or overflow/failure
+flags. TX1 produced its strongest coupling through ANT4 and TX2 through ANT5;
+the `ALL_OFF` residuals were respectively 72.5 dB and 66.7 dB below those
+strongest states. This verifies selector operation and a stable relative phase
+fingerprint. It is not calibrated insertion-loss, isolation or emitter-position
+evidence.
+
+The article-specific evidence is retained outside Git at
+`~/.local/state/smateway/boards/stm32c011-4c0055000950313950363920/`.
+The powered phase audit is
+`fast20-5238fbd/powered-phase-capture-2026-08-25.md`. The earlier continuous
+captures `e0ec4d...` and `a02d1503...` are explicitly superseded because the RF
+board was unpowered during them. Post-capture readback confirmed both Pluto TX
+gains at -80 dB, all DDS scales at zero and cyclic buffering disabled.
+
+Raw phase includes unequal PCB traces, switch paths, antennas, mutual coupling
+and receiver paths. Trustworthy geometric localization therefore requires
+complex per-path and in-situ antenna calibration, preferably at multiple
+frequencies. Confidence from the present analyzer describes schedule alignment
+and repeatability, not the probability of a physical emitter position.
+
 ## RPi4 first-article programming plan
 
 Status at handoff, 2026-08-24:
 
 - first-article hardware has powered successfully and J11.1 measures 3.3 V;
+- the Raspberry Pi 4 SWD harness is connected to J11 and the target is powered
+  independently from a bench supply through J12;
 - three SMA connectors have been hand-fitted, but no complete electrical or RF
   acceptance run has been recorded;
 - this directory contains the generated control profile, but no target source,
-  linker script, Makefile or qualified firmware image yet;
-- the next work session is expected to run on a Raspberry Pi 4 connected to the
-  target board and an SDR.
+  linker script, Makefile or qualified firmware image yet; and
+- no successful SWD read, factory-flash backup or firmware write has yet been
+  recorded.
 
 The objective is deliberately staged: prove read-only SWD access, preserve the
 factory flash contents, build and verify an `ALL_OFF`-only recovery image, add a
 debug-controlled static selector for bench RF work, and only then implement the
 autonomous dwell profile. Each gate must pass before the next gate writes or
 changes more state.
+
+### Programming and qualification connections
+
+![Raspberry Pi 4 SWD and J12 bench-power wiring](rpi4-swd-bench-wiring.png)
+
+The initial direct-coax qualification cabling was:
+
+| Connection | Bench routing |
+|---|---|
+| RF board `PLUTO RX`/common port | Pluto SDR `RX2` |
+| Pluto SDR `RX1` | 50-ohm termination |
+| Pluto SDR `TX1` | RF board `ANT4` |
+| Pluto SDR `TX2` | RF board `ANT5` |
+
+The later powered OTA phase run replaced those two direct coax links with one
+antenna on each board ANT1--ANT8 port and one antenna on each Pluto TX output.
+The board common remained on Pluto RX2, Pluto RX1 remained terminated, the
+inline attenuator was disconnected, and only one TX was stimulated at a time.
+
+These tables record physical setups; they are not calibrated RF acceptance
+evidence. Keep `TX1` and `TX2` disabled outside a bounded test. Before any new
+direct connection, measure every fitted SMA centre at 0 VDC and verify the
+maximum RF level at the board mating plane remains below 0 dBm.
 
 ### Non-negotiable electrical rules
 
