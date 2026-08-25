@@ -1,0 +1,102 @@
+{
+  "authority": {
+    "binding": {
+      "path": "03_src/mechanical/pluto_rx2_8way_case.scad",
+      "sha256": "1e5b2d01395444acfe694e93e761f6d14d0461ca60b2f0d4cc77b4fc92d05164",
+      "size": 16773
+    },
+    "kind": "authored_scad"
+  },
+  "config": {
+    "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml",
+    "raw_sha256": "77a11940effa045ce70ea3cb5a26af1d0fce0e803abd0986df90aa0a75d935ae",
+    "semantic_sha256": "eb2962d3892c58c1d6f64e1299daa3a1d2c3e0cc9c531fd747c4d75a78706d9d"
+  },
+  "engine": {
+    "executable": "/usr/bin/openscad",
+    "minimum_version": "2021.01",
+    "version": "OpenSCAD version 2021.01"
+  },
+  "installed_case": {
+    "command": [
+      "/usr/bin/openscad",
+      "-o",
+      "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/assembled-case.stl",
+      "-D",
+      "part=\"installed_case\"",
+      "-D",
+      "show_reference_board=false",
+      "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+    ],
+    "path": "assembled-case.stl",
+    "selector": "installed_case",
+    "sha256": "53a7e352d6cd421713ba9f834e1ad912cbc6ec98fc0827e80796b3076a8152f4",
+    "size": 4443343
+  },
+  "interface": {
+    "raw_sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+    "semantic_sha256": "c75481b39a3a1b6101823f7d6f62e73e99be529915d30c6228a842595f7af409"
+  },
+  "kind": "pcb-enclosure-generation-v1",
+  "mode": "derived",
+  "name": "pluto-rx2-8way-v5-split-shell",
+  "parts": [
+    {
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/base.stl",
+        "-D",
+        "part=\"base\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "part": "base",
+      "path": "base.stl",
+      "selector": "base",
+      "sha256": "1a0232362a28d4b5802e69511acac0712e450a18fce7b87839497bef7949ce66",
+      "size": 1184064
+    },
+    {
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/lid.stl",
+        "-D",
+        "part=\"lid\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "part": "lid",
+      "path": "lid.stl",
+      "selector": "lid",
+      "sha256": "e73cb235a64e09d2d6c1c6e93018820c6614ad29516bb6f1fe2b989fd64380c8",
+      "size": 3459780
+    },
+    {
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/insert_coupon.stl",
+        "-D",
+        "part=\"insert_coupon\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "part": "insert_coupon",
+      "path": "insert_coupon.stl",
+      "selector": "insert_coupon",
+      "sha256": "584968e9a2d12b87c4898d05f101afaa9e9c88ace3f7e534fc663fc0f18cb0d2",
+      "size": 1138803
+    }
+  ],
+  "schema": 1,
+  "source": {
+    "path": "enclosure.scad",
+    "sha256": "1e5b2d01395444acfe694e93e761f6d14d0461ca60b2f0d4cc77b4fc92d05164",
+    "size": 16773
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "backend": {
+    "cadquery_version": "2.6.1",
+    "name": "cadquery-ocp-brep-common",
+    "ocp_version": "7.8.1.1"
+  },
+  "inputs": {
+    "assembled_case_mesh": {
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/assembled-case.stl",
+        "-D",
+        "part=\"installed_case\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/pcb-pipeline-robustness-20260824/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "path": "assembled-case.stl",
+      "selector": "installed_case",
+      "sha256": "53a7e352d6cd421713ba9f834e1ad912cbc6ec98fc0827e80796b3076a8152f4",
+      "size": 4443343
+    },
+    "component_mesh": {
+      "path": "step-components.stl",
+      "sha256": "853ab6711b8bd62efac00bc65ca5b2926cf3dff681cef260e0e5279340b2faf7",
+      "size": 39947084
+    },
+    "generation": {
+      "path": "generation.json",
+      "sha256": "30938b6b4081ba6669821536aeef6a0dbc324b682fd48f3064c83cf46b55745d",
+      "size": 3877
+    },
+    "step": {
+      "path": "pluto_rx2_8way_v5.step",
+      "sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f",
+      "size": 23398573
+    },
+    "step_inspection": {
+      "path": "step-inspection.json",
+      "sha256": "821e264587f5715d0984c7189de63e5e8c07a6504087c3eb28902f4e18b6d893",
+      "size": 13561
+    }
+  },
+  "kind": "pcb-enclosure-collision-v1",
+  "result": {
+    "classification": "EMPTY",
+    "collision_mesh": {
+      "path": "clearance-intersection.stl",
+      "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445",
+      "size": 181
+    },
+    "exact_brep_volume_mm3": 0,
+    "mesh_metrics": {
+      "absolute_volume_mm3": 0.0,
+      "bbox_mm": {
+        "max": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "min": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "boundary_edges": 0,
+      "component_absolute_volume_mm3": 0.0,
+      "components": 1,
+      "degenerate_facets": 1,
+      "edge_manifold": false,
+      "format": "ascii",
+      "nonmanifold_edges": 1,
+      "orientation_consistent": true,
+      "orientation_mismatches": 0,
+      "path": "clearance-intersection.stl",
+      "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445",
+      "signed_volume_mm3": 0.0,
+      "size": 181,
+      "triangles": 1
+    },
+    "representation": "zero-area-marker-for-empty-brep"
+  },
+  "schema": 1,
+  "selection": {
+    "component_solid_count": 65,
+    "pcb_related_solid_count": 1065,
+    "step_solid_count": 1130
+  },
+  "status": "COMPLETE",
+  "transform": {
+    "applied_component_translate_mm": [
+      -65.0,
+      52.5,
+      7.8
+    ],
+    "board_bottom_z_mm": 7.8,
+    "case_registration_translate_mm_at_board_z0": [
+      -65.0,
+      52.5,
+      -0.0
+    ]
+  }
+}

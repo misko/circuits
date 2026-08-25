@@ -20,8 +20,8 @@ The default pocket targets the E-Z LOK E-Z Press flanged M3-0.5 insert
 - 3.962 mm (5/32 inch) manufacturer starting hole
 
 FDM holes commonly print undersize. Print `insert_coupon.stl` first. Its four
-pockets, left to right when the recessed labels face you, are 3.85, 3.95,
-4.05, and 4.15 mm in the model. Press an insert into the smallest pocket that
+pockets, left to right when the recessed labels face you, are 4.15, 4.25,
+4.35, and 4.45 mm in the model. Press an insert into the smallest pocket that
 accepts it without cracking or visibly whitening the boss. Set
 `insert_hole_d` in the SCAD file to that value before exporting the base. Do
 not install an insert by melting it with a soldering iron: this insert family
