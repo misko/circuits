@@ -492,6 +492,35 @@ def t_generator_installed_case_clean():
           "installed-case artifact was not generated")
 
 
+@test("coupon-qualified FDM pilot may exceed nominal cold-press body")
+def t_coupon_qualified_pilot_clean():
+    fixture = _fresh_fixture()
+    config = yaml.safe_load(fixture["config"].read_text())
+    insert = config["fasteners"]["insert"]
+    insert["hole_d_mm"] = 4.25
+    insert["pilot_basis"] = "coupon_qualified"
+    _write_yaml(fixture["config"], config)
+    loaded, _ = load_bound_config(fixture["config"], fixture["root"])
+    eq(loaded["fasteners"]["insert"]["hole_d_mm"], 4.25,
+       "qualified modeled pilot")
+    eq(loaded["fasteners"]["insert"]["body_d_mm"], 4.2,
+       "nominal hardware body remains truthful")
+
+
+@test("oversize nominal cold-press pilot needs explicit coupon basis",
+      kind="known_bad", gate="generate_enclosure.py")
+def t_unqualified_oversize_pilot_bites():
+    fixture = _fresh_fixture()
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["fasteners"]["insert"]["hole_d_mm"] = 4.25
+    _write_yaml(fixture["config"], config)
+    must_fail(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure unqualified pilot",
+        "cold-press pilot lacks nominal interference")
+
+
 @test("authored-SCAD generation and package preserve the exact bound source")
 def t_authored_scad_clean_round_trip():
     fixture = _fresh_fixture()

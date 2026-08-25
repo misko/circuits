@@ -43,6 +43,13 @@ Test at least the authored pilot diameter; bracket it with nearby diameters when
 
 Use the smallest hole that installs reliably without cracking or severe distortion. Update `enclosure.yaml`, regenerate all parts, and bind new physical evidence to the new semantic config hash.
 
+If printer undersizing makes the selected modeled pilot equal to or larger than
+the insert's nominal body diameter, declare
+`pilot_basis: coupon_qualified`. Do not falsify the hardware body dimension or
+relabel a cold-press insert as heat-set merely to satisfy nominal interference
+arithmetic. Coupon qualification records why the CAD value is credible; it
+does not replace the physical-evidence receipt required for status promotion.
+
 ## Assembly checks
 
 - Deburr without enlarging the pocket unpredictably.

@@ -73,7 +73,7 @@ All dimensions except panel clearance and lid-column gap are positive. The two c
 
 `fasteners.strategy` is `shared_board` or `separate_perimeter`. Declare thread, unique board-hole refs, case-hole points, boss and post diameters, and minimum radial wall.
 
-The insert mapping requires family, `cold_press|heat_set`, hole/body/flange/recess dimensions, length, and bottom clearance. The screw mapping requires clearance/head/recess dimensions, board and lid lengths, minimum engagement, and minimum tip clearance.
+The insert mapping requires family, `cold_press|heat_set`, hole/body/flange/recess dimensions, length, and bottom clearance. It may also declare `pilot_basis: datasheet|coupon_qualified`; omission means `datasheet`. A datasheet-based cold-press pilot must remain smaller than the nominal insert body. `coupon_qualified` may use a larger modeled pilot to represent measured FDM undersizing, but requires the insert coupon to remain a declared and required physical test. This declaration records design basis; it is not itself physical evidence and does not promote verification status. The screw mapping requires clearance/head/recess dimensions, board and lid lengths, minimum engagement, and minimum tip clearance.
 
 Shared-board designs require no case holes. Separate-perimeter designs require at least four case holes.
 

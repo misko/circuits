@@ -483,14 +483,25 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     for field in ("boss_d_mm", "case_post_d_mm", "minimum_radial_wall_mm"):
         _number(fasteners[field], f"config.fasteners.{field}", positive=True)
 
-    insert = _exact(fasteners["insert"], {
+    insert_required = {
         "family", "installation", "hole_d_mm", "body_d_mm", "flange_d_mm",
         "flange_recess_d_mm", "flange_recess_depth_mm", "length_mm",
         "bottom_clearance_mm",
-    }, "config.fasteners.insert")
+    }
+    insert_optional = {"pilot_basis"}
+    insert = _mapping(fasteners["insert"], "config.fasteners.insert")
+    if not insert_required <= set(insert) or \
+            set(insert) - insert_required - insert_optional:
+        raise EnclosureError(
+            "config.fasteners.insert: fields differ; "
+            f"missing={sorted(insert_required - set(insert))}, "
+            f"unknown={sorted(set(insert) - insert_required - insert_optional)}")
     _string(insert["family"], "config.fasteners.insert.family")
     _enum(insert["installation"], {"cold_press", "heat_set"},
           "config.fasteners.insert.installation")
+    pilot_basis = _enum(insert.get("pilot_basis", "datasheet"),
+                        {"datasheet", "coupon_qualified"},
+                        "config.fasteners.insert.pilot_basis")
     for field in ("hole_d_mm", "body_d_mm", "flange_d_mm",
                   "flange_recess_d_mm", "flange_recess_depth_mm", "length_mm"):
         _number(insert[field], f"config.fasteners.insert.{field}", positive=True)
@@ -503,9 +514,11 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
         raise EnclosureError(
             "config.fasteners.insert: flange recess depth reaches past insert")
     if insert["installation"] == "cold_press" and \
-            insert["hole_d_mm"] >= insert["body_d_mm"]:
+            insert["hole_d_mm"] >= insert["body_d_mm"] and \
+            pilot_basis != "coupon_qualified":
         raise EnclosureError(
-            "config.fasteners.insert: cold-press pilot lacks interference")
+            "config.fasteners.insert: cold-press pilot lacks nominal "
+            "interference and is not coupon-qualified")
 
     screw = _exact(fasteners["screw"], {
         "clearance_d_mm", "head_d_mm", "head_recess_depth_mm",
@@ -603,6 +616,10 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     if physical["insert_coupon_required"] and "insert_coupon" not in parts:
         raise EnclosureError(
             "config.cad.printable_parts: required insert coupon is absent")
+    if pilot_basis == "coupon_qualified" and not physical["insert_coupon_required"]:
+        raise EnclosureError(
+            "config.fasteners.insert.pilot_basis: coupon-qualified pilot "
+            "requires insert_coupon_required")
     return dict(value)
 
 
