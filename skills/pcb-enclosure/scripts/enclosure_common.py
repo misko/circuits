@@ -352,10 +352,20 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     _string(top["name"], "config.name")
     _enum(top["mode"], {"co_design", "derived"}, "config.mode")
 
-    subject = _exact(top["subject"], {"release", "pcb", "step", "interface"},
-                     "config.subject")
+    subject = _mapping(top["subject"], "config.subject")
+    required_subject = {"release", "pcb", "step", "interface"}
+    optional_subject = {"release_manifest"}
+    if not required_subject <= set(subject) or \
+            set(subject) - required_subject - optional_subject:
+        raise EnclosureError(
+            "config.subject: fields differ; "
+            f"missing={sorted(required_subject - set(subject))}, "
+            f"unknown={sorted(set(subject) - required_subject - optional_subject)}")
     _string(subject["release"], "config.subject.release")
-    for field in ("pcb", "step", "interface"):
+    bound_subjects = ["pcb", "step", "interface"]
+    if "release_manifest" in subject:
+        bound_subjects.append("release_manifest")
+    for field in bound_subjects:
         binding = _exact(subject[field], {"path", "sha256", "size"},
                          f"config.subject.{field}")
         _string(binding["path"], f"config.subject.{field}.path")
@@ -379,10 +389,33 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     _number(process["minimum_wall_mm"], "config.process.minimum_wall_mm",
             positive=True)
 
-    cad = _exact(top["cad"], {"engine", "minimum_version", "printable_parts"},
-                 "config.cad")
+    cad = _mapping(top["cad"], "config.cad")
+    legacy_cad_fields = {"engine", "minimum_version", "printable_parts"}
+    authored_cad_fields = legacy_cad_fields | {"source"}
+    if frozenset(cad) not in {frozenset(legacy_cad_fields),
+                              frozenset(authored_cad_fields)}:
+        expected = authored_cad_fields if "source" in cad else legacy_cad_fields
+        raise EnclosureError(
+            "config.cad: fields differ; "
+            f"missing={sorted(expected - set(cad))}, "
+            f"unknown={sorted(set(cad) - expected)}")
     _enum(cad["engine"], {"openscad"}, "config.cad.engine")
     _string(cad["minimum_version"], "config.cad.minimum_version")
+    if "source" in cad:
+        source = _exact(cad["source"], {"kind", "path", "sha256", "size"},
+                        "config.cad.source")
+        _enum(source["kind"], {"authored_scad"}, "config.cad.source.kind")
+        source_path = _string(source["path"], "config.cad.source.path")
+        if Path(source_path).suffix.lower() != ".scad":
+            raise EnclosureError("config.cad.source.path: expected a .scad file")
+        digest = _string(source["sha256"], "config.cad.source.sha256")
+        if not HEX64_RE.fullmatch(digest):
+            raise EnclosureError(
+                "config.cad.source.sha256: expected lowercase 64-hex")
+        if isinstance(source["size"], bool) or not isinstance(source["size"], int) \
+                or source["size"] <= 0:
+            raise EnclosureError(
+                "config.cad.source.size: expected positive integer")
     parts = cad["printable_parts"]
     if not isinstance(parts, list) or not parts or parts != list(dict.fromkeys(parts)):
         raise EnclosureError("config.cad.printable_parts: expected non-empty unique list")
@@ -577,12 +610,23 @@ def load_bound_config(config_path: Path, root: Path) -> tuple[dict[str, Any],
                                                                dict[str, Any]]:
     config = validate_config(load_yaml(config_path))
     bindings = {}
-    for field in ("pcb", "step", "interface"):
+    subject_fields = ["pcb", "step", "interface"]
+    if "release_manifest" in config["subject"]:
+        subject_fields.append("release_manifest")
+    for field in subject_fields:
         bindings[field] = validate_file_binding(
             config["subject"][field], root, f"config.subject.{field}")
         if not bindings[field].get("matches", False):
             raise EnclosureError(
                 f"config.subject.{field}: bound size/hash differs from actual file")
+    cad_source = config["cad"].get("source")
+    if cad_source is not None:
+        bindings["cad_source"] = validate_file_binding(
+            {key: cad_source[key] for key in ("path", "sha256", "size")},
+            root, "config.cad.source")
+        if not bindings["cad_source"].get("matches", False):
+            raise EnclosureError(
+                "config.cad.source: bound size/hash differs from actual file")
     interface_path = bindings["interface"]["path"]
     interface = validate_interface(load_json(interface_path))
     if interface["subject"]["board"]["sha256"] != \

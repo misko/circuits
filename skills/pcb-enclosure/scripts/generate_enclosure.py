@@ -20,6 +20,8 @@ from enclosure_common import (  # noqa: E402
 
 
 ENGINE = SKILL_DIR / "assets/enclosure-engine.scad"
+INSTALLED_CASE_SELECTOR = "installed_case"
+INSTALLED_CASE_FILENAME = "assembled-case.stl"
 
 
 def _version_tuple(value: str) -> tuple[int, ...]:
@@ -79,6 +81,30 @@ def _require_rectangular_outline(interface: dict[str, Any]) -> None:
     if observed != normalized_expected:
         raise EnclosureError(
             "built-in OpenSCAD engine supports an axis-aligned rectangle only")
+
+
+def _run_selector(executable: str, source: Path, build_dir: Path,
+                  selector: str, filename: str) -> dict[str, Any]:
+    output = build_dir / filename
+    if output.is_symlink():
+        raise EnclosureError(f"OpenSCAD output must not be a symlink: {output}")
+    output.unlink(missing_ok=True)
+    command = [executable, "-o", str(output.resolve()), "-D",
+               f'part="{selector}"', "-D", "show_reference_board=false",
+               str(source.resolve())]
+    result = subprocess.run(command, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, check=False)
+    if result.returncode or not output.is_file() or output.stat().st_size == 0:
+        raise EnclosureError(
+            f"OpenSCAD could not generate {selector} (rc={result.returncode}):\n"
+            + result.stdout[-4000:])
+    return {
+        "selector": selector,
+        "path": output.name,
+        "sha256": sha256_file(output),
+        "size": output.stat().st_size,
+        "command": command,
+    }
 
 
 def _prelude(config: dict[str, Any], interface: dict[str, Any]) -> str:
@@ -149,13 +175,39 @@ def generate(config_path: Path, root: Path, build_dir: Path,
              parts: Sequence[str], openscad: str) -> dict[str, Any]:
     config, loaded = load_bound_config(config_path, root)
     interface = loaded["interface"]
-    _require_rectangular_outline(interface)
-    if not ENGINE.is_file():
-        raise EnclosureError(f"OpenSCAD engine missing: {ENGINE}")
     build_dir.mkdir(parents=True, exist_ok=True)
     source = build_dir / "enclosure.scad"
-    source.write_text(_prelude(config, interface) +
-                      ENGINE.read_text(encoding="utf-8"), encoding="utf-8")
+    authored = config["cad"].get("source")
+    if authored is None:
+        _require_rectangular_outline(interface)
+        if not ENGINE.is_file():
+            raise EnclosureError(f"OpenSCAD engine missing: {ENGINE}")
+        source.write_text(_prelude(config, interface) +
+                          ENGINE.read_text(encoding="utf-8"), encoding="utf-8")
+        authority = {
+            "kind": "built_in_v1",
+            "engine_source": {
+                "path": "assets/enclosure-engine.scad",
+                "sha256": sha256_file(ENGINE),
+                "size": ENGINE.stat().st_size,
+            },
+        }
+    else:
+        authored_path = loaded["bindings"]["cad_source"]["path"]
+        if authored_path.resolve().is_relative_to(build_dir.resolve()):
+            raise EnclosureError(
+                "config.cad.source: authored input must be outside the build directory")
+        # Preserve the exact reviewed source bytes.  Command-line -D values
+        # select parts without modifying or wrapping the authored entrypoint.
+        source.write_bytes(authored_path.read_bytes())
+        authority = {
+            "kind": "authored_scad",
+            "binding": {
+                "path": authored["path"],
+                "sha256": authored["sha256"],
+                "size": authored["size"],
+            },
+        }
     executable = shutil.which(openscad)
     if executable is None:
         raise EnclosureError(f"OpenSCAD executable not found: {openscad}")
@@ -165,22 +217,11 @@ def generate(config_path: Path, root: Path, build_dir: Path,
     for part in parts:
         if part not in config["cad"]["printable_parts"]:
             raise EnclosureError(f"requested part {part!r} is not declared printable")
-        output = build_dir / f"{part}.stl"
-        command = [executable, "-o", str(output), "-D", f'part="{part}"',
-                   "-D", "show_reference_board=false", str(source)]
-        result = subprocess.run(command, text=True, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, check=False)
-        if result.returncode or not output.is_file() or output.stat().st_size == 0:
-            raise EnclosureError(
-                f"OpenSCAD could not generate {part} (rc={result.returncode}):\n"
-                + result.stdout[-4000:])
-        records.append({
-            "part": part,
-            "path": output.name,
-            "sha256": sha256_file(output),
-            "size": output.stat().st_size,
-            "command": command,
-        })
+        record = _run_selector(executable, source, build_dir, part, f"{part}.stl")
+        records.append({"part": part, **record})
+    installed_case = _run_selector(
+        executable, source, build_dir, INSTALLED_CASE_SELECTOR,
+        INSTALLED_CASE_FILENAME)
     receipt = {
         "schema": 1,
         "kind": "pcb-enclosure-generation-v1",
@@ -191,9 +232,11 @@ def generate(config_path: Path, root: Path, build_dir: Path,
                    "raw_sha256": sha256_file(config_path)},
         "interface": {"semantic_sha256": semantic_sha256(interface),
                       "raw_sha256": sha256_file(loaded["bindings"]["interface"]["path"])},
+        "authority": authority,
         "source": {"path": source.name, "sha256": sha256_file(source),
                    "size": source.stat().st_size},
         "parts": records,
+        "installed_case": installed_case,
     }
     write_json(build_dir / "generation.json", receipt)
     return receipt

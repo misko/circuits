@@ -20,6 +20,9 @@ from harness import (check, contains, eq, main, must_fail, must_pass, run,
 
 ROOT = Path(__file__).resolve().parent.parent
 ENCLOSURE_SCRIPTS = ROOT / "skills" / "pcb-enclosure" / "scripts"
+sys.path.insert(0, str(ENCLOSURE_SCRIPTS))
+from enclosure_common import load_bound_config, stl_metrics  # noqa: E402
+
 VERIFY = ENCLOSURE_SCRIPTS / "verify_enclosure.py"
 INSPECT = ENCLOSURE_SCRIPTS / "inspect_step.py"
 PACKAGE = ENCLOSURE_SCRIPTS / "package_enclosure.py"
@@ -94,9 +97,13 @@ def _step_text(refs) -> str:
     )
 
 
-def _fake_cadquery(directory: Path) -> Path:
+def _fake_cadquery(directory: Path, *, duplicate_substrate: bool = False) -> Path:
     """A deterministic exact-backend seam; it does not parse the STEP."""
     directory.mkdir(parents=True, exist_ok=True)
+    duplicate = (
+        "                          Shape(Box(-30,-20,0,30,20,1.6)),\n"
+        if duplicate_substrate else ""
+    )
     (directory / "cadquery.py").write_text(
         "class Box:\n"
         "    def __init__(self, xmin, ymin, zmin, xmax, ymax, zmax):\n"
@@ -112,7 +119,10 @@ def _fake_cadquery(directory: Path) -> Path:
         "class Imported:\n"
         "    def val(self): return Shape(Box(-30,-20,0,30,20,6))\n"
         "    def solids(self):\n"
-        "        return Selection([Shape(Box(-30,-20,0,30,20,1.6)),\n"
+        "        return Selection([Shape(Box(-29.7,-19.7,-0.035,29.7,19.7,0)),\n"
+        "                          Shape(Box(-29.7,-19.7,1.6,29.7,19.7,1.635)),\n"
+        "                          Shape(Box(-30,-20,0,30,20,1.6)),\n"
+        + duplicate +
         "                          Shape(Box(-2,-2,1.6,2,2,6))])\n"
         "class Importers:\n"
         "    def importStep(self, path): return Imported()\n"
@@ -133,10 +143,13 @@ def _fresh_fixture(step_refs=("J1", "SW1")) -> dict[str, Path]:
 
     pcb = subject / "synthetic.kicad_pcb"
     step = subject / "synthetic.step"
+    release_manifest = subject / "MANIFEST.txt"
     interface_path = generated / "board-interface.json"
     config_path = root / "enclosure.yaml"
     pcb.write_text("(kicad_pcb (version 20240108) (generator pcb-enclosure-test))\n")
     step.write_text(_step_text(step_refs), encoding="latin-1")
+    release_manifest.write_text(
+        "MANIFEST — synthetic-v1\nDESIGN: PASS\n", encoding="utf-8")
 
     def footprint(ref, position, model_declared):
         x, y = position
@@ -200,6 +213,7 @@ def _fresh_fixture(step_refs=("J1", "SW1")) -> dict[str, Path]:
         "mode": "derived",
         "subject": {
             "release": "synthetic-v1",
+            "release_manifest": _binding(root, release_manifest),
             "pcb": _binding(root, pcb),
             "step": _binding(root, step),
             "interface": _binding(root, interface_path),
@@ -268,12 +282,26 @@ def _fresh_fixture(step_refs=("J1", "SW1")) -> dict[str, Path]:
     _write_stl(build / "insert_coupon.stl", _cube_triangles())
     # A zero-thickness result is the portable representation of an empty
     # intersection for this synthetic exact-solid seam.
-    _write_stl(build / "collision.stl", [((0, 0, 0), (1, 0, 0), (0, 1, 0))])
+    _write_stl(build / "collision.stl", [((0, 0, 0), (0, 0, 0), (0, 0, 0))])
+    _write_stl(build / "components.stl", _cube_triangles((4, 4, 4)))
+    _write_stl(build / "assembled-case.stl", _cube_triangles())
     (build / "enclosure.scad").write_text("// synthetic enclosure\n")
     parsed_config = yaml.safe_load(config_path.read_text())
+    installed_case_record = {
+        "selector": "installed_case", "path": "assembled-case.stl",
+        "sha256": _sha(build / "assembled-case.stl"),
+        "size": (build / "assembled-case.stl").stat().st_size,
+        "command": [
+            "synthetic-openscad", "-o", str((build / "assembled-case.stl").resolve()),
+            "-D", 'part="installed_case"', "-D", "show_reference_board=false",
+            str((build / "enclosure.scad").resolve()),
+        ],
+    }
     _write_json(build / "generation.json", {
         "schema": 1,
         "kind": "pcb-enclosure-generation-v1",
+        "engine": {"executable": "synthetic-openscad", "version": "synthetic",
+                   "minimum_version": "2021.01"},
         "config": {"path": str(config_path),
                    "semantic_sha256": _semantic_sha(parsed_config),
                    "raw_sha256": _sha(config_path)},
@@ -281,6 +309,7 @@ def _fresh_fixture(step_refs=("J1", "SW1")) -> dict[str, Path]:
                       "raw_sha256": _sha(interface_path)},
         "source": {"path": "enclosure.scad", "sha256": _sha(build / "enclosure.scad"),
                    "size": (build / "enclosure.scad").stat().st_size},
+        "authority": {"kind": "built_in_v1"},
         "parts": [
             {"part": part, "path": f"{part}.stl",
              "sha256": _sha(build / f"{part}.stl"),
@@ -288,6 +317,7 @@ def _fresh_fixture(step_refs=("J1", "SW1")) -> dict[str, Path]:
              "command": ["synthetic-openscad", part]}
             for part in ("base", "lid", "insert_coupon")
         ],
+        "installed_case": installed_case_record,
     })
     _write_json(build / "step-inspection.json", {
         "schema": 1,
@@ -303,13 +333,47 @@ def _fresh_fixture(step_refs=("J1", "SW1")) -> dict[str, Path]:
             "observed_designators": 2, "covered_modeled_refs": 2,
             "missing_modeled_refs": [], "unmodeled_access_refs": [],
         },
-        "geometry": {"status": "COMPLETE", "backend": "synthetic-exact"},
+        "geometry": {
+            "status": "COMPLETE", "backend": "synthetic-exact",
+            "solid_count": 2, "component_solid_count": 1,
+            "pcb_related_solid_indices": [0],
+            "case_registration_translate_mm_at_board_z0": [0.0, 0.0, 0.0],
+            "component_mesh": _binding(build, build / "components.stl"),
+        },
+    })
+    collision_metrics = stl_metrics(build / "collision.stl")
+    _write_json(build / "collision.json", {
+        "schema": 1, "kind": "pcb-enclosure-collision-v1", "status": "COMPLETE",
+        "backend": {"name": "synthetic-exact"},
+        "inputs": {
+            "step_inspection": _binding(build, build / "step-inspection.json"),
+            "step": _binding(root, step),
+            "component_mesh": _binding(build, build / "components.stl"),
+            "generation": _binding(build, build / "generation.json"),
+            "assembled_case_mesh": installed_case_record,
+        },
+        "transform": {
+            "case_registration_translate_mm_at_board_z0": [0.0, 0.0, 0.0],
+            "board_bottom_z_mm": config["geometry"]["board_bottom_z_mm"],
+            "applied_component_translate_mm": [
+                0.0, 0.0, config["geometry"]["board_bottom_z_mm"]],
+        },
+        "selection": {"step_solid_count": 2, "pcb_related_solid_count": 1,
+                      "component_solid_count": 1},
+        "result": {
+            "classification": "EMPTY", "exact_brep_volume_mm3": 0.0,
+            "representation": "zero-area-marker-for-empty-brep",
+            "collision_mesh": _binding(build, build / "collision.stl"),
+            "mesh_metrics": collision_metrics,
+        },
     })
     return {
         "work": work, "root": root, "pcb": pcb, "step": step,
+        "release_manifest": release_manifest,
         "interface": interface_path, "config": config_path, "build": build,
         "report": build / "verification.json",
         "collision": build / "collision.stl",
+        "collision_report": build / "collision.json",
     }
 
 
@@ -318,8 +382,61 @@ def _verify_args(fixture: dict[str, Path]):
         KPY, VERIFY, fixture["config"], "--root", fixture["root"],
         "--build-dir", fixture["build"], "--step-inspection",
         fixture["build"] / "step-inspection.json", "--collision-mesh",
-        fixture["collision"], "--report", fixture["report"], "--target", "cad",
+        fixture["collision"], "--collision-report", fixture["collision_report"],
+        "--report", fixture["report"], "--target", "cad",
     ]
+
+
+def _refresh_collision_receipt(fixture: dict[str, Path], volume: float) -> None:
+    receipt = json.loads(fixture["collision_report"].read_text())
+    generation = json.loads((fixture["build"] / "generation.json").read_text())
+    receipt["inputs"]["generation"] = _binding(
+        fixture["build"], fixture["build"] / "generation.json")
+    receipt["inputs"]["assembled_case_mesh"] = generation["installed_case"]
+    metrics = stl_metrics(fixture["collision"])
+    receipt["result"].update({
+        "classification": "INTERSECTION" if volume else "EMPTY",
+        "exact_brep_volume_mm3": volume,
+        "representation": ("tessellation-of-exact-brep-common" if volume else
+                           "zero-area-marker-for-empty-brep"),
+        "collision_mesh": _binding(fixture["build"], fixture["collision"]),
+        "mesh_metrics": metrics,
+    })
+    _write_json(fixture["collision_report"], receipt)
+
+
+def _refresh_generation_config(fixture: dict[str, Path]) -> None:
+    generation_path = fixture["build"] / "generation.json"
+    generation = json.loads(generation_path.read_text())
+    config = yaml.safe_load(fixture["config"].read_text())
+    generation["config"]["raw_sha256"] = _sha(fixture["config"])
+    generation["config"]["semantic_sha256"] = _semantic_sha(config)
+    _write_json(generation_path, generation)
+    collision = json.loads(fixture["collision_report"].read_text())
+    _refresh_collision_receipt(
+        fixture, float(collision["result"]["exact_brep_volume_mm3"]))
+
+
+def _enable_authored_scad(fixture: dict[str, Path]) -> Path:
+    authored_dir = fixture["root"] / "authored"
+    authored_dir.mkdir()
+    authored = authored_dir / "reviewed-case.scad"
+    authored.write_text(
+        'part = "assembly";\n'
+        'module printable() { cube([1, 1, 1]); }\n'
+        'if (part == "base") printable();\n'
+        'else if (part == "lid") printable();\n'
+        'else if (part == "insert_coupon") printable();\n'
+        'else { printable(); }\n',
+        encoding="utf-8",
+    )
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["source"] = {
+        "kind": "authored_scad",
+        **_binding(fixture["root"], authored),
+    }
+    _write_yaml(fixture["config"], config)
+    return authored
 
 
 def _assert_only_failed(fixture: dict[str, Path], check_name: str) -> None:
@@ -357,6 +474,73 @@ def t_generator_irregular_outline_bites():
     ]), "generate_enclosure irregular outline", "axis-aligned rectangle only")
 
 
+@test("built-in generation emits the fixed installed-case selector")
+def t_generator_installed_case_clean():
+    fixture = _fresh_fixture()
+    must_pass(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure installed case")
+    generation = json.loads((fixture["build"] / "generation.json").read_text())
+    installed = generation["installed_case"]
+    eq(installed["selector"], "installed_case", "fixed selector")
+    eq(installed["path"], "assembled-case.stl", "fixed artifact name")
+    eq(installed["command"][3:7],
+       ["-D", 'part="installed_case"', "-D", "show_reference_board=false"],
+       "fixed selector command")
+    check((fixture["build"] / "assembled-case.stl").is_file(),
+          "installed-case artifact was not generated")
+
+
+@test("authored-SCAD generation and package preserve the exact bound source")
+def t_authored_scad_clean_round_trip():
+    fixture = _fresh_fixture()
+    authored = _enable_authored_scad(fixture)
+    must_pass(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure authored SCAD")
+    eq((fixture["build"] / "enclosure.scad").read_bytes(),
+       authored.read_bytes(), "build copy must preserve authored source bytes")
+    generation = json.loads((fixture["build"] / "generation.json").read_text())
+    expected_binding = _binding(fixture["root"], authored)
+    eq(generation["authority"], {
+        "kind": "authored_scad", "binding": expected_binding,
+    }, "generation CAD authority")
+    eq(generation["installed_case"]["selector"], "installed_case",
+       "fixed installed-case selector")
+    eq(generation["installed_case"]["path"], "assembled-case.stl",
+       "installed-case artifact name")
+    _refresh_collision_receipt(fixture, 0.0)
+
+    must_pass(run(_verify_args(fixture)), "verification before authored package")
+    output = fixture["build"] / "authored.zip"
+    must_pass(run([
+        KPY, PACKAGE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"], "--output", output,
+    ]), "package_enclosure authored SCAD")
+    with zipfile.ZipFile(output) as archive:
+        eq(archive.read("cad/enclosure.scad"), authored.read_bytes(),
+           "package must carry exact authored source bytes")
+        manifest = json.loads(archive.read("MANIFEST.json"))
+    eq(manifest["cad_authority"], generation["authority"],
+       "package CAD authority")
+
+
+@test("authored-SCAD generation refuses a changed source binding",
+      kind="known_bad", gate="generate_enclosure.py")
+def t_authored_scad_stale_binding_bites():
+    fixture = _fresh_fixture()
+    authored = _enable_authored_scad(fixture)
+    authored.write_text(authored.read_text().replace(
+        "cube([1, 1, 1])", "cube([2, 1, 1])"), encoding="utf-8")
+    must_fail(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure stale authored SCAD",
+        "config.cad.source: bound size/hash differs from actual file")
+
+
 @test("enclosure verifier refuses a changed PCB subject hash",
       kind="known_bad", gate="verify_enclosure.py")
 def t_verify_subject_hash_bites():
@@ -372,6 +556,19 @@ def t_verify_subject_hash_bites():
     contains(result.out, "ENCLOSURE VERIFICATION FAIL", "subject-hash failure")
 
 
+@test("enclosure verifier refuses a changed PCB release manifest",
+      kind="known_bad", gate="verify_enclosure.py")
+def t_verify_release_manifest_hash_bites():
+    fixture = _fresh_fixture()
+    manifest = fixture["release_manifest"]
+    manifest.write_text(
+        manifest.read_text().replace("DESIGN: PASS", "DESIGN: FAIL"),
+        encoding="utf-8")
+    must_fail(run(_verify_args(fixture)),
+              "verify_enclosure stale release manifest",
+              "config.subject.release_manifest: bound size/hash differs")
+
+
 @test("enclosure verifier refuses an access candidate with no disposition",
       kind="known_bad", gate="verify_enclosure.py")
 def t_verify_missing_interface_disposition_bites():
@@ -380,6 +577,7 @@ def t_verify_missing_interface_disposition_bites():
     config["interfaces"] = [row for row in config["interfaces"]
                             if row["ref"] != "SW1"]
     _write_yaml(fixture["config"], config)
+    _refresh_generation_config(fixture)
     result = must_fail(run(_verify_args(fixture)), "verify_enclosure disposition",
                        "access candidate SW1 has no disposition")
     _assert_only_failed(fixture, "interface_coverage")
@@ -392,6 +590,7 @@ def t_verify_undersize_boss_bites():
     config = yaml.safe_load(fixture["config"].read_text())
     config["fasteners"]["boss_d_mm"] = 7.0
     _write_yaml(fixture["config"], config)
+    _refresh_generation_config(fixture)
     must_fail(run(_verify_args(fixture)), "verify_enclosure boss wall",
               "boss radial wall 0.500 < 0.800 mm")
     _assert_only_failed(fixture, "fastener_geometry")
@@ -423,6 +622,7 @@ def t_verify_disconnected_mesh_bites():
 def t_verify_collision_volume_bites():
     fixture = _fresh_fixture()
     _write_stl(fixture["collision"], _cube_triangles())
+    _refresh_collision_receipt(fixture, 1.0)
     must_fail(run(_verify_args(fixture)), "verify_enclosure collision",
               "case intersects exact STEP components by 1 mm^3")
     _assert_only_failed(fixture, "exact_solid_clearance")
@@ -436,8 +636,36 @@ def t_verify_collision_component_volume_cannot_cancel():
     second = [tuple(reversed(triangle))
               for triangle in _cube_triangles((3.0, 0.0, 0.0))]
     _write_stl(fixture["collision"], first + second)
+    _refresh_collision_receipt(fixture, 2.0)
     must_fail(run(_verify_args(fixture)), "verify_enclosure collision cancellation",
               "case intersects exact STEP components by 2 mm^3")
+    _assert_only_failed(fixture, "exact_solid_clearance")
+
+
+@test("enclosure verifier refuses a collision mesh changed after its receipt",
+      kind="known_bad", gate="verify_enclosure.py")
+def t_verify_stale_collision_receipt_bites():
+    fixture = _fresh_fixture()
+    _write_stl(fixture["collision"], _cube_triangles())
+    must_fail(run(_verify_args(fixture)), "verify_enclosure stale collision receipt",
+              "collision mesh: file differs from its receipt")
+    _assert_only_failed(fixture, "exact_solid_clearance")
+
+
+@test("enclosure verifier refuses an arbitrary case mesh outside generation",
+      kind="known_bad", gate="verify_enclosure.py")
+def t_verify_unproven_installed_case_bites():
+    fixture = _fresh_fixture()
+    _write_stl(fixture["build"] / "assembled-case.stl",
+               _cube_triangles((100.0, 100.0, 100.0)))
+    collision = json.loads(fixture["collision_report"].read_text())
+    supplied = dict(collision["inputs"]["assembled_case_mesh"])
+    supplied.update(_binding(fixture["build"],
+                             fixture["build"] / "assembled-case.stl"))
+    collision["inputs"]["assembled_case_mesh"] = supplied
+    _write_json(fixture["collision_report"], collision)
+    must_fail(run(_verify_args(fixture)), "verify_enclosure unproven case",
+              "generated installed-case mesh: file differs from its receipt")
     _assert_only_failed(fixture, "exact_solid_clearance")
 
 
@@ -479,7 +707,28 @@ def t_step_inspector_clean_coverage():
     contains(result.out, "2/2 modeled footprint refs covered")
     report = json.loads(output.read_text())
     eq(report["status"], "COMPLETE")
-    eq(report["geometry"]["solid_count"], 2)
+    eq(report["geometry"]["solid_count"], 4)
+    eq(report["geometry"]["component_solid_count"], 1)
+    eq(report["geometry"]["pcb_related_solid_indices"], [0, 1, 2])
+
+
+@test("STEP inspector refuses two board-thickness substrate solids",
+      kind="known_bad", gate="inspect_step.py")
+def t_step_inspector_duplicate_substrate_bites():
+    fixture = _fresh_fixture()
+    fake_modules = _fake_cadquery(
+        fixture["work"] / "fake_modules", duplicate_substrate=True)
+    output = fixture["build"] / "inspector-ambiguous.json"
+    must_fail(run([
+        KPY, INSPECT, fixture["step"], "--interface", fixture["interface"],
+        "--output", output,
+    ], env={"PYTHONPATH": str(fake_modules)}),
+        "inspect_step duplicate substrate")
+    report = json.loads(output.read_text())
+    eq(report["occurrence_coverage"]["status"], "COMPLETE")
+    eq(report["geometry"]["status"], "FAIL")
+    contains(report["geometry"]["reason"], "substrate_candidates=[2, 3]",
+             "ambiguous substrate reason")
 
 
 @test("STEP inspector refuses one missing modeled footprint occurrence",
@@ -537,9 +786,31 @@ def t_package_clean_is_deterministic():
         names = archive.namelist()
         check(names[0] == "MANIFEST.json", "manifest must be first")
         check("meshes/base.stl" in names, "printable mesh absent from package")
+        check("verification/collision.json" in names,
+              "exact-collision receipt absent from package")
+        check("verification/assembled-case.stl" in names,
+              "assembled-case collision subject absent from package")
+        check("subject/pcb-release-MANIFEST.txt" in names,
+              "sealed PCB release identity absent from package")
+        check("replay/enclosure.yaml" in names,
+              "replayable path-rebased config absent from package")
         manifest = json.loads(archive.read("MANIFEST.json"))
+        unpacked = fixture["work"] / "unpacked"
+        archive.extractall(unpacked)
     eq(manifest["status"], "CAD_READY")
     eq(len(manifest["files"]), len(names) - 1, "manifest file denominator")
+    eq(manifest["based_on"]["release"], "synthetic-v1",
+       "PCB release dependency label")
+    eq(manifest["based_on"]["manifest"]["sha256"],
+       _sha(fixture["release_manifest"]), "PCB release manifest identity")
+    replay_config, replay_loaded = load_bound_config(
+        unpacked / manifest["replay"]["config"], unpacked)
+    eq(_semantic_sha(replay_config), manifest["replay"]["semantic_sha256"],
+       "replay config semantic identity")
+    eq(replay_loaded["bindings"]["pcb"]["actual_sha256"], _sha(fixture["pcb"]),
+       "replay PCB binding")
+    eq(replay_loaded["bindings"]["release_manifest"]["actual_sha256"],
+       _sha(fixture["release_manifest"]), "replay release binding")
 
 
 @test("enclosure package refuses an incomplete verification by default",

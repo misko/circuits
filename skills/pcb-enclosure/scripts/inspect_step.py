@@ -53,7 +53,14 @@ def _cadquery_geometry(step_path: Path, mesh_path: Path | None,
         root_box = root_shape.BoundingBox()
         solids = imported.solids().vals()
         solid_rows = []
-        board_indices = []
+        # KiCad STEP assemblies commonly contain board-sized copper, mask, or
+        # paste solids in addition to the dielectric substrate.  Treat every
+        # board-sized thin solid as PCB material, but identify the substrate
+        # only from a thickness close to the declared board thickness.  The
+        # old upper-bound-only test made each copper sheet look like another
+        # complete PCB and failed otherwise valid assemblies.
+        board_outline_indices = []
+        substrate_indices = []
         for index, solid in enumerate(solids):
             box = solid.BoundingBox()
             size = [float(box.xlen), float(box.ylen), float(box.zlen)]
@@ -66,18 +73,34 @@ def _cadquery_geometry(step_path: Path, mesh_path: Path | None,
             planar = sorted(size, reverse=True)[:2]
             target = sorted([float(board_size[0]), float(board_size[1])],
                             reverse=True)
-            if (abs(planar[0] - target[0]) <= 1.0 and
-                    abs(planar[1] - target[1]) <= 1.0 and
-                    min(size) <= float(board_thickness) + 0.5):
-                board_indices.append(index)
+            board_sized = (abs(planar[0] - target[0]) <= 1.0 and
+                           abs(planar[1] - target[1]) <= 1.0)
+            thickness = min(size)
+            if board_sized and thickness <= float(board_thickness) + 0.5:
+                board_outline_indices.append(index)
+                if abs(thickness - float(board_thickness)) <= 0.5:
+                    substrate_indices.append(index)
         if not solids:
             raise EnclosureError("CadQuery imported zero STEP solids")
-        if len(board_indices) != 1:
+        if len(substrate_indices) != 1:
             raise EnclosureError(
-                f"could not identify exactly one PCB solid; candidates={board_indices}")
-        board_row = solid_rows[board_indices[0]]
+                "could not identify exactly one PCB substrate solid; "
+                f"board_outline_candidates={board_outline_indices} "
+                f"substrate_candidates={substrate_indices}")
+        board_row = solid_rows[substrate_indices[0]]
+        # PCB STEP exports also contain pads, tracks, mask, and plated features
+        # as many small solids.  Anything wholly inside the substrate slab
+        # (with a small fabrication-layer allowance on each face) is PCB
+        # material rather than a component clearance body.  Components which
+        # protrude above or below that slab remain in the collision subject.
+        slab_margin = 0.1
+        board_related_indices = [
+            row["index"] for row in solid_rows
+            if (row["min_mm"][2] >= board_row["min_mm"][2] - slab_margin and
+                row["max_mm"][2] <= board_row["max_mm"][2] + slab_margin)
+        ]
         component_indices = [index for index in range(len(solids))
-                             if index not in board_indices]
+                             if index not in board_related_indices]
         mesh_record = None
         if mesh_path is not None:
             if not component_indices:
@@ -104,6 +127,8 @@ def _cadquery_geometry(step_path: Path, mesh_path: Path | None,
             "backend": "cadquery-step-exact",
             "solid_count": len(solids),
             "component_solid_count": len(component_indices),
+            "pcb_outline_candidate_indices": board_outline_indices,
+            "pcb_related_solid_indices": board_related_indices,
             "assembly_bbox_mm": {
                 "min": [float(root_box.xmin), float(root_box.ymin), float(root_box.zmin)],
                 "max": [float(root_box.xmax), float(root_box.ymax), float(root_box.zmax)],

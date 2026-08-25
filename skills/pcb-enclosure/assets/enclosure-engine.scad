@@ -320,6 +320,17 @@ module lid_print() {
     translate([0, 0, overall_z]) rotate([180, 0, 0]) lid_assembled();
 }
 
+// Fixed collision/export selector.  This is deliberately distinct from the
+// exploded, optionally board-populated assembly review view below.
+module installed_case() {
+    base_part();
+    lid_assembled();
+    if (topology == "base_lid_panels") {
+        assembled_panel("north"); assembled_panel("south");
+        assembled_panel("east"); assembled_panel("west");
+    }
+}
+
 module assembly() {
     base_part();
     translate([0, 0, explode]) lid_assembled();
@@ -337,4 +348,5 @@ else if (part == "panel_north") flat_panel("north");
 else if (part == "panel_south") flat_panel("south");
 else if (part == "panel_east") flat_panel("east");
 else if (part == "panel_west") flat_panel("west");
+else if (part == "installed_case") installed_case();
 else assembly();

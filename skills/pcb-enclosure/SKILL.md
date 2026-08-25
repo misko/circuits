@@ -18,16 +18,16 @@ Do not silently move connectors, holes, or board geometry in either mode. Record
 
 1. Read [contracts.md](contracts.md). Locate the PCB, assembly STEP, output root, printer process, hardware datasheet, and intended cable/load cases.
 2. Read [interface-schema.md](references/interface-schema.md), then extract the exact board interface. Pass every known connector, control, fuse, indicator, or service item with `--access-ref` if conservative extraction might miss it.
-3. Bind the PCB, STEP, and generated interface by relative path, byte size, and SHA-256 in `enclosure.yaml`. Never copy hashes from another release.
+3. Bind the PCB, STEP, and generated interface by relative path, byte size, and SHA-256 in `enclosure.yaml`. For `derived` work from a sealed PCB release, also bind that release's manifest; the release label alone is not identity. Never copy hashes from another release.
 4. Inspect the STEP before trusting it. Missing modeled refs or unmodeled access items are `FAIL`; an unavailable exact-geometry backend is `INCOMPLETE`.
 5. Select a topology using [enclosure-topologies.md](references/enclosure-topologies.md). Author every interface disposition using [connector-access.md](references/connector-access.md).
 6. Dimension inserts and screws from the exact part datasheet and printer coupon using [fasteners-and-inserts.md](references/fasteners-and-inserts.md). Treat all dimensional checks as validation dimensions, not formal design-policy gate IDs.
-7. Apply the support and orientation rules in [fdm-printability.md](references/fdm-printability.md). Generate every declared printable part; do not hand-edit generated SCAD or STL files.
+7. Apply the support and orientation rules in [fdm-printability.md](references/fdm-printability.md). Use the built-in engine for declarative cases, or bind one reviewed authored-SCAD entrypoint as described in [interface-schema.md](references/interface-schema.md). Keep authored source outside the build directory and never hand-edit generated copies or STL files.
 8. Verify subject bindings, interface coverage, fasteners, mesh topology, exact-solid clearance, and thermal intent. Render and visually inspect the assembly, but never use a render as fit evidence.
 9. Print the insert coupon before the enclosure. Record required physical tests from [physical-evidence.template.yaml](assets/physical-evidence.template.yaml), following [verification-and-release.md](references/verification-and-release.md).
 10. Package only the status actually achieved. Use `--allow-incomplete` only for an explicitly labeled draft, never to imply readiness.
 
-The built-in v1 OpenSCAD engine intentionally supports one axis-aligned rectangular PCB outline. It fails closed on cutouts, rounded/nonrectangular contours, or multiple outline islands instead of silently replacing them with a bounding box. Such boards need a reviewed CAD adapter before this workflow can generate them.
+The built-in v1 OpenSCAD engine intentionally supports one axis-aligned rectangular PCB outline. It fails closed on cutouts, rounded/nonrectangular contours, or multiple outline islands instead of silently replacing them with a bounding box. Such boards need a reviewed, hash-bound authored-SCAD adapter before this workflow can generate them.
 
 ## Run the tools
 
@@ -48,6 +48,16 @@ SKILL_DIR=skills/pcb-enclosure
 /usr/bin/python3 "$SKILL_DIR/scripts/generate_enclosure.py" \
   "$CONFIG" --root "$SUBJECT_ROOT" --build-dir "$BUILD"
 
+# Run this with the CadQuery/OCP Python environment used for STEP inspection.
+"$CADQUERY_PYTHON" "$SKILL_DIR/scripts/build_collision.py" \
+  --step "$STEP" --step-inspection "$BUILD/step-inspection.json" \
+  --component-mesh "$BUILD/components.stl" \
+  --generation "$BUILD/generation.json" \
+  --assembled-case-mesh "$BUILD/assembled-case.stl" \
+  --board-bottom-z-mm "$BOARD_BOTTOM_Z_MM" \
+  --output "$BUILD/clearance-intersection.stl" \
+  --report "$BUILD/collision.json"
+
 /usr/bin/python3 "$SKILL_DIR/scripts/render_enclosure.py" \
   "$BUILD/enclosure.scad" --output "$BUILD/assembly.png"
 
@@ -55,6 +65,7 @@ SKILL_DIR=skills/pcb-enclosure
   "$CONFIG" --root "$SUBJECT_ROOT" --build-dir "$BUILD" \
   --step-inspection "$BUILD/step-inspection.json" \
   --collision-mesh "$BUILD/clearance-intersection.stl" \
+  --collision-report "$BUILD/collision.json" \
   --physical-evidence "$BUILD/physical-evidence.yaml" \
   --report "$BUILD/verification.json" --target cad
 
@@ -63,7 +74,13 @@ SKILL_DIR=skills/pcb-enclosure
   --output "$BUILD/enclosure-candidate.zip"
 ```
 
-`components.stl` is a tessellated export derived from the exact STEP solids. `clearance-intersection.stl` must instead be an independently produced boolean intersection of the registered STEP component geometry and enclosure solids; do not pass the component export as the collision result.
+`generate_enclosure.py` always invokes the fixed `part="installed_case"` selector and records the resulting `assembled-case.stl`, exact source, and command in `generation.json`. `components.stl` is a tessellated audit export derived from the exact STEP solids. `build_collision.py` refuses any assembled case not proven by that generation receipt, reopens the exact STEP BReps, applies the recorded registration plus `board_bottom_z_mm`, and binds its intersection mesh in `collision.json`; do not pass a print-oriented lid, exploded view, arbitrary case mesh, component export, or unreceipted empty mesh.
+
+The package contains both the original authored config and
+`replay/enclosure.yaml`, whose paths are rebased to included payloads. After
+extraction, use the package root as `--root` with the replay config; it is the
+portable regeneration entrypoint, while the original config preserves source
+provenance.
 
 ## Interpret status without inflation
 

@@ -479,6 +479,16 @@ module assembly_view() {
         translate([0, 0, explode]) lid_final();
 }
 
+// Fixed non-exploded, enclosure-only collision/export selector.  Keep this
+// free of PCB/component witnesses and keep lid geometry in installed rather
+// than print orientation.
+module installed_case() {
+    union() {
+        base();
+        lid_final();
+    }
+}
+
 // A successful clearance test exports no geometry. Contact at the four
 // plastic support annuli is intentionally zero-thickness and therefore does
 // not appear as a solid intersection.
@@ -512,6 +522,8 @@ if (part == "base") {
     lid_print();
 } else if (part == "insert_coupon") {
     insert_coupon();
+} else if (part == "installed_case") {
+    installed_case();
 } else if (part == "interference") {
     interference_check();
 } else {

@@ -65,10 +65,13 @@ mkdir -p 06_build/mechanical/pluto-rx2-8way-case
 openscad -o 06_build/mechanical/pluto-rx2-8way-case/base.stl -D 'part="base"' 03_src/mechanical/pluto_rx2_8way_case.scad
 openscad -o 06_build/mechanical/pluto-rx2-8way-case/lid.stl -D 'part="lid"' 03_src/mechanical/pluto_rx2_8way_case.scad
 openscad -o 06_build/mechanical/pluto-rx2-8way-case/insert_coupon.stl -D 'part="insert_coupon"' 03_src/mechanical/pluto_rx2_8way_case.scad
+openscad -o 06_build/mechanical/pluto-rx2-8way-case/assembled-case.stl -D 'part="installed_case"' -D 'show_reference_board=false' 03_src/mechanical/pluto_rx2_8way_case.scad
 ```
 
 `lid.stl` is already rotated into its support-free print orientation. To view
 the exploded assembly in OpenSCAD, open the source without a `part` override.
+`assembled-case.stl` is not a printable part; it is the fixed, installed-
+orientation enclosure-only subject used by exact collision verification.
 
 ## Print
 
@@ -117,10 +120,13 @@ setup.
 
 ## Reusable skill canary
 
-`enclosure.yaml` expresses the same board stack and access intent through the
-shared `pcb-enclosure` skill. The hand-tuned SCAD above remains the current
-physical design; the declarative build is the reproducibility/verification
-canary used to keep the shared workflow honest.
+`enclosure.yaml` binds the exact hand-tuned SCAD above as the authored CAD
+authority for the shared `pcb-enclosure` skill. The skill copies those bytes
+unchanged, exports every declared printable part, and binds the resulting
+meshes and the fixed `installed_case` collision subject to the sealed PCB/STEP
+subject. The PCB release manifest is bound separately so the dependency is the
+exact sealed v0.2.1 archive rather than a version label alone. The built-in
+generic enclosure engine is not used for this design.
 
 Run from the repository root:
 
@@ -140,18 +146,45 @@ Run from the repository root:
 /usr/bin/python3 skills/pcb-enclosure/scripts/inspect_step.py \
   projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
   --interface projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/board-interface.json \
-  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json
+  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
+  --component-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-components.stl
+
+"$CADQUERY_PYTHON" skills/pcb-enclosure/scripts/build_collision.py \
+  --step projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
+  --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
+  --component-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-components.stl \
+  --generation projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/generation.json \
+  --assembled-case-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/assembled-case.stl \
+  --board-bottom-z-mm 7.8 \
+  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/clearance-intersection.stl \
+  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/collision.json
 
 /usr/bin/python3 skills/pcb-enclosure/scripts/verify_enclosure.py \
   projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml \
   --root projects/pluto-rx2-8way-v5 \
   --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell \
   --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
-  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/verification.json
+  --collision-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/clearance-intersection.stl \
+  --collision-report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/collision.json \
+  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/verification.json \
+  --target cad
+
+/usr/bin/python3 skills/pcb-enclosure/scripts/render_enclosure.py \
+  projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad \
+  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/assembly.png \
+  --size 1800,1300
+
+/usr/bin/python3 skills/pcb-enclosure/scripts/package_enclosure.py \
+  projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml \
+  --root projects/pluto-rx2-8way-v5 \
+  --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell \
+  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/pluto-rx2-8way-v5-enclosure-pcb-v0.2.1-cad-ready.zip
 ```
 
-The STEP occurrence inventory covers every modeled footprint. Exact STEP-solid
-clearance still needs the optional CadQuery/OCP backend, so the expected
-verifier exit is 2/`INCOMPLETE` rather than a false pass. Physical fit still
-needs the printed coupon, board drop-in, lid closure, and all cable-mating
-checks. Neither an OpenSCAD render nor a watertight STL promotes those claims.
+`CADQUERY_PYTHON` must name a Python environment containing CadQuery/OCP. The
+STEP occurrence inventory covers every modeled footprint, and the exact BRep
+collision run currently returns an empty intersection for the generated,
+proven `installed_case`. Without that backend or its bound receipts, the
+verifier returns 2/`INCOMPLETE` rather than guessing. Physical fit still needs
+the printed coupon, board drop-in, lid closure, and all cable-mating checks;
+neither an OpenSCAD render nor a watertight STL promotes those claims.

@@ -32,6 +32,20 @@ def check(name: str, status: str, graded: int, total: int,
             "findings": list(findings), "evidence": evidence}
 
 
+def _build_record_path(build_dir: Path, record: Any, where: str) -> Path:
+    if not isinstance(record, Mapping) or not isinstance(record.get("path"), str):
+        raise EnclosureError(f"{where}: missing build-file identity")
+    name = record["path"]
+    if Path(name).name != name or name in {"", ".", ".."}:
+        raise EnclosureError(f"{where}: evidence path is not a build filename")
+    path = build_dir / name
+    if not path.is_file() or path.is_symlink() or \
+            record.get("sha256") != sha256_file(path) or \
+            record.get("size") != path.stat().st_size:
+        raise EnclosureError(f"{where}: file differs from its receipt")
+    return path
+
+
 def _subject_check(loaded: Mapping[str, Any]) -> dict[str, Any]:
     bindings = loaded["bindings"]
     findings = []
@@ -227,8 +241,10 @@ def _mesh_check(config: Mapping[str, Any], build_dir: Path) -> dict[str, Any]:
                  support_policy=config["process"]["support_policy"])
 
 
-def _clearance_check(config: Mapping[str, Any], step_report_path: Path | None,
+def _clearance_check(config_path: Path, config: Mapping[str, Any],
+                     step_report_path: Path | None,
                      collision_mesh: Path | None,
+                     collision_report_path: Path | None,
                      collision_tolerance: float) -> dict[str, Any]:
     if step_report_path is None or not step_report_path.is_file():
         return check("exact_solid_clearance", "INCOMPLETE", 0, 2,
@@ -274,13 +290,148 @@ def _clearance_check(config: Mapping[str, Any], step_report_path: Path | None,
         return check("exact_solid_clearance", "INCOMPLETE", 1, 2,
                      ["STEP-component/case intersection mesh is missing"],
                      step_inspection=report, step_inspection_file=report_file)
+    if collision_report_path is None or not collision_report_path.is_file():
+        return check("exact_solid_clearance", "INCOMPLETE", 1, 2,
+                     ["hash-bound exact-collision receipt is missing"],
+                     step_inspection=report, step_inspection_file=report_file)
     try:
+        collision_report = load_json(collision_report_path)
+        collision_report_file = {
+            "path": collision_report_path.name,
+            "sha256": sha256_file(collision_report_path),
+            "size": collision_report_path.stat().st_size,
+        }
+        if collision_report.get("kind") != "pcb-enclosure-collision-v1" or \
+                collision_report.get("status") != "COMPLETE":
+            raise EnclosureError("collision receipt is not COMPLETE v1 evidence")
+        build_dir = collision_report_path.parent
+        inputs = collision_report.get("inputs")
+        if not isinstance(inputs, Mapping):
+            raise EnclosureError("collision receipt lacks input identities")
+        for key in ("step_inspection", "step", "component_mesh", "generation",
+                    "assembled_case_mesh"):
+            if not isinstance(inputs.get(key), Mapping):
+                raise EnclosureError(f"collision receipt lacks {key} identity")
+        generation_path = _build_record_path(
+            build_dir, inputs.get("generation"), "collision generation receipt")
+        generation = load_json(generation_path)
+        if generation.get("kind") != "pcb-enclosure-generation-v1":
+            raise EnclosureError("collision generation receipt has wrong kind")
+        if generation.get("config", {}).get("semantic_sha256") != \
+                semantic_sha256(config) or \
+                generation.get("config", {}).get("raw_sha256") != \
+                sha256_file(config_path):
+            raise EnclosureError("collision generation receipt is stale for config")
+        source_record = generation.get("source")
+        source_path = _build_record_path(
+            build_dir, source_record, "collision generation CAD source")
+        authority = generation.get("authority")
+        authored = config["cad"].get("source")
+        if authored is not None:
+            expected_authority = {
+                "kind": "authored_scad",
+                "binding": {key: authored[key]
+                            for key in ("path", "sha256", "size")},
+            }
+            if authority != expected_authority or \
+                    source_record.get("sha256") != authored["sha256"] or \
+                    source_record.get("size") != authored["size"]:
+                raise EnclosureError(
+                    "collision generation CAD source differs from authored authority")
+        elif not isinstance(authority, Mapping) or \
+                authority.get("kind") != "built_in_v1":
+            raise EnclosureError("collision generation lacks built-in CAD authority")
+        installed_record = generation.get("installed_case")
+        if not isinstance(installed_record, Mapping) or \
+                installed_record.get("selector") != "installed_case" or \
+                installed_record.get("path") != "assembled-case.stl":
+            raise EnclosureError(
+                "collision generation lacks the fixed installed_case selector")
+        case_path = _build_record_path(
+            build_dir, installed_record, "generated installed-case mesh")
+        command = installed_record.get("command")
+        engine = generation.get("engine")
+        if not isinstance(engine, Mapping) or not isinstance(command, list) or \
+                len(command) != 8 or \
+                command[1] != "-o" or Path(command[2]).resolve() != case_path.resolve() or \
+                command[3:7] != ["-D", 'part="installed_case"', "-D",
+                                  "show_reference_board=false"] or \
+                Path(command[7]).resolve() != source_path.resolve() or \
+                engine.get("executable") != command[0]:
+            raise EnclosureError("generated installed_case command is not canonical")
+        if inputs.get("assembled_case_mesh") != installed_record:
+            raise EnclosureError(
+                "collision assembled-case input differs from generation receipt")
+        if inputs.get("step_inspection", {}).get("sha256") != \
+                sha256_file(step_report_path) or \
+                inputs.get("step_inspection", {}).get("size") != \
+                step_report_path.stat().st_size:
+            raise EnclosureError("collision receipt binds another STEP inspection")
+        if inputs.get("step", {}).get("sha256") != \
+                config["subject"]["step"]["sha256"] or \
+                inputs.get("step", {}).get("size") != \
+                config["subject"]["step"]["size"]:
+            raise EnclosureError("collision receipt binds another STEP subject")
+        component_record = report.get("geometry", {}).get("component_mesh")
+        if not isinstance(component_record, Mapping) or \
+                inputs.get("component_mesh") != component_record:
+            raise EnclosureError(
+                "collision receipt component mesh differs from STEP inspection")
+        component_path = _build_record_path(
+            build_dir, inputs.get("component_mesh"), "STEP component mesh")
+        transform = collision_report.get("transform")
+        registration = report.get("geometry", {}).get(
+            "case_registration_translate_mm_at_board_z0")
+        if not isinstance(transform, Mapping) or \
+                transform.get("case_registration_translate_mm_at_board_z0") != registration:
+            raise EnclosureError("collision receipt uses another STEP registration")
+        board_z = transform.get("board_bottom_z_mm")
+        if isinstance(board_z, bool) or not isinstance(board_z, (int, float)) or \
+                not math.isclose(float(board_z),
+                                 float(config["geometry"]["board_bottom_z_mm"]),
+                                 rel_tol=0, abs_tol=1e-9):
+            raise EnclosureError("collision receipt uses another board-bottom Z")
+        expected_translate = [float(registration[0]), float(registration[1]),
+                              float(registration[2]) + float(board_z)]
+        applied = transform.get("applied_component_translate_mm")
+        if not isinstance(applied, list) or len(applied) != 3 or any(
+                isinstance(value, bool) or not isinstance(value, (int, float)) or
+                not math.isclose(float(value), expected_translate[index],
+                                 rel_tol=0, abs_tol=1e-9)
+                for index, value in enumerate(applied)):
+            raise EnclosureError("collision receipt has a wrong applied transform")
+        result = collision_report.get("result")
+        if not isinstance(result, Mapping):
+            raise EnclosureError("collision receipt lacks a result")
+        collision_path = _build_record_path(
+            build_dir, result.get("collision_mesh"), "collision mesh")
+        if collision_path.resolve() != collision_mesh.resolve():
+            raise EnclosureError("verified collision mesh differs from receipt output")
         mesh = stl_metrics(collision_mesh)
+        if result.get("mesh_metrics") != mesh:
+            raise EnclosureError("collision mesh metrics differ from receipt")
+        volume = result.get("exact_brep_volume_mm3")
+        if isinstance(volume, bool) or not isinstance(volume, (int, float)) or \
+                not math.isfinite(volume) or volume < 0:
+            raise EnclosureError("collision receipt has invalid exact BRep volume")
+        classification = result.get("classification")
+        if classification == "EMPTY":
+            if volume != 0 or \
+                    result.get("representation") != \
+                    "zero-area-marker-for-empty-brep" or \
+                    mesh["component_absolute_volume_mm3"] != 0 or \
+                    mesh["degenerate_facets"] < 1:
+                raise EnclosureError("empty collision representation is contradictory")
+        elif classification == "INTERSECTION":
+            if volume <= 0 or result.get("representation") != \
+                    "tessellation-of-exact-brep-common":
+                raise EnclosureError("nonempty collision representation is contradictory")
+        else:
+            raise EnclosureError("collision receipt has unknown classification")
     except EnclosureError as exc:
         return check("exact_solid_clearance", "FAIL", 1, 2,
-                     [f"collision mesh unreadable: {exc}"],
+                     [str(exc)],
                      step_inspection=report, step_inspection_file=report_file)
-    volume = mesh["component_absolute_volume_mm3"]
     if volume > collision_tolerance:
         findings.append(
             f"case intersects exact STEP components by {volume:.6g} mm^3 "
@@ -289,6 +440,18 @@ def _clearance_check(config: Mapping[str, Any], step_report_path: Path | None,
                  2 if not findings else 1, 2, findings,
                  step_inspection=report, step_inspection_file=report_file,
                  collision_mesh=mesh,
+                 collision_report=collision_report,
+                 collision_report_file=collision_report_file,
+                 generation=generation,
+                 generation_file={"path": generation_path.name,
+                                  "sha256": sha256_file(generation_path),
+                                  "size": generation_path.stat().st_size},
+                 component_mesh={"path": component_path.name,
+                                 "sha256": sha256_file(component_path),
+                                 "size": component_path.stat().st_size},
+                 assembled_case_mesh={"path": case_path.name,
+                                      "sha256": sha256_file(case_path),
+                                      "size": case_path.stat().st_size},
                  collision_volume_tolerance_mm3=collision_tolerance)
 
 
@@ -395,6 +558,7 @@ def _physical_check(config: Mapping[str, Any], config_hash: str,
 
 def verify(config_path: Path, root: Path, build_dir: Path,
            step_report: Path | None, collision_mesh: Path | None,
+           collision_report: Path | None,
            collision_tolerance: float, physical_evidence: Path | None) -> dict[str, Any]:
     config, loaded = load_bound_config(config_path, root)
     config_hash = semantic_sha256(config)
@@ -403,7 +567,8 @@ def verify(config_path: Path, root: Path, build_dir: Path,
         _interface_check(config, loaded["interface"]),
         _fastener_check(config, loaded["interface"]),
         _mesh_check(config, build_dir),
-        _clearance_check(config, step_report, collision_mesh, collision_tolerance),
+        _clearance_check(config_path, config, step_report, collision_mesh,
+                         collision_report, collision_tolerance),
         _thermal_check(config),
     ]
     physical, print_verified, thermal_verified = _physical_check(
@@ -443,6 +608,7 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser.add_argument("--build-dir", type=Path, required=True)
     parser.add_argument("--step-inspection", type=Path)
     parser.add_argument("--collision-mesh", type=Path)
+    parser.add_argument("--collision-report", type=Path)
     parser.add_argument("--collision-tolerance-mm3", type=float, default=1e-4)
     parser.add_argument("--physical-evidence", type=Path)
     parser.add_argument("--report", type=Path, required=True)
@@ -458,6 +624,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             raise EnclosureError("collision tolerance must be finite and >= 0")
         report = verify(args.config, args.root, args.build_dir,
                         args.step_inspection, args.collision_mesh,
+                        args.collision_report,
                         args.collision_tolerance_mm3, args.physical_evidence)
         write_json(args.report, report)
     except (OSError, EnclosureError) as exc:

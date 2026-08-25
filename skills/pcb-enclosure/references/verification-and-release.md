@@ -6,7 +6,8 @@ Verification is cumulative. Never promote status from intent, appearance, or an 
 
 `verify_enclosure.py` checks:
 
-- exact PCB, STEP, and interface path/size/hash bindings;
+- exact PCB, STEP, and interface path/size/hash bindings, plus the sealed PCB
+  release manifest when one is declared;
 - agreement between PCB and interface hashes;
 - disposition of every extracted access candidate;
 - opening versus plug-envelope clearance;
@@ -23,7 +24,7 @@ Run `inspect_step.py` on the bound STEP and interface. Occurrence coverage fails
 
 With CadQuery/OCP available, inspection identifies the PCB solid, records exact solid bounds and registration, and can export component solids as a mesh. Without that backend, geometry status is `INCOMPLETE`; do not replace it with text parsing or a guessed bounding box.
 
-Create `clearance-intersection.stl` independently as the boolean intersection of the registered STEP-derived component geometry and enclosure solids. A component export alone is not an intersection. The verifier compares its per-component absolute volume with `--collision-tolerance-mm3`; choose and justify any nondefault tolerance.
+The generator always creates `assembled-case.stl` through the fixed `part="installed_case"` selector and binds the source, selector command, and artifact in `generation.json`. A print-oriented lid, exploded render, or separately supplied mesh is not valid collision geometry. Run `build_collision.py` with that generation receipt and CadQuery/OCP. It reopens the exact STEP solids, excludes the inspector-recorded PCB fabrication solids, applies the recorded registration plus the configured board-bottom Z, and writes both `clearance-intersection.stl` and a hash-bound `collision.json`. Verification reopens the generation receipt and proves the config, CAD authority, source, fixed selector command, assembled-case artifact, and collision input agree. A component export, guessed transform, or unreceipted empty STL is not collision evidence. The verifier compares the receipt's exact BRep volume with `--collision-tolerance-mm3`; choose and justify any nondefault tolerance.
 
 Exact collision clearance does not prove cable mating, assembly sequence, compliant-part motion, tolerance stack-up, or thermal safety.
 
@@ -54,6 +55,6 @@ Use `--target cad`, `print`, or `thermal` to make the command exit nonzero below
 
 Render `enclosure.scad` with `render_enclosure.py`; it uses a deterministic orthographic assembly view and a virtual display when available. Inspect the image, but treat it only as review evidence.
 
-Package with `package_enclosure.py`. The deterministic ZIP includes config, interface, bound subjects, generated SCAD/STLs, generation and verification receipts, and optional render/inspection/physical evidence. It always refuses `FAIL`; it accepts `INCOMPLETE` only when `--allow-incomplete` explicitly marks a draft. It also rejects generated or verified files changed after their receipts were written.
+Package with `package_enclosure.py`. The deterministic ZIP includes config, interface, bound subjects, an optional exact PCB-release manifest, the exact generated or authored SCAD, STLs, generation and verification receipts, and optional render/inspection/physical evidence. For authored SCAD, the generation receipt and package manifest carry its original path/hash/size authority, and packaging proves the copied source is byte-identical. `source/enclosure.yaml` preserves the authored paths; `replay/enclosure.yaml` rebases only those paths to packaged payloads and can be reopened with the extracted ZIP root as `--root`. The package manifest records both its exact PCB dependency and replay config identity. It always refuses `FAIL`; it accepts `INCOMPLETE` only when `--allow-incomplete` explicitly marks a draft. It also rejects generated or verified files changed after their receipts were written.
 
 Use draft packaging only to transfer unfinished work. Label the package with its actual status and open findings. A candidate suitable for manufacture should include the achieved verification report, reproducible inputs, and all evidence required for the claimed status.

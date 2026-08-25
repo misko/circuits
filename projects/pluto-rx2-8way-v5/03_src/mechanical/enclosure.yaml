@@ -4,6 +4,10 @@ name: pluto-rx2-8way-v5-split-shell
 mode: derived
 subject:
   release: v0.2.1-2026-08-14
+  release_manifest:
+    path: 07_releases/v0.2.1-2026-08-14/MANIFEST.txt
+    sha256: 084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc
+    size: 17338
   pcb:
     path: 07_releases/v0.2.1-2026-08-14/source/pluto_rx2_8way_v5.kicad_pcb
     sha256: e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5
@@ -27,6 +31,11 @@ cad:
   engine: openscad
   minimum_version: "2021.01"
   printable_parts: [base, lid, insert_coupon]
+  source:
+    kind: authored_scad
+    path: 03_src/mechanical/pluto_rx2_8way_case.scad
+    sha256: a45b8e1db0c3366bf451ba38f858b553e9a5bd13249fd9164393193ec073a9b8
+    size: 16773
 geometry:
   topology: split_shell
   xy_clearance_mm: 1.0

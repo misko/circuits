@@ -38,6 +38,25 @@ Run extraction with repeatable `--access-ref REF`. Conservative default prefixes
 - `base`, `lid`, `insert_coupon`
 - `panel_north`, `panel_south`, `panel_east`, `panel_west`
 
+Omit `cad.source` to use the built-in declarative engine. To use one reviewed hand-authored entrypoint, add this exact mapping:
+
+```yaml
+source:
+  kind: authored_scad
+  path: 03_src/mechanical/reviewed-case.scad
+  sha256: <lowercase 64-hex digest>
+  size: <positive byte count>
+```
+
+The path follows the same root-relative, traversal-free, non-symlink rules as subject bindings and must name a `.scad` file outside the build directory. The generator copies its bytes unchanged to `BUILD/enclosure.scad`; OpenSCAD `-D part=...` selects each declared printable part. The authored entrypoint is CAD authority, so it must implement every declared part itself and the fixed `part="installed_case"` selector. That selector must emit only the complete enclosure in installed coordinates: no PCB/component witnesses, exploded transforms, or print-oriented lid. The generator always exports it as `BUILD/assembled-case.stl` and binds its exact command and identity in `generation.json`. Configuration geometry remains review and verification intent; the built-in engine does not wrap, modify, or supplement authored source.
+
+For an enclosure derived from an immutable PCB release, add an exact
+`subject.release_manifest` file binding alongside `pcb`, `step`, and
+`interface`. The human release label remains descriptive; the manifest
+path/size/SHA-256 is the dependency identity that prevents a same-named or
+mutated PCB archive from being substituted. Legacy/co-design configurations
+may omit it, but then they make no sealed-PCB-release identity claim.
+
 ## Geometry
 
 Provide every field:

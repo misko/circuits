@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import argparse
+import copy
+import hashlib
 import json
 import sys
 import zipfile
 from pathlib import Path
 from typing import Any, Sequence
+
+import yaml
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
@@ -24,6 +28,12 @@ def _entry(path: Path, arcname: str) -> dict[str, Any]:
         raise EnclosureError(f"package input missing or symlinked: {path}")
     return {"path": path, "name": arcname, "sha256": sha256_file(path),
             "size": path.stat().st_size}
+
+
+def _data_entry(payload: bytes, arcname: str) -> dict[str, Any]:
+    return {"data": payload, "name": arcname,
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "size": len(payload)}
 
 
 def _require_record(path: Path, record: Any, where: str) -> None:
@@ -79,6 +89,43 @@ def package(config_path: Path, root: Path, build_dir: Path, output: Path,
         raise EnclosureError("generation.json is stale for this config")
     source_path = build_dir / "enclosure.scad"
     _require_record(source_path, generation.get("source"), "generated CAD source")
+    generation_authority = generation.get("authority")
+    authored = config["cad"].get("source")
+    if authored is not None:
+        expected_authority = {
+            "kind": "authored_scad",
+            "binding": {key: authored[key] for key in ("path", "sha256", "size")},
+        }
+        if generation_authority != expected_authority:
+            raise EnclosureError(
+                "generation.json CAD authority differs from authored source binding")
+        if sha256_file(source_path) != authored["sha256"] or \
+                source_path.stat().st_size != authored["size"]:
+            raise EnclosureError(
+                "generated CAD source is not the exact bound authored SCAD")
+    elif generation_authority is not None:
+        if not isinstance(generation_authority, dict) or \
+                generation_authority.get("kind") != "built_in_v1":
+            raise EnclosureError("generation.json has unexpected CAD authority")
+    installed_case_record = generation.get("installed_case")
+    if not isinstance(installed_case_record, dict) or \
+            installed_case_record.get("selector") != "installed_case" or \
+            installed_case_record.get("path") != "assembled-case.stl":
+        raise EnclosureError(
+            "generation.json lacks the fixed installed_case artifact")
+    installed_case_path = _build_record_path(
+        build_dir, installed_case_record, "generated installed-case mesh")
+    installed_command = installed_case_record.get("command")
+    generation_engine = generation.get("engine")
+    if not isinstance(generation_engine, dict) or \
+            not isinstance(installed_command, list) or len(installed_command) != 8 or \
+            installed_command[1] != "-o" or \
+            Path(installed_command[2]).resolve() != installed_case_path.resolve() or \
+            installed_command[3:7] != ["-D", 'part="installed_case"', "-D",
+                                      "show_reference_board=false"] or \
+            Path(installed_command[7]).resolve() != source_path.resolve() or \
+            generation_engine.get("executable") != installed_command[0]:
+        raise EnclosureError("generation.json installed_case command is not canonical")
     part_records = generation.get("parts")
     if not isinstance(part_records, list):
         raise EnclosureError("generation.json lacks part identities")
@@ -114,35 +161,96 @@ def package(config_path: Path, root: Path, build_dir: Path, output: Path,
     collision_path = (_build_record_path(
         build_dir, collision_record, "clearance intersection")
         if collision_record else None)
+    collision_report_record = clearance_evidence.get("collision_report_file")
+    collision_report_path = (_build_record_path(
+        build_dir, collision_report_record, "collision receipt")
+        if collision_report_record else None)
+    collision_generation_record = clearance_evidence.get("generation_file")
+    if collision_generation_record:
+        _require_record(generation_path, collision_generation_record,
+                        "collision generation receipt")
+    assembled_case_record = clearance_evidence.get("assembled_case_mesh")
+    assembled_case_path = None
+    if assembled_case_record:
+        if assembled_case_record != {key: installed_case_record[key]
+                                     for key in ("path", "sha256", "size")}:
+            raise EnclosureError(
+                "verified assembled-case mesh differs from generation.json")
+        assembled_case_path = installed_case_path
+    if clearance_check.get("status") == "PASS":
+        if collision_report_path is None or collision_generation_record is None or \
+                assembled_case_path is None:
+            raise EnclosureError(
+                "passed collision check lacks generation/case provenance")
+        collision_report = load_json(collision_report_path)
+        inputs = collision_report.get("inputs")
+        generation_binding = {"path": generation_path.name,
+                              "sha256": sha256_file(generation_path),
+                              "size": generation_path.stat().st_size}
+        if not isinstance(inputs, dict) or \
+                inputs.get("generation") != generation_binding or \
+                inputs.get("assembled_case_mesh") != installed_case_record:
+            raise EnclosureError(
+                "collision receipt differs from packaged generation provenance")
     physical_path = build_dir / "physical-evidence.yaml"
     if physical_path.is_file():
         physical_check = next((row for row in checks
                                if row.get("name") == "physical_evidence"), {})
         _require_record(physical_path, physical_check.get("evidence"),
                         "physical evidence")
+    config_arc = "source/enclosure.yaml"
+    interface_arc = "source/board-interface.json"
+    pcb_arc = "subject/" + loaded["bindings"]["pcb"]["path"].name
+    step_arc = "subject/" + loaded["bindings"]["step"]["path"].name
+    cad_arc = "cad/enclosure.scad"
+    release_manifest_path = loaded["bindings"].get("release_manifest", {}).get(
+        "path")
+    release_manifest_arc = ("subject/pcb-release-MANIFEST.txt"
+                            if release_manifest_path is not None else None)
+
+    # The authored config remains provenance, while this path-rebased copy can
+    # be reopened with `--root` set to the extracted package directory.  It
+    # changes no dimensions or hashes—only root-relative file locations.
+    replay_config = copy.deepcopy(config)
+    replay_config["subject"]["pcb"]["path"] = pcb_arc
+    replay_config["subject"]["step"]["path"] = step_arc
+    replay_config["subject"]["interface"]["path"] = interface_arc
+    if release_manifest_arc is not None:
+        replay_config["subject"]["release_manifest"]["path"] = \
+            release_manifest_arc
+    if authored is not None:
+        replay_config["cad"]["source"]["path"] = cad_arc
+    replay_payload = yaml.safe_dump(
+        replay_config, sort_keys=False, allow_unicode=True).encode("utf-8")
+    replay_arc = "replay/enclosure.yaml"
+
     entries = [
-        _entry(config_path, "source/enclosure.yaml"),
-        _entry(loaded["bindings"]["interface"]["path"],
-               "source/board-interface.json"),
-        _entry(loaded["bindings"]["pcb"]["path"],
-               "subject/" + loaded["bindings"]["pcb"]["path"].name),
-        _entry(loaded["bindings"]["step"]["path"],
-               "subject/" + loaded["bindings"]["step"]["path"].name),
-        _entry(source_path, "cad/enclosure.scad"),
+        _entry(config_path, config_arc),
+        _data_entry(replay_payload, replay_arc),
+        _entry(loaded["bindings"]["interface"]["path"], interface_arc),
+        _entry(loaded["bindings"]["pcb"]["path"], pcb_arc),
+        _entry(loaded["bindings"]["step"]["path"], step_arc),
+        _entry(source_path, cad_arc),
         _entry(generation_path, "verification/generation.json"),
         _entry(verification_path, "verification/verification.json"),
     ]
+    if release_manifest_path is not None:
+        entries.append(_entry(release_manifest_path, release_manifest_arc))
     for part in config["cad"]["printable_parts"]:
         entries.append(_entry(build_dir / f"{part}.stl", f"meshes/{part}.stl"))
     for optional, arcname in (
             (build_dir / "assembly.png", "renders/assembly.png"),
             (step_inspection_path, "verification/step-inspection.json"),
             (component_mesh_path, "verification/step-components.stl"),
+            (assembled_case_path, "verification/assembled-case.stl"),
             (collision_path, "verification/clearance-intersection.stl"),
+            (collision_report_path, "verification/collision.json"),
             (physical_path, "verification/physical-evidence.yaml")):
         if optional is not None and optional.is_file():
             entries.append(_entry(optional, arcname))
     entries.sort(key=lambda row: row["name"])
+    if len({row["name"] for row in entries}) != len(entries):
+        raise EnclosureError("package payload contains duplicate archive paths")
     manifest = {
         "schema": 1,
         "kind": "pcb-enclosure-package-v1",
@@ -150,9 +258,28 @@ def package(config_path: Path, root: Path, build_dir: Path, output: Path,
         "mode": config["mode"],
         "status": status,
         "config_semantic_sha256": config_hash,
+        "based_on": {
+            "release": config["subject"]["release"],
+            "pcb": {"path": pcb_arc,
+                    "sha256": config["subject"]["pcb"]["sha256"],
+                    "size": config["subject"]["pcb"]["size"]},
+            "step": {"path": step_arc,
+                     "sha256": config["subject"]["step"]["sha256"],
+                     "size": config["subject"]["step"]["size"]},
+        },
+        "replay": {"root": ".", "config": replay_arc,
+                   "semantic_sha256": semantic_sha256(replay_config)},
         "files": [{key: row[key] for key in ("name", "sha256", "size")}
                   for row in entries],
     }
+    if release_manifest_arc is not None:
+        manifest["based_on"]["manifest"] = {
+            "path": release_manifest_arc,
+            "sha256": config["subject"]["release_manifest"]["sha256"],
+            "size": config["subject"]["release_manifest"]["size"],
+        }
+    if generation_authority is not None:
+        manifest["cad_authority"] = generation_authority
     output.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED,
                          compresslevel=9) as archive:
@@ -164,7 +291,9 @@ def package(config_path: Path, root: Path, build_dir: Path, output: Path,
             info = zipfile.ZipInfo(row["name"], ZIP_TIME)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
-            archive.writestr(info, row["path"].read_bytes())
+            payload = (row["path"].read_bytes() if "path" in row else
+                       row["data"])
+            archive.writestr(info, payload)
     return {**manifest, "package": {"path": str(output),
                                     "sha256": sha256_file(output),
                                     "size": output.stat().st_size}}
