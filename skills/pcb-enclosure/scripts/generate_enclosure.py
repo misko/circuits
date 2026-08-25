@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import math
 import re
 import shutil
 import subprocess
@@ -14,14 +15,16 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 from enclosure_common import (  # noqa: E402
-    EnclosureError, load_bound_config, scad, semantic_sha256, sha256_file,
-    write_json,
+    BUILT_IN_PRINTABLE_PARTS, EnclosureError, load_bound_config, scad,
+    semantic_sha256, sha256_file, write_json,
 )
 
 
 ENGINE = SKILL_DIR / "assets/enclosure-engine.scad"
 INSTALLED_CASE_SELECTOR = "installed_case"
 INSTALLED_CASE_FILENAME = "assembled-case.stl"
+UNKNOWN_SELECTOR_PROBE = "__pcb_enclosure_unknown__"
+CANONICAL_STL_KIND = "ascii-stl-facet-order-v1"
 
 
 def _version_tuple(value: str) -> tuple[int, ...]:
@@ -83,8 +86,69 @@ def _require_rectangular_outline(interface: dict[str, Any]) -> None:
             "built-in OpenSCAD engine supports an axis-aligned rectangle only")
 
 
+def _canonicalize_ascii_stl(path: Path) -> None:
+    """Write a stable facet/vertex ordering without changing mesh topology."""
+    try:
+        source = path.read_text(encoding="ascii")
+    except UnicodeDecodeError as exc:
+        raise EnclosureError(
+            f"custom authored STL is not OpenSCAD ASCII: {path}") from exc
+    pending: list[tuple[float, float, float]] = []
+    triangles: list[tuple[tuple[float, float, float], ...]] = []
+    for line in source.splitlines():
+        fields = line.split()
+        if fields[:1] != ["vertex"]:
+            continue
+        if len(fields) != 4:
+            raise EnclosureError(f"malformed ASCII STL vertex in {path}")
+        try:
+            point = tuple(float(value) for value in fields[1:])
+        except ValueError as exc:
+            raise EnclosureError(f"malformed ASCII STL coordinate in {path}") from exc
+        if any(not math.isfinite(value) for value in point):
+            raise EnclosureError(f"non-finite ASCII STL coordinate in {path}")
+        pending.append(point)
+        if len(pending) == 3:
+            # Normalize cyclic start while preserving the winding that carries
+            # the solid's orientation.  Then normalize global facet order.
+            a, b, c = pending
+            triangles.append(min(((a, b, c), (b, c, a), (c, a, b))))
+            pending = []
+    if pending or not triangles:
+        raise EnclosureError(f"could not parse complete ASCII STL facets in {path}")
+    triangles.sort()
+
+    def number(value: float) -> str:
+        if abs(value) < 5e-12:
+            value = 0.0
+        return format(value, ".10g")
+
+    lines = ["solid pcb_enclosure"]
+    for a, b, c in triangles:
+        ab = tuple(b[index] - a[index] for index in range(3))
+        ac = tuple(c[index] - a[index] for index in range(3))
+        cross = (
+            ab[1] * ac[2] - ab[2] * ac[1],
+            ab[2] * ac[0] - ab[0] * ac[2],
+            ab[0] * ac[1] - ab[1] * ac[0],
+        )
+        magnitude = math.sqrt(sum(value * value for value in cross))
+        normal = ((0.0, 0.0, 0.0) if magnitude <= 1e-18 else
+                  tuple(value / magnitude for value in cross))
+        lines.append("  facet normal " + " ".join(number(value)
+                                                    for value in normal))
+        lines.append("    outer loop")
+        for point in (a, b, c):
+            lines.append("      vertex " + " ".join(number(value)
+                                                       for value in point))
+        lines.extend(("    endloop", "  endfacet"))
+    lines.append("endsolid pcb_enclosure")
+    path.write_text("\n".join(lines) + "\n", encoding="ascii")
+
+
 def _run_selector(executable: str, source: Path, build_dir: Path,
-                  selector: str, filename: str) -> dict[str, Any]:
+                  selector: str, filename: str,
+                  *, canonicalize: bool = False) -> dict[str, Any]:
     output = build_dir / filename
     if output.is_symlink():
         raise EnclosureError(f"OpenSCAD output must not be a symlink: {output}")
@@ -98,12 +162,51 @@ def _run_selector(executable: str, source: Path, build_dir: Path,
         raise EnclosureError(
             f"OpenSCAD could not generate {selector} (rc={result.returncode}):\n"
             + result.stdout[-4000:])
-    return {
+    if canonicalize:
+        _canonicalize_ascii_stl(output)
+    record = {
         "selector": selector,
         "path": output.name,
         "sha256": sha256_file(output),
         "size": output.stat().st_size,
         "command": command,
+    }
+    if canonicalize:
+        record["canonicalization"] = CANONICAL_STL_KIND
+    return record
+
+
+def _probe_closed_authored_selectors(executable: str, source: Path,
+                                     build_dir: Path,
+                                     declared: Sequence[str]) -> dict[str, Any] | None:
+    """Reject catch-all authored entrypoints when custom parts are declared."""
+    custom = [part for part in declared
+              if part not in BUILT_IN_PRINTABLE_PARTS]
+    if not custom:
+        return None
+    output = build_dir / ".selector-contract-probe.stl"
+    if output.is_symlink():
+        raise EnclosureError(
+            f"OpenSCAD selector probe output must not be a symlink: {output}")
+    output.unlink(missing_ok=True)
+    command = [executable, "-o", str(output.resolve()), "-D",
+               f'part="{UNKNOWN_SELECTOR_PROBE}"', "-D",
+               "show_reference_board=false", str(source.resolve())]
+    result = subprocess.run(command, text=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, check=False)
+    generated = output.is_file() and output.stat().st_size > 0
+    output.unlink(missing_ok=True)
+    if generated:
+        raise EnclosureError(
+            "authored custom selector contract is open: an unknown selector "
+            "generated geometry; use explicit part branches")
+    return {
+        "kind": "closed-authored-selectors-v1",
+        "declared": list(declared),
+        "custom": custom,
+        "probe_selector": UNKNOWN_SELECTOR_PROBE,
+        "probe_result": "REJECTED" if result.returncode else "EMPTY",
+        "mesh_canonicalization": CANONICAL_STL_KIND,
     }
 
 
@@ -213,15 +316,20 @@ def generate(config_path: Path, root: Path, build_dir: Path,
         raise EnclosureError(f"OpenSCAD executable not found: {openscad}")
     engine_identity = _openscad_identity(executable,
                                         config["cad"]["minimum_version"])
+    selector_contract = (_probe_closed_authored_selectors(
+        executable, source, build_dir, config["cad"]["printable_parts"])
+        if authored is not None else None)
+    canonicalize = selector_contract is not None
     records = []
     for part in parts:
         if part not in config["cad"]["printable_parts"]:
             raise EnclosureError(f"requested part {part!r} is not declared printable")
-        record = _run_selector(executable, source, build_dir, part, f"{part}.stl")
+        record = _run_selector(executable, source, build_dir, part,
+                               f"{part}.stl", canonicalize=canonicalize)
         records.append({"part": part, **record})
     installed_case = _run_selector(
         executable, source, build_dir, INSTALLED_CASE_SELECTOR,
-        INSTALLED_CASE_FILENAME)
+        INSTALLED_CASE_FILENAME, canonicalize=canonicalize)
     receipt = {
         "schema": 1,
         "kind": "pcb-enclosure-generation-v1",
@@ -233,6 +341,7 @@ def generate(config_path: Path, root: Path, build_dir: Path,
         "interface": {"semantic_sha256": semantic_sha256(interface),
                       "raw_sha256": sha256_file(loaded["bindings"]["interface"]["path"])},
         "authority": authority,
+        "selector_contract": selector_contract,
         "source": {"path": source.name, "sha256": sha256_file(source),
                    "size": source.stat().st_size},
         "parts": records,

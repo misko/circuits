@@ -27,6 +27,12 @@ INTERFACE_KIND = "pcb-enclosure-interface-v1"
 PHYSICAL_KIND = "pcb-enclosure-physical-evidence-v1"
 HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 REF_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.+-]*$")
+AUTHORED_PART_RE = re.compile(r"^[a-z][a-z0-9_]{0,63}$")
+BUILT_IN_PRINTABLE_PARTS = frozenset({
+    "base", "lid", "insert_coupon", "panel_north", "panel_south",
+    "panel_east", "panel_west",
+})
+RESERVED_AUTHORED_SELECTORS = frozenset({"installed_case"})
 
 
 class EnclosureError(ValueError):
@@ -419,10 +425,20 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     parts = cad["printable_parts"]
     if not isinstance(parts, list) or not parts or parts != list(dict.fromkeys(parts)):
         raise EnclosureError("config.cad.printable_parts: expected non-empty unique list")
-    allowed_parts = {"base", "lid", "insert_coupon", "panel_north",
-                     "panel_south", "panel_east", "panel_west"}
     for index, part in enumerate(parts):
-        _enum(part, allowed_parts, f"config.cad.printable_parts[{index}]")
+        where = f"config.cad.printable_parts[{index}]"
+        name = _string(part, where)
+        if name in BUILT_IN_PRINTABLE_PARTS:
+            continue
+        if "source" not in cad:
+            raise EnclosureError(
+                f"{where}: custom printable selectors require authored_scad")
+        if not AUTHORED_PART_RE.fullmatch(name):
+            raise EnclosureError(
+                f"{where}: expected lowercase selector [a-z][a-z0-9_]{{0,63}}")
+        if name in RESERVED_AUTHORED_SELECTORS:
+            raise EnclosureError(
+                f"{where}: selector {name!r} is reserved for verification")
 
     geometry = _exact(top["geometry"], {
         "topology", "xy_clearance_mm", "wall_mm", "floor_mm", "roof_mm",

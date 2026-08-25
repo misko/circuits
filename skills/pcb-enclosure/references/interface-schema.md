@@ -33,10 +33,28 @@ Run extraction with repeatable `--access-ref REF`. Conservative default prefixes
 
 `process` requires `method: fdm`, material, nozzle and layer dimensions, support policy, and minimum wall. Support policy is `forbid`, `forbid_when_practical`, or `allow_declared`.
 
-`cad` requires `engine: openscad`, a minimum version string, and unique printable parts selected from:
+`cad` requires `engine: openscad`, a minimum version string, and unique printable parts. The built-in engine accepts only:
 
 - `base`, `lid`, `insert_coupon`
 - `panel_north`, `panel_south`, `panel_east`, `panel_west`
+
+An `authored_scad` entrypoint may additionally declare project-specific
+printable selectors matching `[a-z][a-z0-9_]{0,63}`. The generator invokes
+each selector exactly as `part="<name>"`, verifies the resulting single mesh,
+records it in `generation.json`, and packages it under `meshes/<name>.stl`.
+`installed_case` is reserved for the verifier's non-printable collision
+subject and may never appear in `printable_parts`. Custom selectors are not
+accepted by the built-in engine because it cannot author their geometry.
+When custom selectors are present, the authored entrypoint must use explicit
+part branches: an unknown selector must emit no mesh or reject evaluation.
+Generation probes that closed contract and records the declared/custom census
+and probe result in `generation.json`; packaging refuses missing or changed
+selector-contract evidence. This prevents a catch-all assembly fallback from
+silently exporting the wrong geometry under a mistyped accessory filename.
+For these custom-part configurations, generation also canonicalizes OpenSCAD's
+otherwise nondeterministic ASCII-STL facet ordering and records that transform
+on every printable mesh and the installed-case mesh. Independent replay must
+therefore reproduce byte-identical mesh hashes, not merely matching volumes.
 
 Omit `cad.source` to use the built-in declarative engine. To use one reviewed hand-authored entrypoint, add this exact mapping:
 
@@ -48,7 +66,7 @@ source:
   size: <positive byte count>
 ```
 
-The path follows the same root-relative, traversal-free, non-symlink rules as subject bindings and must name a `.scad` file outside the build directory. The generator copies its bytes unchanged to `BUILD/enclosure.scad`; OpenSCAD `-D part=...` selects each declared printable part. The authored entrypoint is CAD authority, so it must implement every declared part itself and the fixed `part="installed_case"` selector. That selector must emit only the complete enclosure in installed coordinates: no PCB/component witnesses, exploded transforms, or print-oriented lid. The generator always exports it as `BUILD/assembled-case.stl` and binds its exact command and identity in `generation.json`. Configuration geometry remains review and verification intent; the built-in engine does not wrap, modify, or supplement authored source.
+The path follows the same root-relative, traversal-free, non-symlink rules as subject bindings and must name a `.scad` file outside the build directory. The generator copies its bytes unchanged to `BUILD/enclosure.scad`; OpenSCAD `-D part=...` selects each declared printable part. The authored entrypoint is CAD authority, so it must implement every declared part itself and the fixed `part="installed_case"` selector. That selector must emit only the complete enclosure in installed coordinates: no PCB/component witnesses, exploded transforms, or print-oriented lid. The generator always exports it as `BUILD/assembled-case.stl` and binds its exact command and identity in `generation.json`. Configuration geometry remains review and verification intent; the built-in engine does not wrap, modify, or supplement authored source. Every custom printable selector must be implemented by that same bound entrypoint; an empty, disconnected, degenerate, or non-manifold result fails the normal printable-mesh verification.
 
 For an enclosure derived from an immutable PCB release, add an exact
 `subject.release_manifest` file binding alongside `pcb`, `step`, and

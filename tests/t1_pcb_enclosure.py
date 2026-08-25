@@ -439,6 +439,17 @@ def _enable_authored_scad(fixture: dict[str, Path]) -> Path:
     return authored
 
 
+def _replace_authored_scad(fixture: dict[str, Path], authored: Path,
+                           source: str) -> None:
+    authored.write_text(source, encoding="utf-8")
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["source"] = {
+        "kind": "authored_scad",
+        **_binding(fixture["root"], authored),
+    }
+    _write_yaml(fixture["config"], config)
+
+
 def _assert_only_failed(fixture: dict[str, Path], check_name: str) -> None:
     report = json.loads(fixture["report"].read_text())
     eq(report["status"], "FAIL", "overall verification status")
@@ -554,6 +565,170 @@ def t_authored_scad_clean_round_trip():
         manifest = json.loads(archive.read("MANIFEST.json"))
     eq(manifest["cad_authority"], generation["authority"],
        "package CAD authority")
+
+
+@test("authored SCAD may declare receipt-bound custom printable selectors")
+def t_authored_scad_custom_printable_clean():
+    fixture = _fresh_fixture()
+    authored = _enable_authored_scad(fixture)
+    _replace_authored_scad(
+        fixture, authored,
+        'part = "assembly";\n'
+        'module printable() { cube([1, 1, 1]); }\n'
+        'if (part == "base") printable();\n'
+        'else if (part == "lid") printable();\n'
+        'else if (part == "insert_coupon") printable();\n'
+        'else if (part == "fixture_accessory") printable();\n'
+        'else if (part == "fixture_fit_coupon") printable();\n'
+        'else if (part == "installed_case") printable();\n'
+        'else if (part == "assembly") printable();\n')
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["printable_parts"].extend([
+        "fixture_accessory", "fixture_fit_coupon",
+    ])
+    _write_yaml(fixture["config"], config)
+    must_pass(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure custom authored selectors")
+    generation = json.loads((fixture["build"] / "generation.json").read_text())
+    eq([row["part"] for row in generation["parts"]],
+       config["cad"]["printable_parts"], "custom selector receipt census")
+    eq(generation["selector_contract"]["custom"],
+       ["fixture_accessory", "fixture_fit_coupon"],
+       "custom selector contract census")
+    eq(generation["selector_contract"]["mesh_canonicalization"],
+       "ascii-stl-facet-order-v1", "custom mesh canonicalization contract")
+    first_meshes = {
+        row["part"]: row["sha256"] for row in generation["parts"]
+    }
+    first_installed = generation["installed_case"]["sha256"]
+    must_pass(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "repeat custom authored generation")
+    repeated = json.loads((fixture["build"] / "generation.json").read_text())
+    eq({row["part"]: row["sha256"] for row in repeated["parts"]},
+       first_meshes, "custom mesh hashes must replay deterministically")
+    eq(repeated["installed_case"]["sha256"], first_installed,
+       "installed-case hash must replay deterministically")
+    check((fixture["build"] / "fixture_accessory.stl").is_file(),
+          "custom accessory mesh absent")
+    check((fixture["build"] / "fixture_fit_coupon.stl").is_file(),
+          "custom fit-coupon mesh absent")
+    _refresh_collision_receipt(fixture, 0.0)
+    must_pass(run(_verify_args(fixture)),
+              "verification with custom authored selectors")
+    output = fixture["build"] / "custom-authored.zip"
+    must_pass(run([
+        KPY, PACKAGE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"], "--output", output,
+    ]), "package_enclosure custom authored selectors")
+    with zipfile.ZipFile(output) as archive:
+        check("meshes/fixture_accessory.stl" in archive.namelist(),
+              "custom accessory absent from package")
+        check("meshes/fixture_fit_coupon.stl" in archive.namelist(),
+              "custom fit coupon absent from package")
+
+
+@test("built-in CAD cannot claim an unimplemented custom selector",
+      kind="known_bad", gate="generate_enclosure.py")
+def t_built_in_custom_printable_bites():
+    fixture = _fresh_fixture()
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["printable_parts"].append("fixture_accessory")
+    _write_yaml(fixture["config"], config)
+    must_fail(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure built-in custom selector",
+        "custom printable selectors require authored_scad")
+
+
+@test("authored custom selectors reject catch-all unknown output",
+      kind="known_bad", gate="generate_enclosure.py")
+def t_authored_open_custom_selector_bites():
+    fixture = _fresh_fixture()
+    _enable_authored_scad(fixture)
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["printable_parts"].append("fixture_accessory")
+    _write_yaml(fixture["config"], config)
+    must_fail(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure open authored selectors",
+        "unknown selector generated geometry")
+
+
+@test("authored custom selector must be implemented by the bound source",
+      kind="known_bad", gate="generate_enclosure.py")
+def t_authored_unimplemented_custom_selector_bites():
+    fixture = _fresh_fixture()
+    authored = _enable_authored_scad(fixture)
+    _replace_authored_scad(
+        fixture, authored,
+        'part = "assembly";\n'
+        'module printable() { cube([1, 1, 1]); }\n'
+        'if (part == "base") printable();\n'
+        'else if (part == "lid") printable();\n'
+        'else if (part == "insert_coupon") printable();\n'
+        'else if (part == "installed_case") printable();\n'
+        'else if (part == "assembly") printable();\n')
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["printable_parts"].append("fixture_accessory")
+    _write_yaml(fixture["config"], config)
+    must_fail(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure unimplemented authored selector",
+        "could not generate fixture_accessory")
+
+
+@test("authored custom selectors remain unique",
+      kind="known_bad", gate="generate_enclosure.py")
+def t_authored_duplicate_custom_selector_bites():
+    fixture = _fresh_fixture()
+    _enable_authored_scad(fixture)
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["printable_parts"].extend([
+        "fixture_accessory", "fixture_accessory",
+    ])
+    _write_yaml(fixture["config"], config)
+    must_fail(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure duplicate authored selector",
+        "expected non-empty unique list")
+
+
+@test("authored custom selectors are traversal-safe identifiers",
+      kind="known_bad", gate="generate_enclosure.py")
+def t_authored_unsafe_custom_printable_bites():
+    fixture = _fresh_fixture()
+    _enable_authored_scad(fixture)
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["printable_parts"].append("../fixture")
+    _write_yaml(fixture["config"], config)
+    must_fail(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure unsafe authored selector",
+        "expected lowercase selector")
+
+
+@test("installed_case remains a reserved non-printable selector",
+      kind="known_bad", gate="generate_enclosure.py")
+def t_authored_installed_case_printable_bites():
+    fixture = _fresh_fixture()
+    _enable_authored_scad(fixture)
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["cad"]["printable_parts"].append("installed_case")
+    _write_yaml(fixture["config"], config)
+    must_fail(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate_enclosure installed_case printable",
+        "reserved for verification")
 
 
 @test("authored-SCAD generation refuses a changed source binding",
