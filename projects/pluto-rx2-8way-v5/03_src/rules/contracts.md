@@ -28,6 +28,7 @@ belongs here.
 | `policy_waivers.yaml` | policy_audit waivers accepted WITH measurement evidence (canon M4/M-WAIV): a YAML list, each entry naming the WAIVED S-/P-/R-/M-/E- policy ID + `why:` + the measurement that justifies it; P-ADJ net-span over-budget dispositions land here with the measured span + why. An entry without evidence is itself a FAIL. **A LOAD-BEARING NUMBER CARRIES A COMMAND, NOT A DIGIT** — see "Structure: `policy_waivers.yaml` — the `evidence:` block" below |
 | `policy_audit.json` | OPTIONAL `policy_audit.py` config (`--config 03_src/rules/policy_audit.json`, its default path): thresholds + HUMAN-item verdict pointers (S5/S6/S7) |
 | `critical_parts.yaml` | selective accepted facts for catastrophic part/footprint identities and geometry; graded by `critical_part_facts.py` before routing |
+| `model_registration.yaml` | optional schema-1 native 3D-model physical-registration contract; groups bind exact refs/model SHA and numeric registration tolerances for `model_registration_gate.py` and connector orientation review |
 | `contracts.md` | this file |
 
 `power_tree.yaml` also owns **E-CAP**. `effective_capacitance_banks[]`

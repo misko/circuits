@@ -30,12 +30,17 @@ process:
 cad:
   engine: openscad
   minimum_version: "2021.01"
-  printable_parts: [base, lid, insert_coupon]
+  printable_parts:
+    - base
+    - lid
+    - insert_coupon
+    - rx2_antenna_clip
+    - rx2_clip_fit_coupon
   source:
     kind: authored_scad
     path: 03_src/mechanical/pluto_rx2_8way_case.scad
-    sha256: 9f83594e30f0230f08b67866e302a91c6faab2a41aebb09d445031607dd53771
-    size: 16773
+    sha256: fb84be856e8ce6c89ebe96277efa170b4f945a9ccdf5c910655c5553a34382a6
+    size: 30290
 geometry:
   topology: split_shell
   xy_clearance_mm: 1.0
