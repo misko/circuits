@@ -24,11 +24,13 @@ evidence before it may be promoted to `PRINT_VERIFIED`.
 | `contracts.md` | this release-stream contract |
 | `<version>-<date>/MANIFEST.json` | machine-readable complete payload census |
 | `<version>-<date>/README.md` | status, parent PCB identity, print and validation notes |
+| `<version>-<date>/authorities/**` | exact immutable PCB-release subjects bound by the enclosure release |
 | `<version>-<date>/cad/**` | exact authored CAD authority |
 | `<version>-<date>/meshes/**` | printable STL parts only |
 | `<version>-<date>/package/**` | self-contained replay package |
 | `<version>-<date>/renders/**` | regenerated visual-review evidence |
 | `<version>-<date>/source/**` | exact enclosure configuration |
+| `<version>-<date>/tooling/**` | exact verifier implementations required to reopen release evidence |
 | `<version>-<date>/verification/**` | generation, STEP, collision, and verification receipts |
 
 ## Validate

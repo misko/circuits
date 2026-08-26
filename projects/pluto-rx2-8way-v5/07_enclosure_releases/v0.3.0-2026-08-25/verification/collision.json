@@ -19,8 +19,8 @@
       ],
       "path": "assembled-case.stl",
       "selector": "installed_case",
-      "sha256": "3615ebc9cddf4c692210747c9d37aac68484b227563ad4ccac1c8ee079fefefa",
-      "size": 5373970
+      "sha256": "84b554d9170c105805864d9f0716b90a3645f66bbfaf6e9e8f7d3d036d34c6ba",
+      "size": 5318042
     },
     "component_mesh": {
       "path": "step-components.stl",
@@ -29,7 +29,7 @@
     },
     "generation": {
       "path": "generation.json",
-      "sha256": "84ecaf0961bd47437dd2419fd2dde1c866b0da473b9d710a90d6790b70ec27f0",
+      "sha256": "8abef3bda6cfe954c65a6c5e2a6d75ce36a4155d4277bebf3675801f2c800088",
       "size": 6113
     },
     "step": {

@@ -6,19 +6,20 @@
     "mount_to_service_opening": 4.300000000000001,
     "north_sma_plug_to_mount": 3.5,
     "side_sma_plug_to_mount": 8.0,
-    "u_entry_flare_to_service_opening": 0.75
+    "u_arch_to_service_opening_y": 4.300000000000001
   },
   "assembly_path": {
-    "cable_u_channel": {
+    "direction": "+Z through adapter underside",
+    "kind": "single-axis-complete-prewired-assembly-sweep",
+    "prewired_assembly_u_arch": {
       "center_z_above_lid_mm": 5.2,
-      "core_d_mm": 4.5,
-      "entry_flare_d_mm": 6.5,
+      "core_d_mm": 10.8,
+      "entry_flare_d_mm": 10.8,
       "entry_flare_length_mm": 1.0,
+      "governing_envelope_d_mm": 10.0,
       "open_bottom": true,
       "threading_required": false
     },
-    "direction": "+Z through adapter underside",
-    "kind": "single-axis-complete-prewired-assembly-sweep",
     "rectangular_relief_mm": [
       58.0,
       31.0
@@ -47,7 +48,7 @@
   },
   "candidate_antenna_reference": {
     "mesh_metrics": {
-      "absolute_volume_mm3": 3530.612015177814,
+      "absolute_volume_mm3": 3530.6120151778155,
       "bbox_mm": {
         "max": [
           5.0,
@@ -66,7 +67,7 @@
         ]
       },
       "boundary_edges": 0,
-      "component_absolute_volume_mm3": 3530.612015177819,
+      "component_absolute_volume_mm3": 3530.6120151778196,
       "components": 1,
       "degenerate_facets": 0,
       "edge_manifold": true,
@@ -75,15 +76,15 @@
       "orientation_consistent": true,
       "orientation_mismatches": 0,
       "path": "rx2_antenna_reference.stl",
-      "sha256": "2ee599050ef679b8ff83c28ec794a5ab9f4f188404c6d2cc0b0ad20f3320e280",
-      "signed_volume_mm3": 3530.612015177814,
+      "sha256": "009e529f5ab16f383d0e2d9f5507a0c3fb414f119bd1b0a043f65321ef58baa9",
+      "signed_volume_mm3": 3530.6120151778155,
       "size": 118584,
       "triangles": 698
     },
     "path": "projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/rx2_antenna_reference.stl",
     "printable": false,
     "selector": "rx2_antenna_reference",
-    "sha256": "2ee599050ef679b8ff83c28ec794a5ab9f4f188404c6d2cc0b0ad20f3320e280",
+    "sha256": "009e529f5ab16f383d0e2d9f5507a0c3fb414f119bd1b0a043f65321ef58baa9",
     "size": 118584
   },
   "candidate_cable_reference": {
@@ -128,13 +129,14 @@
     "size": 41486
   },
   "candidate_clearances_mm": {
+    "arch_entry_over_full_antenna_radial": 0.40000000000000036,
     "body_above_lid": 0.20000000000000018,
     "body_below_roof": 0.40000000000000036,
-    "cable_core_radial": 1.0,
+    "cable_radial_within_arch": 4.15,
+    "full_antenna_arch_radial": 0.40000000000000036,
     "rigid_body_radial": 0.4,
     "total_vertical_play": 0.5999999999999996,
-    "u_entry_flare_radial": 2.0,
-    "u_entry_roof_ligament": 5.15
+    "u_entry_roof_ligament": 2.9999999999999982
   },
   "candidate_collision": "PASS",
   "exact_step_checks": {
@@ -166,7 +168,7 @@
     "pcb_related_solid_count": 1065,
     "reference_mesh_subjects": {
       "rx2_antenna_reference": {
-        "sha256": "2ee599050ef679b8ff83c28ec794a5ab9f4f188404c6d2cc0b0ad20f3320e280",
+        "sha256": "009e529f5ab16f383d0e2d9f5507a0c3fb414f119bd1b0a043f65321ef58baa9",
         "size": 118584
       },
       "rx2_cable_reference": {
@@ -185,12 +187,12 @@
   "inputs": {
     "candidate_contract": {
       "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-adapter-candidate-contract.json",
-      "sha256": "381f6857db4159bea8ccf7bf7d2551e4818d5ec4d16c35571591bfa6d90b1535",
-      "size": 2886
+      "sha256": "adae3da7e0317ea608350e4f592a6360b2f0cf79f50382a32ab3a9efafa6e6e9",
+      "size": 3019
     },
     "config": {
       "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml",
-      "sha256": "8aa04168821e005333a5aa3a8658d8c161c8eaf52b55b1416592dda8ea8decce",
+      "sha256": "8d9c60504c5340dcd410d0b1813011ea98620a72c233d2c4fbd2285defcbeaa1",
       "size": 5643
     },
     "enclosure_common": {
@@ -200,13 +202,13 @@
     },
     "generation": {
       "path": "projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/generation.json",
-      "sha256": "84ecaf0961bd47437dd2419fd2dde1c866b0da473b9d710a90d6790b70ec27f0",
+      "sha256": "8abef3bda6cfe954c65a6c5e2a6d75ce36a4155d4277bebf3675801f2c800088",
       "size": 6113
     },
     "holder_measurement": {
       "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-holder-measurement.json",
-      "sha256": "276a40242b4acb730bcd9c5f7c51a0a2bbf345b14752c2868ab25419a72b5dfe",
-      "size": 7359
+      "sha256": "91d0dfe9bbac84c665b1eaf6e99c22fee710e9913ed0f320214ef2f17ef71be4",
+      "size": 7432
     },
     "holder_png": {
       "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-clearance-reference.png",
@@ -230,8 +232,8 @@
     },
     "scad": {
       "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/pluto_rx2_8way_case.scad",
-      "sha256": "891a96f194f932858d71b12a5802d7033351956554107b26ce65dd7da258ce77",
-      "size": 53562
+      "sha256": "9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a",
+      "size": 54081
     },
     "step": {
       "path": "projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step",
@@ -250,8 +252,8 @@
     },
     "verification_script": {
       "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/verify_antenna_clearance.py",
-      "sha256": "2477b54aae7136cfc963c816c51daf0397334e9f3966a66c14e6d34561ce20c0",
-      "size": 73947
+      "sha256": "7a5692b2e08ec99efccb2134277d58a930db11ff6a365132820954cb21a14151",
+      "size": 74187
     }
   },
   "kind": "pluto-rx2-antenna-clearance-v1",
@@ -302,11 +304,11 @@
       "body_d": 10.0,
       "body_radial_clearance": 0.4,
       "body_south_y": 0.0,
-      "cable_core_d": 4.5,
+      "cable_core_d": 10.8,
       "cable_d": 2.5,
       "cable_tail_length": 45.0,
       "case_top_z": 27.1,
-      "flare_d": 6.5,
+      "flare_d": 10.8,
       "flare_length": 1.0,
       "insertion_sweep": 45.0,
       "lower_upright_d": 10.0,

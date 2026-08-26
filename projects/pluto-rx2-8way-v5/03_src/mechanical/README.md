@@ -10,9 +10,11 @@ antenna adapter**. Here, “top” means the exterior/top side of the PCB
 enclosure. The complete right-angle antenna already has its cable attached;
 the cable is not threaded through a closed hole. Instead, the adapter is
 lowered over the complete assembly. The antenna and cable translate upward
-through one 58 × 31 mm rounded-rectangular underside opening, while the cable
-enters a bottom-open U-channel in the adapter's south wall. In service the
-cable continues straight south (`-Y`) and horizontally on the exterior.
+through one 58 × 31 mm rounded-rectangular underside opening. A bottom-open
+D10.8 U-arch in the adapter's south wall clears the complete D10 lower antenna
+body—not merely the cable—so the already-wired assembly can slide into place
+without threading. In service the cable continues straight south (`-Y`) and
+horizontally on the exterior.
 
 The PCB lid below the adapter remains closed except for the two fastener
 stacks. There is no antenna/cable lid pass-through, hidden throat, internal
@@ -20,8 +22,8 @@ cable run, S-bend, or snap geometry.
 
 Two M3 × 8 socket-head screws attach the adapter to two E-Z LOK inserts in
 reinforced lid bosses. The upright aperture fixes translation, two roof-hung
-rails key the horizontal D10 candidate branch, and the south U-channel fixes
-its cable axis. The lid becomes the cavity floor only after the adapter seats.
+rails key the horizontal D10 candidate branch, and the south full-body U-arch
+fixes its exit axis. The lid becomes the cavity floor only after the adapter seats.
 This topology captures the candidate against lift and gross rotation without
 loading a Pluto+ SMA connector.
 
@@ -83,12 +85,13 @@ not claimed antenna measurements.
 | Body-to-lid / body-to-roof gaps | 0.20 / 0.40 mm |
 | Upright aperture north extent / wall | y21.9 / 2.1 mm |
 | Cable witness | D2.50, straight south, center z5.20 above lid |
-| Open-bottom U-channel core | D4.50; 1.00 mm radial cable clearance |
-| Exterior anti-chafe flare | 1.0 mm long, D6.50 entry |
-| U-channel crown / roof ligament at flare | z8.45 / 5.15 mm |
+| Open-bottom full-antenna U-arch | D10.80; 0.40 mm radial clearance around the D10 body |
+| Cable clearance within arch | 4.15 mm radial around the D2.50 witness |
+| Exterior entry transition | 1.0 mm long, constant D10.80 profile |
+| U-arch crown / roof ligament | z10.60 / 3.00 mm |
 | Vertical insertion sweep | 45.0 mm, complete antenna+cable assembly |
 | Mount-to-service-opening gap | 4.30 mm |
-| Flared U-entry to service opening | 0.75 mm lateral |
+| U-arch to service opening | 4.30 mm in Y |
 | Mount-to-north-label nominal gap | 1.10 mm |
 
 The rectangular relief and D10.8 upright aperture overlap: the relief reaches
@@ -107,7 +110,7 @@ Access-zone checks use conservative configured plug envelopes:
 - each east/west SMA plug envelope remains 8.0 mm from it;
 - the cable's lower surface is 14.05 mm above the USB-C arch top where their
   plan views cross;
-- the D6.50 U-entry stays 0.75 mm from the J11/J12 service-opening envelope;
+- the D10.80 full-antenna U-arch stays 4.30 mm north of the J11/J12 service-opening envelope;
 - the 45 mm cable witness extends 9.1 mm beyond the south case edge and never
   enters the PCB enclosure.
 
@@ -161,7 +164,7 @@ Print PETG at 0.20 mm layers with a 0.4 mm nozzle, four perimeters, at least
 five top/bottom layers, and 25–35% infill. Disable supports for all five parts.
 `lid.stl` prints exterior-face-down. `rx2_antenna_mount.stl` prints its closed
 top face on the bed, so the rectangular underside cavity, roof-hung rails,
-screw wells, and bottom-open U-channel grow upward without trapped support.
+screw wells, and bottom-open full-body U-arch grow upward without trapped support.
 
 Assembly sequence:
 
@@ -175,11 +178,13 @@ Assembly sequence:
    at `(0,16.5)`, horizontal branch toward south, attached cable continuing
    straight south. Nothing passes through the lid.
 5. Hold the adapter above the assembly. Align the upright with the D10.8 top
-   aperture and the attached cable with the bottom-open south U-notch.
+   aperture and the complete D10 lower antenna body with the bottom-open
+   D10.8 south U-arch.
 6. Lower the adapter straight down. The entire L assembly enters the one
-   rectangular underside opening; the cable rises into the U-notch from below.
+   rectangular underside opening; the antenna body and attached cable rise
+   through the full-body U-arch from below.
    **Do not thread the cable through any bore.**
-7. Confirm the adapter seats flat, cable is free in the U-channel, service bay
+7. Confirm the adapter seats flat, antenna and cable are free in the U-arch, service bay
    remains usable, and antenna/cable are not pinched. Install the two M3 × 8
    screws alternately and only snug them enough to prevent adapter motion.
 
@@ -244,14 +249,14 @@ uv run --offline --with cadquery python \
 
 The generic verifier binds the sealed PCB/STEP and exact installed-case
 collision evidence. `antenna-clearance.json` separately binds the non-printable
-antenna reference, U-channel, continuous insertion sweep, exact STEP component
+antenna reference, full-body U-arch, continuous insertion sweep, exact STEP component
 checks, and access-zone calculations. A passing CAD pipeline does not promote
 the accessory above `INCOMPLETE` until the missing antenna/cable and physical
 fit evidence exists.
 
-Do not feed this revision to the generic enclosure packager: that package has
-no accessory-evidence schema and would label the shell `CAD_READY` while
-omitting the raw holder evidence, candidate contract, non-printable antenna
-and cable witnesses, and accessory receipt. Until a dedicated accessory
-package contract exists, publish only the explicitly `INCOMPLETE` co-design
-evidence directory described alongside the candidate artifacts.
+The immutable enclosure release carries the generic shell receipt only as a
+subordinate `CAD_READY` result. Its top-level manifest remains `INCOMPLETE`
+and includes the raw holder evidence, candidate contract, non-printable
+antenna/cable witnesses, and accessory receipt. Do not use the generic
+packager alone because its schema cannot express that accessory qualification
+boundary.

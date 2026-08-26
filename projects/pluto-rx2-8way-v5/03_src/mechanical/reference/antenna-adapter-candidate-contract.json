@@ -7,8 +7,8 @@
   "subjects": {
     "holder_measurement": {
       "path": "antenna-holder-measurement.json",
-      "sha256": "276a40242b4acb730bcd9c5f7c51a0a2bbf345b14752c2868ab25419a72b5dfe",
-      "size": 7359
+      "sha256": "91d0dfe9bbac84c665b1eaf6e99c22fee710e9913ed0f320214ef2f17ef71be4",
+      "size": 7432
     }
   },
   "facts": {
@@ -35,9 +35,9 @@
     "rail_gap": 10.8,
     "rail_t": 2.0,
     "cable_d": 2.5,
-    "cable_core_d": 4.5,
+    "cable_core_d": 10.8,
     "flare_length": 1.0,
-    "flare_d": 6.5,
+    "flare_d": 10.8,
     "insertion_sweep": 45.0,
     "cable_tail_length": 45.0,
     "mount_south_y": -13.0,
@@ -71,6 +71,7 @@
     "case_top_z equals enclosure.geometry.inside_top_z_mm plus roof_mm",
     "body_axis_z equals body_d/2 plus the 0.20 mm closed-lid floor gap",
     "rail_gap equals body_d plus twice body_radial_clearance",
+    "south U-arch diameter equals body_d plus twice body_radial_clearance and therefore clears the complete lower antenna radius",
     "reference mesh bounds and volumes match fresh SCAD selector exports",
     "all access margins in the receipt are recomputed from these facts and the bound enclosure interfaces"
   ],

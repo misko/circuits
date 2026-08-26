@@ -157,13 +157,19 @@ reference_holder_lip_radial_interference =
 
 // Reference-only straight exterior cable.  The PCB lid remains completely
 // closed beneath the mount.  The already-attached cable enters with the
-// antenna through the large rectangular underside opening; an open-bottom
-// U-channel crosses the south wall, so assembly never requires threading.
+// antenna through the large rectangular underside opening.  The bottom-open
+// south-wall arch clears the complete D10 antenna body, not merely the cable,
+// so the pre-wired assembly never needs to be threaded through a closed bore.
 coax_candidate_d = 2.50;
-coax_exit_radial_clearance = 1.00;
-coax_exit_clearance_d = coax_candidate_d + 2 * coax_exit_radial_clearance;
+coax_exit_radial_clearance =
+    (mount_candidate_body_d + 2 * mount_body_radial_clearance
+        - coax_candidate_d) / 2;
+coax_exit_clearance_d =
+    mount_candidate_body_d + 2 * mount_body_radial_clearance;
 coax_exit_entry_flare_length = 1.00;
-coax_exit_entry_flare_d = coax_exit_clearance_d + 2.00;
+// The full-body arch already gives the cable 4.15 mm radial clearance.  Keep
+// the entry at the same D10.8 profile so the hood retains 3.0 mm of roof.
+coax_exit_entry_flare_d = coax_exit_clearance_d;
 coax_exit_y = mount_center[1] - mount_size[1] / 2;
 coax_tail_length = 45.0;
 // Collision-only setback excludes the intended zero-thickness antenna/cable
@@ -570,9 +576,10 @@ module coax_exit_u_channel_cut() {
     cut_len = inner_y - coax_exit_y + 2 * eps;
 
     // Holder-STL-inspired open-bottom U-channel: two vertical sides rise to
-    // the cable centerline and a semicircular roof supplies 1.0 mm radial
-    // clearance.  It opens directly into the rectangular underside cavity,
-    // so the attached cable moves straight upward instead of being threaded.
+    // the antenna/cable centerline and a semicircular roof clears the complete
+    // D10 lower antenna branch with 0.40 mm radial clearance.  It opens
+    // directly into the rectangular underside cavity, so the complete
+    // attached assembly moves straight upward instead of being threaded.
     translate([
         -coax_exit_clearance_d / 2,
         coax_exit_y - eps,
@@ -587,9 +594,9 @@ module coax_exit_u_channel_cut() {
         rotate([-90, 0, 0])
             cylinder(h = cut_len, d = coax_exit_clearance_d);
 
-    // One-millimetre linear flare at the exterior face removes the sharp
-    // cable-chafe edge while preserving an open underside.  This mirrors the
-    // R1 / D11.75 entry blend observed on the supplied flexible-holder STL.
+    // Preserve a one-millimetre entry transition at the exterior face.  The
+    // full-body D10.8 arch needs no larger entry flare, which preserves
+    // the audited 3.0 mm roof ligament.
     hull() {
         coax_u_channel_slice(
             coax_exit_y - eps,
@@ -1354,6 +1361,9 @@ assert(
                 + 2 * mount_stalk_radial_clearance) / 2) >= 1.80,
     "RX2 keyed stalk aperture has less than 1.80 mm north wall"
 );
+assert((coax_exit_clearance_d - mount_candidate_body_d) / 2
+        >= mount_body_radial_clearance,
+       "South U-arch no longer clears the full antenna body radius");
 assert(coax_exit_radial_clearance >= 1.00,
        "Straight exterior cable exit has less than 1.00 mm radial clearance");
 assert(coax_collision_joint_setback > 0
@@ -1362,18 +1372,16 @@ assert(coax_collision_joint_setback > 0
 assert(coax_tail_length > coax_collision_joint_setback,
        "Cable collision witness setback consumes the exterior tail");
 assert(coax_exit_entry_flare_length >= 1.00,
-       "Open-bottom cable U-channel entry flare is shorter than 1.00 mm");
-assert((coax_exit_entry_flare_d - coax_candidate_d) / 2 >= 2.00,
-       "Cable U-channel entry flare has less than 2.00 mm radial clearance");
-assert(mount_h - (mount_body_axis_z + coax_exit_entry_flare_d / 2) >= 3.00,
-       "Open-bottom cable U-channel leaves less than 3.00 mm roof ligament");
+       "Open-bottom pre-wired assembly U-arch entry is shorter than 1.00 mm");
+assert(coax_exit_entry_flare_d >= coax_exit_clearance_d,
+       "South U-arch entry is smaller than its full-body core");
+assert(mount_h - (mount_body_axis_z + coax_exit_entry_flare_d / 2)
+        >= mount_roof - eps,
+       "Open-bottom pre-wired assembly U-arch leaves less than 3.00 mm roof ligament");
 assert(mount_body_axis_z - coax_candidate_d / 2 >= 3.50,
        "Straight exterior cable is too close to the closed PCB lid");
-assert(
-    -coax_exit_entry_flare_d / 2
-        - (service_center[0] + service_size[0] / 2) >= 0.25,
-    "Open-bottom cable U-channel overlaps the SWD/5V service opening"
-);
+assert(coax_exit_y - (service_center[1] + service_size[1] / 2) >= 4.00,
+       "Open-bottom full-antenna U-arch crowds the SWD/5V service opening");
 assert(mount_relief_size == [58.0, 31.0],
        "RX2 underside loading relief drifted from the audited 58 x 31 mm rectangle");
 assert(

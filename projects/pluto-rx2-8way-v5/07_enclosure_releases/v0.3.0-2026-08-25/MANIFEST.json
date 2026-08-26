@@ -1,0 +1,228 @@
+{
+  "schema": 1,
+  "kind": "pcb-enclosure-release-v1",
+  "artifact_id": "pluto-rx2-8way-v5-enclosure",
+  "version": "v0.3.0",
+  "date": "2026-08-25",
+  "status": "INCOMPLETE",
+  "shell_status": "CAD_READY",
+  "antenna_accessory_status": "INCOMPLETE",
+  "verification_run_status": "COMPLETE",
+  "candidate_collision": "PASS",
+  "status_reason": "The D10 candidate clears the D10.8 full-body arch and all automated collision checks pass, but the actual antenna/cable dimensions and physical fit, retention, rattle and print evidence are absent.",
+  "based_on": {
+    "release": "v0.2.1-2026-08-14",
+    "manifest_sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+    "pcb_sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+    "step_sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f"
+  },
+  "cad_authority": {
+    "kind": "authored_scad",
+    "sha256": "9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a",
+    "size": 54081
+  },
+  "publication": {
+    "generic_package": false,
+    "order_ready": false,
+    "print_verified": false,
+    "release": true
+  },
+  "receipt_scopes": {
+    "verification/shell-verification.json": "subordinate shell-only CAD readiness",
+    "verification/antenna-clearance.json": "governing antenna-accessory and overall release status"
+  },
+  "external_runtime_authorities": {
+    "openscad": {
+      "path": "/usr/bin/openscad",
+      "version": "OpenSCAD version 2021.01",
+      "sha256": "ca63bba23a3186003603895e2aba8baaebfc56d4153351cdf08c06205a155865",
+      "size": 8387456
+    },
+    "cadquery": "2.8.0",
+    "ocp": "7.9.3.1"
+  },
+  "receipt_subject_resolution": {
+    "candidate_contract": "source/reference/antenna-adapter-candidate-contract.json",
+    "config": "source/enclosure.yaml",
+    "enclosure_common": "tooling/enclosure_common.py",
+    "generation": "verification/generation.json",
+    "holder_measurement": "source/reference/antenna-holder-measurement.json",
+    "holder_png": "source/reference/user-clearance-reference.png",
+    "holder_stl": "source/reference/user-antenna-holder-reference.stl",
+    "interface": "verification/board-interface.json",
+    "scad": "cad/pluto_rx2_8way_case.scad",
+    "step": "authorities/pcb-release/pluto_rx2_8way_v5.step",
+    "step_inspection": "verification/step-inspection.json",
+    "step_inspection_script": "tooling/inspect_step.py",
+    "verification_script": "source/verify_antenna_clearance.py"
+  },
+  "payload_count": 33,
+  "payloads": [
+    {
+      "path": "README.md",
+      "sha256": "0914db5de504231507257e39f7dbe4718a5e37c04bb83a7f7148701436cc1377",
+      "size": 3685
+    },
+    {
+      "path": "authorities/pcb-release/MANIFEST.txt",
+      "sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+      "size": 17338
+    },
+    {
+      "path": "authorities/pcb-release/pluto_rx2_8way_v5.kicad_pcb",
+      "sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+      "size": 538805
+    },
+    {
+      "path": "authorities/pcb-release/pluto_rx2_8way_v5.step",
+      "sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f",
+      "size": 23398573
+    },
+    {
+      "path": "cad/pluto_rx2_8way_case.scad",
+      "sha256": "9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a",
+      "size": 54081
+    },
+    {
+      "path": "meshes/base.stl",
+      "sha256": "c17789da30c0f7567946d9619295e1635e1113413558186caa0b8496c33ca926",
+      "size": 1218340
+    },
+    {
+      "path": "meshes/insert_coupon.stl",
+      "sha256": "d81727855a0aa2ace7bdb2cf98e2eed7f2eac0e12dd9b86b2ab6ed8ddc946429",
+      "size": 1162772
+    },
+    {
+      "path": "meshes/lid.stl",
+      "sha256": "f3fc2ab20211a538c39ea093815c2cbab508e40b77907e993001498b7bc5c01b",
+      "size": 3544236
+    },
+    {
+      "path": "meshes/rx2_antenna_fit_gauge.stl",
+      "sha256": "a1ae92ebddb434fe4af4bd81232dbfaf07b3a0012b73d36b1552a070f3f14b41",
+      "size": 1140562
+    },
+    {
+      "path": "meshes/rx2_antenna_mount.stl",
+      "sha256": "42430873439e120923228e661ffca3568475fabf5d31e4d7aa9adbf59f68689b",
+      "size": 816639
+    },
+    {
+      "path": "renders/bottom-load-entry.png",
+      "sha256": "d1ea2c94c21d86e4bb22583e9250883581358f66c97d7ab2ca82f4e808cd22e5",
+      "size": 45648
+    },
+    {
+      "path": "renders/closed-assembly.png",
+      "sha256": "d95550985837b637af7e85937173294eacfc5b6b2e5fb48633a9d98be0849cfc",
+      "size": 84274
+    },
+    {
+      "path": "renders/full-antenna-arch-cutaway.png",
+      "sha256": "98060d5d81d0794e722d156268fbc679c9fbc6daa5b1f2e5a0a7068c77d964bf",
+      "size": 30846
+    },
+    {
+      "path": "source/enclosure.yaml",
+      "sha256": "8d9c60504c5340dcd410d0b1813011ea98620a72c233d2c4fbd2285defcbeaa1",
+      "size": 5643
+    },
+    {
+      "path": "source/reference/antenna-adapter-candidate-contract.json",
+      "sha256": "adae3da7e0317ea608350e4f592a6360b2f0cf79f50382a32ab3a9efafa6e6e9",
+      "size": 3019
+    },
+    {
+      "path": "source/reference/antenna-holder-measurement.json",
+      "sha256": "91d0dfe9bbac84c665b1eaf6e99c22fee710e9913ed0f320214ef2f17ef71be4",
+      "size": 7432
+    },
+    {
+      "path": "source/reference/user-antenna-holder-reference.stl",
+      "sha256": "a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f",
+      "size": 14303684
+    },
+    {
+      "path": "source/reference/user-clearance-reference.png",
+      "sha256": "fa11c8a1376bdc0d80fc2e80a17872a27423fed0575a5d7faea16b94124b4486",
+      "size": 53857
+    },
+    {
+      "path": "source/verify_antenna_clearance.py",
+      "sha256": "7a5692b2e08ec99efccb2134277d58a930db11ff6a365132820954cb21a14151",
+      "size": 74187
+    },
+    {
+      "path": "tooling/enclosure_common.py",
+      "sha256": "6dc9903db344ccdd02c92fb792d5256d39c21ac8210c29ec811d39f5ad3b0175",
+      "size": 39258
+    },
+    {
+      "path": "tooling/inspect_step.py",
+      "sha256": "3da588448810c5e09bda9192279acfc68d1316cfe8088df7c681a0c16244993f",
+      "size": 10355
+    },
+    {
+      "path": "verification/antenna-clearance.json",
+      "sha256": "17ea8f2dcf89327b143a8c22cf9f8fa3926a23d0fc2568663562b9522abfb773",
+      "size": 15100
+    },
+    {
+      "path": "verification/assembled-case.stl",
+      "sha256": "84b554d9170c105805864d9f0716b90a3645f66bbfaf6e9e8f7d3d036d34c6ba",
+      "size": 5318042
+    },
+    {
+      "path": "verification/board-interface.json",
+      "sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+      "size": 31058
+    },
+    {
+      "path": "verification/clearance-intersection.stl",
+      "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445",
+      "size": 181
+    },
+    {
+      "path": "verification/collision.json",
+      "sha256": "75893c4fda5f43e7b46df0d3add1a946912d930f0a5583690807824b22c469c4",
+      "size": 3124
+    },
+    {
+      "path": "verification/generated-enclosure.scad",
+      "sha256": "9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a",
+      "size": 54081
+    },
+    {
+      "path": "verification/generation.json",
+      "sha256": "8abef3bda6cfe954c65a6c5e2a6d75ce36a4155d4277bebf3675801f2c800088",
+      "size": 6113
+    },
+    {
+      "path": "verification/reference-meshes/rx2_antenna_reference.stl",
+      "sha256": "009e529f5ab16f383d0e2d9f5507a0c3fb414f119bd1b0a043f65321ef58baa9",
+      "size": 118584
+    },
+    {
+      "path": "verification/reference-meshes/rx2_cable_reference.stl",
+      "sha256": "525b0a627f321225f3cce2ea8f3fe1d0ce588d7d6eb43f179a48978636fb1e60",
+      "size": 41486
+    },
+    {
+      "path": "verification/shell-verification.json",
+      "sha256": "4d5bfea903f1a8da2e75b33a3bd87271c2791ea8a803c20afebf366807f29ed4",
+      "size": 46073
+    },
+    {
+      "path": "verification/step-components.stl",
+      "sha256": "853ab6711b8bd62efac00bc65ca5b2926cf3dff681cef260e0e5279340b2faf7",
+      "size": 39947084
+    },
+    {
+      "path": "verification/step-inspection.json",
+      "sha256": "821e264587f5715d0984c7189de63e5e8c07a6504087c3eb28902f4e18b6d893",
+      "size": 13561
+    }
+  ],
+  "known_parent_release_caveat": "The bound PCB v0.2.1 MANIFEST.txt names two ignored .kicad_prl files absent from the repository; this enclosure release binds the exact manifest/PCB/STEP bytes but does not repair or reseal the parent PCB release."
+}

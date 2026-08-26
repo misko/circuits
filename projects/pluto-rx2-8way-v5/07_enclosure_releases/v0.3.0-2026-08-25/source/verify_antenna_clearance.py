@@ -415,7 +415,7 @@ def validate_holder_measurement(path: Path, holder_stl: Path,
         "core_width_mm", "centerline_z_above_lid_mm",
         "core_crown_z_above_lid_mm", "outer_entry_flare_length_mm",
         "outer_entry_flare_width_mm", "roof_ligament_at_flare_mm"),
-        "prewired cable U-channel")
+        "pre-wired assembly U-arch")
     if interpretation["not_an_antenna_solid"] is not True or \
             not isinstance(interpretation["classification"], str):
         raise RuntimeError("holder classification must remain not-an-antenna")
@@ -936,9 +936,10 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
                   actual["body_d"] + 2 * actual["body_radial_clearance"],
                   "locator rail gap derivation")
     require_close(actual["cable_core_d"],
-                  actual["cable_d"] + 2.0, "cable core derivation")
-    require_close(actual["flare_d"], actual["cable_core_d"] + 2.0,
-                  "cable flare derivation")
+                  actual["body_d"] + 2 * actual["body_radial_clearance"],
+                  "full-antenna arch derivation")
+    require_close(actual["flare_d"], actual["cable_core_d"],
+                  "full-antenna arch entry derivation")
     require_close(actual["mount_south_y"],
                   actual["mount_center_y"]
                   - (actual["mount_north_y"] - actual["mount_south_y"]) / 2,
@@ -1064,9 +1065,10 @@ def derive_candidate_evidence(facts: Mapping[str, float],
         "upright_aperture_d_mm": aperture_d,
         "upright_north_extent_y_mm": facts["stalk_y"] + aperture_d / 2,
         "roof_hung_rail_gap_mm": facts["rail_gap"],
-        "cable_u_channel": {
+        "prewired_assembly_u_arch": {
             "open_bottom": True,
             "core_d_mm": facts["cable_core_d"],
+            "governing_envelope_d_mm": facts["body_d"],
             "center_z_above_lid_mm": facts["body_axis_z"],
             "entry_flare_length_mm": facts["flare_length"],
             "entry_flare_d_mm": facts["flare_d"],
@@ -1100,8 +1102,8 @@ def derive_candidate_evidence(facts: Mapping[str, float],
         "cable_lower_surface_above_usb_arch_top":
             facts["case_top_z"] + facts["body_axis_z"]
             - facts["cable_d"] / 2 - usb_arch_top,
-        "u_entry_flare_to_service_opening":
-            -facts["flare_d"] / 2 - facts["service_right_x"],
+        "u_arch_to_service_opening_y":
+            facts["mount_south_y"] - facts["service_north_y"],
         "mount_to_service_opening":
             facts["mount_south_y"] - facts["service_north_y"],
         "mount_to_north_label":
@@ -1119,10 +1121,12 @@ def derive_candidate_evidence(facts: Mapping[str, float],
             - (facts["body_axis_z"] + facts["body_d"] / 2),
         "total_vertical_play": facts["mount_h"] - facts["mount_roof"]
             - facts["body_d"],
-        "cable_core_radial":
+        "full_antenna_arch_radial":
+            (facts["cable_core_d"] - facts["body_d"]) / 2,
+        "cable_radial_within_arch":
             (facts["cable_core_d"] - facts["cable_d"]) / 2,
-        "u_entry_flare_radial":
-            (facts["flare_d"] - facts["cable_d"]) / 2,
+        "arch_entry_over_full_antenna_radial":
+            (facts["flare_d"] - facts["body_d"]) / 2,
         "u_entry_roof_ligament":
             facts["mount_h"] - (facts["body_axis_z"] + facts["flare_d"] / 2),
     }

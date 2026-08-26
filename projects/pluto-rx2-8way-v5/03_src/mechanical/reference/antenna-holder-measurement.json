@@ -144,12 +144,12 @@
       "cable_exit_direction": "south / negative Y, horizontal on the exterior/top side of the PCB enclosure",
       "candidate_cable_diameter_mm": 2.5,
       "open_bottom_u_channel": {
-        "core_width_mm": 4.5,
+        "core_width_mm": 10.8,
         "centerline_z_above_lid_mm": 5.2,
-        "core_crown_z_above_lid_mm": 7.45,
+        "core_crown_z_above_lid_mm": 10.6,
         "outer_entry_flare_length_mm": 1.0,
-        "outer_entry_flare_width_mm": 6.5,
-        "roof_ligament_at_flare_mm": 5.15
+        "outer_entry_flare_width_mm": 10.8,
+        "roof_ligament_at_flare_mm": 3.0
       },
       "pcb_lid_below_mount": "closed except for the two insert/screw fastener stacks; no antenna-cable pass-through",
       "insertion_sweep_mm": 45.0,
@@ -164,7 +164,7 @@
   "excluded_claims": [
     "The holder STL does not authoritatively measure the antenna.",
     "It does not provide antenna body length, elbow fillet, connector size/gender, cable diameter, or bend radius.",
-    "The 2.50 mm cable and its 6.50 mm flared U-channel entry are candidate clearance witnesses, not measurements of the attached production cable or termination.",
+    "The bottom-open D10.80 U-arch is governed by the conservative D10 antenna envelope plus 0.40 mm radial clearance, not merely by the D2.50 cable witness; neither dimension is a measurement of the production antenna or termination.",
     "The modeled 0.40 mm radial clearance and 0.20 mm lid-floor gap do not prove physical retention, rattle resistance, or printer-process fit.",
     "The visual reference is not asserted to depict the exact bound STL.",
     "Derived-envelope collision clearance is not physical fit or PRINT_VERIFIED evidence."

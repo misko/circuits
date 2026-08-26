@@ -4,11 +4,11 @@
       "evidence": {
         "files": {
           "cad_source": {
-            "actual_sha256": "891a96f194f932858d71b12a5802d7033351956554107b26ce65dd7da258ce77",
-            "actual_size": 53562,
+            "actual_sha256": "9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a",
+            "actual_size": 54081,
             "exists": true,
-            "expected_sha256": "891a96f194f932858d71b12a5802d7033351956554107b26ce65dd7da258ce77",
-            "expected_size": 53562,
+            "expected_sha256": "9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a",
+            "expected_size": 54081,
             "matches": true
           },
           "interface": {
@@ -245,7 +245,7 @@
             "triangles": 6680
           },
           "rx2_antenna_mount": {
-            "absolute_volume_mm3": 14210.221297056487,
+            "absolute_volume_mm3": 14010.209636857226,
             "bbox_mm": {
               "max": [
                 32.0,
@@ -264,7 +264,7 @@
               ]
             },
             "boundary_edges": 0,
-            "component_absolute_volume_mm3": 14210.221297056463,
+            "component_absolute_volume_mm3": 14010.209636857215,
             "components": 1,
             "degenerate_facets": 0,
             "edge_manifold": true,
@@ -273,10 +273,10 @@
             "orientation_consistent": true,
             "orientation_mismatches": 0,
             "path": "rx2_antenna_mount.stl",
-            "sha256": "db4e935aaf8bbd36dc3e67976391fd3118d72b3137c92ac4c0a66a069bd63036",
-            "signed_volume_mm3": 14210.221297056487,
-            "size": 871605,
-            "triangles": 5028
+            "sha256": "42430873439e120923228e661ffca3568475fabf5d31e4d7aa9adbf59f68689b",
+            "signed_volume_mm3": 14010.209636857226,
+            "size": 816639,
+            "triangles": 4716
           }
         },
         "support_policy": "forbid_when_practical"
@@ -291,8 +291,8 @@
       "evidence": {
         "assembled_case_mesh": {
           "path": "assembled-case.stl",
-          "sha256": "3615ebc9cddf4c692210747c9d37aac68484b227563ad4ccac1c8ee079fefefa",
-          "size": 5373970
+          "sha256": "84b554d9170c105805864d9f0716b90a3645f66bbfaf6e9e8f7d3d036d34c6ba",
+          "size": 5318042
         },
         "collision_mesh": {
           "absolute_volume_mm3": 0.0,
@@ -349,8 +349,8 @@
               ],
               "path": "assembled-case.stl",
               "selector": "installed_case",
-              "sha256": "3615ebc9cddf4c692210747c9d37aac68484b227563ad4ccac1c8ee079fefefa",
-              "size": 5373970
+              "sha256": "84b554d9170c105805864d9f0716b90a3645f66bbfaf6e9e8f7d3d036d34c6ba",
+              "size": 5318042
             },
             "component_mesh": {
               "path": "step-components.stl",
@@ -359,7 +359,7 @@
             },
             "generation": {
               "path": "generation.json",
-              "sha256": "84ecaf0961bd47437dd2419fd2dde1c866b0da473b9d710a90d6790b70ec27f0",
+              "sha256": "8abef3bda6cfe954c65a6c5e2a6d75ce36a4155d4277bebf3675801f2c800088",
               "size": 6113
             },
             "step": {
@@ -441,7 +441,7 @@
         },
         "collision_report_file": {
           "path": "collision.json",
-          "sha256": "f9083672dd57336892d8fd173d0721832812d56b0378d7cf69d275c033754a3c",
+          "sha256": "75893c4fda5f43e7b46df0d3add1a946912d930f0a5583690807824b22c469c4",
           "size": 3124
         },
         "collision_volume_tolerance_mm3": 0.0001,
@@ -454,15 +454,15 @@
           "authority": {
             "binding": {
               "path": "03_src/mechanical/pluto_rx2_8way_case.scad",
-              "sha256": "891a96f194f932858d71b12a5802d7033351956554107b26ce65dd7da258ce77",
-              "size": 53562
+              "sha256": "9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a",
+              "size": 54081
             },
             "kind": "authored_scad"
           },
           "config": {
             "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml",
-            "raw_sha256": "8aa04168821e005333a5aa3a8658d8c161c8eaf52b55b1416592dda8ea8decce",
-            "semantic_sha256": "79f3c35fbe474defe3782c9ebd5986d574b34131d111b33c0e90b85f43972774"
+            "raw_sha256": "8d9c60504c5340dcd410d0b1813011ea98620a72c233d2c4fbd2285defcbeaa1",
+            "semantic_sha256": "3450f6e832eca7b97a3beaddd4a31f0a1ef2ee306bebe0e39d4728491efe28ec"
           },
           "engine": {
             "executable": "/usr/bin/openscad",
@@ -483,8 +483,8 @@
             ],
             "path": "assembled-case.stl",
             "selector": "installed_case",
-            "sha256": "3615ebc9cddf4c692210747c9d37aac68484b227563ad4ccac1c8ee079fefefa",
-            "size": 5373970
+            "sha256": "84b554d9170c105805864d9f0716b90a3645f66bbfaf6e9e8f7d3d036d34c6ba",
+            "size": 5318042
           },
           "interface": {
             "raw_sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
@@ -563,8 +563,8 @@
               "part": "rx2_antenna_mount",
               "path": "rx2_antenna_mount.stl",
               "selector": "rx2_antenna_mount",
-              "sha256": "db4e935aaf8bbd36dc3e67976391fd3118d72b3137c92ac4c0a66a069bd63036",
-              "size": 871605
+              "sha256": "42430873439e120923228e661ffca3568475fabf5d31e4d7aa9adbf59f68689b",
+              "size": 816639
             },
             {
               "canonicalization": "ascii-stl-facet-order-v1",
@@ -605,13 +605,13 @@
           },
           "source": {
             "path": "enclosure.scad",
-            "sha256": "891a96f194f932858d71b12a5802d7033351956554107b26ce65dd7da258ce77",
-            "size": 53562
+            "sha256": "9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a",
+            "size": 54081
           }
         },
         "generation_file": {
           "path": "generation.json",
-          "sha256": "84ecaf0961bd47437dd2419fd2dde1c866b0da473b9d710a90d6790b70ec27f0",
+          "sha256": "8abef3bda6cfe954c65a6c5e2a6d75ce36a4155d4277bebf3675801f2c800088",
           "size": 6113
         },
         "step_inspection": {
@@ -1800,8 +1800,8 @@
   ],
   "config": {
     "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml",
-    "raw_sha256": "8aa04168821e005333a5aa3a8658d8c161c8eaf52b55b1416592dda8ea8decce",
-    "semantic_sha256": "79f3c35fbe474defe3782c9ebd5986d574b34131d111b33c0e90b85f43972774"
+    "raw_sha256": "8d9c60504c5340dcd410d0b1813011ea98620a72c233d2c4fbd2285defcbeaa1",
+    "semantic_sha256": "3450f6e832eca7b97a3beaddd4a31f0a1ef2ee306bebe0e39d4728491efe28ec"
   },
   "kind": "pcb-enclosure-verification-v1",
   "schema": 1,

@@ -11,6 +11,8 @@ that must track the exact PCB outline, mounting holes, and connector geometry.
 |---|---|
 | `enclosure.yaml` | Declarative enclosure identity, subject, process, CAD backend, geometry, fastener, access-interface, thermal and physical-validation contract |
 | `*.scad` | Parametric OpenSCAD source |
+| `verify_antenna_clearance.py` | Project-specific, fail-closed accessory insertion and exact-collision verifier |
+| `reference/**` | Bound user reference geometry, raw visual evidence, measurements, and conservative candidate contracts |
 | `README.md` | Dimensions, assumptions, export commands, print and assembly instructions |
 | `contracts.md` | This file |
 
