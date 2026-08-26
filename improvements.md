@@ -26,6 +26,7 @@ completion evidence.
 | IMP-233 | Generate the active-project catalog from STATUS/release metadata | accepted | `projects/README.md`, catalog generator and freshness test |
 | IMP-234 | Add an independent firmware release stream bound to exact PCB releases | accepted | firmware release contract, staging/reopen tooling, product-lock composition |
 | IMP-235 | Add an executable commission-admission compositor | accepted | commission receipt, fact-lock/architecture/sourcing gates, hold removal check |
+| IMP-236 | Compose prompt-to-device releases and a product-level digital twin | accepted | exact product manifest, cross-stream replay, device bundle and system twin |
 
 ## IMP-229 — executable PCB documentation and graph
 
@@ -130,6 +131,24 @@ completion evidence.
   examples, missing/ambiguous applicability, unsourced parts, stale receipt,
   transient input mutation, and premature hold-removal known-bads; a clean-room
   ordinary-board fixture must reach the first green boundary without copper.
+
+## IMP-236 — prompt-to-device product composition and digital twin
+
+- status: accepted
+- problem: PCB fabrication, enclosure, board-level JLC twin, and physical
+  evidence currently have separate identities and readiness claims. There is
+  no single replayable device identity that starts at the exact user brief and
+  composes those outputs with a future firmware release or behavioral model.
+- intended landing point: add an exact product manifest that binds the source
+  brief, PCB release, optional enclosure release, future firmware release, and
+  an executable product-level digital twin without forcing unchanged streams
+  to be resealed. Export one user-facing device bundle while retaining each
+  domain's independent status and evidence authority.
+- completion evidence required: a clean prompt-to-device fixture reopens its
+  schematic, fab package, renders, STEP, and enclosure meshes from the product
+  bundle; wrong-parent and mutated-stream fixtures fail; omitted optional
+  firmware/twin scopes remain visibly `INCOMPLETE`; and no component scope can
+  inflate the composed device's physical or production readiness.
 
 ## Index
 

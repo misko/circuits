@@ -1,0 +1,4 @@
+interface:
+  display_name: "PCB Design"
+  short_description: "Prompt to reviewed PCB fabrication artifacts"
+  default_prompt: "Use $pcb-design to take this plain-language device brief through reviewed PCB fabrication and optional enclosure artifacts."

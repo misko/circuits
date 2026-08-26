@@ -1,13 +1,15 @@
 # contract: skills/
 
-**Purpose** — the product: five symlink-published skills (`~/.claude/skills/*`
-point HERE — one home, no drift; the DIRECTORY NAME is the invocation name, so
-`shopping-list/` is `/shopping-list`). Each skill is self-contained: everything
-a clean-room agent needs to design a board lives under its folder. Skills NEVER
-reference a concrete `projects/<board>` path — worked evidence they cite lives
-in `examples/` (machine-checked: contracts_audit C-ISO). Naming a board as
-incident provenance in a post-mortem sentence is fine; pointing at its files
-is not.
+**Purpose** — the product: five installable skills whose development/source
+authority lives HERE. Codex's `$skill-installer` publishes runtime copies under
+`$CODEX_HOME/skills`; reinstall after an update rather than maintaining a
+second hand-edited copy. The directory name is the direct invocation name, so
+`shopping-list/` is `$shopping-list`; `/skills` opens the selector. Each skill
+is self-contained: everything a clean-room agent needs to design a board lives
+under its folder. Skills NEVER reference a concrete `projects/<board>` path —
+worked evidence they cite lives in `examples/` (machine-checked:
+contracts_audit C-ISO). Naming a board as incident provenance in a post-mortem
+sentence is fine; pointing at its files is not.
 
 **Mutability** — hand-edited; every gate change must be reflected in
 `skills/kicad-pcb/references/design-policies.md` (read it first — repo

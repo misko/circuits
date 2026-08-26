@@ -36,6 +36,8 @@ GEN_TSCIRCUIT = ROOT / "skills/kicad-pcb/scripts/gen_tscircuit.sh"
 TSX_TO_BOARD = ROOT / "skills/kicad-pcb/scripts/tsx_to_board.sh"
 TSCIRCUIT_REFERENCE = ROOT / "skills/kicad-pcb/references/tscircuit-folder.md"
 TSCIRCUIT_CONTRACT = ROOT / "skills/pcb-design/templates/contracts/03_tscircuit/contracts.md"
+SKILLS_CONTRACT = ROOT / "skills/contracts.md"
+PCB_OPENAI_YAML = ROOT / "skills/pcb-design/agents/openai.yaml"
 
 ENTRY_DOCS = (README, SKILL, GRAPH, DOCS_INDEX, IMPROVEMENTS)
 CURRENT_ROOT_DOCS = {"CLAUDE.md", "README.md", "contracts.md", "improvements.md"}
@@ -254,6 +256,45 @@ def t_root_brief_only_skill_quick_start():
              "brief-only USB-C requirement")
     contains(section, "v1.12-2026-07-28", "fabricated example release")
     contains(section, "twin_iso_nw.png", "fabricated example hero render")
+
+
+@test("prompt-to-device mission separates current artifacts from future streams")
+def t_prompt_to_device_scope_is_truthful():
+    readme = README.read_text()
+    skill = SKILL.read_text()
+    improvements = IMPROVEMENTS.read_text()
+    contains(readme, "**Prompt to device:**", "root product mission")
+    for artifact in ("schematic PDF", "Gerbers", "drill files", "BOM", "CPL",
+                     "PCB renders", "STEP assembly", "printable STLs"):
+        contains(readme, artifact, f"current output {artifact}")
+    contains(skill.split("---", 2)[1], "prompt-to-device",
+             "skill trigger description")
+    contains(skill, "only a natural-language brief", "brief-only agent input")
+    contains(readme, "iterative development loop, not a one-shot",
+             "multi-turn development boundary")
+    check(re.search(
+        r"integrated product-level\s+digital twin remain tracked work",
+        readme,
+    ), "README does not keep the product-level digital twin in future scope")
+    match = re.search(
+        r"^## IMP-236\b(?P<body>.*?)(?=^## (?:IMP-|Index\b)|\Z)",
+        improvements,
+        re.MULTILINE | re.DOTALL,
+    )
+    check(match is not None, "improvements.md has no IMP-236 tracking entry")
+    contains(match.group(0), "- status: accepted", "IMP-236 roadmap status")
+    contains(match.group(0), "wrong-parent", "IMP-236 fail-closed evidence")
+    install_contract = SKILLS_CONTRACT.read_text()
+    contains(install_contract, "$CODEX_HOME/skills", "Codex install location")
+    contains(install_contract, "$shopping-list", "direct invocation syntax")
+    contains(install_contract, "/skills", "skill selector syntax")
+    check("~/.claude/skills" not in install_contract,
+          "current skill contract still names the retired Claude install path")
+    skill_ui = PCB_OPENAI_YAML.read_text()
+    contains(skill_ui, 'display_name: "PCB Design"', "installed skill name")
+    contains(skill_ui, "Prompt to reviewed PCB fabrication artifacts",
+             "installed skill prompt-to-device summary")
+    contains(skill_ui, "Use $pcb-design", "installed skill default invocation")
 
 
 @test("execution graph stage table exactly mirrors the ordered catalog")

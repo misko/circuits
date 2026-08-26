@@ -1,5 +1,9 @@
 # circuits
 
+**Prompt to device:** give an agent a plain-language hardware brief, work
+through explicit design, review, and physical-test cycles, and finish with the
+artifacts needed to manufacture the device—not merely a plausible CAD image.
+
 ## Quick start
 
 ### 1. Install the skills
@@ -30,9 +34,37 @@ $pcb-design 3S LiPo input → 4× USB-A outputs at 5 V / 1.5 A each + 1× USB-C 
 
 That is the entire prompt: the skill preserves it as the source brief, starts
 the governed workflow, and stops when a real decision or evidence checkpoint
-needs attention.
+needs attention. The project persists in the repository, so later tasks resume
+from committed status and evidence rather than restarting or restating the
+brief. Prompt to device is an iterative development loop, not a one-shot
+generator.
 
-### 3. See a fabricated example
+### 3. Follow the prompt-to-device loop
+
+```text
+plain-language brief
+  → fact locks and architecture
+  → schematic, placement, routing, and enclosure development
+  ↺ independent review, correction, regeneration, and measurement
+  → sealed fabrication and mechanical artifacts
+  → first article, physical findings, and the next development cycle
+```
+
+Today the governed output can include:
+
+- native KiCad schematics and a rendered schematic PDF;
+- the routed KiCad PCB plus Gerbers, drill files, BOM, and CPL for fabrication;
+- top, bottom, and 3D PCB renders plus a STEP assembly;
+- when mechanical work is selected, enclosure source, printable STLs, assembly
+  renders, and clearance evidence.
+
+The pipeline already uses board-level CAD/assembly twins as verification
+instruments. Governed firmware releases and an integrated product-level digital
+twin are forward work, tracked by
+[IMP-234](improvements.md#imp-234--firmware-release-stream) and
+[IMP-236](improvements.md#imp-236--prompt-to-device-product-composition-and-digital-twin).
+
+### 4. See a fabricated example
 
 The closest existing hardware is [`usb-hub-3s-v3`](projects/usb-hub-3s-v3/):
 a 3S-LiPo power board with three USB-A outputs and one USB-C output. It is not
@@ -52,10 +84,10 @@ claim.
 
 ## What this repository is
 
-`circuits` is a code-first PCB engineering system. It turns a user brief into
-generated KiCad source, bounded routing candidates, independently graded
-fabrication evidence, immutable releases, printable enclosures, and measured
-first-article records.
+`circuits` is a code-first prompt-to-device engineering system. It turns a
+user brief into generated KiCad source, bounded routing candidates,
+independently graded fabrication evidence, immutable releases, printable
+enclosures, and measured first-article records.
 
 The product is the workflow under [`skills/`](skills/). Boards under
 [`projects/`](projects/) are its active applications; sealed release folders
@@ -221,8 +253,8 @@ PCB and enclosure versions are independent streams. Current enclosure release
 tooling publishes immutable `INCOMPLETE` candidates bound to one exact PCB
 release without forcing that PCB to be resealed; it does not yet publish a
 higher readiness claim from caller-supplied scope status.
-A future firmware stream and exact product lock remain tracked work, not
-current release authority.
+A future firmware stream, exact product lock, and integrated product-level
+digital twin remain tracked work, not current release authority.
 
 ## Toolchain
 

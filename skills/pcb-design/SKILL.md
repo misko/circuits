@@ -1,12 +1,20 @@
 ---
 name: pcb-design
-description: Drive a PCB from a user brief through architecture, sourced parts, generated schematic, placed and routed KiCad layout, independent verification, JLCPCB assembly release, publication, and first article. Use for a new PCB, a resumed board, a design review, a release, or physical bring-up.
+description: Drive prompt-to-device development from a plain-language hardware brief through iterative architecture, sourcing, schematic, routed KiCad layout, independent verification, fabrication files, optional enclosure artifacts, release, and first article. Use for a new PCB or device, a resumed design, review, release, enclosure handoff, or physical bring-up.
 ---
 
 # PCB design
 
-Deliver a reviewable, regenerable board and make every stronger claim—release,
-order, first article, production—only at its own evidence boundary.
+Turn a plain-language device brief into reviewable, regenerable manufacturing
+artifacts through explicit development and backtrack cycles. Make every
+stronger claim—release, order, first article, production—only at its own
+evidence boundary.
+
+Current deliverables include native and rendered schematics, KiCad PCB source,
+Gerber/drill/BOM/CPL fabrication payloads, PCB renders and STEP assemblies, and
+optional printable enclosure artifacts. The existing board-level JLC digital
+twin is a verification instrument. Governed firmware releases and an integrated
+product-level digital twin remain future work under IMP-234 and IMP-236.
 
 `pcb-design` owns lifecycle composition. It delegates electrical and layout
 mechanics to `kicad-pcb`, manufacturing mechanics to `jlcpcb-fab`, and optional
@@ -16,6 +24,12 @@ exact CLI syntax. `improvements.md` records work and rationale; it is never an
 engineering authority.
 
 ## Quick start
+
+Accept a direct invocation containing only a natural-language brief. Do not
+require the user or an upstream agent to translate it into YAML, CLI flags, or
+PCB terminology. Preserve the brief verbatim, expose consequential unknowns as
+fact locks, and ask only for choices that materially affect safety,
+architecture, mating, fabrication, or cost.
 
 From the repository root, put the user's original brief in a UTF-8 text file
 and create a new governed scaffold:
