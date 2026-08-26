@@ -1,0 +1,172 @@
+{
+  "schema": 1,
+  "kind": "pluto-rx2-user-antenna-holder-measurement-v1",
+  "recorded_date": "2026-08-25",
+  "status": "DERIVED_GEOMETRY_EVIDENCE",
+  "subjects": {
+    "holder_stl": {
+      "path": "user-antenna-holder-reference.stl",
+      "original_attachment_name": "Part Studio 1 - antenna_mount (1).stl",
+      "sha256": "a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f",
+      "size": 14303684,
+      "format": "binary-stl",
+      "units": "mm",
+      "units_authority": "inferred from coherent 107 mm assembly envelope and decimal mechanical features; STL carries no units metadata"
+    },
+    "visual_reference": {
+      "path": "user-clearance-reference.png",
+      "original_attachment_name": "codex-clipboard-9c76871f-5f31-4b1d-bfe3-9d3ab6db616f.png",
+      "sha256": "fa11c8a1376bdc0d80fc2e80a17872a27423fed0575a5d7faea16b94124b4486",
+      "size": 53857,
+      "pixel_size": [1600, 1200],
+      "relationship": "user-supplied clearance-design visual; not asserted to be a render of the bound STL"
+    }
+  },
+  "mesh": {
+    "triangles": 286072,
+    "unique_vertices": 143020,
+    "components": 1,
+    "watertight": true,
+    "edge_manifold": true,
+    "orientation_consistent": true,
+    "degenerate_facets": 0,
+    "signed_volume_mm3": 53513.486251,
+    "bbox_mm": {
+      "min": [-53.5, -53.499996, 0.0],
+      "max": [53.5, 53.499996, 31.325001],
+      "size": [107.0, 106.999992, 31.325001]
+    }
+  },
+  "measured_holder_geometry": {
+    "station_centers_xy_mm": [
+      [0.0, 0.0],
+      [23.75, 0.0],
+      [-23.75, 0.0],
+      [0.0, 23.75],
+      [0.0, -23.75]
+    ],
+    "station_pitch_mm": 23.75,
+    "main_arm_width_mm": 19.75,
+    "horizontal_open_tunnel": {
+      "diameter_mm": 9.75,
+      "radius_mm": 4.875,
+      "centerline_z_mm": 5.325,
+      "roof_z_mm": 10.2,
+      "entry_blend_radius_mm": 1.0,
+      "entry_width_at_z0_mm": 11.75,
+      "section": "vertical sides to the centerline plus an R4.875 semicircular roof; not a full circular bore",
+      "disposition": "open-bottom/outward flexible loading path",
+      "station_orientation": "four outer tunnels open radially/cardinally; the center tunnel opens along +X/-Y into the southeast re-entrant corner"
+    },
+    "vertical_grip": {
+      "lower_bore_diameter_mm": 9.75,
+      "lower_bore_top_z_mm": 20.0,
+      "capture_taper": {
+        "start_z_mm": 20.0,
+        "end_z_mm": 30.0,
+        "start_diameter_mm": 9.75,
+        "end_diameter_mm": 8.75
+      },
+      "top_throat_diameter_mm": 8.75,
+      "top_throat_start_z_mm": 30.0,
+      "top_z_mm": 31.325
+    },
+    "outer_clip": {
+      "base_plate_top_z_mm": 11.325,
+      "base_blend_radius_mm": 2.0,
+      "straight_diameter_mm": 19.75,
+      "straight_start_z_mm": 13.325,
+      "straight_end_z_mm": 29.325,
+      "crown_blend_radius_mm": 2.0,
+      "flat_top_diameter_mm": 15.75,
+      "flat_top_z_mm": 31.325
+    },
+    "fastener_holes": {
+      "diameter_mm": 3.5,
+      "centers_xy_mm": [
+        [48.75, -12.15],
+        [-48.75, 12.15],
+        [12.15, -48.75],
+        [-12.15, 48.75]
+      ]
+    }
+  },
+  "interpretation": {
+    "classification": "five-station compliant split-holder with perpendicular L-shaped loading/retention voids",
+    "not_an_antenna_solid": true,
+    "candidate_antenna_envelope": {
+      "authority": "conservative derived envelope; not a measured antenna or vendor drawing",
+      "horizontal_lower_body_diameter_mm": 10.0,
+      "perpendicular_lower_upright_diameter_mm": 10.0,
+      "upright_transition": {
+        "start_z_mm": 20.0,
+        "end_z_mm": 30.0,
+        "start_diameter_mm": 10.0,
+        "end_diameter_mm": 8.75
+      },
+      "upper_upright_diameter_mm": 8.75
+    },
+    "reference_holder_nested_fit": {
+      "kind": "intentional-flex-interference-not-disjoint-collision",
+      "d10_vs_lower_grip_radial_interference_mm": 0.125,
+      "d10_vs_retention_lip_radial_interference_mm": 0.625,
+      "d8_75_upper_vs_d8_75_throat_nominal_radial_delta_mm": 0.0,
+      "result": "PASS_EXPECTED_COMPLIANT_RETENTION",
+      "note": "The split holder can flex around these nested envelopes. Its D9.75/D8.75 voids must not be copied into a rigid closed pocket."
+    },
+    "feature_frame_comparison": {
+      "source_station_center_xyz_mm": [0.0, -23.75, 5.325],
+      "source_to_mount_local_translate_mm": [0.0, 40.25, -0.125],
+      "source_to_mount_local_rotation_deg": [0.0, 0.0, 0.0],
+      "mapped_station_center_xyz_mm": [0.0, 16.5, 5.2],
+      "source_channel_exit_y_mm": -53.5,
+      "mapped_channel_exit_y_mm": -13.25,
+      "mount_hood_south_edge_y_mm": -13.0,
+      "result": "FEATURE_FRAMES_AGREE_WITHIN_0.25_MM",
+      "authority": "feature-frame comparison only; not a placement or substitution of the complete holder STL"
+    },
+    "production_rigid_mount": {
+      "candidate_lower_diameter_mm": 10.0,
+      "minimum_radial_clearance_mm": 0.4,
+      "modeled_lower_cavity_diameter_mm": 10.8,
+      "rectangular_underside_relief_mm": [58.0, 31.0],
+      "rectangular_underside_relief_extents_xy_mm": [[-29.0, 29.0], [-10.0, 21.0]],
+      "upright_through_aperture_diameter_mm": 10.8,
+      "upright_aperture_north_extent_mm": 21.9,
+      "roof_hung_locator_rail_thickness_mm": 2.0,
+      "roof_hung_locator_gap_mm": 10.8,
+      "closed_lid_body_floor_clearance_mm": 0.2,
+      "result": "PASS_CANDIDATE_CLEARANCE_NO_FLEX_REQUIRED"
+    },
+    "prewired_cable_loading_path": {
+      "loading_method": "complete L-shaped antenna and already-attached cable translate vertically through one rectangular underside opening as the adapter is lowered",
+      "threading_required": false,
+      "cable_exit_direction": "south / negative Y, horizontal on the exterior/top side of the PCB enclosure",
+      "candidate_cable_diameter_mm": 2.5,
+      "open_bottom_u_channel": {
+        "core_width_mm": 4.5,
+        "centerline_z_above_lid_mm": 5.2,
+        "core_crown_z_above_lid_mm": 7.45,
+        "outer_entry_flare_length_mm": 1.0,
+        "outer_entry_flare_width_mm": 6.5,
+        "roof_ligament_at_flare_mm": 5.15
+      },
+      "pcb_lid_below_mount": "closed except for the two insert/screw fastener stacks; no antenna-cable pass-through",
+      "insertion_sweep_mm": 45.0,
+      "authority": "candidate envelope and user-directed assembly topology; actual cable OD/termination remain unmeasured"
+    }
+  },
+  "method": {
+    "topology": "dependency-free binary STL facet/edge audit at 1e-6 mm vertex quantization",
+    "dimensions": "axis-aligned bounds, horizontal plane sections, cylinder-axis fitting, and surface-transition inspection",
+    "nested_fit_rule": "radial delta = (candidate antenna diameter - holder void diameter) / 2"
+  },
+  "excluded_claims": [
+    "The holder STL does not authoritatively measure the antenna.",
+    "It does not provide antenna body length, elbow fillet, connector size/gender, cable diameter, or bend radius.",
+    "The 2.50 mm cable and its 6.50 mm flared U-channel entry are candidate clearance witnesses, not measurements of the attached production cable or termination.",
+    "The modeled 0.40 mm radial clearance and 0.20 mm lid-floor gap do not prove physical retention, rattle resistance, or printer-process fit.",
+    "The visual reference is not asserted to depict the exact bound STL.",
+    "Derived-envelope collision clearance is not physical fit or PRINT_VERIFIED evidence."
+  ]
+}

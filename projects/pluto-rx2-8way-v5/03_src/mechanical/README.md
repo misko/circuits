@@ -1,242 +1,213 @@
 # Pluto RX2 8-way v5 printable enclosure
 
-This is a support-free, two-piece FDM enclosure for the exact 90 x 65 x
-1.6 mm `pluto-rx2-8way-v5` PCB. It provides openings for all nine right-angle
-SMA jacks, USB-C power, and a shared top service bay for J11 SWD and J12 bench
-power. It remains usable when only some SMA positions are populated.
+This is a support-conscious split enclosure for the exact 90 × 65 × 1.6 mm
+`pluto-rx2-8way-v5` PCB release `v0.2.1-2026-08-14`. It preserves access to
+all nine right-angle SMA jacks, USB-C power, and the J11/J12 top service bay.
+The connector-relative lid labels are the larger `A1` through `A8` markings.
 
-The lid now accepts a **separate** printable RX2/reference-antenna clip. Two
-M3 x 8 socket-head screws attach that clip to two E-Z LOK inserts pressed from
-the lid underside. The clip holds a candidate 10 mm right-angle antenna body
-at two open-top snap stations, keeps its weight off the Pluto+ RX2 connector,
-and guides an RG316-class pigtail through a 15 mm-radius bend and a post-bend
-snap strain relief. `rx2_clip_fit_coupon.stl` is mandatory because no
-authoritative antenna drawing or cable MPN is currently bound to this design.
+This revision adds a **separate, closed-top, bottom-loaded RX2/reference
+antenna adapter**. Here, “top” means the exterior/top side of the PCB
+enclosure. The complete right-angle antenna already has its cable attached;
+the cable is not threaded through a closed hole. Instead, the adapter is
+lowered over the complete assembly. The antenna and cable translate upward
+through one 58 × 31 mm rounded-rectangular underside opening, while the cable
+enters a bottom-open U-channel in the adapter's south wall. In service the
+cable continues straight south (`-Y`) and horizontally on the exterior.
 
-The Pluto+ mechanical record identifies the short-edge RF order as
-`TX2 · RX2 · RX1 · TX1` and the RX2 jack as a right-angle SMA-family female
-connector. It does **not** yet settle standard versus RP-SMA or provide an
-authoritative enclosure/antenna model. This enclosure therefore uses a cable,
-never a rigid direct mate, and treats the antenna and cable solids in renders
-as clearance witnesses rather than sourced production geometry.
+The PCB lid below the adapter remains closed except for the two fastener
+stacks. There is no antenna/cable lid pass-through, hidden throat, internal
+cable run, S-bend, or snap geometry.
 
-The case uses the PCB's four 3.2 mm mounting holes. Four M3 x 20 socket-head
-screws pass through the lid, printed spacer columns, and PCB into four flanged
-M3 inserts in the base. No separate lid fasteners are needed.
+Two M3 × 8 socket-head screws attach the adapter to two E-Z LOK inserts in
+reinforced lid bosses. The upright aperture fixes translation, two roof-hung
+rails key the horizontal D10 candidate branch, and the south U-channel fixes
+its cable axis. The lid becomes the cavity floor only after the adapter seats.
+This topology captures the candidate against lift and gross rotation without
+loading a Pluto+ SMA connector.
 
-## Insert assumption and calibration
+## Honest status
 
-The default pocket targets the E-Z LOK E-Z Press flanged M3-0.5 insert
+This design is **`INCOMPLETE`**, not `CAD_READY` or `PRINT_VERIFIED`, for the
+antenna accessory. The supplied STL is authoritative evidence for a flexible
+holder's clearance concept, not for the antenna itself. The modeled D10/D8.75
+antenna and D2.50 cable are conservative candidate witnesses. Automated
+collision and insertion-path checks cannot qualify physical retention,
+rattle, printer-process fit, or the unmeasured cable termination.
+
+Production requires one authoritative antenna/cable profile from calipers or
+a dimensioned vendor drawing:
+
+- horizontal branch OD and shoulder-to-upright-axis length;
+- lower upright OD, taper/shoulder, upper upright OD, and usable length;
+- elbow/fillet maximum envelope;
+- attached cable OD, termination/ferrule envelope, and exit direction;
+- any external bend-radius and strain-relief requirement after the U-channel.
+
+`rx2_antenna_fit_gauge.stl` provides 9.0, 9.5, 10.0, and 10.5 mm nominal body
+stations using the same 0.40 mm radial clearance. It can qualify printed body
+clearance only; it cannot qualify the complete L profile or attached cable.
+
+## Supplied-holder evidence
+
+The original user files are preserved without modification in `reference/`:
+
+- `user-antenna-holder-reference.stl`, SHA-256
+  `a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f`,
+  14,303,684 bytes;
+- `user-clearance-reference.png`, SHA-256
+  `fa11c8a1376bdc0d80fc2e80a17872a27423fed0575a5d7faea16b94124b4486`,
+  53,857 bytes.
+
+`reference/antenna-holder-measurement.json` binds the exact files and the
+measurement/interpretation method. The STL is one watertight manifold holder
+with five stations at 23.75 mm pitch. Each station has a bottom-open/outward
+D9.75 U-path, a D9.75 lower vertical grip, a D9.75→D8.75 taper, a D8.75 top
+throat, and a D19.75 four-petal split collar. The 0.40 mm diagonal slots prove
+that those voids rely on flex. They must not be copied as rigid D10 cavities.
+
+The current rigid adapter therefore uses 0.40 mm radial clearance around the
+conservative D10 lower L envelope. D9.75/D8.75 remain holder-void evidence,
+not claimed antenna measurements.
+
+## Adapter geometry and loading path
+
+| Check | Value / assertion |
+|---|---:|
+| Adapter envelope | 64.0 × 37.0 × 13.6 mm |
+| Perimeter wall / closed roof | 3.0 / 3.0 mm |
+| Underside relief | 58.0 × 31.0 mm, R1.5; x ±29, y -10…21 |
+| Candidate horizontal/lower-upright OD | 10.0 / 10.0 mm |
+| Candidate taper / upper upright | D10→D8.75 at z20…30 / D8.75 |
+| Rigid radial clearance | 0.40 mm; D10.8 rail gap/aperture |
+| Roof-hung locator rails | 2.0 mm thick; z1.2…10.6; y -2…18 |
+| Body-to-lid / body-to-roof gaps | 0.20 / 0.40 mm |
+| Upright aperture north extent / wall | y21.9 / 2.1 mm |
+| Cable witness | D2.50, straight south, center z5.20 above lid |
+| Open-bottom U-channel core | D4.50; 1.00 mm radial cable clearance |
+| Exterior anti-chafe flare | 1.0 mm long, D6.50 entry |
+| U-channel crown / roof ligament at flare | z8.45 / 5.15 mm |
+| Vertical insertion sweep | 45.0 mm, complete antenna+cable assembly |
+| Mount-to-service-opening gap | 4.30 mm |
+| Flared U-entry to service opening | 0.75 mm lateral |
+| Mount-to-north-label nominal gap | 1.10 mm |
+
+The rectangular relief and D10.8 upright aperture overlap: the relief reaches
+y=21.0, while the aperture continues to y=21.9 from z=0 through the roof.
+Thus the full D10 upright footprint reaches the underside with no hidden
+undercut. Roof-hung rails leave the D10.8 vertical path open below them.
+
+The deterministic `part="insertion_sweep_vs_mount"` selector sweeps each
+convex antenna/cable primitive through the full 45 mm straight-Z insertion
+path and intersects that swept volume with the adapter. An empty export is the
+required result. This is stronger than checking only the final seated state.
+
+Access-zone checks use conservative configured plug envelopes:
+
+- the north SMA plug envelope remains 3.5 mm from the adapter;
+- each east/west SMA plug envelope remains 8.0 mm from it;
+- the cable's lower surface is 14.05 mm above the USB-C arch top where their
+  plan views cross;
+- the D6.50 U-entry stays 0.75 mm from the J11/J12 service-opening envelope;
+- the 45 mm cable witness extends 9.1 mm beyond the south case edge and never
+  enters the PCB enclosure.
+
+## Insert authority and screw stack
+
+Use only the coupon-qualified E-Z LOK E-Z Press flanged M3-0.5 family
 `260-M3-BR` or dimensionally equivalent `260-M3-CR`:
 
-- 4.216 mm nominal body diameter
-- 5.537 mm flange diameter
-- 4.775 mm overall length
-- 3.962 mm (5/32 inch) manufacturer starting hole
+- 4.216 mm nominal body diameter;
+- 5.537 mm flange diameter;
+- 4.775 mm overall length;
+- **4.25 mm production pilot**, physically selected as the smallest reliable
+  printed fit;
+- 6.10 × 0.80 mm flange recess.
 
-FDM holes commonly print undersize. Print `insert_coupon.stl` first. Its four
-pockets, left to right when the recessed labels face you, are 4.15, 4.25,
-4.35, and 4.45 mm in the model. Physical coupon testing selected 4.25 mm as
-the smallest reliable fit, so the production base and enclosure contract use
-a 4.25 mm pilot. Do not install an insert by melting it with a soldering iron:
-this insert family is intended to be cold-pressed.
+Do not substitute a generic heat-set insert. These inserts are cold-pressed.
+The base and two reinforced lid bosses preserve the same 4.25 mm authority.
 
-The flange recess is deliberately 6.10 x 0.80 mm so the PCB rests on a plastic
-annulus rather than on the metal flange. Confirm this against one physical
-insert before assembling the board.
-
-The two new lid bosses reuse that exact insert family and 4.25 mm pilot. They
-flare from 9.00 mm at the insert flange to 12.00 mm at the roof and project
-3.50 mm into the lid interior. The resulting minimum flange-pocket radial wall
-is 1.45 mm. Inserts enter from the underside, so an upward clip pull seats each
-insert flange into the reinforced boss instead of extracting it.
-
-The clip screw stack is explicit and checked in the authored source:
-
-| RX2 clip fastener dimension | Value |
+| RX2 adapter fastener dimension | Value |
 |---|---:|
-| Screw | M3 x 8 socket-head cap, two required |
-| Clip plate / head locating recess | 3.20 / 0.50 mm |
+| Screws | 2 × M3 × 8 socket-head cap |
+| Screw-head bearing plane above lid | 2.700 mm |
 | Insert engagement | 4.175 mm |
-| Screw-tip clearance inside insert | 0.600 mm |
+| Screw-tip clearance | 0.600 mm |
 | Roof skin above blind insert pilot | 0.825 mm |
-| Minimum boss wall at flange recess | 1.450 mm |
+| Lid-boss wall at flange recess | 1.450 mm |
+| Adapter screw-column radial wall | 2.850 mm (D12 around D6.3 well) |
 
-Do not substitute a generic heat-set insert: the pocket, pull direction, and
-stack above are specific to E-Z LOK `260-M3-BR` or dimensionally equivalent
-`260-M3-CR` cold-press inserts.
+Inserts enter from the lid underside, so upward load seats each flange into a
+reinforced 9-to-12 mm boss. The D12 adapter columns carry screw-head load to
+the lid. Do not use the antenna cable as a lifting handle.
 
-## RX2 antenna fit authority
-
-Legacy SPF fixture source records two unsourced candidate antenna families in
-the 9.0–10.0 mm body range. That is useful for a coupon ladder, but is not an
-authoritative production dimension. The clip source therefore defaults to
-10.0 mm and the fit coupon provides 9.0, 9.5, 10.0, and 10.5 mm snap stations.
-
-The one missing production measurement is the **outside diameter across a
-straight cylindrical antenna grip zone at least 14 mm long**. Measure that
-zone with calipers, then print the ladder and select the station that retains
-the real body without crushing or marring it. Do not force an antenna into the
-10.0 mm default. A selected ladder station qualifies only the antenna clip;
-it does not qualify the complete enclosure or promote it to `PRINT_VERIFIED`.
-
-The modeled cable is a 2.50 mm-OD RG316-class candidate with a 15.0 mm
-centerline bend. Bind the actual pigtail MPN and respect its datasheet minimum
-bend radius before treating the route as production-qualified. The open guide
-rails and post-bend snap station deliberately react cable pulls into the
-separate clip, not into the Pluto+ RX2 SMA jack.
-
-## PCB-derived geometry
-
-All positions are transformed directly from the current KiCad board:
+## PCB-derived enclosure geometry
 
 | Feature | Case-local position, mm |
 |---|---|
-| PCB outline | 90 x 65 |
+| PCB outline | 90 × 65 |
 | Mounting holes | (-40,-27.5), (40,-27.5), (-40,27.5), (40,27.5) |
-| North SMA centers | x = -30,-15,0,15,30; y = 32.5 |
-| West/east SMA centers | x = -45/+45; y = 4.5,-13.5 |
-| USB-C mouth | x = 0; y = -32.5 |
-| J11 SWD | (-21,-23.5) |
-| J12 bench power | (-11,-24.5) |
+| North SMA centers | x=-30,-15,0,15,30; y=32.5 |
+| West/east SMA centers | x=-45/+45; y=4.5,-13.5 |
+| USB-C mouth | x=0; y=-32.5 |
+| J11 SWD / J12 bench power | (-21,-23.5) / (-11,-24.5) |
 
-The PCB bottom is 7.80 mm above the case exterior floor. This leaves 5.40 mm
-above the 2.40 mm floor for trimmed through-hole tails. The SMA RF centerline
-is 19.70 mm above the case floor, and the seam is placed on that centerline.
-The inside of the lid is 1.50 mm above the SMA's specified 13.80 mm top-side
-envelope.
+The PCB bottom is 7.80 mm above the case exterior floor. The SMA RF centerline
+and wall seam are at Z=19.70 mm. The inside lid face is Z=24.70 mm and the
+case top is Z=27.10 mm. The closed adapter sits on that exterior top plane.
 
-The case is approximately 96.8 x 71.8 x 27.1 mm. The SMA cable-access opening
-flares from 10.2 mm at the board side to 12.0 mm at the outside wall. Measure
-the coupling nut on the intended SMA cable; increase
-`sma_opening_inner_d`/`sma_opening_outer_d` if it exceeds these clearances.
+## Print and assembly
 
-The enlarged lid markings are `A1` through `A8`; only the new enclosure
-revision uses those labels. The five north labels remain at x = -30, -15, 0,
-15, 30 mm and the four side labels retain their original connector-relative
-orientation. A conservative source assertion keeps the north clip edge at
-least 1.0 mm from the label envelope. The clip tail also remains at least
-1.0 mm east of the SWD/5V service-opening envelope, preserving lid removal
-and service access.
+Print PETG at 0.20 mm layers with a 0.4 mm nozzle, four perimeters, at least
+five top/bottom layers, and 25–35% infill. Disable supports for all five parts.
+`lid.stl` prints exterior-face-down. `rx2_antenna_mount.stl` prints its closed
+top face on the bed, so the rectangular underside cavity, roof-hung rails,
+screw wells, and bottom-open U-channel grow upward without trapped support.
 
-## Export
+Assembly sequence:
 
-Run from `projects/pluto-rx2-8way-v5`:
+1. Reconfirm the 4.25 mm insert coupon on the production printer/material and
+   use the antenna fit gauge without forcing or marring the real antenna.
+2. Press four qualified E-Z LOK inserts into the base and two into the lid
+   underside bosses. Support each boss directly; do not melt or screw-pull.
+3. Complete the normal unpowered board drop-in, lid closure, and all-interface
+   mating checks before adding the antenna adapter.
+4. Place the complete pre-wired L antenna on the closed lid exterior: upright
+   at `(0,16.5)`, horizontal branch toward south, attached cable continuing
+   straight south. Nothing passes through the lid.
+5. Hold the adapter above the assembly. Align the upright with the D10.8 top
+   aperture and the attached cable with the bottom-open south U-notch.
+6. Lower the adapter straight down. The entire L assembly enters the one
+   rectangular underside opening; the cable rises into the U-notch from below.
+   **Do not thread the cable through any bore.**
+7. Confirm the adapter seats flat, cable is free in the U-channel, service bay
+   remains usable, and antenna/cable are not pinched. Install the two M3 × 8
+   screws alternately and only snug them enough to prevent adapter motion.
 
-```sh
-mkdir -p 06_build/mechanical/pluto-rx2-8way-case
-openscad -o 06_build/mechanical/pluto-rx2-8way-case/base.stl -D 'part="base"' 03_src/mechanical/pluto_rx2_8way_case.scad
-openscad -o 06_build/mechanical/pluto-rx2-8way-case/lid.stl -D 'part="lid"' 03_src/mechanical/pluto_rx2_8way_case.scad
-openscad -o 06_build/mechanical/pluto-rx2-8way-case/insert_coupon.stl -D 'part="insert_coupon"' 03_src/mechanical/pluto_rx2_8way_case.scad
-openscad -o 06_build/mechanical/pluto-rx2-8way-case/rx2_antenna_clip.stl -D 'part="rx2_antenna_clip"' 03_src/mechanical/pluto_rx2_8way_case.scad
-openscad -o 06_build/mechanical/pluto-rx2-8way-case/rx2_clip_fit_coupon.stl -D 'part="rx2_clip_fit_coupon"' 03_src/mechanical/pluto_rx2_8way_case.scad
-openscad -o 06_build/mechanical/pluto-rx2-8way-case/assembled-case.stl -D 'part="installed_case"' -D 'show_reference_board=false' 03_src/mechanical/pluto_rx2_8way_case.scad
-```
+For removal, disconnect power, remove both M3 × 8 screws, and lift the adapter
+straight upward while supporting the antenna. The pre-wired assembly exits the
+same open underside/U-channel path. Do not pull it out by the cable.
 
-`lid.stl` is already rotated into its support-free print orientation. The RX2
-clip and both coupons export exterior/label face up with a broad flat build
-face; do not rotate them. To view the exploded assembly in OpenSCAD, open the
-source without a `part` override. `assembled-case.stl` is not a printable part;
-it is the fixed, installed-orientation enclosure-only subject used by exact
-collision verification and includes the installed clip but no antenna/cable
-witness.
+The enclosure is not weatherproof or RF-shielding.
 
-## Print
+## Reproducible skill pipeline
 
-- Material: PETG preferred for toughness; PLA is suitable for bench use away
-  from hot equipment and direct sun.
-- Layer height: 0.20 mm.
-- Walls: 4 perimeters.
-- Top/bottom: at least 5 layers.
-- Infill: 25-35%; use 5 solid modifier layers around insert bosses if the
-  slicer supports it.
-- Supports: off for the base, lid, both coupons, and RX2 antenna clip.
-- Orientation: use the exported orientation without rotation.
-- Compensate elephant foot if the lid's exterior face becomes tight at the
-  perimeter.
-
-The RX2 clip grows only vertical walls and 45-degree snap lips from its flat
-plate; the cable path is open from above and contains no trapped support. The
-lid prints exterior-face down, so its two reinforced insert bosses and
-top-facing insert recesses grow upward in print orientation.
-
-The USB opening has 45-degree shoulders and only a 4 mm bridge at its crown.
-The lid's screw counterbores have a short 1.4 mm radial bridge at their seat;
-both are intentional support-free features.
-
-## Assembly
-
-1. Print and use both coupons. The current production insert pocket is
-   4.25 mm; revise and re-export the base **and lid** if a changed printer
-   process needs another size. Select an antenna clip station from the real
-   body; do not assume the 10.0 mm candidate.
-2. Press four inserts squarely into the base with a vise or arbor/drill press.
-   Support the floor directly beneath each boss and stop when the flange is
-   seated in its recess. Do not pull an insert into place with a screw.
-3. With the lid removed and its inside facing up, press two more of the **same
-   E-Z LOK inserts** squarely into the two flared lid bosses. Support the roof
-   immediately around each boss. Stop with both flanges seated; do not melt or
-   screw-pull the inserts into place.
-4. Place the separate clip on the lid exterior and install two M3 x 8
-   socket-head screws. The shallow head recesses locate rather than bury the
-   heads. Tighten only until the clip cannot rotate; the modeled stack leaves
-   4.175 mm engagement and 0.600 mm nominal tip clearance.
-5. Trim all through-hole leads. None may project more than 4.5 mm below the
-   PCB; aim for 2 mm or less.
-6. Set the unpowered PCB on the four plastic boss rims. Confirm every SMA body
-   sits freely in its lower half-opening and USB-C is centered in its arch.
-7. Fit the lid. Its four columns should land around the PCB mounting holes,
-   not on parts or solder joints. They have 0.15 mm nominal clearance above
-   the PCB to avoid bending it. The inner alignment lip should enter the lid
-   without force.
-8. Install four M3 x 20 socket-head screws. Tighten in a cross pattern only
-   until the wall seam closes. The wall seam sets the stack height; do not
-   crush it in an attempt to eliminate the deliberate column clearance.
-9. Snap the straight 14 mm-or-longer zone of the reference antenna body into
-   both open-top stations. Mate its pigtail at the south end, lay the cable in
-   the 15 mm-radius guide, and snap it into the post-bend strain relief. The
-   antenna body must remain supported if the Pluto end is disconnected.
-10. Mate each intended SMA cable and the USB-C cable before powering the board.
-   Enlarge a parameter and reprint if a plug housing rubs; do not force a
-   connector against the PCB solder joints.
-
-This enclosure is ventilated through its connector and service openings. It
-is not weatherproof or RF-shielding. The RX2 clip is only for the lightweight
-candidate antenna and RG316-class pigtail shown; secure heavier coax
-independently when the board is used outside a bench setup.
-
-## Reusable skill canary
-
-`enclosure.yaml` binds the exact hand-tuned SCAD above as the authored CAD
-authority for the shared `pcb-enclosure` skill. The skill copies those bytes
-unchanged, exports every declared printable part, and binds the resulting
-meshes and the fixed `installed_case` collision subject to the sealed PCB/STEP
-subject. The PCB release manifest is bound separately so the dependency is the
-exact sealed v0.2.1 archive rather than a version label alone. The built-in
-generic enclosure engine is not used for this design.
-
-Run from the repository root:
+From the repository root:
 
 ```sh
-/usr/bin/python3 skills/pcb-enclosure/scripts/extract_board_interface.py \
-  projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/source/pluto_rx2_8way_v5.kicad_pcb \
-  -o projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/board-interface.json \
-  --access-ref J1 --access-ref J2 --access-ref J3 --access-ref J4 \
-  --access-ref J5 --access-ref J6 --access-ref J7 --access-ref J8 \
-  --access-ref J9 --access-ref J10 --access-ref J11 --access-ref J12
-
 /usr/bin/python3 skills/pcb-enclosure/scripts/generate_enclosure.py \
   projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml \
   --root projects/pluto-rx2-8way-v5 \
   --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell
 
-/usr/bin/python3 skills/pcb-enclosure/scripts/inspect_step.py \
+uv run --offline --with cadquery python \
+  skills/pcb-enclosure/scripts/inspect_step.py \
   projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
   --interface projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/board-interface.json \
   --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
   --component-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-components.stl
 
-"$CADQUERY_PYTHON" skills/pcb-enclosure/scripts/build_collision.py \
+uv run --offline --with cadquery python \
+  skills/pcb-enclosure/scripts/build_collision.py \
   --step projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
   --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
   --component-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-components.stl \
@@ -256,22 +227,31 @@ Run from the repository root:
   --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/verification.json \
   --target cad
 
-/usr/bin/python3 skills/pcb-enclosure/scripts/render_enclosure.py \
-  projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad \
-  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/assembly.png \
-  --size 1800,1300
-
-/usr/bin/python3 skills/pcb-enclosure/scripts/package_enclosure.py \
-  projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml \
-  --root projects/pluto-rx2-8way-v5 \
+uv run --offline --with cadquery python \
+  projects/pluto-rx2-8way-v5/03_src/mechanical/verify_antenna_clearance.py \
+  --config projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml \
+  --generation projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/generation.json \
+  --scad projects/pluto-rx2-8way-v5/03_src/mechanical/pluto_rx2_8way_case.scad \
+  --step projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
+  --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
+  --holder-stl projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-antenna-holder-reference.stl \
+  --holder-png projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-clearance-reference.png \
+  --holder-measurement projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-holder-measurement.json \
+  --candidate-contract projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-adapter-candidate-contract.json \
   --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell \
-  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/pluto-rx2-8way-v5-enclosure-pcb-v0.2.1-rx2-clip-cad-ready.zip
+  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/antenna-clearance.json
 ```
 
-`CADQUERY_PYTHON` must name a Python environment containing CadQuery/OCP. The
-STEP occurrence inventory covers every modeled footprint, and the exact BRep
-collision run currently returns an empty intersection for the generated,
-proven `installed_case`. Without that backend or its bound receipts, the
-verifier returns 2/`INCOMPLETE` rather than guessing. Physical fit still needs
-the printed coupon, board drop-in, lid closure, and all cable-mating checks;
-neither an OpenSCAD render nor a watertight STL promotes those claims.
+The generic verifier binds the sealed PCB/STEP and exact installed-case
+collision evidence. `antenna-clearance.json` separately binds the non-printable
+antenna reference, U-channel, continuous insertion sweep, exact STEP component
+checks, and access-zone calculations. A passing CAD pipeline does not promote
+the accessory above `INCOMPLETE` until the missing antenna/cable and physical
+fit evidence exists.
+
+Do not feed this revision to the generic enclosure packager: that package has
+no accessory-evidence schema and would label the shell `CAD_READY` while
+omitting the raw holder evidence, candidate contract, non-printable antenna
+and cable witnesses, and accessory receipt. Until a dedicated accessory
+package contract exists, publish only the explicitly `INCOMPLETE` co-design
+evidence directory described alongside the candidate artifacts.

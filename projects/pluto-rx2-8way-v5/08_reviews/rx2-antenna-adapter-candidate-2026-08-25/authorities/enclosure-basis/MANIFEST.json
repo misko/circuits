@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "kind": "pcb-enclosure-release-v1",
+  "artifact_id": "pluto-rx2-8way-v5-enclosure",
+  "version": "v0.2.0",
+  "date": "2026-08-25",
+  "status": "CAD_READY",
+  "based_on": {
+    "release": "v0.2.1-2026-08-14",
+    "manifest_sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+    "pcb_sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+    "step_sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f"
+  },
+  "cad_authority": {
+    "kind": "authored_scad",
+    "sha256": "fb84be856e8ce6c89ebe96277efa170b4f945a9ccdf5c910655c5553a34382a6",
+    "size": 30290
+  },
+  "package": {
+    "path": "package/pluto-rx2-8way-v5-enclosure-pcb-v0.2.1-rx2-clip-cad-ready.zip",
+    "sha256": "6348fb2d7ce5b2108db9927ca6620fb534a91df475dddabf57db2504a2e196db",
+    "size": 16390939
+  },
+  "payloads": [
+    {"path": "README.md", "sha256": "8935dd7cf4148be697eb03b23e2d731598f47fd087f0c4a2df22fbc002d4ba26", "size": 4958},
+    {"path": "cad/pluto_rx2_8way_case.scad", "sha256": "fb84be856e8ce6c89ebe96277efa170b4f945a9ccdf5c910655c5553a34382a6", "size": 30290},
+    {"path": "meshes/base.stl", "sha256": "c17789da30c0f7567946d9619295e1635e1113413558186caa0b8496c33ca926", "size": 1218340},
+    {"path": "meshes/insert_coupon.stl", "sha256": "d81727855a0aa2ace7bdb2cf98e2eed7f2eac0e12dd9b86b2ab6ed8ddc946429", "size": 1162772},
+    {"path": "meshes/lid.stl", "sha256": "f3fc2ab20211a538c39ea093815c2cbab508e40b77907e993001498b7bc5c01b", "size": 3544236},
+    {"path": "meshes/rx2_antenna_clip.stl", "sha256": "0efc90ec8d96859965849dc8fd5c75d7527fed9cd2180e53bd601242237073f7", "size": 730387},
+    {"path": "meshes/rx2_clip_fit_coupon.stl", "sha256": "2cd5bf4289da722125de332240f4b7d262f9e819e12065cf0bdbdd3300a236a5", "size": 823355},
+    {"path": "package/pluto-rx2-8way-v5-enclosure-pcb-v0.2.1-rx2-clip-cad-ready.zip", "sha256": "6348fb2d7ce5b2108db9927ca6620fb534a91df475dddabf57db2504a2e196db", "size": 16390939},
+    {"path": "renders/assembly.png", "sha256": "4ff245bfb8416f7d19c0cdd31b814d7f7a43766f68e007e641fab1612e332172", "size": 124454},
+    {"path": "renders/closed-assembly.png", "sha256": "98a97697de85272b56c94e87c323c0825553a7227d1b40d942a636604447a13e", "size": 127215},
+    {"path": "renders/closed-case.png", "sha256": "015a8bb91d11bdb721c5bf97c0f9f2ea3d4cddb823f99460d3e9a56f7047d829", "size": 100342},
+    {"path": "renders/insert-coupon.png", "sha256": "93cfbf671e16de340c73dd9602c157d1ee089249718e124068b9e2a2243f59cb", "size": 50424},
+    {"path": "renders/label-clearance.png", "sha256": "55ad19591a34b2f437a47dac0a2e1415371c35132742bad7a684351b95805038", "size": 93734},
+    {"path": "renders/lid-print-orientation.png", "sha256": "97fd62f04764b29f62d78325f3e787ef8bf0dc2fc5feb35fa95a2b3c61fdb117", "size": 73629},
+    {"path": "renders/rx2-antenna-clip.png", "sha256": "439b96baaa63443ea4d638ef98fa03f3efce75a97063a58affe3baca9f9c17be", "size": 48907},
+    {"path": "renders/rx2-clip-fit-coupon.png", "sha256": "35904ce789e1a5d83e0bf792b069cdae712c94e731300c7d092ed7032210a64b", "size": 36387},
+    {"path": "source/board-interface.json", "sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3", "size": 31058},
+    {"path": "source/enclosure.yaml", "sha256": "93c59972220b8c4fbb3a47acb093c999e440c50ad9c7fea4b5696b7bc6b09479", "size": 5640},
+    {"path": "verification/assembled-case.stl", "sha256": "0f91b9e184237e9f561a473ea3e94551850245131c20a01178d62dcbb9879297", "size": 5258577},
+    {"path": "verification/clearance-intersection.stl", "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445", "size": 181},
+    {"path": "verification/collision.json", "sha256": "3f11751d7e26a4959441d718ee185fb363a3bd101a6f97614f59107262b8a607", "size": 3124},
+    {"path": "verification/generation.json", "sha256": "3511206c0b01c5bc82a48427df5ce26dd9e12e86605c963f5191c85bf098f628", "size": 6091},
+    {"path": "verification/step-components.stl", "sha256": "853ab6711b8bd62efac00bc65ca5b2926cf3dff681cef260e0e5279340b2faf7", "size": 39947084},
+    {"path": "verification/step-inspection.json", "sha256": "821e264587f5715d0984c7189de63e5e8c07a6504087c3eb28902f4e18b6d893", "size": 13561},
+    {"path": "verification/verification.json", "sha256": "6c517fbe3f384ca14ce0849a25dda4ddfd6e240ba2e4d11fc7f969f6d7e733e2", "size": 46023}
+  ]
+}
