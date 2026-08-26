@@ -1,11 +1,18 @@
 # Changelog
 
 One entry per REVISION (a design state, git-tagged). Reverse-chronological.
-`Released:` is `no`, or the name of the `07_releases/` directory that shipped it
-— it is the only link between a revision and a fab order.
+`Released:` is `no`, or the immutable `07_releases/` candidate that seals the
+revision. Ordering is a separate event and requires its own order evidence.
 
 Most revisions never ship. That is normal: a board can go v4.4 → v4.10 in a
 day and fab exactly one of them.
+
+## v0.1.2 — 2026-08-26  [tag: 87eaa91f]
+- Preserved the exact v0.1.1 board and fabrication payload while vendoring the
+  three reused footprints into this active project.
+- Replaced a sibling-project and workstation-absolute footprint-library path
+  with clone-portable project-local bindings.
+Released: v0.1.2-2026-08-26
 
 ## v0.1.1 — 2026-08-21  [tag: 55c03b8b]
 - Repaired and source-owned all USB 2.0 routes, including complete critical-pair,

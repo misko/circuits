@@ -1,0 +1,3 @@
+schema: 2
+stages: []
+no_external_gate_drive_stages: "All selected converter and eFuse candidates use integrated power FETs; no external MOSFET gate-drive stage is present."

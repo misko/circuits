@@ -1,0 +1,15 @@
+schema: 1
+power_claims:
+  - id: usb_downstream_ports_2a
+    rails: [VBUS1_SW, VBUS2_SW, VBUS3_SW, VBUS4_SW]
+    count: 4
+    simultaneous_count: 4
+    current_A: 2.0
+    voltage_min_V: 4.75
+    voltage_max_V: 5.25
+    duty: continuous
+    measurement_plane: mated_test_plug
+    boundary_evidence: "BRIEF D1; voltage/current measured at the mated receptacle boundary"
+    included_elements: [pd_conversion, aggregate_protection, protection_switch, port_efuse, pcb_copper_vias_joints, mated_power_contacts]
+    excluded_elements: [cable, appliance]
+no_external_power_outputs: false

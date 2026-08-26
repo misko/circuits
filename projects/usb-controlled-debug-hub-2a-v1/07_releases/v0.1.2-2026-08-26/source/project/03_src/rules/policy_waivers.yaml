@@ -1,0 +1,83 @@
+# Exact, board-specific policy dispositions. Every numeric claim is regenerated
+# from the current routed board by waiver_provenance.py before release.
+
+- id: P-PLANE
+  refs:
+    - 03_src/route.yaml
+    - 03_src/route/final.kicad_pcb
+    - 03_src/rules/nets.yaml
+    - 04_kicad/usb_controlled_debug_hub_2a.kicad_pcb
+  why: >-
+    Exactly sixteen source-owned segments use In1.Cu: ten are the wide
+    P5V_A_PROTECTED/P5V_B_PROTECTED bridges that cross four USB routing
+    corridors without cutting the adjacent In2 GND reference beneath the
+    B.Cu USB pairs; the remaining six are bounded RBIAS and PD_CC2 low-speed
+    escapes. Both In1 and In2 otherwise carry GND pours, no USB differential
+    pair uses an inner layer, and the complete 86.486 mm population is frozen
+    below. This is not permission for a router to use In1 generally: route
+    ownership excludes these nets from generic routing and any seventeenth
+    segment or additional length invalidates the executable receipt. Final
+    DRC, reference-plane, and first-article USB 2.0 traffic tests remain
+    mandatory.
+  evidence:
+    - claim: the complete In1 population is bounded to the sixteen reviewed source-owned segments
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb'); print(sum(t.GetClass()!='PCB_VIA' and t.GetLayerName()=='In1.Cu' for t in b.GetTracks()))"
+      output: "16"
+      budget: "<= 16"
+      requires: [projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb]
+      grade: CITED
+    - claim: the complete In1 segment length is bounded to the reviewed total
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew,math; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb'); print(round(sum(math.hypot(t.GetStart().x-t.GetEnd().x,t.GetStart().y-t.GetEnd().y)/1e6 for t in b.GetTracks() if t.GetClass()!='PCB_VIA' and t.GetLayerName()=='In1.Cu'),4))"
+      output: "86.486"
+      budget: "<= 86.486"
+      requires: [projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb]
+      grade: CITED
+    - claim: no USB differential-pair copper uses In1.Cu
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew,re; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb'); print(sum(t.GetClass()!='PCB_VIA' and t.GetLayerName()=='In1.Cu' and bool(re.match(r'^(UP_HUB|MGMT|P[1-4]_(HUB|PORT))_[PN]$',t.GetNetname())) for t in b.GetTracks()))"
+      output: "0"
+      budget: "<= 0"
+      requires: [projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb]
+      grade: CITED
+
+- id: R-POUR
+  refs:
+    - 03_src/route.yaml
+    - 03_src/rules/nets.yaml
+    - 03_src/rules/power_tree.yaml
+    - 04_kicad/usb_controlled_debug_hub_2a.kicad_pcb
+  why: >-
+    This disposition is limited to VBUS1_SW through VBUS4_SW. Each rail is a
+    dedicated 2 A point-to-point F.Cu conductor: a 0.30 mm package-width
+    launch leaves the TPS2557 output land, then the route widens to the
+    authored 0.80 mm field floor. At 35 um copper the worst exact routed
+    geometry calculates to 0.0271 ohm ideal copper resistance, about 54 mV at
+    2 A, inside the rail's 0.107 ohm complete PCB-path allocation. A pour would
+    consume the four USB escape corridors without widening the package
+    bottleneck. This analytic screen does not credit joints or temperature;
+    the first article must pass four-wire VBUS drop and thermal tests at 2 A
+    per port before production use.
+  evidence:
+    - claim: all four switched-port rails remain exactly the reviewed no-pour population
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb'); z={x.GetNetname() for x in b.Zones()}; n={'VBUS1_SW','VBUS2_SW','VBUS3_SW','VBUS4_SW'}; print(len(n-z))"
+      output: "4"
+      budget: "<= 4"
+      requires: [projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb]
+      grade: CITED
+    - claim: every port rail carries no more than the authored 2 A maximum
+      command: >-
+        python3 -c "import yaml; y=yaml.safe_load(open('projects/usb-controlled-debug-hub-2a-v1/03_src/rules/power_tree.yaml')); print(max(r['iout_max_A'] for r in y['rails'] if r.get('name') in ['VBUS1_SW','VBUS2_SW','VBUS3_SW','VBUS4_SW']))"
+      output: "2.0"
+      budget: "<= 2.0"
+      requires: [projects/usb-controlled-debug-hub-2a-v1/03_src/rules/power_tree.yaml]
+      grade: CITED
+    - claim: the worst ideal 35 um copper resistance among the four exact port routes remains at or below 0.03 ohm
+      command: >-
+        KICAD_PY=/usr/lib/python3/dist-packages /usr/bin/python3 -c "import pcbnew; b=pcbnew.LoadBoard('projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb'); ns=['VBUS1_SW','VBUS2_SW','VBUS3_SW','VBUS4_SW']; rho=1.724e-8; th=35e-6; print(round(max(sum(rho*(t.GetLength()/1e9)/(t.GetWidth()/1e9*th) for t in b.GetTracks() if t.GetClass()!='PCB_VIA' and t.GetNetname()==n) for n in ns),4))"
+      output: "0.0271"
+      budget: "<= 0.03"
+      requires: [projects/usb-controlled-debug-hub-2a-v1/04_kicad/usb_controlled_debug_hub_2a.kicad_pcb]
+      grade: CITED

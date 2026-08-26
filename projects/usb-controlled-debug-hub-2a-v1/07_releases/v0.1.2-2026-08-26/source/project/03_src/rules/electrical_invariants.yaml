@@ -1,0 +1,64 @@
+invariants:
+  - {assert: part_value, part: R_ILIM1, equals: 1.40k, tolerance_pct: 1, adr: "0001", why: "TPS259470A port threshold must guarantee >2 A while remaining below the 3 A USB1130 rating"}
+  - {assert: part_value, part: R_ILIM2, equals: 1.40k, tolerance_pct: 1, adr: "0001", why: "TPS259470A port threshold must guarantee >2 A while remaining below the 3 A USB1130 rating"}
+  - {assert: part_value, part: R_ILIM3, equals: 1.40k, tolerance_pct: 1, adr: "0001", why: "TPS259470A port threshold must guarantee >2 A while remaining below the 3 A USB1130 rating"}
+  - {assert: part_value, part: R_ILIM4, equals: 1.40k, tolerance_pct: 1, adr: "0001", why: "TPS259470A port threshold must guarantee >2 A while remaining below the 3 A USB1130 rating"}
+  - {assert: part_value, part: R_AGG_A_ILIM, equals: 300, tolerance_pct: 1, adr: "0001", why: "bank A breaker must pass 4.1 A service and interrupt below the converter limit"}
+  - {assert: part_value, part: R_AGG_B_ILIM, equals: 300, tolerance_pct: 1, adr: "0001", why: "bank B breaker must pass 4.0 A service and interrupt below the converter limit"}
+  - {assert: part_value, part: C_AGG_A_TIMER, equals: 6.8nF, tolerance_pct: 5, adr: "0001", why: "bank A overload blanking interval is bounded to 1.61-6.65 ms"}
+  - {assert: part_value, part: C_AGG_B_TIMER, equals: 6.8nF, tolerance_pct: 5, adr: "0001", why: "bank B overload blanking interval is bounded to 1.61-6.65 ms"}
+  - {assert: part_value, part: C_AGG_A_DVDT, equals: 3.3nF, tolerance_pct: 5, adr: "0001", why: "bank A output-bank inrush is slew limited"}
+  - {assert: part_value, part: C_AGG_B_DVDT, equals: 3.3nF, tolerance_pct: 5, adr: "0001", why: "bank B output-bank inrush is slew limited"}
+  - {assert: part_value, part: R_PD_IN_ILIM, equals: 5.90k, tolerance_pct: 1, adr: "0001", why: "input eFuse minimum limit clears full service demand while the PD source owns the 3 A contract ceiling"}
+  - {assert: part_value, part: R_PD_UV_TOP_HI, equals: 910k, tolerance_pct: 1, adr: "0001", why: "stocked first element of the TPS16630 shared divider"}
+  - {assert: part_value, part: R_PD_UV_TOP_LO, equals: 22k, tolerance_pct: 1, adr: "0001", why: "stocked second element makes the 932 kOhm divider top leg"}
+  - {assert: part_value, part: R_PD_UV_MID, equals: 20k, tolerance_pct: 1, adr: "0001", why: "TPS16630 shared divider rejects 15 V PDOs and accepts 20 V PDOs at full corner"}
+  - {assert: part_value, part: R_PD_OV_BOT, equals: 51k, tolerance_pct: 1, adr: "0001", why: "TPS16630 OVP full corner remains below the retained converters' 28 V operating maximum"}
+
+  # Protected 20 V trunk: connector -> fuse/TVS -> TPS16630 -> converters.
+  - {assert: pin_on_net, pin: J_POWER.A4, net: VBUS_PD_RAW, adr: "0001", why: "power receptacle VBUS begins only on the raw fused input"}
+  - {assert: pin_on_net, pin: F_PD.1, net: VBUS_PD_RAW, adr: "0001", why: "fuse input is the connector-side rail"}
+  - {assert: pin_on_net, pin: F_PD.2, net: VBUS_PD, adr: "0001", why: "TVS, PD controller and eFuse are fuse-protected"}
+  - {assert: pin_on_net, pin: D_PD_TVS.4, net: VBUS_PD, adr: "0001", why: "TVS IN lands clamp the exposed post-fuse rail"}
+  - {assert: pin_on_net, pin: D_PD_TVS.1, net: GND, adr: "0001", why: "TVS ground lands return directly to ground"}
+  - {assert: pin_on_net, pin: U_PD_IN.1, net: VBUS_PD, adr: "0001", why: "TPS16630 input is the post-fuse exposed rail"}
+  - {assert: pin_on_net, pin: U_PD_IN.6, net: VBUS_PD, adr: "0001", why: "P_IN is directly tied to IN as TI requires"}
+  - {assert: pin_on_net, pin: U_PD_IN.7, net: PD_IN_UV, adr: "0001", why: "UVLO receives the independently cornered divider node"}
+  - {assert: pin_on_net, pin: U_PD_IN.8, net: PD_IN_OV, adr: "0001", why: "OVP receives the independently cornered divider node"}
+  - {assert: pin_on_net, pin: U_PD_IN.12, net: GND, adr: "0001", why: "MODE selects latch-off behavior"}
+  - {assert: pin_on_net, pin: U_PD_IN.13, net: VBUS_PD, adr: "0001", why: "SHDN is asserted whenever protected input power is present"}
+  - {assert: pin_on_net, pin: U_PD_IN.18, net: VBUS_PD_PROTECTED, adr: "0001", why: "both eFuse OUT pins feed only the protected trunk"}
+  - {assert: pin_on_net, pin: U_PD_IN.19, net: VBUS_PD_PROTECTED, adr: "0001", why: "both eFuse OUT pins feed only the protected trunk"}
+  - {assert: pin_on_net, pin: U_PD_IN.21, net: GND, adr: "0001", why: "TPS16630 thermal pad is ground, not input or output"}
+
+  # Independent conversion/breaker banks.
+  - {assert: pin_on_net, pin: U_BUCK_A.8, net: VBUS_PD_PROTECTED, adr: "0001", why: "bank A converter is downstream of the 60 V input eFuse"}
+  - {assert: pin_on_net, pin: U_BUCK_A.6, net: SW_A, adr: "0001", why: "bank A switching node reaches only its inductor and bootstrap loop"}
+  - {assert: pin_on_net, pin: U_AGG_A.1, net: P5V_BANK_A, adr: "0001", why: "bank A aggregate input is regulator-side 5 V"}
+  - {assert: pin_on_net, pin: U_AGG_A.17, net: P5V_A_PROTECTED, adr: "0001", why: "bank A loads are after the aggregate breaker"}
+  - {assert: pin_on_net, pin: U_AGG_A.25, net: P5V_BANK_A, adr: "0001", why: "bank A split input PowerPAD is not mistaken for ground"}
+  - {assert: pin_on_net, pin: U_AGG_A.26, net: GND, adr: "0001", why: "bank A split ground PowerPAD is grounded"}
+  - {assert: pin_on_net, pin: U_BUCK_B.8, net: VBUS_PD_PROTECTED, adr: "0001", why: "bank B converter is downstream of the 60 V input eFuse"}
+  - {assert: pin_on_net, pin: U_BUCK_B.6, net: SW_B, adr: "0001", why: "bank B switching node reaches only its inductor and bootstrap loop"}
+  - {assert: pin_on_net, pin: U_AGG_B.1, net: P5V_BANK_B, adr: "0001", why: "bank B aggregate input is regulator-side 5 V"}
+  - {assert: pin_on_net, pin: U_AGG_B.17, net: P5V_B_PROTECTED, adr: "0001", why: "bank B loads are after the aggregate breaker"}
+  - {assert: pin_on_net, pin: U_AGG_B.25, net: P5V_BANK_B, adr: "0001", why: "bank B split input PowerPAD is not mistaken for ground"}
+  - {assert: pin_on_net, pin: U_AGG_B.26, net: GND, adr: "0001", why: "bank B split ground PowerPAD is grounded"}
+  - {assert: pin_on_net, pin: U_MAIN.3, net: VBUS_PD_PROTECTED, adr: "0001", why: "3.3 V converter bypasses neither the input eFuse nor a 5 V bank"}
+
+  # Ports 1-2 belong to bank A; ports 3-4 belong to bank B.
+  - {assert: pin_on_net, pin: U_PWR1.5, net: P5V_A_PROTECTED, adr: "0001", why: "port 1 input is bank A after the aggregate breaker"}
+  - {assert: pin_on_net, pin: U_PWR1.6, net: VBUS1_SW, adr: "0001", why: "port 1 connector is after its own reverse-blocking eFuse"}
+  - {assert: pin_on_net, pin: J_PORT1.1, net: VBUS1_SW, adr: "0001", why: "port 1 VBUS cannot bypass its eFuse"}
+  - {assert: pin_on_net, pin: U_PWR2.5, net: P5V_A_PROTECTED, adr: "0001", why: "port 2 input is bank A after the aggregate breaker"}
+  - {assert: pin_on_net, pin: U_PWR2.6, net: VBUS2_SW, adr: "0001", why: "port 2 connector is after its own reverse-blocking eFuse"}
+  - {assert: pin_on_net, pin: J_PORT2.1, net: VBUS2_SW, adr: "0001", why: "port 2 VBUS cannot bypass its eFuse"}
+  - {assert: pin_on_net, pin: U_PWR3.5, net: P5V_B_PROTECTED, adr: "0001", why: "port 3 input is bank B after the aggregate breaker"}
+  - {assert: pin_on_net, pin: U_PWR3.6, net: VBUS3_SW, adr: "0001", why: "port 3 connector is after its own reverse-blocking eFuse"}
+  - {assert: pin_on_net, pin: J_PORT3.1, net: VBUS3_SW, adr: "0001", why: "port 3 VBUS cannot bypass its eFuse"}
+  - {assert: pin_on_net, pin: U_PWR4.5, net: P5V_B_PROTECTED, adr: "0001", why: "port 4 input is bank B after the aggregate breaker"}
+  - {assert: pin_on_net, pin: U_PWR4.6, net: VBUS4_SW, adr: "0001", why: "port 4 connector is after its own reverse-blocking eFuse"}
+  - {assert: pin_on_net, pin: J_PORT4.1, net: VBUS4_SW, adr: "0001", why: "port 4 VBUS cannot bypass its eFuse"}
+  - {assert: pin_on_net, pin: U_PWR_CTRL.2, net: P5V_A_PROTECTED, adr: "0001", why: "management VBUS belongs only to bank A's declared 0.1 A allocation"}
+
+label_survival: {}

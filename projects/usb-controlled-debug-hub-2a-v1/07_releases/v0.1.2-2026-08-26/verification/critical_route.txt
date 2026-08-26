@@ -1,0 +1,11 @@
+  PASS UP_HUB UP_HUB_P/UP_HUB_N -> usb_upstream on ['F.Cu', 'B.Cu'], no_vias=False
+  PASS P1_HUB P1_HUB_P/P1_HUB_N -> usb_hub_left on ['F.Cu', 'B.Cu'], no_vias=False
+  PASS P2_HUB P2_HUB_P/P2_HUB_N -> usb_hub_ports on ['F.Cu', 'B.Cu'], no_vias=False
+  PASS P3_HUB P3_HUB_P/P3_HUB_N -> usb_hub_ports on ['F.Cu', 'B.Cu'], no_vias=False
+  PASS P4_HUB P4_HUB_P/P4_HUB_N -> usb_hub_edge on ['F.Cu', 'B.Cu'], no_vias=False
+  PASS P1_PORT P1_PORT_P/P1_PORT_N -> usb_port_segments on ['B.Cu'], no_vias=True
+  PASS P2_PORT P2_PORT_P/P2_PORT_N -> usb_port_segments on ['B.Cu'], no_vias=True
+  PASS P3_PORT P3_PORT_P/P3_PORT_N -> usb_port_segments on ['B.Cu'], no_vias=True
+  PASS P4_PORT P4_PORT_P/P4_PORT_N -> usb_port_segments on ['B.Cu'], no_vias=True
+  PASS MGMT MGMT_P/MGMT_N -> usb_management on ['F.Cu', 'B.Cu'], no_vias=False
+R-PAIRMAP/R-CRITESC PASS: 10 critical pair(s) connected

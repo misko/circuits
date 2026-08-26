@@ -1,0 +1,24 @@
+# v0.1.2 is an ordinary full source-closure successor. Its exact board,
+# schematic, fabrication payload and operator documents are byte-identical to
+# v0.1.1 by design; verification/source_closure_delta.md binds the five-path
+# source-only delta and the unchanged manufactured subject.
+fab/bom.csv reason: no component, value, MPN, LCSC code or designator changed
+fab/bom_echo_gate.txt reason: the exact unchanged BOM produces the same uploader echo worklist
+fab/cpl.csv reason: no placement coordinate, rotation, side or package changed; the USB-A parts were already deliberately omitted by assembly.yaml and now also carry a source-owned board exclusion attribute
+fab/order_notes.txt reason: stackup and selective-via process wording is unchanged because the exact board and realized via census are unchanged
+fab/rotation_human_gate.txt reason: no single-channel part identity, rotation, side or designator changed
+pdf/assembly.pdf reason: exact board, placement and assembly population are byte-identical to v0.1.1; this successor changes source-library closure only
+pdf/pcb_layers.pdf reason: exact board and every copper layer are byte-identical to v0.1.1; this successor changes source-library closure only
+pdf/schematic.pdf reason: exact schematic is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/artifact_index.json reason: exact board and every indexed fabrication artifact are byte-identical to v0.1.1; source-closure evidence binds the unchanged board SHA
+fab/usb_controlled_debug_hub_2a-B_Cu.gbl reason: exact board copper is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-B_Mask.gbs reason: exact board mask is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-B_Paste.gbp reason: exact assembly paste is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-B_Silkscreen.gbo reason: exact board silkscreen is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-Edge_Cuts.gm1 reason: exact board outline is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-F_Cu.gtl reason: exact board copper is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-F_Mask.gts reason: exact board mask is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-F_Paste.gtp reason: exact assembly paste is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-F_Silkscreen.gto reason: exact board silkscreen is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-In1_Cu.g1 reason: exact board copper is byte-identical to v0.1.1; this successor changes source-library closure only
+fab/usb_controlled_debug_hub_2a-In2_Cu.g2 reason: exact board copper is byte-identical to v0.1.1; this successor changes source-library closure only

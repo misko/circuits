@@ -1,0 +1,124 @@
+(version 1)
+(rule "PWR_PD_width"
+  (condition "A.NetClass == 'PWR_PD'")
+  (constraint track_width (min 1.0mm)))
+(rule "PWR_5V_BANK_width"
+  (condition "A.NetClass == 'PWR_5V_BANK'")
+  (constraint track_width (min 1.5mm)))
+(rule "PWR_PORT_2A_width"
+  (condition "A.NetClass == 'PWR_PORT_2A'")
+  (constraint track_width (min 0.8mm)))
+(rule "USB_HS_width"
+  (condition "A.NetClass == 'USB_HS'")
+  (constraint track_width (min 0.15mm)))
+(rule "SWITCH_NODE_width"
+  (condition "A.NetClass == 'SWITCH_NODE'")
+  (constraint track_width (min 0.8mm)))
+(rule "scoped_pwr1_output_launch"
+  (condition "A.insideArea('pwr1_output_launch') && (A.NetName == 'VBUS1_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr2_output_launch"
+  (condition "A.insideArea('pwr2_output_launch') && (A.NetName == 'VBUS2_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr3_output_launch"
+  (condition "A.insideArea('pwr3_output_launch') && (A.NetName == 'VBUS3_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr4_output_launch"
+  (condition "A.insideArea('pwr4_output_launch') && (A.NetName == 'VBUS4_SW')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr1_input_drop"
+  (condition "A.insideArea('pwr1_input_drop') && (A.NetName == 'P5V_A_PROTECTED')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr2_input_drop"
+  (condition "A.insideArea('pwr2_input_drop') && (A.NetName == 'P5V_A_PROTECTED')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr3_input_drop"
+  (condition "A.insideArea('pwr3_input_drop') && (A.NetName == 'P5V_B_PROTECTED')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr4_input_drop"
+  (condition "A.insideArea('pwr4_input_drop') && (A.NetName == 'P5V_B_PROTECTED')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pd_raw_contact_neck"
+  (condition "A.insideArea('pd_raw_contact_neck') && (A.NetName == 'VBUS_PD_RAW')")
+  (constraint track_width (min 0.5mm)))
+(rule "scoped_pd_tvs_launch"
+  (condition "A.insideArea('pd_tvs_launch') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pd_vdd_tap_f"
+  (condition "A.insideArea('pd_vdd_tap_f') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_pd_vdd_tap_b"
+  (condition "A.insideArea('pd_vdd_tap_b') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_pd_vbus_tap"
+  (condition "A.insideArea('pd_vbus_tap') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_pd_uv_tap"
+  (condition "A.insideArea('pd_uv_tap') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_pd_pin13_tap_f"
+  (condition "A.insideArea('pd_pin13_tap_f') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pd_pin13_tap_b"
+  (condition "A.insideArea('pd_pin13_tap_b') && (A.NetName == 'VBUS_PD')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pd_output_cap_tap"
+  (condition "A.insideArea('pd_output_cap_tap') && (A.NetName == 'VBUS_PD_PROTECTED')")
+  (constraint track_width (min 0.45mm)))
+(rule "scoped_pd_output_neck"
+  (condition "A.insideArea('pd_output_neck') && (A.NetName == 'VBUS_PD_PROTECTED')")
+  (constraint track_width (min 0.8mm)))
+(rule "scoped_buck_a_input_zone_neck"
+  (condition "A.insideArea('buck_a_input_zone_neck') && (A.NetName == 'VBUS_PD_PROTECTED')")
+  (constraint track_width (min 0.8mm)))
+(rule "scoped_buck_a_vin_land_neck"
+  (condition "A.insideArea('buck_a_vin_land_neck') && (A.NetName == 'VBUS_PD_PROTECTED')")
+  (constraint track_width (min 0.5mm)))
+(rule "scoped_buck_b_input_zone_neck"
+  (condition "A.insideArea('buck_b_input_zone_neck') && (A.NetName == 'VBUS_PD_PROTECTED')")
+  (constraint track_width (min 0.8mm)))
+(rule "scoped_buck_b_vin_land_neck"
+  (condition "A.insideArea('buck_b_vin_land_neck') && (A.NetName == 'VBUS_PD_PROTECTED')")
+  (constraint track_width (min 0.5mm)))
+(rule "scoped_buck_a_enable_tap"
+  (condition "A.insideArea('buck_a_enable_tap') && (A.NetName == 'VBUS_PD_PROTECTED')")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_buck_b_enable_tap"
+  (condition "A.insideArea('buck_b_enable_tap') && (A.NetName == 'VBUS_PD_PROTECTED')")
+  (constraint track_width (min 0.18mm)))
+(rule "scoped_bank_a_bulk_link"
+  (condition "A.insideArea('bank_a_bulk_link') && (A.NetName == 'P5V_A_PROTECTED')")
+  (constraint track_width (min 1.0mm)))
+(rule "scoped_bank_b_bulk_link"
+  (condition "A.insideArea('bank_b_bulk_link') && (A.NetName == 'P5V_B_PROTECTED')")
+  (constraint track_width (min 1.0mm)))
+(rule "scoped_management_vbus_branch"
+  (condition "A.insideArea('management_vbus_branch') && (A.NetName == 'P5V_A_PROTECTED')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr2_input_pin_neck"
+  (condition "A.insideArea('pwr2_input_pin_neck') && (A.NetName == 'P5V_A_PROTECTED')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_pwr3_input_pin_neck"
+  (condition "A.insideArea('pwr3_input_pin_neck') && (A.NetName == 'P5V_B_PROTECTED')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_bank_a_agg_input_neck"
+  (condition "A.insideArea('bank_a_agg_input_neck') && (A.NetName == 'P5V_BANK_A')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_bank_b_agg_input_neck"
+  (condition "A.insideArea('bank_b_agg_input_neck') && (A.NetName == 'P5V_BANK_B')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_bank_a_feedback_tap"
+  (condition "A.insideArea('bank_a_feedback_tap') && (A.NetName == 'P5V_BANK_A')")
+  (constraint track_width (min 0.25mm)))
+(rule "scoped_bank_b_feedback_tap"
+  (condition "A.insideArea('bank_b_feedback_tap') && (A.NetName == 'P5V_BANK_B')")
+  (constraint track_width (min 0.25mm)))
+(rule "scoped_buck_a_switch_land_neck"
+  (condition "A.insideArea('buck_a_switch_land_neck') && (A.NetName == 'SW_A')")
+  (constraint track_width (min 0.3mm)))
+(rule "scoped_buck_b_switch_land_neck"
+  (condition "A.insideArea('buck_b_switch_land_neck') && (A.NetName == 'SW_B')")
+  (constraint track_width (min 0.3mm)))
+(rule pad_rescue_stubs
+  (condition "A.insideArea('pad_rescue_stubs') && (A.NetName == 'GND')")
+  (constraint track_width (min 0.300mm)))
