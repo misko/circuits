@@ -8,6 +8,7 @@ semantic dependency, lose an authority route, or point at a missing file.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 import shlex
@@ -38,6 +39,25 @@ TSCIRCUIT_REFERENCE = ROOT / "skills/kicad-pcb/references/tscircuit-folder.md"
 TSCIRCUIT_CONTRACT = ROOT / "skills/pcb-design/templates/contracts/03_tscircuit/contracts.md"
 SKILLS_CONTRACT = ROOT / "skills/contracts.md"
 PCB_OPENAI_YAML = ROOT / "skills/pcb-design/agents/openai.yaml"
+FAB_PHOTO_EVIDENCE = ROOT / "docs/fabricated-examples.md"
+FAB_PHOTO_BINDINGS = {
+    "docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.heic": (
+        1539754,
+        "4e7cb71008ba4918d625765c39e400e51b56f5867f0c9d9dad08fd9fc288fd8e",
+    ),
+    "docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg": (
+        402533,
+        "d70533f44e4e7463d13534ee0478d211867229bbceb5a640086f997323e4193a",
+    ),
+    "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup-source.jpeg": (
+        108319,
+        "ff1b06f4ee5f66b7ad655fbc60ba48d949b8a4875f823fd4814c120e2c4ccc67",
+    ),
+    "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg": (
+        37705,
+        "b7efd5b53912e7d26704ffef0ec041a0d0bb7354622cc829ac979a22bfe6de85",
+    ),
+}
 
 ENTRY_DOCS = (README, SKILL, GRAPH, DOCS_INDEX, IMPROVEMENTS)
 CURRENT_ROOT_DOCS = {"CLAUDE.md", "README.md", "contracts.md", "improvements.md"}
@@ -256,6 +276,28 @@ def t_root_brief_only_skill_quick_start():
              "brief-only USB-C requirement")
     contains(section, "v1.12-2026-07-28", "fabricated example release")
     contains(section, "twin_iso_nw.png", "fabricated example hero render")
+
+
+@test("fabricated-example photos retain exact source and display identities")
+def t_fabricated_example_photo_bindings():
+    readme = README.read_text()
+    evidence = FAB_PHOTO_EVIDENCE.read_text()
+    for relative, (expected_size, expected_hash) in FAB_PHOTO_BINDINGS.items():
+        path = ROOT / relative
+        check(path.is_file() and not path.is_symlink(),
+              f"fabricated-example subject is not an ordinary file: {relative}")
+        eq(path.stat().st_size, expected_size, f"{relative} byte size")
+        eq(hashlib.sha256(path.read_bytes()).hexdigest(), expected_hash,
+           f"{relative} SHA-256")
+        contains(evidence, expected_hash,
+                 f"{relative} identity in fabricated-example proof")
+    for display in (
+        "docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg",
+        "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg",
+    ):
+        contains(readme, display, f"README display link {display}")
+    contains(readme, "docs/fabricated-examples.md",
+             "README fabricated-example proof link")
 
 
 @test("prompt-to-device mission separates current artifacts from future streams")
