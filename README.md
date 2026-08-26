@@ -78,9 +78,14 @@ conversion record, identification basis, and limits are preserved in
 [`pluto-rx2-8way-v5`](projects/pluto-rx2-8way-v5/) is the fabricated
 eight-way RF switch board. Its immutable PCB design archive is
 [`v0.2.1-2026-08-14`](projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/),
+with a sealed
+[3D PCB render](projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/final_iso_3200.png),
 and its independently versioned
 [`v0.5.0-2026-08-26` enclosure](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/)
-is an honest `INCOMPLETE` candidate pending printed seating and retention tests.
+has a corresponding
+[assembly render](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/renders/closed-assembly.png).
+That enclosure remains an honest `INCOMPLETE` candidate pending printed
+seating and retention tests.
 The PCB archive itself predates fabrication and still records
 `DO-NOT-ORDER`; RF first-article measurements remain open.
 
