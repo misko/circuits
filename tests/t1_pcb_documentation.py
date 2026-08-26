@@ -215,7 +215,7 @@ def t_documented_commissioning_commands():
     brief.write_text("Build a small ordinary board from this exact brief.\n")
 
     for ordinal, (document, heading) in enumerate((
-        (README, "## Five-minute PCB start"),
+        (README, "## Manual commissioning"),
         (SKILL, "## Quick start"),
     ), 1):
         projects_root = base / f"projects-{ordinal}"
@@ -239,6 +239,21 @@ def t_documented_commissioning_commands():
         eq(profile["target"], "design", "documented default lifecycle target")
         eq(profile["signal_integrity"], "ordinary",
            "documented ordinary signal-integrity profile")
+
+
+@test("root quick start installs and invokes pcb-design with a brief-only prompt")
+def t_root_brief_only_skill_quick_start():
+    section = markdown_section(README.read_text(), "## Quick start")
+    contains(section, "$skill-installer Install skills/pcb-design",
+             "skill installation prompt")
+    contains(section, "/skills", "Codex slash selector")
+    contains(section, "$pcb-design 3S LiPo input", "direct skill invocation")
+    contains(section, "4× USB-A outputs at 5 V / 1.5 A each",
+             "brief-only USB-A requirement")
+    contains(section, "1× USB-C output at 5 V / 5 A",
+             "brief-only USB-C requirement")
+    contains(section, "v1.12-2026-07-28", "fabricated example release")
+    contains(section, "twin_iso_nw.png", "fabricated example hero render")
 
 
 @test("execution graph stage table exactly mirrors the ordered catalog")

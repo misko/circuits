@@ -1,5 +1,57 @@
 # circuits
 
+## Quick start
+
+### 1. Install the skills
+
+In Codex, invoke the built-in skill installer once:
+
+```text
+$skill-installer Install skills/pcb-design, skills/kicad-pcb, skills/jlcpcb-fab, skills/pcb-enclosure, and skills/shopping-list from https://github.com/misko/circuits.
+```
+
+The installed skills are available on your next turn. See
+[OpenAI's Skills guide](https://learn.chatgpt.com/docs/build-skills) for
+discovery and installation details.
+
+### 2. Run the installed PCB skill
+
+Type `/skills`, select `pcb-design`, and paste only the brief:
+
+```text
+3S LiPo input → 4× USB-A outputs at 5 V / 1.5 A each + 1× USB-C output at 5 V / 5 A.
+```
+
+The equivalent one-line direct invocation is:
+
+```text
+$pcb-design 3S LiPo input → 4× USB-A outputs at 5 V / 1.5 A each + 1× USB-C output at 5 V / 5 A.
+```
+
+That is the entire prompt: the skill preserves it as the source brief, starts
+the governed workflow, and stops when a real decision or evidence checkpoint
+needs attention.
+
+### 3. See a fabricated example
+
+The closest existing hardware is [`usb-hub-3s-v3`](projects/usb-hub-3s-v3/):
+a 3S-LiPo power board with three USB-A outputs and one USB-C output. It is not
+the exact four-USB-A target above, but its latest sealed and fabricated archive,
+[`v1.12-2026-07-28`](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/),
+shows the kind of reviewed PCB evidence this pipeline produces.
+
+| 3D digital-twin isometric render | 3D digital-twin top render |
+|---|---|
+| [![usb-hub-3s-v3 isometric 3D digital-twin PCB render](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png)](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png) | [![usb-hub-3s-v3 top 3D digital-twin PCB render](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_top.png)](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_top.png) |
+
+The [hardware bring-up journal](projects/usb-hub-3s-v3/01_docs/journal/bringup.md)
+records the physical v1.12 boards and the replacement assembly's successful
+no-load regulation checks. Full load, transient, and thermal qualification is
+still open, so this is a fabricated example rather than a production-qualified
+claim.
+
+## What this repository is
+
 `circuits` is a code-first PCB engineering system. It turns a user brief into
 generated KiCad source, bounded routing candidates, independently graded
 fabrication evidence, immutable releases, printable enclosures, and measured
@@ -9,7 +61,7 @@ The product is the workflow under [`skills/`](skills/). Boards under
 [`projects/`](projects/) are its active applications; sealed release folders
 are immutable evidence, not templates to copy.
 
-## Five-minute PCB start
+## Manual commissioning
 
 Clone the repository, create a branch, and save the user's original request as
 a UTF-8 text file:
