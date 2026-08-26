@@ -17,11 +17,13 @@ HEAD_SHA = subprocess.check_output(
     ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
-@test("publication diff selection grades source, release, and review claims "
-      "while ignoring status bookkeeping")
+@test("publication diff selection separates enclosure work while grading PCB "
+      "source, release, and review claims")
 def t_diff_selection_is_semantic():
     paths = [
         "projects/demo/03_src/route.py",
+        "projects/demo/03_src/mechanical/case.scad",
+        "projects/demo/07_enclosure_releases/v2/meshes/base.stl",
         "projects/demo/01_docs/STATUS.md",
         "projects/demo/08_reviews/redteam.md",
         "projects/demo/07_releases/v1.0/MANIFEST.txt",
@@ -42,6 +44,31 @@ def t_diff_selection_is_semantic():
               f"material path escaped selection: {material}")
     check(not pg.is_material_project_path("projects/x/01_docs/STATUS.md"),
           "STATUS bookkeeping incorrectly triggered publication")
+    for enclosure in (
+            "projects/x/03_src/mechanical/case.scad",
+            "projects/x/03_src/mechanical/reference/board.step",
+            "projects/x/07_enclosure_releases/contracts.md",
+            "projects/x/07_enclosure_releases/v2/MANIFEST.json"):
+        check(pg.classify_project_path(enclosure) == pg.PATH_ENCLOSURE_ONLY,
+              f"enclosure path was not isolated from PCB grading: {enclosure}")
+        check(not pg.is_material_project_path(enclosure),
+              f"enclosure path incorrectly triggered PCB grading: {enclosure}")
+    check(pg.enclosure_only_projects(paths) == ["projects/demo"],
+          f"wrong enclosure-project set: {pg.enclosure_only_projects(paths)}")
+
+
+@test("enclosure exemption is exact and electrical, PCB, fab-release, and "
+      "review paths remain material")
+def t_enclosure_classifier_is_fail_closed():
+    for material in (
+            "projects/x/03_src/mechanical-electrical/route.yaml",
+            "projects/x/03_src/rules/rf.yaml",
+            "projects/x/03_src/lib/rf.pretty/J1.kicad_mod",
+            "projects/x/04_kicad/x.kicad_pcb",
+            "projects/x/07_releases/v2/MANIFEST.txt",
+            "projects/x/08_reviews/redteam_layout.md"):
+        check(pg.classify_project_path(material) == pg.PATH_PCB_MATERIAL,
+              f"material near/mixed path escaped PCB grading: {material}")
 
 
 @test("release-only and review-only diffs cannot earn a zero-project pass",
@@ -60,6 +87,108 @@ def _commit(repo, message):
               f"commit {message}")
     return must_pass(run(["git", "rev-parse", "HEAD"], cwd=repo),
                      f"resolve {message}").out.strip()
+
+
+def _enclosure_diff_repo(*, add_electrical=False):
+    root = tmpdir("pub_enclosure_")
+    must_pass(run(["git", "init", "-q"], cwd=root), "init enclosure fixture")
+    must_pass(run(["git", "config", "user.email", "tests@example.invalid"],
+                  cwd=root), "configure fixture email")
+    must_pass(run(["git", "config", "user.name", "Publication Gate Tests"],
+                  cwd=root), "configure fixture name")
+    project = root / "projects" / "demo"
+    (project / "README.md").parent.mkdir(parents=True)
+    (project / "README.md").write_text("# demo\n")
+    base = _commit(root, "base")
+
+    mechanical = project / "03_src" / "mechanical"
+    mechanical.mkdir(parents=True)
+    (mechanical / "case.scad").write_text("cube([1, 1, 1]);\n")
+    release = project / "07_enclosure_releases" / "v1.0-2026-08-26"
+    release.mkdir(parents=True)
+    (release / "MANIFEST.json").write_text("{}\n")
+    if add_electrical:
+        rules = project / "03_src" / "rules"
+        rules.mkdir(parents=True)
+        (rules / "rf.yaml").write_text("impedance_ohms: 50\n")
+    head = _commit(root, "candidate")
+    return root, base, head
+
+
+def _cross_domain_rename_repo(*, commit=True):
+    root = tmpdir("pub_enclosure_rename_")
+    must_pass(run(["git", "init", "-q"], cwd=root), "init rename fixture")
+    must_pass(run(["git", "config", "user.email", "tests@example.invalid"],
+                  cwd=root), "configure fixture email")
+    must_pass(run(["git", "config", "user.name", "Publication Gate Tests"],
+                  cwd=root), "configure fixture name")
+    project = root / "projects" / "demo"
+    electrical = project / "03_src" / "rules" / "rf.yaml"
+    electrical.parent.mkdir(parents=True)
+    electrical.write_text("impedance_ohms: 50\n")
+    base = _commit(root, "base")
+
+    mechanical = project / "03_src" / "mechanical"
+    mechanical.mkdir(parents=True)
+    shutil.move(electrical, mechanical / electrical.name)
+    head = (_commit(root, "move electrical source into mechanical")
+            if commit else None)
+    return root, base, head
+
+
+@test("an exact enclosure-only diff does not require PCB reseal or RF build")
+def t_enclosure_only_diff_bypasses_pcb_denominator():
+    root, base, head = _enclosure_diff_repo()
+    drift = pg._material_changes_since(
+        base, head, "projects/demo", root)
+    check(not drift,
+          f"enclosure-only source incorrectly made PCB release stale: {drift}")
+    r = must_pass(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "enclosure-only publication classification")
+    contains(r.out, "2 enclosure-only path(s) across 1 project(s)",
+             "explicit enclosure coverage")
+    contains(r.out, "outside the PCB reseal/RF-build denominator",
+             "independent release-stream diagnosis")
+
+
+@test("an enclosure diff cannot launder a simultaneous electrical change",
+      kind="known_bad")
+def t_enclosure_diff_does_not_launder_electrical_change():
+    root, base, head = _enclosure_diff_repo(add_electrical=True)
+    drift = pg._material_changes_since(
+        base, head, "projects/demo", root)
+    check(drift == ["projects/demo/03_src/rules/rf.yaml"],
+          f"mixed drift classifier lost the electrical source: {drift}")
+    r = must_fail(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "mixed enclosure/electrical publication", "BOARD-COVERAGE")
+    contains(r.out, "1 material project(s)", "PCB coverage denominator")
+    contains(r.out, "2 enclosure-only path(s) across 1 project(s)",
+             "independent enclosure accounting")
+
+
+@test("moving electrical source into the enclosure subtree cannot launder its "
+      "deletion", kind="known_bad")
+def t_cross_domain_rename_is_fail_closed():
+    root, base, head = _cross_domain_rename_repo()
+    drift = pg._material_changes_since(base, head, "projects/demo", root)
+    check(drift == ["projects/demo/03_src/rules/rf.yaml"],
+          f"rename lost the deleted electrical source: {drift}")
+    r = must_fail(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "cross-domain committed rename", "BOARD-COVERAGE")
+    contains(r.out, "1 material project(s)", "PCB coverage denominator")
+    contains(r.out, "1 enclosure-only path(s) across 1 project(s)",
+             "renamed enclosure destination accounting")
+
+
+@test("an uncommitted cross-domain rename remains dirty PCB material")
+def t_worktree_cross_domain_rename_is_material():
+    root, _, _ = _cross_domain_rename_repo(commit=False)
+    changed = pg._working_material_changes("projects/demo", root)
+    check(changed == ["projects/demo/03_src/rules/rf.yaml"],
+          f"worktree rename lost deleted electrical source: {changed}")
 
 
 def _archive_repo(*, preexisting_archive=False):

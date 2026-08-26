@@ -10,6 +10,14 @@ no material PCB project path changed, except for a complete tracked project
 tree relocated byte/mode-identically from ``projects/<name>`` to the previously
 absent ``archived_projects/<name>``.
 
+The enclosure stream is deliberately independent.  Changes lexically rooted
+at ``03_src/mechanical`` or ``07_enclosure_releases`` are classified as
+enclosure-only and do not put the parent PCB into this gate's reseal/RF-build
+denominator.  This gate does not validate those changes; the enclosure release
+gate remains their authority.  The exemption is exact-prefix-only, so every
+other path under PCB source, generated KiCad, fabrication releases, or reviews
+continues to fail closed into ordinary PCB publication grading.
+
 The gate is intentionally pcbnew-free.  It composes the existing release gates
 and adds the publication-only properties they cannot infer from an isolated
 release directory: live-source identity, review archive identity, review
@@ -54,6 +62,14 @@ MATERIAL_DOCS = {
     "01_docs/ARCHITECTURE.md",
     "01_docs/DETAIL_DESIGN.md",
 }
+ENCLOSURE_ONLY_ROOTS = (
+    "03_src/mechanical",
+    "07_enclosure_releases",
+)
+PATH_OUTSIDE_PROJECT = "outside-project"
+PATH_BOOKKEEPING = "bookkeeping"
+PATH_ENCLOSURE_ONLY = "enclosure-only"
+PATH_PCB_MATERIAL = "pcb-material"
 
 
 def _run(args, cwd=ROOT):
@@ -83,20 +99,53 @@ def _project_rel(path):
     return Path(parts[0]) / parts[1], Path(*parts[2:]).as_posix()
 
 
-def is_material_project_path(path):
+def _is_at_or_below(inner, root):
+    """Return true only for one exact project-relative root and descendants."""
+    return inner == root or inner.startswith(f"{root}/")
+
+
+def classify_project_path(path):
+    """Classify one repo-relative path for the PCB publication denominator.
+
+    Ordering is the safety property: the two independent enclosure roots are
+    removed explicitly before the broad ``03_src`` PCB-source rule runs.  A
+    near-miss such as ``03_src/mechanical-electrical`` therefore remains PCB
+    material.  No contracts or rules outside the mechanical subtree inherit
+    the exemption.
+    """
     parsed = _project_rel(path)
     if not parsed:
-        return False
+        return PATH_OUTSIDE_PROJECT
     _, inner = parsed
+    if any(part == ".." for part in Path(inner).parts):
+        return PATH_PCB_MATERIAL
+    if any(_is_at_or_below(inner, root) for root in ENCLOSURE_ONLY_ROOTS):
+        return PATH_ENCLOSURE_ONLY
     top = inner.split("/", 1)[0]
-    return (top in MATERIAL_TOP_LEVEL or inner in MATERIAL_DOCS or
-            inner.startswith("01_docs/decisions/"))
+    if (top in MATERIAL_TOP_LEVEL or inner in MATERIAL_DOCS or
+            inner.startswith("01_docs/decisions/")):
+        return PATH_PCB_MATERIAL
+    return PATH_BOOKKEEPING
+
+
+def is_material_project_path(path):
+    return classify_project_path(path) == PATH_PCB_MATERIAL
+
+
+def is_enclosure_only_project_path(path):
+    return classify_project_path(path) == PATH_ENCLOSURE_ONLY
 
 
 def affected_projects(paths):
     """Material diff paths -> sorted project-relative directories."""
     return sorted({str(_project_rel(p)[0]) for p in paths
                    if is_material_project_path(p)})
+
+
+def enclosure_only_projects(paths):
+    """Enclosure-only diff paths -> sorted project-relative directories."""
+    return sorted({str(_project_rel(p)[0]) for p in paths
+                   if is_enclosure_only_project_path(p)})
 
 
 def _tree_identity(commit, path, root):
@@ -164,11 +213,15 @@ def _diff_names(base, head, root):
         raise ValueError("--base and --head must be supplied together")
     if re.fullmatch(r"0+", base):
         raise ValueError("an all-zero base cannot prove publication coverage")
-    cp = _git("diff", "--name-only", "--diff-filter=ACDMRTUXB",
+    # Disable rename pairing so a cross-domain move contributes both its old
+    # and new path.  Otherwise moving PCB source into an exempt enclosure root
+    # could be reported only by its destination and launder the deletion.
+    cp = _git("diff", "--no-renames", "--name-only", "-z",
+              "--diff-filter=ACDMRTUXB",
               base, head, "--", "projects", root=root)
     if cp.returncode:
         raise ValueError(cp.stdout.strip() or "git diff failed")
-    return [line.strip() for line in cp.stdout.splitlines() if line.strip()]
+    return [path for path in cp.stdout.split("\0") if path]
 
 
 def _manifest_fields(path):
@@ -221,23 +274,27 @@ def _material_changes_since(commit, head, project_rel, root):
         f"{project_rel}/03_tscircuit",
         f"{project_rel}/04_kicad",
     ]
-    cp = _git("diff", "--name-only", commit, head, "--", *pathspecs,
-              root=root)
+    cp = _git("diff", "--no-renames", "--name-only", "-z", commit, head,
+              "--", *pathspecs, root=root)
     if cp.returncode:
         return [f"git diff failed: {cp.stdout.strip()}"]
-    return [line.strip() for line in cp.stdout.splitlines() if line.strip()]
+    return [path for path in cp.stdout.split("\0")
+            if path and is_material_project_path(path)]
 
 
 def _working_material_changes(project_rel, root):
-    cp = _git("status", "--porcelain=v1", "--untracked-files=all", "--",
-              project_rel, root=root)
+    # Match committed-diff semantics: split renames into deletion + addition.
+    # NUL records also keep unusual but legal filenames from bypassing the
+    # classifier through porcelain quoting or embedded newlines.
+    cp = _git("status", "--porcelain=v1", "-z", "--untracked-files=all",
+              "--no-renames", "--", project_rel, root=root)
     if cp.returncode:
         return [f"git status failed: {cp.stdout.strip()}"]
     changed = []
-    for line in cp.stdout.splitlines():
-        raw = line[3:].strip()
-        # Renames are rendered as old -> new; grade the destination.
-        path = raw.rsplit(" -> ", 1)[-1]
+    for record in cp.stdout.split("\0"):
+        if not record:
+            continue
+        path = record[3:]
         if is_material_project_path(path):
             changed.append(path)
     return changed
@@ -470,6 +527,10 @@ def main(argv=None):
         if args.base:
             names = _diff_names(args.base, args.head, root)
             selected = affected_projects(names)
+            enclosure_paths = [
+                path for path in names if is_enclosure_only_project_path(path)
+            ]
+            enclosure_projects = enclosure_only_projects(enclosure_paths)
             # Remove projects one at a time only after proving the complete
             # tracked tree is an identity-preserving move.  Every other
             # selected project remains in the ordinary publication denominator.
@@ -484,7 +545,9 @@ def main(argv=None):
             check_worktree = False
             print(f"P-PUBLISH coverage: {len(selected)} material project(s) "
                   f"selected from {len(names)} changed path(s); "
-                  f"{len(archive_relocations)} exact archive relocation(s)")
+                  f"{len(archive_relocations)} exact archive relocation(s); "
+                  f"{len(enclosure_paths)} enclosure-only path(s) across "
+                  f"{len(enclosure_projects)} project(s)")
             for rel in archive_relocations:
                 name = Path(rel).name
                 print(f"  ARCHIVE {rel} -> archived_projects/{name} "
@@ -512,6 +575,13 @@ def main(argv=None):
                 "P-PUBLISH PASS: 0 live project(s), 0 board(s) graded; "
                 f"{len(archive_relocations)} complete tracked project tree(s) "
                 "moved byte/mode-identically into archived_projects/")
+            return 0
+        if args.base and enclosure_paths:
+            print(
+                "P-PUBLISH PASS: 0 PCB project(s), 0 board(s) graded; "
+                f"{len(enclosure_paths)} enclosure-only path(s) are outside "
+                "the PCB reseal/RF-build denominator and remain subject to "
+                "the enclosure release gate")
             return 0
         print("P-PUBLISH PASS: 0 project(s), 0 board(s) graded; the git diff "
               "contains no material PCB project path")
