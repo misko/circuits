@@ -319,7 +319,24 @@ def _material_changes_since(commit, head, project_rel, root):
             if path and is_material_project_path(path)]
 
 
-def _working_material_changes(project_rel, root):
+def _working_material_changes(project_rel, root, ignored_new_prefixes=()):
+    """Return dirty PCB-material paths outside exact rehearsed outputs.
+
+    ``--release`` grades a mutable candidate in ``07_releases`` before its
+    seal commit.  That exact candidate tree is output of the operation being
+    rehearsed, so it must not make its own publication check circular.  Keep
+    the exception lexical, additive-only, and caller-supplied: a modified or
+    deleted tracked release byte, sibling release, predecessor marker,
+    near-prefix path, or any live source remains dirty material.
+    """
+    ignored = tuple(Path(prefix).as_posix().rstrip("/")
+                    for prefix in ignored_new_prefixes)
+
+    def is_ignored(status, path):
+        return status in {"??", "A "} and any(
+            path == prefix or path.startswith(f"{prefix}/")
+            for prefix in ignored)
+
     # Match committed-diff semantics: split renames into deletion + addition.
     # NUL records also keep unusual but legal filenames from bypassing the
     # classifier through porcelain quoting or embedded newlines.
@@ -331,10 +348,30 @@ def _working_material_changes(project_rel, root):
     for record in cp.stdout.split("\0"):
         if not record:
             continue
+        status = record[:2]
         path = record[3:]
-        if is_material_project_path(path):
+        if is_material_project_path(path) and not is_ignored(status, path):
             changed.append(path)
     return changed
+
+
+def _mutable_release_output_prefix(project_rel, release, head, root):
+    """Return the exact new candidate prefix eligible for rehearsal.
+
+    An override is output only when it is a new direct child of the project's
+    release stream and has no tracked tree at ``head``.  Pointing ``--release``
+    at an existing immutable archive therefore grants no worktree exception.
+    """
+    try:
+        candidate = release.relative_to(root)
+    except ValueError:
+        return None
+    expected_parent = Path(project_rel) / "07_releases"
+    if candidate.parent != expected_parent:
+        return None
+    if _tree_identity(head, candidate.as_posix(), root) is not None:
+        return None
+    return candidate.as_posix()
 
 
 def _child_gate(script, release, root, *extra):
@@ -496,7 +533,13 @@ def grade_board(project, board, head, root, check_worktree, release_override=Non
             f"{recorded_hash or 'NO HASH'}, expected {source_hash}")
 
     if check_worktree:
-        working = _working_material_changes(project_rel, root)
+        ignored_outputs = ()
+        if release_override:
+            prefix = _mutable_release_output_prefix(
+                project_rel, release, head, root)
+            ignored_outputs = (prefix,) if prefix else ()
+        working = _working_material_changes(
+            project_rel, root, ignored_new_prefixes=ignored_outputs)
         if working:
             errors.append(
                 "DIRTY-MATERIAL: uncommitted material paths are outside the "

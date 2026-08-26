@@ -201,6 +201,70 @@ def t_worktree_cross_domain_rename_is_material():
           f"worktree rename lost deleted electrical source: {changed}")
 
 
+@test("mutable rehearsal ignores only its exact candidate release tree")
+def t_rehearsal_worktree_exception_is_exact():
+    root = tmpdir("pub_rehearsal_worktree_")
+    must_pass(run(["git", "init", "-q"], cwd=root),
+              "init rehearsal worktree fixture")
+    must_pass(run(["git", "config", "user.email", "tests@example.invalid"],
+                  cwd=root), "configure fixture email")
+    must_pass(run(["git", "config", "user.name", "Publication Gate Tests"],
+                  cwd=root), "configure fixture name")
+    project = root / "projects" / "demo"
+    source = project / "03_src" / "rules" / "rf.yaml"
+    predecessor = project / "07_releases" / "v1.0-2026-08-25"
+    source.parent.mkdir(parents=True)
+    predecessor.mkdir(parents=True)
+    source.write_text("impedance_ohms: 50\n")
+    (predecessor / "MANIFEST.txt").write_text("version: v1.0\n")
+    _commit(root, "base")
+
+    candidate_rel = "projects/demo/07_releases/v1.1-2026-08-26"
+    candidate = root / candidate_rel
+    candidate.mkdir()
+    (candidate / "MANIFEST.txt").write_text("version: v1.1\n")
+    # All three near/sibling paths must remain visible beside the one exact
+    # output tree: predecessor metadata, a lexical near-prefix, and live RF.
+    (predecessor / "SUPERSEDED.md").write_text("superseded\n")
+    near = project / "07_releases" / "v1.1-2026-08-260"
+    near.mkdir()
+    (near / "MANIFEST.txt").write_text("near prefix\n")
+    source.write_text("impedance_ohms: 55\n")
+
+    changed = pg._working_material_changes(
+        "projects/demo", root, ignored_new_prefixes=(candidate_rel,))
+    check(candidate_rel + "/MANIFEST.txt" not in changed,
+          f"exact candidate was not excluded: {changed}")
+    expected = {
+        "projects/demo/03_src/rules/rf.yaml",
+        "projects/demo/07_releases/v1.0-2026-08-25/SUPERSEDED.md",
+        "projects/demo/07_releases/v1.1-2026-08-260/MANIFEST.txt",
+    }
+    check(set(changed) == expected,
+          f"candidate exception escaped its exact tree: {changed}")
+
+    check(pg._mutable_release_output_prefix(
+        "projects/demo", candidate, "HEAD", root) == candidate_rel,
+        "new direct release candidate did not earn its exact output prefix")
+    check(pg._mutable_release_output_prefix(
+        "projects/demo", predecessor, "HEAD", root) is None,
+        "tracked immutable predecessor incorrectly earned an output prefix")
+
+    # Staged additive bytes remain the same pre-seal candidate output. A byte
+    # modified again after staging is AM, not additive-only, and must surface.
+    must_pass(run(["git", "add", candidate], cwd=root),
+              "stage exact rehearsal candidate")
+    staged = pg._working_material_changes(
+        "projects/demo", root, ignored_new_prefixes=(candidate_rel,))
+    check(candidate_rel + "/MANIFEST.txt" not in staged,
+          f"staged additive candidate was not excluded: {staged}")
+    (candidate / "MANIFEST.txt").write_text("version: v1.1-drift\n")
+    modified_after_stage = pg._working_material_changes(
+        "projects/demo", root, ignored_new_prefixes=(candidate_rel,))
+    check(candidate_rel + "/MANIFEST.txt" in modified_after_stage,
+          "modified-after-stage candidate byte escaped rehearsal dirt")
+
+
 def _archive_repo(*, preexisting_archive=False, names=("demo",),
                   frozen_control=False):
     root = tmpdir("pub_archive_")
