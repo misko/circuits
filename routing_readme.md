@@ -1,5 +1,9 @@
 # routing_readme
 
+> **Historical investigation — not operating authority.** Current routing
+> procedure lives in `skills/kicad-pcb/references/routing-pipeline.md` and the
+> related route references selected by `pcb-design`.
+
 Why our routing stage is shaped the way it is, what the literature says, and
 how routing actually fails here.
 

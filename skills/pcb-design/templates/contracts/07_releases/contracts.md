@@ -2,30 +2,33 @@
 
 sourcing_authority: jlc-pcba
 
-**Purpose** — one immutable directory per **fab order**. Answers, forever,
-the only question that matters when a board comes back wrong: *what did we
-actually send?* — and, since 2026-07-20, the follow-up question:
-*…and can I inspect or rebuild it without leaving this directory?*
+**Purpose** — one immutable directory per **reviewed PCB release candidate**.
+It answers, forever: *what exact design and fabrication payload was sealed,
+what evidence admitted it, and was it orderable at that moment?* If the
+candidate is later ordered, a separate order receipt binds the uploader event
+to this exact immutable release; the release is never rewritten to imply that
+an order occurred.
 
 **A release is a COMPLETE, SELF-CONTAINED ARCHIVE.** Not a pointer to a git
 SHA. The `git_sha` proves provenance; it must not be the only way to see what
-was built. A release that ships gerbers but not the `.kicad_sch`/`.kicad_pcb`
+was built. A release that contains gerbers but not the `.kicad_sch`/`.kicad_pcb`
 they came from cannot be inspected, diffed, or rebuilt without checking out a
 commit, resolving a toolchain, and re-running a pipeline — which is exactly
 what nobody can do three years later when a board comes back wrong. The
 archive must stand alone.
 
-**Mutability** — **IMMUTABLE**. A release directory is written once, at
-order time, and never touched again. Not re-exported into. Not "refreshed".
-Not tidied. ONE exception: when a later release supersedes this one, a
-single new file `SUPERSEDED.md` may be ADDED (never editing anything that
-exists) naming the successor directory and the one-line reason.
+**Mutability** — the candidate path is mutable only during the normative
+staging procedure below. The seal commit is the transition: from that commit
+on, the release directory is **IMMUTABLE**. It is never re-exported into,
+"refreshed", or tidied after sealing. ONE exception: when a later release
+supersedes it, a single new file `SUPERSEDED.md` may be ADDED (never editing
+anything that exists) naming the successor directory and the one-line reason.
 
 **Immutability is UNCHANGED by the completeness requirement below.** The
 self-contained-archive structure applies to **NEW** releases, from
 2026-07-20 forward. Existing sealed releases are **NOT** retro-filled, not
 reorganized into the new layout, and not "upgraded" — they are historical
-facts about what was sent, and a directory that gains files after the fact
+facts about what was historically sealed or sent, and a directory that gains files after the fact
 is no longer evidence of anything. A board that wants the fuller archive
 gets a **NEW version**, and the old one gains only its `SUPERSEDED.md`
 pointer. These two rules do not conflict: completeness governs what you
@@ -37,8 +40,9 @@ One real project used a single mutable `fab/` directory and re-exported into
 it ~15 times in a day. A KiCad version change renamed the inner-layer gerbers
 (`.g2/.g3` → `.g1/.g2`), so stale KiCad-7 files sat mixed with KiCad-10 files
 and a naive zip shipped **both**. The export script grew a stale-file warning
-— a workaround for a structural problem. An immutable per-order directory
-makes the failure impossible instead of detectable.
+— a workaround for a structural problem. An immutable per-candidate release
+directory makes the failure impossible instead of detectable. An order system
+can then bind one uploader event to one release identity without changing it.
 
 ## Allowed — the complete archive (REQUIRED for new releases)
 
@@ -57,7 +61,7 @@ Machine-readable patterns (contracts_audit; the tree below is the human view):
 
 ### The directory NAME is how a machine tells the boards apart
 
-Two shapes ship: bare `v<N>[.<N>…]-<YYYY-MM-DD>` and, when a project builds
+Two release-name shapes are valid: bare `v<N>[.<N>…]-<YYYY-MM-DD>` and, when a project builds
 more than one board, per-board `<board>-v<N>[.<N>…]-<YYYY-MM-DD>`
 (`cooksense-v1.4-2026-07-26`). **`<board>` MUST be the `04_kicad` board stem**
 (separator style and case are free: `crow_recorder_central_v2` and
@@ -93,7 +97,8 @@ the only thing that says which board a sealed archive belongs to.
     │                               A-BUY) and the lenses' `order_verdict` (canon
     │                               M-REV). A warning 900 lines down is a warning for
     │                               the reader who already knew
-    ├── fab/                        REQUIRED — the JLCPCB order set, exactly as uploaded
+    ├── fab/                        REQUIRED — the fab-ready JLCPCB payload; if
+    │                               ordered, external evidence binds these exact bytes
     │   ├── <board>_gerbers.zip     the PCB order page
     │   ├── <board>.drl (+ NPTH)    drill files (also inside the zip; kept loose
     │   │                           so the archive is readable without unzipping)
@@ -246,8 +251,9 @@ directory, KiCad, and no network can: open the board, read the schematic,
 check mechanical fit, see every gate's evidence, and re-plot the gerbers.
 `source/` is what makes that true; `git_sha` only proves where it came from.
 
-**Where the files come from.** `source/` is a COPY of the sealed `04_kicad/`
-board + schematic, the `03_tscircuit/src/<board>.tsx`, and the exported
+**Where the files come from.** `source/` is a COPY of the exact current
+`04_kicad/` board + schematic selected at seal time, the
+`03_tscircuit/src/<board>.tsx`, and the exported
 netlist — copied at seal time, never symlinked (a symlink into a mutable
 folder defeats the entire archive). For a tscircuit-authored board the
 schematic PDF is copied from `03_tscircuit/build/schematic.pdf`.
@@ -259,7 +265,7 @@ The provenance that makes the release auditable:
 ```
 board:        power_board_v1
 version:      v4.10
-ordered:      2026-07-14
+ordered:      NOT-ORDERED (2026-07-14 staging)
 git_sha:      a5e7ca7                 # the EXACT commit these came from
 git_dirty:    false                   # scope: projects/<board>/ + skills/ — never seal with these inputs dirty
 sourcing_authority: jlc-pcba          # catalog-legacy is historical compatibility only
@@ -271,9 +277,8 @@ gates:        DRC 0/0/0 · netlist parity 0 · audit PASS · ERC 0 err ·
               twin PASS · pin_review PASS · policy_audit 0 FAIL ·
               redteam SOUND/SOUND, 0 open P0 · stock 55/55 verified
 DESIGN:       PASS                       # is the artifact CORRECT (seal-time)
-SOURCING:     CLEAR                      # can it be BOUGHT (order-time)
-                                         # ... or PLANNED-<n>, or
-                                         # BLOCKED-1 (C265111; measured 2026-07-30)
+SOURCING:     BLOCKED-1                  # can it be BOUGHT (order-time)
+                                         # example: C265111; measured 2026-07-14
 3d:           step present, gltf absent (no exporter for this board)
 sha256:       # EVERY file in the release, not just the fab set
   fab/power_board_v1_gerbers.zip   f5d56393...
@@ -363,9 +368,10 @@ consigned MSL-3 XU316 with zero MSL text while its own part.yaml recorded
 
 `git_sha` + `git_dirty: false` is the load-bearing pair for PROVENANCE: it says
 where the release came from. The sha256 table over **every** file is the
-load-bearing pair for INTEGRITY: it says the archive still is what was sent.
+load-bearing pair for INTEGRITY: it says the archive still is what was sealed.
 A release needs both — provenance without a complete archive is a promise you
-can only cash by rebuilding the past.
+can only cash by rebuilding the past. A separate order receipt is required to
+prove that these exact bytes were later sent.
 
 ### `git_dirty` — scoped to the release's INPUTS, not the whole repo
 
@@ -391,7 +397,8 @@ for a whole-repo claim:
     git_dirty:    false                   # scope: projects/<board>/ + skills/
 
 **Helper (declared here):** `skills/kicad-pcb/scripts/release_git_dirty.py
-<board>` computes this scoped flag, prints the exact MANIFEST line above, and
+"$PWD"` computes this scoped flag from the project root, prints the exact
+MANIFEST line above, and
 exits non-zero when dirty — the seal calls it and gates on the exit code
 rather than eyeballing `git status`.
 
@@ -429,7 +436,7 @@ procedure below.
    the claims separately when you need to:
    `release_freshness_check.py <staging_dir> --claim design`.
 1. **Source commit S.** Commit every INPUT: the board's own subtree and
-   any `skills/` changes. `release_git_dirty.py <board>` must report
+   any `skills/` changes. `release_git_dirty.py "$PWD"` must report
    clean apart from the staged release dir itself (the release dir is
    OUTPUT — the seal commit will carry it; any OTHER dirt blocks). Strip
    kicad-cli droppings LAST — any board-open regenerates gitignored
@@ -688,9 +695,12 @@ checked shared a method.
 - Releasing with dirty INPUTS (`git_dirty: true`) — a dirty `skills/` backend
   or a dirty/untracked file in the board's own subtree. Scope is
   `projects/<board>/ + skills/`, NOT the whole repo: a dirty SIBLING project
-  does not block (`release_git_dirty.py <board>` computes it).
-- A release whose gates did not pass. `verification/` holds the evidence;
-  an empty or failing `verification/` means it is not a release.
+  does not block (`release_git_dirty.py "$PWD"` computes it from the project
+  root).
+- A release whose required **design** gates failed or whose required evidence
+  is incomplete. `verification/` holds those receipts. A classified sourcing
+  block is different: it permits only the loud `DO-NOT-ORDER` seal described
+  below.
 - **A release carrying an unresolved P0 red-team finding.** A P0 blocks the
   release — fix and re-gate, or supersede; it may not seal open.
 - **A CPL row whose BOM line has a BLANK LCSC** (canon A-POP). JLC is being
@@ -698,11 +708,11 @@ checked shared a method.
   sourcing decision: it needs an `assembly.yaml` entry with a
   closed-vocabulary `reason:` and dated `evidence:`, AND the part must leave
   the CPL (`exclude_from_pos_files` on the board).
-- **Sealing against stock evidence that does not PASS** (canon A-STOCK), or
-  against evidence with no parseable verdict at all. Five sealed releases in
-  this fleet shipped a `FAIL:` last line, one with the board's own CPU at
-  stock 0. Fix the sourcing or record the `sourcing_plan:` entry with the
-  measured number and its date.
+- **Sealing against stock evidence with no parseable verdict or no explicit
+  disposition** (canon A-STOCK). Every shortage must be classified by a dated
+  `sourcing_plan:` as `PLANNED` or `BLOCKED`; an unclassified shortage fails.
+  A classified `BLOCKED` result may seal the design only with the loud
+  `SOURCING: BLOCKED-<n>` declarations below, and it cannot be ordered.
 - **Sealing a NON-ORDERABLE release QUIETLY** (canon A-BUY). Sealing one is
   PERMITTED — `DESIGN: PASS` + `SOURCING: BLOCKED-<n>` is a consistent state,
   and refusing it is what cost smc0985-cooksense v1.7 nine seals on a board
@@ -733,17 +743,18 @@ checked shared a method.
   unaccounted-for; a table entry with no file is a missing artifact.
   (`MANIFEST.txt` itself is the one exclusion — it cannot hash itself.)
 - `git_dirty: false` — scope `projects/<board>/ + skills/` (a dirty sibling
-  project does not count); compute with `release_git_dirty.py <board>`
+  project does not count); compute with `release_git_dirty.py "$PWD"` from the
+  project root
 - `git_sha` exists in this repo's history
 - **`fab/`, `pdf/`, `source/`, `verification/` all present and non-empty**
   (new releases); `3d/` present or its absence explained in the MANIFEST
 - exactly one gerber zip in `fab/`; the BOM/CPL are siblings, **not inside**
   the zip (fab uploads them separately)
-- `source/` opens: `kicad-cli pcb drc source/<board>.kicad_pcb` runs, and the
+- `source/` opens: `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity --exit-code-violations source/<board>.kicad_pcb` runs, and the
   board it loads is the one the gerbers were plotted from — re-plot from
   `source/` and the gerbers match
-- `source/<board>.net` is node-for-node identical to the netlist the sealed
-  `04_kicad` board produced at `git_sha`
+- `source/<board>.net` is node-for-node identical to the netlist the exact
+  `04_kicad` snapshot produced at `git_sha`
 - `verification/` reports show passing gates: DRC 0/0/0, ERC 0 errors,
   parity 0, audit PASS, policy_audit 0 FAIL (incl. M-BOM: fab BOM LCSC ==
   source per refdes), twin/pin/render reviews PASS
@@ -753,9 +764,9 @@ checked shared a method.
     `assembly.yaml`'s `not_assembled:` set, no blank-LCSC ref on the CPL, and
     the MANIFEST `not_assembled:` line matches `assembly.yaml`
   - `release_freshness_check.py <release_dir>` exits 0 including check (e):
-    the shipped stock evidence carries a PARSEABLE PASS verdict and every
-    coded, placed line clears `qty x build_quantity` or names a
-    `sourcing_plan:` entry with its measured stock and date
+    the sealed stock evidence carries a PARSEABLE verdict and every coded,
+    placed line either clears `qty x build_quantity` or names a dated,
+    explicitly classified `sourcing_plan:` entry
   - **and check (f) (canon A-BUY): every `sourcing_plan:` shortfall carries
     `order_status: PLANNED|BLOCKED`, and a release measured `BLOCKED-<n>`
     declares it — count, LCSC set and date all MATCHING the measurement — in
@@ -785,7 +796,8 @@ checked shared a method.
     else. A row that can only be CORROBORATED by the release's own
     `stock_check.csv` still counts against this, because corroboration is
     existence and not agreement
-- **the ORDER-TIME F-ECHO ritual (canon F-LEGIBLE, human-gated).** The
+- **ORDER-TIME ONLY — not a release-seal prerequisite:** the F-ECHO ritual
+  (canon F-LEGIBLE, human-gated). The
   ORDER_README carries it beside the A-POL rotation-preview gate: after
   uploading `fab/bom.csv`, save JLC's OWN resolved/matched part table out of
   their UI and run `bom_legibility_check.py fab/bom.csv --echo SAVED.csv`

@@ -70,7 +70,12 @@ ownership: `lib_footprint_issues` (generated board is source of truth),
   Correct fix: per-pad `ZONE_CONNECTION_FULL` (solid) on the flagged pads.
   Solid is preferable anyway for PTH connector pads; fine for
   reflow-assembled SMD.
-- Headless and GUI zone fills differ; GUI DRC is authoritative here.
+- On the supported KiCad 10 path, save/reopen and run
+  `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity
+  --exit-code-violations 04_kicad/<board>.kicad_pcb`; that exact headless report
+  is authoritative for fill-dependent release checks. Older GUI-versus-
+  `WriteDRCReport` differences are historical compatibility evidence, not the
+  forward gate.
 
 ## The audit-gate pattern (beyond DRC)
 

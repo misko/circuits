@@ -8,8 +8,8 @@
 #   kicad/<board>.kicad_sch            OUR converter output (AUTHORITATIVE machine bridge)
 #   verification/tsc_netlist.txt       tscircuit readable-netlist (first-order parity signal)
 #   verification/erc_converter.rpt     kicad-cli sch ERC on the converter sch (0 errors = bar)
-#   verification/parity_converter.md   node-for-node netlist parity vs the sealed 04_kicad
-#   verification/parity.md             first-order component/net counts vs the sealed board
+#   verification/parity_converter.md   node-for-node netlist parity vs the exact KiCad reference
+#   verification/parity.md             first-order component/net counts vs the exact reference
 #
 # The tscircuit PCB STUDY exports are GATED behind `--study` (DEFAULT OFF):
 #   build/{pcb.svg,assembly.svg,board.gltf}    tscircuit's own PCB/3D render
@@ -28,9 +28,9 @@
 # Usage: gen_tscircuit.sh <project_dir> [--study]
 #   expects <project_dir>/03_tscircuit/src/<board>.tsx  (+ package.json)
 #   writes  <project_dir>/03_tscircuit/{build,kicad,verification}[,fab]/...
-#   compares against the newest sealed KiCad board if one exists.
+#   compares against the selected exact KiCad reference if one exists.
 set -uo pipefail
-export PATH="$HOME/.bun/bin:$PATH"          # bun + tsci are installed per-user, persist on disk
+export PATH="$HOME/.bun/bin:$PATH"          # bun runtime; tsci is project-local below
 SKILLDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # resolve BEFORE any cd
 STUDY=0
 ARGS=()
@@ -58,16 +58,13 @@ cd "$T" || exit 2
 # A committed Bun lock selects the project-local producer. Restoring a locked
 # graph and then invoking a global `tsci` is still ambient execution (USB Hub
 # v4 exposed global 0.0.2112 beside locked local 0.0.2300).
-TSCI=tsci
-if [ -f bun.lock ]; then
-  step deps "restore locked producer graph"
-  bun install --frozen-lockfile --ignore-scripts >/dev/null 2>&1 || {
-    echo "    FATAL: frozen Bun dependency restore failed"; exit 6; }
-  TSCI=./node_modules/.bin/tsci
-  [ -x "$TSCI" ] || { echo "    FATAL: locked graph has no local tsci"; exit 6; }
-else
-  echo "    WARNING: no bun.lock; using ambient tsci (legacy/unmigrated project)"
-fi
+[ -f bun.lock ] || {
+  echo "    FATAL: 03_tscircuit/bun.lock is required; refusing ambient tsci"; exit 6; }
+step deps "restore locked producer graph"
+bun install --frozen-lockfile --ignore-scripts >/dev/null 2>&1 || {
+  echo "    FATAL: frozen Bun dependency restore failed"; exit 6; }
+TSCI=./node_modules/.bin/tsci
+[ -x "$TSCI" ] || { echo "    FATAL: locked graph has no local tsci"; exit 6; }
 
 # --- BRIDGE (DEFAULT): circuit.json + human schematic doc ---
 # `tsci build` writes dist/src/<BASE>/circuit.json; build/circuit.json is OURS.
@@ -159,7 +156,7 @@ fi
 # (GND -> ground power symbols). Every source_component still gets a UNIQUE
 # per-refdes lib_symbol (never a shared Device:U_chip) and every pin is keyed to
 # the KiCad pad name, so `kicad-cli sch export netlist` reaches node-for-node
-# parity vs the sealed 04_kicad board — but the sheet is now READABLE and WIRED,
+# parity vs the exact KiCad reference — but the sheet is now READABLE and WIRED,
 # retiring the S6 label-blob finding. If a board's trace geometry can't import
 # without a cross-net short, the converter auto-falls-back to v1's label grid
 # (`--mode grid`) for that board and logs it (parity is never worse than v1).
@@ -174,18 +171,18 @@ if [ -s "build/circuit.json" ]; then
   fi
 fi
 
-# --- parity vs the sealed KiCad fab-of-record (M1 checker-independence) ---
-SEALED=$(ls "$PROJ"/04_kicad/*.kicad_pcb 2>/dev/null | head -1)
+# --- parity vs the selected exact KiCad reference (M1 checker-independence) ---
+REFERENCE=$(ls "$PROJ"/04_kicad/*.kicad_pcb 2>/dev/null | head -1)
 {
   echo "# tscircuit-vs-KiCad parity — $(basename "$PROJ")"
   echo
   echo "Compares the tscircuit render's netlist against the KiCad fab-of-record."
   echo "Canon S-DSL: KiCad stays authoritative; this quantifies tscircuit fidelity."
   echo
-  if [ -n "$SEALED" ]; then
-    echo "KiCad board: \`$SEALED\`"
+  if [ -n "$REFERENCE" ]; then
+    echo "KiCad board: \`$REFERENCE\`"
     # component + net counts, both sides
-    python3 - "$SEALED" "$T/verification/tsc_netlist.txt" <<'PY' 2>/dev/null || echo "(parity diff needs pcbnew + a resolvable tsc netlist)"
+    python3 - "$REFERENCE" "$T/verification/tsc_netlist.txt" <<'PY' 2>/dev/null || echo "(parity diff needs pcbnew + a resolvable tsc netlist)"
 import sys,re
 try:
     import pcbnew
@@ -208,7 +205,7 @@ except Exception as e:
     print(f"- tscircuit side unreadable: {e}")
 PY
   else
-    echo "(no sealed KiCad board found under 04_kicad/ — parity N/A)"
+    echo "(no exact KiCad reference found under 04_kicad/ — parity N/A)"
   fi
 } > "$T/verification/parity.md"
 echo "  parity report -> $T/verification/parity.md"
@@ -222,15 +219,15 @@ if [ -s "$KSCH" ]; then
   ERRS=$(grep -c '; error' "$T/verification/erc_converter.rpt" 2>/dev/null || echo "?")
   WARN=$(grep -c '; warning' "$T/verification/erc_converter.rpt" 2>/dev/null || echo "?")
   echo "    converter ERC: $ERRS errors, $WARN warnings (warnings baselined: lib_symbol_issues env note + named-NC isolated labels)"
-  if [ -n "$SEALED" ]; then
-    step gate "node-for-node netlist parity vs sealed 04_kicad"
+  if [ -n "$REFERENCE" ]; then
+    step gate "node-for-node netlist parity vs exact KiCad reference"
     kicad-cli sch export netlist --format kicadsexpr \
       -o "$T/verification/converter_netlist.net" "$KSCH" >/dev/null 2>&1
     # per-board documented pad-name normalization (tscircuit footprinter vs KiCad land)
     PADMAP=""
     [ -f "$T/parity_padmap.txt" ] && PADMAP="$(cat "$T/parity_padmap.txt")"
     python3 "$SKILLDIR/kicad_sch_parity.py" "$BASE" \
-      "$T/verification/converter_netlist.net" "$SEALED" --padmap "$PADMAP" \
+      "$T/verification/converter_netlist.net" "$REFERENCE" --padmap "$PADMAP" \
       | tee "$T/verification/parity_converter.md"
   fi
 fi

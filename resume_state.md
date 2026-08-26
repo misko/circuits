@@ -1,5 +1,9 @@
 # RESUME STATE
 
+> **Historical snapshot — do not resume from this file.** It is retained only
+> as dated evidence. Use Git status/log plus each project's `01_docs/STATUS.md`
+> and journal for current work.
+
 _Snapshot: **2026-07-30 ~15:30**. Supersedes the 2026-07-21 snapshot entirely._
 _Superseded by commits as they land — `git log` is the primary source; this is only the frame._
 

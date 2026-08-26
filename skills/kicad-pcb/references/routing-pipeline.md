@@ -164,7 +164,8 @@ Two stitch passes earn a special note here. Put **`fresh_reload`** after the
 last `fill`: it unconditionally saves and re-execs in a fresh pcbnew process,
 rebuilding connectivity before any island decision. A long-lived pcbnew
 process can otherwise retain a pre-fill view and report fewer zone groups
-than the later `kicad-cli pcb drc --refill-zones` gate. This is distinct from
+than the later `kicad-cli pcb drc --severity-all --refill-zones
+--schematic-parity --exit-code-violations 04_kicad/<board>.kicad_pcb` gate. This is distinct from
 `reload`, which only fires after destructive passes poison SWIG iterators.
 
 Then run **`heal_islands`**. A same-net pour that fills as two or more disconnected

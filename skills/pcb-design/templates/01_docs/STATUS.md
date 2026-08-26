@@ -36,9 +36,9 @@ seal stage may describe a release as sealed. Never add `publish_handoff` or
 
 <!-- reader parses from here down -->
 stage:   commission
-step:    "project scaffolded; writing BRIEF.md"
-measure: "no gate run yet"
-state:   working
-next:    "D-SPEC spec-tension check, then parts"
+step:    "scaffold created; commission admission evidence not yet produced"
+measure: "PCB-COMMISSION INCOMPLETE; COMMISSIONING-HOLD present"
+state:   blocked
+next:    "close fact locks, architecture, applicability, and sourced-part obligations"
 op_pid:
-updated: YYYY-MM-DDTHH:MM:SS
+updated: <commissioner writes ISO-8601>

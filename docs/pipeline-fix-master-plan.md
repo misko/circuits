@@ -1,5 +1,9 @@
 # Pipeline fix — master plan
 
+> **Historical implementation plan — not operating authority.** Completed
+> behavior lives in the owning skills and executable tests; unresolved work is
+> tracked in `improvements.md`.
+
 One plan for the whole pipeline, merged from three working documents and two
 adversarial audits. Written 2026-08-02.
 

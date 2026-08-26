@@ -8,7 +8,8 @@ approximations and unverified stubs both produced real crossings.
 Usage (KiCad-bundled python):
     import os, sys
     import pcbnew
-    sys.path.insert(0, os.path.expanduser("~/.claude/skills/kicad-pcb/scripts"))
+    sys.path.insert(0, os.path.join(os.environ["CIRCUITS_ROOT"],
+                                   "skills/kicad-pcb/scripts"))
     from pcb_toolkit import Toolkit
     tk = Toolkit(pcbnew.LoadBoard("board.kicad_pcb"), clearance_mm=0.11)
     tk.joinpath("BST_B", (83.35, 92.75), (85.53, 92.03), width=0.2)

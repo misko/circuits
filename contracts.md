@@ -13,9 +13,10 @@ via an explicit pattern (see the coverage rule below).
 - A subfolder listed as `dir/` must carry its OWN `contracts.md`; one listed
   as `dir/**` is covered wholesale by this contract (used for snapshots and
   fixture trees whose internals are data, not structure).
-- Sealed folders (a project's `04_kicad/`, `07_releases/`) are covered by
-  their parent's patterns — adding any file to them, including a contract,
-  is forbidden.
+- Generated current `04_kicad/` snapshots are mutable only through
+  regeneration/promotion and follow their project contract. Immutable PCB and
+  enclosure release entries are governed by their release-stream contract;
+  adding or editing payload after seal is forbidden.
 - `.secrets/` is deliberately absent from the table: it is gitignored, so no
   file in it is in the audit's universe (`git ls-files`) and none may ever be.
   It is the ONE home for API keys — mode 600, one `<service>.env` per service,
@@ -34,11 +35,11 @@ via an explicit pattern (see the coverage rule below).
 | `contracts.md` | this file |
 | `.gitignore` | build/cache exclusions |
 | `.github/` | repository automation and publication checks (own contract) |
-| `resume_state.md` | session-resume snapshot (superseded by commits as they land) |
+| `resume_state.md` | retained historical snapshot; current resume state comes from Git plus project STATUS/journal |
 | `improvements.md` | repository-wide pipeline/process improvement ledger harvested from project stages | entries remain visible until completed or rejected with evidence |
-| `fix_pcb_design.md` | retained PCB workflow review and repair notes |
-| `fix_routing_to_industry_standards.md` | retained routing standards review notes |
-| `routing_readme.md` | retained router usage and investigation notes |
+| `fix_pcb_design.md` | historical PCB workflow proposal; non-authoritative |
+| `fix_routing_to_industry_standards.md` | historical routing proposal; non-authoritative |
+| `routing_readme.md` | historical routing investigation; non-authoritative |
 | `skills/` | the product: pcb-design, kicad-pcb, jlcpcb-fab, pcb-enclosure, shopping-list (own contract) |
 | `docs/` | repo-level canon: ADRs + proof docs (own contract) |
 | `examples/` | frozen evidence snapshots skills may cite (own contract) |
@@ -46,6 +47,7 @@ via an explicit pattern (see the coverage rule below).
 | `tests/` | the test suite (own contract) |
 | `projects/` | ACTIVE boards, one folder each (own contract) |
 | `archived_projects/` | completed/retired boards + frozen e2e regression fixtures (own contract) |
+| `recovery/**` | read-only migration/recovery snapshots retained wholesale; never a live project or source authority |
 | `tscircuit_modules/` | shared tscircuit module library (own contract) |
 | `spf/` | measured reference data about THIRD-PARTY hardware we must mate to, one folder per device (own contract) |
 

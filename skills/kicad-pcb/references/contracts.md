@@ -1,13 +1,14 @@
 # contract: skills/kicad-pcb/references/
 
-**Purpose** — the canon: policies with check IDs, capability data, and the
-hard-won empirics agents must not rediscover. Nothing here is advisory.
+**Purpose** — routed KiCad references: normative policies/procedures plus
+explicitly labeled empirical or historical background. Only the owning skill
+router determines what applies to a task.
 
 ## Allowed
 
 | Pattern | What |
 |---|---|
-| `*.md` | canon documents (design-policies, drc-discipline, routing empirics, tscircuit-folder, ...) |
+| `*.md` | normative procedure or explicitly labeled empirical/background document |
 | `*.yaml` | machine-consumed data models (e.g. `fab_tiers.yaml`) |
 | `rf/` | modular RF source cards and the bounded RF design procedure |
 | `contracts.md` | this file |

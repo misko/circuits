@@ -1,5 +1,8 @@
 # fix_routing_to_industry_standards
 
+> **Historical proposal — not operating authority.** Use the routed
+> `kicad-pcb` references and the PCB execution graph for current work.
+
 Bring the routing stage in line with what the literature has settled on: make
 one blind gate see its subject, add one provable pre-route bound, and stop
 letting a single net's failure cost an unbounded search.

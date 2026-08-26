@@ -1,13 +1,13 @@
-# Fast PCB flow: stage, handoff, timing, and test contract
+# Fast PCB layout flow: stage, handoff, timing, and test contract
 
 Use `scripts/pcb_flow.py` as the thin orchestration layer around the existing
-geometry and release tools.  It does not replace them:
+geometry and lifecycle tools. It does not replace them:
 
 - `escape_check.py` owns package escape and pad-launch feasibility.
 - `route_and_stitch_generic.py` owns routing and deterministic copper.
 - `grind_driver.py` owns bounded mechanical convergence.
-- `jlcpcb-fab` owns fabrication, PCBA, stock, 3D-model, polarity, and sealed
-  release gates.
+- `jlcpcb-fab` owns fabrication, PCBA, stock, 3D-model, polarity, and staged
+  manufacturer evidence. `pcb-design` owns independent release review/seal.
 
 ## Contents
 
@@ -20,22 +20,19 @@ geometry and release tools.  It does not replace them:
 ## State machine
 
 ```text
-legacy_unmigrated  (historical release evidence remains valid; new flow absent)
-
 architecture -> sourcing -> schematic -> placement -> routing -> grind
                                                         |         |
                                                         +---------+
                                                              |
                                                        layout_sealed
                                                              |
-                                                        fabrication
-                                                             |
-                                                       release_sealed
+                                                pcb-design handoff
 ```
 
 `layout_sealed` means one canonical rebuild followed by a fresh KiCad
-`--severity-all --refill-zones --schematic-parity` result of `0/0/0`.  It does
-not mean orderable.  `release_sealed` is reserved for the jlcpcb-fab battery.
+`--severity-all --refill-zones --schematic-parity` result of `0/0/0`. It does
+not mean fabrication-staged, release-sealed, order-ready, or physically
+accepted. Downstream ownership is documented by the PCB execution graph.
 
 ## Route configuration contract
 

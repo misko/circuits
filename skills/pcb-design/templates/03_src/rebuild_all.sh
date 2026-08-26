@@ -6,6 +6,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
 
+if [ -e 01_docs/COMMISSIONING-HOLD.md ] || [ -L 01_docs/COMMISSIONING-HOLD.md ]; then
+    echo "GATE INCOMPLETE [PCB-COMMISSION]: 01_docs/COMMISSIONING-HOLD.md still exists; close the brief/fact locks and adopt every schema example before rebuilding" >&2
+    exit 2
+fi
+
 # --- board-specific knobs (the ONLY things to edit) -------------------------
 BOARD=power3s                                  # <board> stem for 04_kicad/<board>.*
 TSX=power3s                                    # 03_tscircuit/src/<TSX>.tsx basename
@@ -13,11 +18,20 @@ SCHEMATIC_TITLE=POWER3S                        # human PDF title
 # ----------------------------------------------------------------------------
 
 PY=/usr/bin/python3
-# resolve the shared skill scripts (repo-relative first, ~/.claude fallback)
-REPO_ROOT="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || echo ../../..)" && pwd)"
+# Resolve the shared skill scripts from an explicit circuits checkout or this
+# project's repository. An explicit CIRCUITS_ROOT is authority: never replace
+# a bad value with an ambient installed skill.
+if [ -n "${CIRCUITS_ROOT:-}" ]; then
+    REPO_ROOT="$(cd "$CIRCUITS_ROOT" 2>/dev/null && pwd)" \
+        || { echo "GATE FAILED [PCB-TOOLCHAIN]: CIRCUITS_ROOT is not a readable directory: $CIRCUITS_ROOT" >&2; exit 2; }
+else
+    REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" \
+        || { echo "GATE FAILED [PCB-TOOLCHAIN]: project is outside the circuits checkout; export CIRCUITS_ROOT=/absolute/path/to/circuits" >&2; exit 2; }
+fi
 SKROOT="$REPO_ROOT/skills"
 S="$SKROOT/kicad-pcb/scripts"
-[ -f "$S/generate_board_generic.py" ] || { SKROOT="$HOME/.claude/skills"; S="$SKROOT/kicad-pcb/scripts"; }
+[ -f "$S/generate_board_generic.py" ] \
+    || { echo "GATE FAILED [PCB-TOOLCHAIN]: resolved circuits checkout '$REPO_ROOT' does not contain skills/kicad-pcb; export CIRCUITS_ROOT=/absolute/path/to/circuits" >&2; exit 2; }
 FS="$SKROOT/jlcpcb-fab/scripts"                # fab-skill checkers (bom_source_check)
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 

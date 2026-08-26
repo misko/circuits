@@ -1,5 +1,8 @@
 # fix_pcb_design
 
+> **Historical proposal — not operating authority.** Current procedure lives
+> in the owning skills; unresolved work belongs in `improvements.md`.
+
 Close the four measured defects in the parts and schematic stages, and stop
 respinning releases that contain no board change. Written 2026-08-02 from a
 fleet sweep of 29 board generations, 945 commits, 614 part dossiers, 47

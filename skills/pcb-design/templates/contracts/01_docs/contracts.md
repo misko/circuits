@@ -11,6 +11,8 @@ one that is unrecoverable if lost.
 | File | What | Rule |
 |---|---|---|
 | `BRIEF.md` | the commission record: original prompt (verbatim), end goal + acceptance criteria, clarification/directive/assumption log, decision register | see structure below; user quotes immutable, log append-only |
+| `capability-profile.json` | exact schema-1 disclosure profile selecting SI class, assembly path, firmware posture, foreign-mating branch and lifecycle target | generated once at commission; change only with a user directive and rerun the reference router |
+| `COMMISSIONING-HOLD.md` | executable stop marker proving the scaffold has not yet crossed the reviewed commission boundary | generated with every scaffold; both rebuild conductors refuse it; remove only with the reviewed commission-admission change |
 | `ARCHITECTURE.md` | the high-level concepts: power tree, net domains, stackup, ground strategy, critical geometries | prose + diagrams; the "why". Machine-readable net facts belong in `03_src/rules/nets.yaml`, not here — link to it |
 | `DETAIL_DESIGN.md` | the math: ripple, compensation, ampacity, thermal, tolerance | every number that a component value depends on, with its equation |
 | `CHANGELOG.md` | one entry per revision | see structure below |
@@ -292,8 +294,9 @@ Reverse-chronological. One entry per revision:
 Released: no
 ```
 
-`Released:` is `no`, or the `07_releases/` dir name. It is the only link between
-a revision and a fab order.
+`Released:` is `no`, or the immutable `07_releases/` directory that sealed the
+reviewed revision. It is not an order claim. Order events and uploader choices
+are separate evidence and never rewrite this changelog link.
 
 ## Structure: `STATUS*.md` — the live beacon (coordinator progress signal)
 

@@ -1,330 +1,251 @@
 ---
 name: pcb-design
-description: Drive a PCB from a user brief through requirements, architecture, sourced parts, readable schematic, placed/routed KiCad board, independent verification, JLCPCB PCBA release, first article, and publication. Use for new end-to-end board designs or resuming, reviewing, releasing, or publishing a board pipeline.
+description: Drive a PCB from a user brief through architecture, sourced parts, generated schematic, placed and routed KiCad layout, independent verification, JLCPCB assembly release, publication, and first article. Use for a new PCB, a resumed board, a design review, a release, or physical bring-up.
 ---
 
-# `/pcb-design` — brief to verified assembled board
+# PCB design
 
-Deliver a populated, reviewable board—not merely Gerbers or DRC-clean copper.
-Orchestrate the lifecycle; delegate electrical/layout mechanics to `kicad-pcb`,
-printable enclosure mechanics to `pcb-enclosure`, and manufacturer/assembly
-mechanics to `jlcpcb-fab` through the reference router below.
+Deliver a reviewable, regenerable board and make every stronger claim—release,
+order, first article, production—only at its own evidence boundary.
 
-## Outcome and authority
+`pcb-design` owns lifecycle composition. It delegates electrical and layout
+mechanics to `kicad-pcb`, manufacturing mechanics to `jlcpcb-fab`, and optional
+mechanical work to `pcb-enclosure`. Project `contracts.md` files own exact
+artifact membership and immutable release rules. Script `--help` output owns
+exact CLI syntax. `improvements.md` records work and rationale; it is never an
+engineering authority.
 
-Every new board targets assembly unless the user explicitly chooses otherwise.
-Every assembled footprint must be JLC sourced, consigned, or covered by a
-dated, measured assembly disposition. A release is a complete immutable archive
-with exact source, fab payload, human documents, 3D evidence, verification,
-order instructions, and manifest.
+## Quick start
 
-Authority is deliberately singular:
+From the repository root, put the user's original brief in a UTF-8 text file
+and create a new governed scaffold:
 
-- `pcb-design`: brief, lifecycle, stage composition, handoffs, independent
-  reviews, release seal, publication, first-article transition;
-- `kicad-pcb`: schematic/netlist, placement, geometry, routing, DRC/parity,
-  impedance and RF realization;
-- `pcb-enclosure`: board-interface extraction, printable enclosure source,
-  inserts, access, CAD/mesh checks, physical-fit evidence and candidate packages;
-- `jlcpcb-fab`: Gerber/drill/BOM/CPL, stock, population, rotation, JLC twin,
-  model registration and manufacturer staging;
-- project `contracts.md`: exact artifact membership and immutable seal rules;
-- scripts and their `--help`: exact command syntax and executable predicates;
-- `improvements.md` and project journals: rationale/history, never authority.
-
-Do not restate an owning procedure in another skill. Link to it. If two sources
-conflict, stop, inspect executable behavior and tests, then correct the stale
-source in a separate, evidenced change.
-
-## Entry protocol
-
-1. Preserve the user's brief verbatim in `01_docs/BRIEF.md`.
-2. Inspect repository status, project contracts, live beacon, journal tail,
-   exact handoff, and latest non-superseded release before acting.
-3. Determine whether this is commission, resume, repair, review, release-only,
-   publication-only, or first-article work.
-4. Write a capability profile before selecting procedures:
-
-```json
-{
-  "schema": 1,
-  "signal_integrity": "ordinary | high_speed_digital | rf",
-  "assembly": "jlcpcb | none | other",
-  "firmware": "forbidden | requested",
-  "foreign_mating": false,
-  "target": "design | release | publication | first_article | production"
-}
+```bash
+python3 skills/pcb-design/scripts/commission_project.py my-board \
+  --brief-file /path/to/original-brief.txt \
+  --signal-integrity ordinary \
+  --assembly jlcpcb \
+  --firmware forbidden \
+  --target design
 ```
 
-5. Default `firmware` to `forbidden`. Do not create, modify, build, or release
-   firmware unless the user explicitly requests it. A programmable IC does not
-   imply firmware scope.
-6. If an enclosure is in scope, record `co_design` or `derived` in its
-   `03_src/mechanical/enclosure.yaml` and route the parallel mechanical
-   workstream to `pcb-enclosure`. In this first canary phase it is an explicit
-   auxiliary handoff, not a typed PCB `StageSpec` and not part of PCB release
-   readiness.
-7. Run `scripts/skill_reference_router.py` in plan mode. Read every selected
-   procedure completely before its stage and do not load unselected domain
-   references.
-8. Keep current project drivers and gates authoritative. The typed plan is a
-   composition/coverage guard until a project has an approved equivalent trace.
+Use `high_speed_digital` for USB or another controlled digital interface, and
+`rf` only for an intentional RF/microwave path. Add `--foreign-mating` when the
+board consumes geometry from hardware this repository does not control. Add
+`--enclosure` only when mechanical work is in scope; choose co-design versus
+derived later, when the enclosure can bind exact PCB authority. The command
+refuses an existing destination and writes no PCB geometry. It creates the
+governed source tree, verbatim brief record, capability profile, and a
+conductor-enforced `01_docs/COMMISSIONING-HOLD.md`. Success means the scaffold exists;
+`PCB-COMMISSION` remains `INCOMPLETE`.
+`--assembly jlcpcb` means the populated PCBA evidence path; it is not shorthand
+for bare-board fabrication alone.
+
+Inspect the selected plan before design work:
+
+```bash
+PROJECT_SLUG=my-board
+python3 skills/pcb-design/scripts/skill_reference_router.py \
+  --profile "projects/${PROJECT_SLUG}/01_docs/capability-profile.json" \
+  --at-stage PCB-COMMISSION \
+  --json
+```
+
+Then ask the agent:
+
+```text
+Read and follow skills/pcb-design/SKILL.md for projects/<name>. Preserve the
+original brief, resolve the commission fact locks, and stop at the first
+evidence or operator checkpoint. Do not add firmware unless the brief
+explicitly asks.
+```
+
+The first useful outcome is not copper. It is an agreed brief, explicit
+capability profile, closed fact locks, and a traceable architecture boundary.
+Do not invoke either rebuild conductor while the commissioning hold exists.
+The bootstrap hold spans commission, architecture, and sourcing admission even
+though its initial status is `PCB-COMMISSION INCOMPLETE`; the typed stages still
+produce their own evidence in order.
+The repository does not yet have a single commission-admission compositor;
+manual hold removal is not evidence. IMP-235 tracks that missing executable
+boundary.
+
+## Plan is not execution
+
+The router is a pure disclosure tool. It selects procedures and validates that
+their semantic dependencies compose. It does not open a board, run a gate,
+prove applicability, promote an artifact, review a release, or publish.
+
+Read [the execution graph](references/execution-graph.md) before operating a
+project. It distinguishes:
+
+1. the 19-stage declarative lifecycle in `skill-authority-map.json`;
+2. the real project conductors, `03_src/rebuild_all.sh` and
+   `03_src/rebuild_reuse.sh`;
+3. the owning gates that grade exact schematic, board, fabrication, review,
+   release, and physical evidence.
+
+Conditional stages omitted by a profile remain disclosure-time `UNKNOWN`
+placeholders. They are not evidence that engineering applicability is false.
+
+## Lifecycle at a glance
+
+```text
+commission -> architecture -> sourcing
+  -> [RF context/source] -> schematic -> placement -> [foreign mating]
+  -> routing -> [RF realized] -> layout seal
+  -> fabrication -> assembly verification -> [RF fab review]
+  -> release review -> release seal
+  -> publication | first article -> production
+```
+
+Targets stop at `layout seal`, `release seal`, `publication`, `first article`,
+or `production`. High-speed digital composes inside ordinary schematic/layout/
+fabrication stages; it does not select RF-named stages. Firmware is a separate
+explicit handoff and never appears because a board merely contains a
+programmable part.
+
+At each selected stage:
+
+```text
+validate exact inputs and applicability
+  -> run bounded work with progress
+  -> reopen outputs through the owning gate
+     PASS       persist, commit, journal, advance
+     FAIL       change owning source, regenerate, regrade
+     INCOMPLETE persist what is owed and pause visibly
+     timeout    preserve the previous accepted bundle and diagnose
+     plateau    classify the cause and backtrack to its upstream owner
+```
+
+## Core invariants
+
+1. Preserve the original prompt verbatim in `01_docs/BRIEF.md`; later user
+   directives append to its log rather than rewriting history.
+2. Keep one writer per live board. Parallel agents may research or review in
+   isolated worktrees; they do not concurrently mutate the same design.
+3. Change human-owned source and regenerate. Never repair generated KiCad,
+   route candidates, fabrication payloads, or sealed releases in place.
+4. Grade the bytes just produced. Reviews and receipts bind both raw and
+   semantic identity; stale or missing subjects cannot pass.
+5. Require a nonzero denominator and explicit applicability. Zero findings
+   over zero graded items is `INCOMPLETE`, not success.
+6. Bound every producer/reviewer attempt with progress and a deadline. An
+   error, timeout, or optional diagnostic never replaces prior accepted state.
+7. Separate claims: generated, DRC-clean, layout-sealed, fabrication-staged,
+   release-sealed, published, order-ready, first-article-passed, and production
+   authorized are different states.
+8. Commit at green boundaries. Backtracking changes the owning source and
+   invalidates every downstream artifact whose semantic input changed.
+9. Treat human schematic readability and registered 3D mating direction as
+   real gates, not decoration after machine checks.
+10. Start with the cheapest fabrication tier that satisfies locked facts.
+    Advanced stackup/process capability needs evidence and a decision record.
+
+## Stage ownership
+
+| Work | Owner and boundary |
+|---|---|
+| Brief, requirements, architecture, lifecycle, backtracking | `pcb-design` |
+| Schematic/netlist, placement, routing, DRC/parity, SI/RF realization | `kicad-pcb` |
+| Gerber/drill/BOM/CPL, stock/population/rotation, JLC twin and staging | `jlcpcb-fab` |
+| Enclosure intent, access, independent fasteners, motion sweeps, fit/thermal evidence and enclosure releases | `pcb-enclosure` |
+| Exact project/release contents | nearest project `contracts.md` |
+| Publication admission | `pcb-design` publication gate plus repository protection |
+| Physical authorization | first-article card and measured record |
+
+Enclosure work is a parallel lifecycle. Its `CAD_READY`, `PRINT_VERIFIED`, and
+`THERMALLY_VERIFIED` statuses describe only one exact mechanical candidate.
+They do not promote the PCB. An enclosure release may bind an unchanged PCB
+release without resealing it. Firmware currently ends at an explicit handoff;
+the absent firmware release stream is tracked by IMP-234.
 
 ## Reference router
 
-Read these files directly when their condition applies. References longer than
-100 lines contain a contents list.
+Read a selected reference completely before acting. Do not load unrelated
+domains. References longer than 100 lines have a contents list.
 
-| Condition | Owner | Read completely |
-|---|---|---|
-| Commission, requirements, fact locks, sourcing, module/package choice | pcb-design | `references/commission-and-scope.md` |
-| Stage ordering, handoff, plateau, or backtrack | pcb-design | `references/lifecycle-and-backtrack.md` |
-| Executing any bounded task, subprocess, or agent attempt | pcb-design | `references/execution-runtime.md` |
-| Pausing/resuming or asking for operator evidence | pcb-design | `references/operator-checkpoints.md` |
-| Human review, staging, seal, supersede, publication, readiness report | pcb-design | `references/review-and-publication.md` |
-| Adding/changing orchestration stages, identities, bundles, reviews, facts | pcb-design | `references/pipeline-stage-contract.md` |
-| Part freeze, electrical closure, placement-feasibility composition | pcb-design | `references/early-boundary-gates.md` |
-| Choosing model/compute tier | pcb-design | `references/compute-tiers.md` |
-| Electrical and machine/human policy canon | kicad-pcb | `../kicad-pcb/references/design-policies.md` |
-| TSX/KiCad schematic generation and readability | kicad-pcb | `../kicad-pcb/references/schematic-generation.md` and `../kicad-pcb/references/tscircuit-folder.md` |
-| Placement, adjacency, body/courtyard and corridor checks | kicad-pcb | `../kicad-pcb/references/placement-and-proximity.md` |
-| Physical stack order, layer roles/references, topology migration and route-wave ownership | kicad-pcb | `../kicad-pcb/references/source-to-prep-authority.md` |
-| Route preparation, KRT, stitch, grind and DRC | kicad-pcb | `../kicad-pcb/references/routing-pipeline.md`, `../kicad-pcb/references/route-ownership.md`, `../kicad-pcb/references/route-candidate-contract.md`, `../kicad-pcb/references/route-exploration.md`, and `../kicad-pcb/references/fast-pcb-flow.md` |
-| Datasheet/reference-layout precedent selection | kicad-pcb | `../kicad-pcb/references/layout-precedents.md` |
-| High-speed digital paths such as USB | kicad-pcb | `../kicad-pcb/references/signal-integrity.md` |
-| Project source explicitly declares RF/microwave applicability | kicad-pcb | `../kicad-pcb/references/rf/rf-context.md` plus the applicable RF review protocol linked here: `../kicad-pcb/references/rf-schematic-review-protocol.md`, `../kicad-pcb/references/rf-pcb-review-protocol.md`, `../kicad-pcb/references/rf-fab-review-protocol.md` |
-| JLC BOM/CPL, stock, rotation, uploader review | jlcpcb-fab | `../jlcpcb-fab/references/assembly-and-order.md` |
-| JLC CAD twin, model transforms, bounding boxes/registration | jlcpcb-fab | `../jlcpcb-fab/references/digital-twin.md` |
-| Edge-mounted connector orientation, mating plane, directional 3D approval | jlcpcb-fab | `../jlcpcb-fab/references/connector-orientation.md` |
-| Printable enclosure, connector panels, standoffs/inserts, fit coupons, mesh/collision checks or physical enclosure evidence | pcb-enclosure | `../pcb-enclosure/SKILL.md`, then its applicable `../pcb-enclosure/references/interface-schema.md`, `../pcb-enclosure/references/enclosure-topologies.md`, `../pcb-enclosure/references/connector-access.md`, `../pcb-enclosure/references/fasteners-and-inserts.md`, `../pcb-enclosure/references/fdm-printability.md`, and `../pcb-enclosure/references/verification-and-release.md` |
-| Exact JLC fabrication/assembly staging | jlcpcb-fab | `../jlcpcb-fab/references/release-staging.md` |
-| Physical first-article power-up | jlcpcb-fab | `../jlcpcb-fab/references/first-article-bringup.md` |
+### PCB lifecycle
 
-For exact CLI flags, run the owning script with `--help`; do not load a long
-procedure solely to recover syntax.
+| Need | Read |
+|---|---|
+| Commission, fact locks, sourcing, module/tier decisions | [commission-and-scope.md](references/commission-and-scope.md) |
+| Canonical stage/command/dependency map | [execution-graph.md](references/execution-graph.md) |
+| Backtrack, checkpoint, journal, or handoff | [lifecycle-and-backtrack.md](references/lifecycle-and-backtrack.md) |
+| Bounded task/process/agent execution | [execution-runtime.md](references/execution-runtime.md) |
+| Operator pause/resume evidence | [operator-checkpoints.md](references/operator-checkpoints.md) |
+| Review, seal, supersession, publication | [review-and-publication.md](references/review-and-publication.md) |
+| Stage/result/artifact/review schemas | [pipeline-stage-contract.md](references/pipeline-stage-contract.md) |
+| Part-freeze/electrical/placement boundary composition | [early-boundary-gates.md](references/early-boundary-gates.md) |
+| Compute/model tier | [compute-tiers.md](references/compute-tiers.md) |
 
-## Non-negotiable invariants
+### KiCad electrical and layout
 
-1. Keep one live writer per board. Parallel work is independent research,
-   calculation, or read-only review in isolated worktrees.
-2. Fix source and regenerate downstream. Never hand-edit generated KiCad,
-   routed output, CSV, twin, or staged release bytes.
-3. Make every load-bearing claim `MEASURED` with method or `INHERITED` with
-   source and unverified status.
-4. Require nonzero denominators. `0 findings` over `0 graded` is not a pass.
-5. Bind reviews and accepted artifacts to exact semantic and raw identities.
-6. Give executable stages deadlines and visible progress. Timeout, incomplete,
-   or stale evidence never becomes PASS.
-7. Preserve the previous accepted bundle when a producer fails.
-8. Commit at green stage boundaries and promote the final route chain into
-   source.
-9. Treat DRC, parity, generation, fabrication, review, seal, publication,
-   orderability, first article, and production as different claims.
-10. Run cheap schema, source, and geometry gates before expensive producers or
-    human review.
-11. Review schematic readability at the first judgeable schematic and model/
-    placement registration before trusting final renders.
-12. Start at the cheapest fabrication tier that can meet the locked facts;
-    advanced capability requires measured need and an ADR.
+| Need | Read |
+|---|---|
+| Policy IDs and electrical/layout canon | [design-policies.md](../kicad-pcb/references/design-policies.md) |
+| TSX and schematic generation | [tscircuit-folder.md](../kicad-pcb/references/tscircuit-folder.md), then [schematic-generation.md](../kicad-pcb/references/schematic-generation.md) only for its documented fallback/review boundary |
+| Placement, adjacency, body clearance, corridors | [placement-and-proximity.md](../kicad-pcb/references/placement-and-proximity.md) |
+| Datasheet/reference-layout precedents | [layout-precedents.md](../kicad-pcb/references/layout-precedents.md) |
+| Physical stack and source-to-prep ownership | [source-to-prep-authority.md](../kicad-pcb/references/source-to-prep-authority.md) |
+| Route mechanics | [routing-pipeline.md](../kicad-pcb/references/routing-pipeline.md) and [fast-pcb-flow.md](../kicad-pcb/references/fast-pcb-flow.md) |
+| Route ownership, transaction, exploration | [route-ownership.md](../kicad-pcb/references/route-ownership.md), [route-candidate-contract.md](../kicad-pcb/references/route-candidate-contract.md), [route-exploration.md](../kicad-pcb/references/route-exploration.md) |
+| High-speed digital | [signal-integrity.md](../kicad-pcb/references/signal-integrity.md) |
+| RF applicability/context | [rf-context.md](../kicad-pcb/references/rf/rf-context.md) |
+| RF reviews | [rf-schematic-review-protocol.md](../kicad-pcb/references/rf-schematic-review-protocol.md), [rf-pcb-review-protocol.md](../kicad-pcb/references/rf-pcb-review-protocol.md), [rf-fab-review-protocol.md](../kicad-pcb/references/rf-fab-review-protocol.md) |
 
-## Lifecycle
+### Manufacturing and physical work
 
-| Stage | Required result before advancing | Procedure owner |
-|---|---|---|
-| Commission | Verbatim brief, capability/fact locks, explicit firmware and mating posture | pcb-design commission |
-| Architecture | Topology/protection/measurement boundaries and decisions are falsifiable | pcb-design + KiCad policy |
-| Sourcing | Exact dossiers, code/disposition readiness, critical-part JLC PCBA evidence, two-source feasibility, escape/tier/layout precedent evidence | pcb-design commission + jlcpcb-fab |
-| Schematic | Fresh producer diagnostics, ERC/parity/semantic gates and adopted independent topology/readability reviews | kicad-pcb schematic |
-| Placement | Exact part/pin identity, body clearance, adjacency/corridor/precedent gates, executable route topology/layer feasibility, and adopted pin/layout/render reviews | kicad-pcb placement |
-| Routing | Critical inventory, tier preflight, deterministic prep, bounded route/stitch, one final-route acceptance receipt over realized copper/vias/planes/DRC | kicad-pcb routing |
-| Layout seal | Fresh canonical rebuild, promoted route, exact board identity and applicable RF realized evidence | kicad-pcb flow |
-| Fabrication | Exact JLC payload, BOM/CPL/stock/population/rotation/twin/process evidence | jlcpcb-fab |
-| Release staging | Self-contained archive and complete scoped independent review battery | pcb-design review |
-| Release seal | Normative two-commit seal, clean manifest and refreshed beacon | project release contract |
-| Publication | Publication gate passes against base/head and repository protection applies | pcb-design publication |
-| First article | Staged population, exposed-pad, resistance/current-limit and contract-owned electrical/RF/thermal tests pass | jlcpcb-fab first-article card + project test plan |
-| Production | First-article evidence closes every production hold | pcb-design lifecycle |
+| Need | Read |
+|---|---|
+| JLC BOM/CPL/stock/population/rotation | [assembly-and-order.md](../jlcpcb-fab/references/assembly-and-order.md) |
+| JLC CAD twin/model registration | [digital-twin.md](../jlcpcb-fab/references/digital-twin.md) |
+| Edge-connector mating orientation | [connector-orientation.md](../jlcpcb-fab/references/connector-orientation.md) |
+| Exact fabrication/assembly staging | [release-staging.md](../jlcpcb-fab/references/release-staging.md) |
+| Physical board bring-up | [first-article-bringup.md](../jlcpcb-fab/references/first-article-bringup.md) |
+| Enclosure commission and schema | [mechanical-commission.md](../pcb-enclosure/references/mechanical-commission.md), [configuration-schema-v2.md](../pcb-enclosure/references/configuration-schema-v2.md), [interface-schema.md](../pcb-enclosure/references/interface-schema.md) |
+| Enclosure assembly and geometry | [assembly-and-motion.md](../pcb-enclosure/references/assembly-and-motion.md), [enclosure-topologies.md](../pcb-enclosure/references/enclosure-topologies.md), [connector-access.md](../pcb-enclosure/references/connector-access.md), [fasteners-and-inserts.md](../pcb-enclosure/references/fasteners-and-inserts.md), [fdm-printability.md](../pcb-enclosure/references/fdm-printability.md) |
+| Enclosure evidence and release | [verification-and-release.md](../pcb-enclosure/references/verification-and-release.md), [release-stream.md](../pcb-enclosure/references/release-stream.md) |
 
-Enclosure status is a parallel auxiliary lifecycle. `CAD_READY`,
-`PRINT_VERIFIED`, and `THERMALLY_VERIFIED` describe only the exact bound
-enclosure candidate; none promotes PCB layout, fabrication, release, or first
-article. An enclosure `FAIL` or `INCOMPLETE` remains visible without rewriting
-an immutable PCB release.
+## Operate the current project
 
-### Stage loop
+Read `01_docs/STATUS.md`, the journal tail, capability profile, current source,
+latest accepted receipts, and latest non-superseded release before acting. Run
+the full project conductor when TSX or schematic source changed. Use the reuse
+conductor only when the pinned schematic is unchanged. Fresh route exploration
+is a separate candidate workflow; canonical rebuild replays the authenticated
+route source selected by `03_src/route.yaml`.
+Exact commands and branch behavior are in `references/execution-graph.md` and
+the owning scripts' `--help`.
 
-```text
-enter(X)
-  validate inputs + applicability + subject identity
-  perform bounded work with progress
-  run owning gate
-    PASS                 -> persist result; commit; journal finish; advance
-    FAIL and improving   -> journal iteration; change owning source; repeat
-    plateau / no remedy  -> classify cause; D-BACK to owner; regenerate
-    human evidence owed  -> persist INCOMPLETE commission; pause visibly
-    timeout/error        -> keep prior accepted bundle; diagnose
+At release, stage mutable bytes first, run the independent review battery once
+per material state, rehearse the publication-internal contract, then follow the
+project's normative two-commit seal. Never mutate a sealed directory. Before a
+material push, require `P-PUBLISH PASS` from `pcb_publication_gate.py` against
+the exact base/head pair.
+
+After three non-improving iterations, stop local repair. Record the repeated
+finding set, verify the causal artifact, and use `D-BACK` to reopen its owner.
+A fresh agent resumes from committed source, the live beacon, journal, and
+content-addressed handoff—not from hidden conversation history.
+
+## Validate changes to this skill
+
+Run the authority and documentation gates after changing this skill, router,
+catalog, templates, or references:
+
+```bash
+python3 skills/pcb-design/scripts/skill_authority_check.py
+python3 tests/t1_skill_progressive_disclosure.py
+python3 tests/t1_pcb_documentation.py
 ```
 
-Use `StageSpec`/`StageResult` for orchestration metadata. Paths, CLI commands,
-and numeric design limits do not belong in stage semantic identity. Unknown
-applicability fails; non-applicability requires a reason and zero denominator.
-
-## Commission through sourcing
-
-Read `commission-and-scope.md`. Do not begin architecture until voltage/current
-envelopes, simultaneous loads, measurement plane, protection, off-control,
-foreign mating, fabrication ceiling, and firmware posture are locked.
-
-Resolve `D-SPEC`, `D-MATE`, `D-MOD`, `D-ESC`, `D-LAYOUT`, `D-TIER`, and
-two-source feasibility before detailed generation. Part dossiers must derive
-physical pin maps and package/land-pattern facts from authoritative figures.
-Volatile price/stock belongs in build evidence; durable identities belong in
-dossiers and source. Before part freeze, run the manufacturing-selection
-receipt and confirm critical/footprint-driving codes in JLCPCB's PCBA
-interface. LCSC catalog stock is only a candidate signal. After a complete
-preliminary BOM exists and before placement spend, grade a quantity-expanded
-`prelayout` JLC PCBA receipt. Bind the receipt to the project's explicit
-procurement policy and grade preorder cash, gross MOQ surplus cost, and
-nonrecoverable assembly excess cost separately from raw surplus quantity.
-These prevention gates never replace the final exact-BOM `order` allocation
-and quote receipt. Record the preliminary-BOM boundary through the legacy
-readiness receipt. An optional `S-PART-FREEZE` request writes only typed
-`INCOMPLETE` fail-closed boundary hold with no outputs or accepted bundle until one
-atomic, independently regraded promotion transaction exists.
-
-## Schematic
-
-Load the KiCad schematic procedures. Author TSX as the standard front end and
-use the shared generic backend; use schwriter only for a documented unsupported
-case. Pin dependencies exactly and keep the lockfile.
-
-Run inexpensive source/schema/count/producer-diagnostic checks before TSX
-generation and immediately after it. Bind a human schematic PDF to the exact
-Circuit JSON. Stop at the schematic checkpoint until independent topology and
-readability witnesses are admissible. A machine-readable but unreadable
-schematic does not pass. Compose the post-netlist specialist battery as
-`E-CLOSURE`; specialist scripts retain every equation and limit.
-
-## Placement and routing
-
-Load only the applicable KiCad placement/routing references. Prove package
-escape, part/pin identity, native-polygon body/courtyard clearance, datasheet
-adjacency, corridor capacity, and critical-pair inventory before router spend.
-Before route preparation, compile the closed source-to-prep authority over the
-authored physical stack, independently observed live topology, any explicit
-migration, and exact route ownership. It may derive only unambiguous layer,
-reference, via-span and stitch facts. Keep its decision shadowed behind the
-current preparation authority until the documented canaries agree.
-
-At placement freeze, run the placement-routability compositor. It grades the
-existing physical predicates and source-owned topology/layer declarations; it
-does not route copper or add a lifecycle stage. Functional-cell evidence for
-selected-part pad roles, signed orientation, local paths, simultaneous
-reservations, constrained escapes, ground egress, hot-path lower bounds and
-pilot replicas remains shadow until its independent-observation canaries pass.
-Record `P-FEASIBILITY` as a typed `INCOMPLETE` boundary hold until the stage
-emitter can independently regrade all seven predicates. Never promote a
-structurally self-authenticating receipt or let shadow publication alter the
-legacy result.
-
-After native-model registration, close `P-ORIENT` for edge-mounted connectors
-with machine geometry plus exact, hash-bound human directional views. If the
-fabrication twin substitutes a vendor model, require its automatic
-`P-MATE-REG` receipt before accepting final renders; never move a correct
-footprint to compensate for a wrong derivative model.
-
-For high-speed digital, compose `signal-integrity.md` into the existing
-schematic and routing stages. Bind physical P/N chains, layer/reference plane,
-differential engine, via policy, and length tolerance before routing; do not
-select an RF-named stage or fabrication review. Activate the RF source,
-realized, solver, and fab-review module only when authoritative project source
-explicitly declares RF applicability. Neither adapter adds an unbounded wait
-stage.
-
-Route from a track-free, unfilled deterministic input. Run the mechanical grind
-at the cheapest tier, stop on the bounded plateau trigger, fix upstream source,
-and regenerate. Treat each mutation as a fresh, immutable candidate
-transaction bound to the prepared board and sidecars. Candidate-owned rules
-never grade their own copper. Compare semantic objectives and stop after the
-bounded non-improvement budget; use the typed recommendation to backtrack.
-During rollout, semantic-copper flags create pending requests; separately run
-canary diagnostics and shared-admission comparisons remain shadow. A pending
-request is not evidence, and none of these may loosen or tighten an established
-result. Transfer authority only in a separate change after promotion canaries
-pass.
-Layout seal consumes one hash-bound final-route receipt. Its fresh native DRC
-must bind the unchanged board and report and show absolute zero violations,
-zero unconnected items, and zero schematic-parity findings.
-
-## Fabrication and assembly
-
-Load the three JLC procedures only after layout seal. Export source-derived
-payloads atomically. Enforce exact BOM identity and legibility, stock verdict,
-population coverage, measured A-ROT authority, JLC CAD fit, mounted-body
-coverage, same-camera render registration, via process, and payload census.
-
-Capture JLC's final stackup/impedance, via-fill/cap, BOM, rotation, and THT
-assembly previews. Public capability tables establish feasibility but do not
-prove final uploader selections. Keep the board `DO-NOT-ORDER` or
-`FIRST-ARTICLE-ONLY` while order-side evidence is owed.
-Only a fresh `order`-phase JLCPCB receipt bound to the final BOM and build
-quantity may authorize `ORDER`; catalog-stock PASS remains advisory.
-
-## Review, seal, and publication
-
-Read `review-and-publication.md`. Run the full review battery once per material
-state; scope fix-pass reviews to changed items plus one integrated fresh lens.
-All reviews target pre-seal staging and carry parseable design/order verdicts.
-
-Follow only the normative seal procedure in the project `07_releases` contract.
-Initialize the DRAFT manifest at staging start, rehearse the publication-
-internal contract while staging is mutable, and admit seal only from a current
-accepted rehearsal. Never mutate a sealed release. Before merging or pushing a design state to the
-publication branch, run:
-
-```text
-python3 skills/pcb-design/scripts/pcb_publication_gate.py \
-  --base <publication-base-sha> --head <candidate-head-sha>
-```
-
-Require `P-PUBLISH PASS`. A generated board, DRC 0/0/0, fab preflight, or
-manifest does not imply review, seal, publication, order, or production.
-
-## Backtracking and handoff
-
-Read `lifecycle-and-backtrack.md` whenever a gate repeats, a stage waits, or a
-session approaches a planned boundary. After three non-improving iterations,
-stop local grind, group findings by cause, verify the causal artifact, commit
-the failed evidence, and reopen the upstream owner.
-
-Planned handoffs occur after schematic review and layout seal. Persist a compact
-content-addressed handoff, refresh the live beacon, append the journal event,
-and let a fresh successor resume from repository state. Do not preload history
-directories or repeatedly resume a context-heavy agent for mechanical work.
-
-## Compatibility and maintenance
-
-The progressive-disclosure structure must preserve observable behavior:
-
-```text
-capability profile -> selected authorities -> ordered StageSpecs
-  -> gates/artifacts -> review pauses -> backtrack targets -> release claim
-```
-
-Run `scripts/skill_authority_check.py` after changing a skill/reference/router.
-It must prove line/word budgets, direct references, unique domain authority,
-legacy gate reachability, and fixture profile traces. Run the pipeline unit
-tests and the USB Hub v4 and Pluto v4 shadow canaries before changing execution
-authority. A fail-closed review pause is compatible behavior; do not force a
-green canary by fabricating evidence.
-
-Keep the current driver authoritative until its ordered applicability,
-identity, outputs, results, and blockers agree with the typed trace. Preserve
-the previous skill through Git history, not a second live legacy file.
+Run the applicable pipeline unit suites before changing execution authority.
+Preserve previous behavior through Git history, not a second live legacy skill.
 
 ## Report
 
-Report decisions and assumptions, measured gate scoreboard with denominators,
-design/order verdicts, release path and source/seal commits, and every order-day
-or first-article hold. Mark claims as measured or inherited. Use readiness
-language matching the strongest proven lifecycle stage.
+Report assumptions and decisions, selected target, current stage, measured gate
+scoreboard with denominators, exact artifact/release paths, source and seal
+commits, and every operator/order/first-article hold. Mark claims `MEASURED` or
+`INHERITED`; use readiness language no stronger than the evidence.

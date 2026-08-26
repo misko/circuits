@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# TEMPLATE rebuild_reuse.sh — the DETERMINISTIC promoted-chain rebuild driver
+# TEMPLATE rebuild_reuse.sh — the DETERMINISTIC route-authority rebuild driver
 # (skill-owned; copy into a board's 03_src/ beside rebuild_all.sh — it is
 # config-driven and needs NO per-board edits: the board name comes from
 # 03_src/floorplan.yaml `project.name`, exactly like the generic backend).
@@ -32,15 +32,31 @@
 # Order is BINDING (03_src/contracts.md): rules BEFORE import (canon R1),
 # generate_rules LAST again after stitch (pcbnew saves clobber netclasses),
 # then the full gate: kicad-cli pcb drc --severity-all --refill-zones
-# --schematic-parity = 0/0/0. The pinned .kicad_sch is copied beside the board
+# --schematic-parity --exit-code-violations 04_kicad/<board>.kicad_pcb = 0/0/0.
+# The pinned .kicad_sch is copied beside the board
 # first — without it --schematic-parity SILENTLY SKIPS (crow-rv2 finding).
 set -euo pipefail
 cd "$(dirname "$0")/.."                       # -> project root (03_src/..)
 
+if [ -e 01_docs/COMMISSIONING-HOLD.md ] || [ -L 01_docs/COMMISSIONING-HOLD.md ]; then
+    echo "GATE INCOMPLETE [PCB-COMMISSION]: 01_docs/COMMISSIONING-HOLD.md still exists; close the brief/fact locks and adopt every schema example before rebuilding" >&2
+    exit 2
+fi
+
 PY=/usr/bin/python3
-# resolve the shared skill scripts (repo-relative first, ~/.claude fallback)
-S="$(cd "$(git rev-parse --show-toplevel 2>/dev/null || echo ../../..)" && pwd)/skills/kicad-pcb/scripts"
-[ -f "$S/generate_board_generic.py" ] || S="$HOME/.claude/skills/kicad-pcb/scripts"
+# Resolve the shared skill scripts from an explicit circuits checkout or this
+# project's repository. An explicit CIRCUITS_ROOT is authority: never replace
+# a bad value with an ambient installed skill.
+if [ -n "${CIRCUITS_ROOT:-}" ]; then
+    REPO_ROOT="$(cd "$CIRCUITS_ROOT" 2>/dev/null && pwd)" \
+        || { echo "GATE FAILED [PCB-TOOLCHAIN]: CIRCUITS_ROOT is not a readable directory: $CIRCUITS_ROOT" >&2; exit 2; }
+else
+    REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" \
+        || { echo "GATE FAILED [PCB-TOOLCHAIN]: project is outside the circuits checkout; export CIRCUITS_ROOT=/absolute/path/to/circuits" >&2; exit 2; }
+fi
+S="$REPO_ROOT/skills/kicad-pcb/scripts"
+[ -f "$S/generate_board_generic.py" ] \
+    || { echo "GATE FAILED [PCB-TOOLCHAIN]: resolved circuits checkout '$REPO_ROOT' does not contain skills/kicad-pcb; export CIRCUITS_ROOT=/absolute/path/to/circuits" >&2; exit 2; }
 FS="$(dirname "$(dirname "$S")")/jlcpcb-fab/scripts"
 export PATH="$HOME/.bun/bin:$PATH"
 

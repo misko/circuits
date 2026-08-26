@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Node-for-node parity of two KiCad boards' connectivity: every (refdes, pad)
 -> net-name must match. Proves the TSX-authored board is electrically identical
-to the sealed 04_kicad board (not just DRC-clean). Ignores pad-less/NPTH pads
+to the selected exact KiCad reference (not just DRC-clean). Ignores pad-less/NPTH pads
 (no net) and normalizes KiCad auto-generated 'unconnected-*' node names, which
 carry fresh UUID-ish suffixes and are not electrical signal.
-Usage: board_netlist_parity.py BUILT.kicad_pcb SEALED.kicad_pcb
+Usage: board_netlist_parity.py BUILT.kicad_pcb REFERENCE.kicad_pcb
 
 G-INPUT / G-COVER (canon M-COVER, 2026-07-27). This printed `BOARD PARITY 0 ->
 PASS` with no denominator and without naming either file, so two EMPTY boards

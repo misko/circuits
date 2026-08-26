@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """kicad_sch_parity — node-for-node netlist parity between a converter-produced
 `.kicad_sch` (via `kicad-cli sch export netlist --format kicadsexpr`) and the
-sealed KiCad `04_kicad` board (via pcbnew). Companion gate to
+selected exact KiCad reference board (via pcbnew). Companion gate to
 `circuit_json_to_kicad_sch.py` under ADR-0001 Phase 2.
 
 Normalization applied to the CONVERTER side (the KiCad fab-of-record is the truth):
@@ -140,7 +140,7 @@ def main():
     kn, knc = kicad_nodes(a.pcb_path, padmap)
     allnets = set(nn) | set(kn)
     disc = 0
-    print(f"=== {a.board} netlist parity (converter kicad_sch vs sealed 04_kicad) ===")
+    print(f"=== {a.board} netlist parity (converter kicad_sch vs exact KiCad reference) ===")
     # G-INPUT: name both artifacts by path, so a reader can tell the sealed
     # board from a 06_build reconstruction (canon M-SHIP).
     print(f"input: netlist = {Path(a.net_path).resolve()}")

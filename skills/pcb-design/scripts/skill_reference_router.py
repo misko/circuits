@@ -398,7 +398,10 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", type=Path, required=True,
                         help="schema-1 capability profile JSON")
-    parser.add_argument("--at-stage", help="show current-stage references only")
+    parser.add_argument(
+        "--at-stage",
+        help="set load_now to the selected stage's references; retain the full plan",
+    )
     parser.add_argument("--json", action="store_true", help="emit canonical JSON")
     parser.add_argument("--catalog", type=Path, default=CATALOG_PATH,
                         help="authority/stage catalog override (tests only)")

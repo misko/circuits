@@ -23,12 +23,12 @@ YOU re-ran, not the agent's claim (reports are claims, artifacts are proof) -->
 <!-- the normative seal ORDER (2-commit seal) lives in ONE home: the
 07_releases contract, "Seal procedure (normative)". This list is the
 INDEPENDENT re-measure that follows it — never trust the sealer's claims -->
-- [ ] DRC 0/0/0 — `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity`, re-run yourself
+- [ ] DRC 0/0/0 — `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity --exit-code-violations projects/<name>/04_kicad/<board>.kicad_pcb`, re-run yourself
 - [ ] MANIFEST sha256 self-check — every listed hash re-computed and equal; `git_sha` = the source commit S
 - [ ] `git check-ignore` sweep — no release/source input gitignored (canon M3/M-REPRO); run LAST (kicad-cli regenerates `*.kicad_prl` droppings on any board-open)
 - [ ] freshness gate — `release_freshness_check.py 07_releases/<ver>` exits 0
 - [ ] semantic M-BOM — `bom_source_check.py FAB_BOM CIRCUIT_JSON --parts 02_parts`: per-refdes LCSC equals source AND decoded MPN value equals label (canon M6)
-- [ ] red-team verdicts ORDER, zero open P0 — run pre-seal on staging, scoped by release type (canon "Verification scoping": initial = full battery; fix-pass = targeted + ONE fresh lens)
+- [ ] red-team `design_verdict: SOUND`, zero open P0 — run pre-seal on staging, scoped by release type (canon "Verification scoping": initial = full battery; fix-pass = targeted + ONE fresh lens); `order_verdict` is checked only for an order claim
 
 ## Standing hazards / gotchas
 <!-- campaign-scoped traps already paid for — one line each, with the incident -->

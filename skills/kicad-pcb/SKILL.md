@@ -57,8 +57,10 @@ credits, or debugging time — check provenance notes before assuming staleness.
    (`build/schematic.pdf`). For the schwriter2 FALLBACK path (footprints
    tscircuit can't yet express — it still emits label-glue, no drawn wires),
    the render review MUST grade readability.
-3e. **NC pins are emitted, not narrated** (canon S4): generate_schematic
-   places no_connect flags for every sanctioned float; the rebuild chain
+3e. **NC pins are emitted, not narrated** (canon S4):
+   `circuit_json_to_kicad_sch.py` on the standard TSX path, or `schwriter2.py`
+   on the explicit fallback path, places no-connect flags for every sanctioned
+   float; the rebuild chain
    gates `kicad-cli sch erc --severity-all` at ZERO errors (warnings
    baselined with reasons). Prose-only "intentionally floating" notes let
    13 unflagged floats ship on one board and 9 on another.
@@ -111,9 +113,10 @@ credits, or debugging time — check provenance notes before assuming staleness.
    floor. Margin (≥ floor) and same-net/design-intent items get scoped
    `.kicad_dru` rules or documented severity policy. Target: a zero-noise
    report where any new violation is real.
-9. **GUI DRC is authoritative for zone-fill-dependent checks**
-   (starved_thermal is invisible headless). Fix starved thermals with
-   per-pad `ZONE_CONNECTION_FULL`, not vias — the check counts only spokes.
+9. **On the supported KiCad 10 path, headless DRC with `--refill-zones` is
+   authoritative for zone-fill-dependent checks.** Reopen the saved board and
+   bind the exact report. Older KiCad behavior is background, not the forward
+   release path. Fix starved thermals in source; do not waive them by count.
 10. **pcbnew scripting**: save/reload after `Remove()` (segfaults), `FindNet`
    not `GetNetsByName`, design rules live in `.kicad_pro` (generators must
    never clobber it), absolute paths in background shells.
@@ -132,14 +135,11 @@ credits, or debugging time — check provenance notes before assuming staleness.
     build/copy boundary; error records block, while warning records are counted
     for review. Freshness, ERC, and parity do not replace this producer-owned
     diagnostic check.
-13. **Separate source / generated / build / releases; extract datasheets
-    once.** Every fab order freezes into an immutable `releases/<ver>-<date>/`
-    with a MANIFEST (git SHA + tool versions) — a single mutable `fab/` dir
-    silently mixed KiCad 7 and 10 gerbers and cannot answer "what did we
-    send?". Datasheet FACTS (physical pad numbers, polarity, package) go once
-    into `parts/<MPN>/part.yaml` with the revision pinned; the PDF is cached
-    globally by sha256 and committed into the project only when the part is
-    actually used. See `references/project-structure.md`.
+13. **Separate source, generated current state, disposable build evidence, and
+    immutable releases; extract datasheet facts once.** Reviewed PCB candidates
+    freeze under `07_releases/<ver>-<date>/`; ordering is a separate claim.
+    Datasheet facts live in `02_parts/<MPN>/part.yaml` with exact document
+    identity. See `references/project-structure.md`.
 
 ## Reference map (open on demand)
 
@@ -381,9 +381,10 @@ lines stay KiCad** because the authoring tool must never self-grade them:
 corners) and **jlc_twin** (checker-independence M1 — caught 4 wrong-footprint
 boards). Generator: `scripts/gen_tscircuit.sh <project>`; the full mechanics,
 converter modes, placement + module details: `references/tscircuit-folder.md`
-and `docs/decisions/0002-tscircuit-native-pipeline.md`. Runtime is `bun`
-(`~/.bun/bin`) + `tsci` (`npm i -g tscircuit`), persistent per-user. schwriter2
-remains the fallback for footprints tscircuit can't yet express.
+and `docs/decisions/0002-tscircuit-native-pipeline.md`. Runtime uses `bun`
+with each project's frozen lock and local `./node_modules/.bin/tsci`; the
+canonical rebuild has no global CLI fallback. `schwriter2` remains the fallback
+for footprints tscircuit cannot yet express.
 
 ## Version scoping
 
@@ -394,10 +395,12 @@ KiCad-9 dialect (unopenable in 7, hence the textual import — on KiCad 9+
 direct open may work, re-verify). KiCad ≥ 9 API breaks (both fixed in the
 scripts with fallbacks): `EDA_UNITS_MILLIMETRES` renamed to `EDA_UNITS_MM`,
 and `pcbnew.WriteDRCReport` SEGFAULTS headless (needs the GUI `Pgm()`
-instance) — use `kicad-cli pcb drc --severity-all --refill-zones` instead
+instance) — use `kicad-cli pcb drc --severity-all --refill-zones
+--schematic-parity --exit-code-violations 04_kicad/<board>.kicad_pcb` instead
 (same `[type]`-tagged report format). `--refill-zones` makes headless DRC
 authoritative for zone-fill checks on 10.x (starved_thermal reproduced the
-GUI result); golden rule 8's GUI-only caveat applies to KiCad 7/8. KiCad 10's
+GUI result). KiCad 7/8 are historical compatibility context, not the forward
+release target. KiCad 10's
 `--schematic-parity` catches sch↔pcb BOM gaps nothing in 7 could (found a
 real missing footprint on a "clean" board); its noise classes: lib-prefix
 footprint_symbol_mismatch, merged-pad multi-pin net_conflict, mounting-hole

@@ -8,7 +8,7 @@
 #
 # Everything in the default tiers is hermetic: the network is mocked
 # (jlc_twin drives a stub $EASYEDA2KICAD and a seeded per-code cache), and
-# no sealed 04_kicad board, release, or project file is ever written.
+# no generated current 04_kicad board, immutable release, or project source is ever written.
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -70,6 +70,8 @@ SUITES=(
   t1_pipeline_foundation.py
   t1_pipeline_contract.py
   t1_pipeline_execution.py
+  t1_pcb_commission.py
+  t1_pcb_documentation.py
   t1_skill_progressive_disclosure.py
   t1_pipeline_registry.py
   t1_pipeline_runtime.py

@@ -769,6 +769,10 @@ def t_shared_tscircuit_entry_points_are_local():
                  f"{path.name} frozen install")
         contains(txt, "./node_modules/.bin/tsci",
                  f"{path.name} project-local producer")
+        check("TSCI=tsci" not in txt,
+              f"{path.name} retains an ambient producer fallback")
+        contains(txt, "bun.lock is required; refusing ambient tsci",
+                 f"{path.name} fail-closed missing-lock message")
         check(not re.search(r'timeout\s+\d+\s+tsci\s+build', txt),
               f"{path.name} retains a direct global tsci build")
 

@@ -54,8 +54,9 @@ BASELINE_SKILLS = (
 )
 CURRENT_SKILLS = BASELINE_SKILLS + ("skills/pcb-enclosure/SKILL.md",)
 ALLOWED_CORE_SCRIPTS = frozenset({
-    "pcb_publication_gate.py", "skill_authority_check.py",
-    "skill_reference_router.py",
+    "commission_project.py", "pcb_publication_gate.py",
+    "skill_authority_check.py", "skill_reference_router.py",
+    "t1_pcb_documentation.py", "t1_skill_progressive_disclosure.py",
 })
 STALE_AUTHORITY_PHRASES = (
     "A-ROT gate itself is HELD",

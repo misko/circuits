@@ -23,9 +23,9 @@ belongs here.
 
   | invocation | population | graded by |
   |---|---|---|
-  | `contracts_audit.py` | 325 tracked, `projects/**` + `archived_projects/**` excluded | strict: any violation = exit 1 |
-  | `contracts_audit.py --projects` | 8035 tracked (`git ls-files`) | 2681 governed debt entries; `DEBT_CEILING`, per unit, TIGHT |
-  | `contracts_audit.py --present` | 8035 = tracked ∪ untracked-not-ignored | the above + `STRAY_UNITS` (currently zero) |
+  | `contracts_audit.py` | tracked current workflow, excluding `projects/**`, `archived_projects/**`, and read-only `recovery/**` | strict: any violation = exit 1 |
+  | `contracts_audit.py --projects` | every tracked path from `git ls-files` | governed debt entries; `DEBT_CEILING`, per unit, TIGHT |
+  | `contracts_audit.py --present` | tracked ∪ untracked-not-ignored | the above + `STRAY_UNITS` (currently zero) |
 
 ## Canon rows this repo's tooling adds (2026-07-31)
 

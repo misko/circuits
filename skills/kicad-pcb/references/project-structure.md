@@ -1,154 +1,76 @@
-# Project structure: spec → fab
+# PCB project structure
 
-There is no industry standard. OSHWA covers licensing and documentation
-completeness, not layout; the KiCad community agrees only on "name the repo
-after the hardware, put the project in a subfolder, use `${KIPRJMOD}` for
-local libs". So pick a PRINCIPLE, not a template.
+The `pcb-design` commissioner owns creation of this tree. This reference
+explains the KiCad-side separation of human source, generated current state,
+disposable evidence, and immutable release history.
 
-**The principle: organize by who writes it and whether it may change.**
-Source (humans/generators) → generated (tools, committed for review) →
-build (tools, disposable) → releases (frozen forever).
-
-Every structural failure on the SPF power board traced to mixing these: a
-single mutable `fab/` re-exported ~15 times silently mixed KiCad 7 and
-KiCad 10 gerbers, derived PNG/PDF/netlists churned git on every export, and
-a repo-wide `**/*.csv` ignore nearly ate the part-decision record.
-
-## The layout
-
-```
-board-name/
-├── README.md               what it is, status, current release
-├── docs/                   ← human truth, hand-written
-│   ├── DESIGN.md           architecture + requirements
-│   ├── DETAIL_DESIGN.md    the math (ripple, compensation, ampacity)
-│   ├── decisions/          part choices + WHY; review dispositions;
-│   │                       rejected candidates and the reason
-│   └── CHECKLIST.md        revision gate
-├── src/                    ← THE ONLY SOURCE OF TRUTH
-│   ├── generate_schematic.py
-│   ├── generate_board.py
-│   ├── audit_board.py
-│   ├── rules/              *.kicad_dru, netclass definitions
-│   └── lib/                *.pretty, 3D models
-├── parts/                  ← per-MPN facts + datasheet (see below)
-├── kicad/                  ← GENERATED, committed for reviewable diffs
-│   └── board.kicad_{pro,sch,pcb}
-├── firmware/
-├── build/                  ← gitignored, regenerate freely
-│   ├── renders/  netlists/  drc/  cache/
-└── releases/               ← IMMUTABLE, committed, one dir per fab order
-    └── v4.10-2026-07-14/
-        ├── ORDER_README.md   order options, checklists, hand-solder list
-        ├── gerbers.zip  bom.csv  cpl.csv
-        ├── MANIFEST.txt      git SHA + KiCad version + checksums
-        └── verification/     the DRC/audit reports that passed
+```text
+projects/<name>/
+├── README.md                 navigation only
+├── contracts.md              project membership and mutability
+├── 01_docs/                  brief, decisions, status, journal, reviews
+├── 02_parts/                 exact part dossiers and archived data
+├── 03_src/                   human PCB config, rules, promoted route
+├── 03_tscircuit/             human TSX plus pinned generated schematic input
+├── 04_kicad/                 generated current KiCad snapshot
+├── 05_firmware/              empty unless explicitly requested
+├── 06_build/                 disposable caches, candidates, receipts
+├── 07_releases/              immutable PCB release stream
+├── 07_enclosure_releases/    optional independent enclosure stream
+└── 08_reviews/               independent mutable-state reviews
 ```
 
-**`releases/` is the load-bearing part.** Each fab order is a frozen,
-checksummed snapshot — never re-exported into, never edited. It makes the
-stale-gerber failure structurally impossible and answers "what did we
-actually send?" when a board comes back dead. Generators may write to
-`kicad/` and `build/`; they must NEVER write to `releases/`.
+Every present folder is governed by its nearest `contracts.md`. The
+commissioner copies project-independent templates from `pcb-design`; never copy
+a sibling board.
 
-Two rules that fall out:
-- `.gitignore` derived artifacts, but NEVER decision records. Invert the
-  common accident: `docs/decisions/` deserves the most protection, not the
-  least — it is the only thing that cannot be regenerated.
-- Committed-but-generated (`kicad/`) is deliberate: it makes generator bugs
-  visible as diffs. Expect timestamp-only churn on re-export; `git checkout`
-  the noise rather than committing it.
+## Authority by folder
 
-## Multi-board (product line)
+| Folder | Authority and mutability |
+|---|---|
+| `01_docs/` | Human commission/decision history. Prompt/directive log is append-only; STATUS is the mutable live beacon. |
+| `02_parts/` | Human-maintained exact identities and authoritative facts; volatile stock belongs in build evidence. |
+| `03_src/` | Human KiCad-side design source: placement, rule declarations, route config, promoted route chain. |
+| `03_tscircuit/` | Human TSX source and pinned producer inputs. |
+| `04_kicad/` | Generated, committed current snapshot. Never edit as source; regenerate for reviewable diffs. |
+| `06_build/` | Disposable, ignored workspaces and receipts. Nothing uniquely authoritative may live only here. |
+| `07_releases/` | Immutable reviewed PCB candidate archives. A release may remain not order-ready. |
+| `07_enclosure_releases/` | Immutable mechanical versions binding an exact PCB release; no PCB reseal. |
+| `08_reviews/` | Independent reviews bound to exact mutable subjects; adopted copies enter release evidence at seal. |
 
-```
-product_v3/
-├── docs/            system architecture, interface contracts
-├── boards/          one full structure (above) per board
-├── shared/lib/      footprints/symbols shared across boards
-├── shared/rules/    house netclasses + fab floors (policy, not memory)
-└── releases/        system-level BOM rollups
-```
-Do NOT symlink shared parts into boards — symlinks break the transferability
-that makes a project openable in three years. Duplication is the price of
-standalone, and it is worth paying.
+## Source and generated state
 
-## parts/ — datasheets and extracted facts
+If `03_src`/`03_tscircuit` disagree with `04_kicad`, generated KiCad is stale.
+Fix source and rerun. Routing experiments occur in transaction-local build
+workspaces; only an independently accepted chain is promoted under
+`03_src/route/` and replayed into `04_kicad`.
 
-Three tiers with opposite requirements. Getting them confused is the
-default mistake:
+Do not keep `*_old`, `*_v2`, backup, or experiment siblings. Git preserves
+iterations; one canonical current artifact prevents ambiguous writers and
+release inputs.
 
-| Tier | Cost to obtain | Lifetime | Home |
-|---|---|---|---|
-| PDF blob | seconds | until vendor revises | global cache, NOT git |
-| Extracted facts | expensive, error-prone | until revision changes | `parts/`, committed |
-| Market data (stock/price) | seconds | hours | `build/cache/`, TTL'd |
+## Build and release distinction
 
-**The download is not the expensive part — the extraction is.** Reading a
-60-page datasheet to get physical pad numbers right is the costly,
-error-prone work. Do it once, write it down, never re-read.
+Generated current state and immutable release history solve different
+problems:
 
-```
-parts/
-└── LM5145RGYR/
-    ├── part.yaml        facts + provenance
-    └── SNVSAI4F.pdf     committed; filename carries the REVISION
-```
+- `04_kicad` makes generator changes visible in ordinary Git review.
+- `06_build` isolates disposable candidates and expensive evidence.
+- `07_releases/<version-date>` freezes one complete reviewed candidate with
+  exact source, fabrication, verification, human documents, and manifest.
 
-Flow: check global cache (`~/.cache/datasheets/<sha256>.pdf`) → download only
-on miss → extract facts once → **when the part is actually USED, copy the PDF
-from the cache into `parts/<MPN>/` and commit**. Rejected candidates stay
-cache-only; their PDF is worthless but the REASON is not — record it in
-`docs/decisions/`.
+Sealing a release does not mean it was ordered or passed first article.
+Ordering and physical acceptance add separate evidence; neither rewrites the
+release.
 
-The two tiers do different jobs: the global cache is a speed optimization
-(iterate over five candidates, download each once, forever); the project copy
-is the archive of record (standalone, immune to URL rot). The `sha256` proves
-they are the same document.
+## Validation
 
-```yaml
-mpn: LM5145RGYR
-manufacturer: Texas Instruments
-type: buck_controller          # explicit CLASS — a "10k NTC 3380K" coded as a
-                               # plain 10k resistor shipped once; type: kills it
-datasheet:
-  doc_id: SNVSAI4
-  revision: SNVSAI4F           # PIN IT — pinouts change between revisions
-  url: https://www.ti.com/lit/ds/symlink/lm5145.pdf
-  sha256: 9f2c...              # lets a re-download prove it is the same doc
-  fetched: 2026-07-14
-package: VQFN-20 RGY 3.5x4.5
-pins:                          # physical PADS, from the datasheet's pinout figure
-  1: EN
-  20: VIN
-  21: {name: EP, tie: GND, note: "thermal pad, must be grounded"}
-limits: {vin_max: 75V, tj_max: 125C}
-gotchas:
-  - "EP is pad 21, not implicit — a generator that omits it floats the pad"
-verified: "pin map cross-checked against datasheet fig 6-1 — 2026-07-14"
-sourcing: {lcsc: C485912, alternates: [C2650259, C3188678]}
+Use the project's own contracts and the repository audit:
+
+```bash
+python3 scripts/contracts_audit.py --walk --root projects/<name>
 ```
 
-`part.yaml` must be complete enough that **the PDF is never needed for normal
-work** — only for re-verification. That is what makes it context-efficient:
-read 40 lines of YAML, not 60 pages.
-
-Record polarity as a PART FACT where it exists: `pin 1: "-" blade` on an XT60
-is exactly the fact whose absence shipped a reversed battery connector.
-
-**Parity gate**: every BOM part has a `parts/` entry; every `parts/` entry is
-in the BOM. Same spirit as `kicad-cli pcb drc --schematic-parity`. Catches a
-used part with no datasheet on file, a stale entry for a swapped part
-(ATtiny816 → ATtiny1616), and MPNs that were never orderable ("ATtiny816-SSN"
-does not exist; the part is ATTINY816-SN).
-
-Licensing: committing vendor PDFs is normal for private/internal repos and
-legally gray for public ones. Decide before a design repo goes public.
-
-## Migrating an existing board
-
-Move, don't rewrite: generators → `src/`, design docs → `docs/`, the current
-mutable `fab/` → a frozen `releases/<version>-<date>/` with a MANIFEST
-pinning git SHA and tool versions, everything regenerable → `build/` and
-gitignore it. The first release directory is the one that retroactively
-answers "what did we send?".
+Then run the project conductor and owning gates. Directory shape alone proves
+only governance coverage; it says nothing about electrical correctness,
+freshness, review, orderability, or physical success.

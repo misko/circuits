@@ -26,6 +26,7 @@ from harness import (ROOT, KPY, check, contains, eq, main,  # noqa: E402
                      must_pass, run, test, tmpdir)
 
 AUDIT = ROOT / "scripts" / "contracts_audit.py"
+COMMISSION = ROOT / "skills" / "pcb-design" / "scripts" / "commission_project.py"
 
 GOOD_ROOT = """# contract: fixture root
 ## Allowed
@@ -167,47 +168,25 @@ def t_iso_placeholder_ok():
 @test("a project seeded from the skill templates audits clean (template/"
       "contract coherence pinned)")
 def t_template_seed():
-    # replicates templates/README.md's commission copy list exactly; a gap
-    # between what the templates ship and what the contracts permit fails
-    # here (9 such gaps shipped before this test existed — 6a5bd82)
-    tpl = ROOT / "skills" / "pcb-design" / "templates"
-    d = tmpdir("seed_")
-    stages = ["01_docs", "02_parts", "03_src", "03_tscircuit", "04_kicad",
-              "05_firmware", "06_build", "07_releases", "08_reviews"]
-    for s in stages:
-        (d / s).mkdir()
-        shutil.copy(tpl / "contracts" / s / "contracts.md", d / s)
-    shutil.copy(tpl / "contracts" / "ROOT.contracts.md", d / "contracts.md")
-    (d / "03_src" / "rules").mkdir()
-    (d / "03_src" / "lib").mkdir()
-    # Exercise the enclosure-selected conditional branch in templates/README.
-    # A commission that selects no enclosure work alongside its capability
-    # profile simply omits this governed subfolder.
-    (d / "03_src" / "mechanical").mkdir()
-    (d / "01_docs" / "decisions").mkdir()
-    (d / "01_docs" / "journal").mkdir()
-    (d / "01_docs" / "learnings").mkdir()
-    for src, dst in [
-            ("03_src/floorplan.yaml", "03_src/floorplan.yaml"),
-            ("03_src/route.yaml", "03_src/route.yaml"),
-            ("03_src/rules/nets.yaml", "03_src/rules/nets.yaml"),
-            ("project.gitignore", ".gitignore"),
-            ("01_docs/decisions/0000-example-adr.md",
-             "01_docs/decisions/0000-example-adr.md"),
-            ("contracts/01_docs/decisions/contracts.md",
-             "01_docs/decisions/contracts.md"),
-            ("contracts/01_docs/journal/contracts.md",
-             "01_docs/journal/contracts.md"),
-            ("contracts/01_docs/learnings/contracts.md",
-             "01_docs/learnings/contracts.md"),
-            ("contracts/03_src/lib/contracts.md", "03_src/lib/contracts.md"),
-            ("contracts/03_src/mechanical/contracts.md",
-             "03_src/mechanical/contracts.md"),
-            ("contracts/03_src/rules/contracts.md",
-             "03_src/rules/contracts.md")]:
-        shutil.copy(tpl / src, d / dst)
-    for md in (tpl / "01_docs").glob("*.md"):
-        shutil.copy(md, d / "01_docs")
+    # The commissioner is the one executable scaffold manifest. This test
+    # exercises its largest conditional shape rather than copying a second
+    # hand-maintained file list into the suite.
+    base = tmpdir("seed_")
+    projects = base / "projects"
+    projects.mkdir()
+    brief = base / "brief.txt"
+    brief.write_text("Commission a governed RF board with an enclosure.\n")
+    must_pass(run([
+        KPY, COMMISSION, "seeded-board",
+        "--projects-root", projects,
+        "--brief-file", brief,
+        "--signal-integrity", "rf",
+        "--assembly", "jlcpcb",
+        "--target", "release",
+        "--foreign-mating",
+        "--enclosure",
+    ]), "template commissioner")
+    d = projects / "seeded-board"
     r = must_pass(run([KPY, AUDIT, "--walk", "--root", d]),
                   "contracts_audit on template-seeded project")
     contains(r.out, "0 violations", "seeded project audits clean")

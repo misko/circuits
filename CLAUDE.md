@@ -1,6 +1,7 @@
 # circuits — project instructions for Claude
 
-This repo designs PCBs from a brief to an orderable, verified JLCPCB release.
+This repo designs PCBs from a brief to a reviewed, reproducible PCB release.
+Orderability and an actual order are separate, explicitly evidenced claims.
 These rules are BINDING. They exist because each one was learned by paying for it.
 
 ## Where the canon lives
@@ -17,14 +18,17 @@ There is deliberately no `docs/learnings.md` here: the hard-won conclusions live
 in `design-policies.md`, the ADRs, and the commit bodies (which are written as
 post-mortems — `git log` is a primary source, not just history).
 
-## Immutability
+## Mutability and authority
 
-- **Sealed `04_kicad/` and `07_releases/` are IMMUTABLE.** Never write to them,
-  never retro-fill a sealed release. Open them read-only for comparison. All
-  regenerated output goes to `06_build/proof/` or a NEW release version.
-- A fix means a NEW release plus `SUPERSEDED.md` on the old one — never an edit.
-- Never hand-edit `04_kicad/`. Fix the generator and rerun. Everything must be
-  regenerable from `03_src/` + `03_tscircuit/` (canon M3).
+- **`07_releases/` and `07_enclosure_releases/` entries are immutable.** Never
+  retro-fill one. A correction is a new version; withdrawal/supersession is a
+  separate immutable record.
+- `04_kicad/` is the committed, generated current snapshot. It is mutable only
+  by regeneration/promotion and is never hand-source authority. Fix
+  `03_src/`/`03_tscircuit/`, or promote an independently accepted route
+  candidate, then rebuild.
+- Disposable candidates and proofs live in `06_build/`. Everything required to
+  reconstruct current design intent must live in committed source (canon M3).
 
 ## Build order (violating it produces a board that passes DRC and is wrong)
 
@@ -37,7 +41,7 @@ post-mortems — `git log` is a primary source, not just history).
 - Auto/AI placement is blind to electrical proximity. A routing failure is
   usually a PLACEMENT problem — check net span lengths before tuning the router.
 - DRC violations **AND UNCONNECTED ITEMS** are CLASSIFIED, never counted. Gate is
-  `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity` = 0
+  `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity --exit-code-violations 04_kicad/<board>.kicad_pcb` = 0
   violations / 0 unconnected / 0 parity.
   **BOTH HALVES. THE UNCONNECTED HALF IS THE ONE THAT GETS SUMMARISED INSTEAD.**
   pluto-rx2-8way 2026-07-30: the 39 violations were classified properly (21
@@ -100,7 +104,9 @@ post-mortems — `git log` is a primary source, not just history).
 ## Mechanics
 
 - Use `/usr/bin/python3` for anything importing `pcbnew`.
-- `bun`/`tsci` come from `~/.bun/bin`.
+- `bun` is the runtime on `PATH`; `tsci` is the frozen project-local
+  `03_tscircuit/node_modules/.bin/tsci` installed by the conductor. There is no
+  global `tsci` fallback.
 - Stage folders are number-prefixed: `01_docs 02_parts 03_src 03_tscircuit
   04_kicad 05_firmware 06_build 07_releases`. `03_tscircuit` shares stage 3 with
   `03_src` because both are hand-written source.

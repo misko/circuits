@@ -20,6 +20,14 @@ hand-authored enclosure releases remain read-only.  The v2 publisher does not
 rewrite them merely to adopt the new contract. Publication refuses a missing
 or linked `contracts.md`; it never silently creates a contractless stream.
 
+## Contents
+
+1. [Prepared workspace](#prepared-workspace)
+2. [Status composition](#status-composition)
+3. [Publish transaction](#publish-transaction)
+4. [Reopen verification](#reopen-verification)
+5. [Manifest contract](#manifest-contract)
+
 ## Prepared workspace
 
 Publish from a disposable, stable snapshot, not directly from mutable CAD

@@ -9,6 +9,17 @@ The loader rejects duplicate keys, missing or unknown fields, non-normalized
 identifiers, unsafe paths, symlinks, stale hashes/sizes, zero denominators, and
 cross-document contradictions.
 
+## Contents
+
+1. [Top level](#top-level)
+2. [Subject and release authority](#subject-and-release-authority)
+3. [External subjects and authority](#external-subjects-and-authority)
+4. [Verification scopes and installed parts](#verification-scopes-and-installed-parts)
+5. [Fastener groups](#fastener-groups)
+6. [Clearance cases](#clearance-cases)
+7. [Extensible physical tests](#extensible-physical-tests)
+8. [Commands](#commands)
+
 ## Top level
 
 The exact fields are:

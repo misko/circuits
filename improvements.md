@@ -10,6 +10,127 @@ Status vocabulary: `proposed`, `accepted`, `implementing`, `completed`,
 canonical implementation and executable tests; a rejected item must retain the
 rationale.
 
+## Active forward roadmap
+
+This small table is the working queue. The long historical index and retained
+incident narratives below explain prior changes but do not set current
+priority. New work enters here with one owner, one landing point, and executable
+completion evidence.
+
+| ID | Improvement | Status | Landing point |
+|---|---|---|---|
+| IMP-229 | Make PCB documentation navigable, executable, and graph-checked | completed | root README, `pcb-design` skill, execution graph, docs index, documentation tests |
+| IMP-230 | Reduce `kicad-pcb` policy prose to terse normative rules with linked evidence | accepted | `kicad-pcb/SKILL.md`, `design-policies.md`, dated evidence pages |
+| IMP-231 | Version and shrink project contract templates to structural membership and schema | accepted | `pcb-design/templates/contracts/`, contract-version migration tooling |
+| IMP-232 | Split this ledger into a machine-checked active registry and archived completed narratives | accepted | `improvements.md`, generated/history archive, ledger test |
+| IMP-233 | Generate the active-project catalog from STATUS/release metadata | accepted | `projects/README.md`, catalog generator and freshness test |
+| IMP-234 | Add an independent firmware release stream bound to exact PCB releases | accepted | firmware release contract, staging/reopen tooling, product-lock composition |
+| IMP-235 | Add an executable commission-admission compositor | accepted | commission receipt, fact-lock/architecture/sourcing gates, hold removal check |
+
+## IMP-229 — executable PCB documentation and graph
+
+- status: completed
+- observed: the repository front door described a retired schematic path and
+  stale tool counts; three different execution layers were all called “the
+  pipeline”; the template README's claimed exact copy list omitted current
+  source and enclosure authorities.
+- landing point: one five-minute root quick start; a lean `pcb-design` entry;
+  one catalog-derived execution graph; an indexed normative/evidence/history
+  taxonomy; an executable fail-closed commissioner; and a documentation
+  contract test.
+- completion evidence: `tests/t1_pcb_commission.py` commissions ordinary and
+  conditional projects without overwriting data and audits the exact scaffold;
+  `tests/t1_pcb_documentation.py` checks runnable starts, graph/catalog equality,
+  local links, DRC/resume/seal semantics, and forward terminology;
+  `tests/t1_skill_progressive_disclosure.py` plus
+  `skill_authority_check.py` preserve authority and selective disclosure.
+- authority boundary: documentation may expose implementation but may not
+  promote the disclosure router into an executor or make a release imply an
+  order/physical result.
+
+## IMP-230 — terse policy canon with separated evidence
+
+- status: accepted
+- problem: `skills/kicad-pcb/references/design-policies.md` carries normative
+  rows and extensive incident prose in the same very long lines, while the
+  owning skill duplicates parts of both.
+- intended landing point: retain each stable policy ID and concise predicate in
+  the canon; move measured incidents, derivations, and dated examples to linked
+  evidence documents; slim the skill to invariants and selective routing.
+- completion evidence required: every policy ID remains uniquely owned and
+  reachable; known-bad gate fixtures remain green; no procedure has two live
+  authorities; fresh-user retrieval uses fewer documents without losing a
+  required gate.
+
+## IMP-231 — versioned structural project contracts
+
+- status: accepted
+- problem: copied contract prose has diverged across active projects, turning
+  generic procedure and incident history into many competing live texts.
+- intended landing point: contracts retain allowed artifacts, mutability,
+  schema version, and runnable validation; generic procedure moves to the
+  owning skill; projects declare a contract version and only local deltas.
+- completion evidence required: a migration tool reports exact versions and
+  deltas, every active artifact remains governed, sealed release contracts stay
+  byte-immutable, and template/commission tests reject drift.
+
+## IMP-232 — active improvement registry
+
+- status: accepted
+- problem: the retained ledger has missing index entries and incompatible
+  status spellings, so an operator cannot reliably distinguish current work
+  from completed history.
+- intended landing point: keep a compact, schema-checked active registry at
+  this path and move completed narrative bodies to a generated or explicitly
+  historical archive with stable backlinks.
+- completion evidence required: exact ID census, closed status vocabulary,
+  index/body equality, owner and completion-evidence fields, and zero loss of
+  historical entries.
+
+## IMP-233 — generated active-project catalog
+
+- status: accepted
+- problem: most active boards have a STATUS beacon but no consistent root
+  landing page, and the repository README cannot safely hand-maintain fleet
+  status.
+- intended landing point: generate `projects/README.md` from governed project
+  identity, `01_docs/STATUS.md`, and release metadata; keep it navigation-only.
+- completion evidence required: every active project appears exactly once,
+  archived projects never appear, stale/missing status is explicit, and a
+  freshness test rejects a hand-edited catalog.
+
+## IMP-234 — firmware release stream
+
+- status: accepted
+- problem: firmware is presently a requested/forbidden handoff in the PCB
+  capability profile, but the repository has no immutable firmware release
+  stream, replay contract, or exact PCB-parent binding. Documentation must not
+  describe that future policy as a current capability.
+- intended landing point: an independent firmware artifact identity and SemVer
+  stream whose manifest binds one exact immutable PCB release, with no PCB
+  reseal for firmware-only changes; add an optional product lock that composes
+  exact PCB, firmware, and enclosure identities.
+- completion evidence required: staging and independent reopen tools; wrong or
+  mutated PCB-parent fixtures; firmware-only update proving the PCB tree and
+  release identity unchanged; exact product-lock mismatch tests; and explicit
+  separation between firmware release and device update/first-article claims.
+
+## IMP-235 — executable commission admission
+
+- status: accepted
+- problem: the commissioner can safely create a held scaffold, but no single
+  executable currently validates the agreed brief, closed fact locks,
+  architecture, applicability, sourced parts, and adopted source schemas to
+  produce the lifecycle's `commissioned_brief` evidence. Manual hold removal is
+  intentionally not a gate.
+- intended landing point: one fail-closed compositor that reopens the exact
+  brief/profile/source subjects, invokes the existing owning checks, emits a
+  typed commission receipt, and permits hold removal only against that receipt.
+- completion evidence required: incomplete fact locks, unchanged schema
+  examples, missing/ambiguous applicability, unsourced parts, stale receipt,
+  transient input mutation, and premature hold-removal known-bads; a clean-room
+  ordinary-board fixture must reach the first green boundary without copper.
+
 ## Index
 
 | ID | Improvement | Status | Discovered |

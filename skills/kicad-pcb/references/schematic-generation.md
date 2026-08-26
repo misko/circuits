@@ -1,73 +1,64 @@
-# Generator-driven schematics
+# Schematic generation and fallback
 
-## The paradigm
+TSX/tscircuit is the forward schematic authoring path. Read
+`tscircuit-folder.md` for the source tree and producer flow. This reference owns
+the boundary between that producer, generated KiCad, and the narrow fallback
+used when tscircuit cannot express a required construct.
 
-One Python generator = single source of truth. It emits `.kicad_sch`
-(KiCad 7 dialect) with embedded symbols, every pin carrying a global net
-label (no wires needed for connectivity), physical package pad numbers
-verified against datasheets. The netlist drives pcbnew directly. Layout,
-BOM identity, and net map all live in ONE reviewable file.
+## Standard path
 
-Rules that keep it safe:
-- The generator must NEVER overwrite `.kicad_pro` if it exists (write-if-
-  missing only) — the project file carries DRC rule floors, netclasses,
-  severity policy. This was violated once and silently destroyed the
-  DRC-clean state.
-- After ANY regeneration: netlist parity check. Export with
-  `kicad-cli sch export netlist`, parse `(net (name) (node ref pin))`,
-  compare net→{(ref,pin)} maps node-for-node (apply expected pin remaps,
-  e.g. a package change, through an explicit table). PASS or explain.
-- Package changes: remap pins via PORT names from the datasheet, not
-  guessed offsets; cross-check anchor pins (GND/VDD/UPDI) against the old
-  net map; drop EP pins that don't exist in the new package; update the
-  board generator's in-pad-via lists (an EP heuristic will happily punch
-  GND vias through a SOIC signal pin).
+```text
+03_tscircuit/src/*.tsx
+  -> pinned tsci build
+  -> exact dist circuit.json
+  -> circuit_json diagnostics
+  -> circuit_json_to_kicad_sch conversion
+  -> kicad-cli netlist/ERC/parity
+  -> fresh human schematic PDF from the same circuit.json
+```
 
-## Readability: sections + validated structure links
+The producer's exit code is not sufficient. Fail on embedded error records,
+zero expected components/nets, stale output, converter-input mismatch, missing
+render, ERC, parity, or semantic closure. The rebuild driver owns exact command
+order; this document does not duplicate it.
 
-A label-only schematic is netlist-complete but reads as a parts field.
-Two additions fix it without touching the netlist:
+Connectivity and presentation are separate claims. The generated netlist must
+match intended nets, while the human PDF must show functional blocks, visible
+primary signal/power flow, grouped pins, readable values, and unambiguous sheet
+boundaries. A machine-correct label cloud is not a reviewed schematic.
 
-1. **Section boxes**: track per-section extents during placement, emit
-   `(rectangle ...)` graphics padded clear of titles (top +4.5) and labels
-   (±2), clamped inside the sheet frame. Titles sized into the bbox
-   (`x + 1.9*len(title)`).
-2. **Structure links as GRAPHICS, never wires**: dashed `(polyline ...)`
-   between pin endpoints. Two safety properties: graphics cannot alter
-   connectivity, and `link(refA,pinA,refB,pinB)` asserts both pins already
-   share a net — a wrong link is a build error, not a lie on the drawing.
-   Route side-aware (H-V-H through facing gaps; outward lane ~8.5 mm for
-   same-side runs) so lines never cross symbol bodies.
-3. **Auto-derive most links from the netlist**: (a) every 2-pin
-   point-to-point net (gate drives, series junctions, port feeds) is
-   unambiguous — link it; (b) every rail bypass part (2-pin passive, one
-   leg GND) links to its NEAREST same-net pin (≤60 mm), visualizing which
-   IC each decoupler serves. Keep a small hand list for multi-pin
-   structural edges (SW nodes, FB chains). Dedupe hand vs auto.
+## Fallback boundary
 
-## Text collision rules (from a fresh-eyes review that found 8 defect classes)
+Use the shared Python/s-expression writer only for a construct the current TSX
+adapter cannot represent. Before using it:
 
-- Stacked 2-pin passives need ≥10 mm pitch or refdes/value texts collide.
-- Long title-block comments clip off-sheet — keep them under ~60 chars.
-- Parts at x<~30 put left-side labels into the sheet frame.
-- Check L/R label direction against dense neighbors.
+1. record the unsupported construct and why it is load-bearing;
+2. show that a supported TSX form cannot preserve the same meaning;
+3. keep part/net data in a structured source table, not scattered writer calls;
+4. emit the same diagnostics, ERC, parity, semantic, and human-review subjects
+   as the standard path;
+5. add a tracked adapter gap so the second board needing it triggers promotion.
 
-## Verification loop (non-negotiable for generated figures)
+Fallback output is still generated. Never hand-edit `.kicad_sch` to close an
+adapter gap, because regeneration will silently discard the change.
 
-1. `kicad-cli sch export svg` → `rsvg-convert -w 6000` → PIL crops.
-2. Look at the renders yourself.
-3. **Spawn a fresh-context agent to describe the figures back** — it
-   catches what the author cannot see (box-title strikethroughs, caption
-   collisions, lines through symbols, off-frame elements). Fix, re-render,
-   repeat once.
-4. Netlist parity as above; ERC if wires are ever introduced.
+## Review layout
 
-## Analysis companion
+- Partition by function and power domain before choosing coordinates.
+- Draw primary paths with wires; use labels for repeated/global or secondary
+  connections where a wire would reduce readability.
+- Keep connector pin order and direction legible.
+- Show polarity, protection direction, supply decoupling ownership, test
+  points, and intentional no-connects.
+- Fit each declared sheet independently and bind the PDF to the exact circuit
+  JSON/netlist subject.
+- Review the PDF before placement. Do not wait for fabrication renders to find
+  an unreadable schematic.
 
-kicad-happy `analyze_schematic.py` detects subcircuits (dividers,
-decoupling groups, bridges, USB buses) — useful to cross-confirm structure
-links and as a review sweep. Known false-alarm classes on label-only
-generated captures: rail-source/PWR_FLAG warnings, pull-ups on unused
-open-drain pins, "22R USB series" advice, missing-decoupling claims that a
-board-level proximity check disproves. Triage against physical evidence
-before acting.
+## Validation
+
+The owning rebuild must demonstrate nonzero expected component/net counts,
+fresh producer identity, converter parity, ERC/semantic closure, and an adopted
+independent readability review. If TSX changed, rerun the full producer. If it
+did not, the deterministic reuse flow may consume the pinned generated
+schematic.

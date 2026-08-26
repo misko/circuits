@@ -17,7 +17,7 @@ explicit stage-checkpoint certificates.
 | `fab/**` | JLC export: gerbers, `bom.csv` (carries LCSC codes between runs), `cpl.csv`, zip — the CONTRACT's names, so a seal COPIES rather than renames (07_releases/contracts.md requires `fab/bom.csv` + `fab/cpl.csv`) | regenerate; bom LCSC column is the seed store |
 | `pdf/**` | release PDF set + PNG verification renders | regenerate |
 | `cache/**` | **volatile market data**: stock, price, distributor attrs | hours |
-| `proof/**` | regenerated candidate boards for comparison against the sealed `04_kicad` (never written back) | regenerate |
+| `proof/**` | regenerated candidate boards for comparison against the selected exact/current `04_kicad` reference (never written back) | regenerate |
 | `twin/**` | jlc_twin fetch/compare workspace | regenerate |
 | `mechanical/**` | generated PCB-interface snapshots, CAD/mesh exports, fit coupons, renders, verification reports and hash-bound candidate packages | regenerate from `03_src/mechanical/` plus the exact bound PCB subject |
 | `tmp/**` | scratch workspace for in-flight stage work | regenerate |

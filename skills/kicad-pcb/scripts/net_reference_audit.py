@@ -409,7 +409,8 @@ def collect_floorplan(path, rel, refs):
 
 def floorplans(proj):
     """Hand-written floorplans only. `06_build/` holds regenerated proof copies
-    and sealed `04_kicad`/`07_releases` are IMMUTABLE — neither is source."""
+    while generated current `04_kicad` and immutable `07_releases` are not
+    hand-source authority."""
     out = []
     for pat in ("03_src/floorplan.yaml", "03_src/*/floorplan.yaml"):
         for p in sorted(proj.glob(pat)):

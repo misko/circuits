@@ -221,5 +221,9 @@ Do not leave commission/architecture/sourcing until:
 - source-phase rules/schema and module-first gates pass;
 - stage journal and live status beacon identify the next stage.
 
-Commit the green checkpoint before advancing. A later failure reopens this
-stage only through the bounded backtrack protocol.
+The bootstrap `COMMISSIONING-HOLD.md` starts at `PCB-COMMISSION` but spans this
+combined admission boundary. Remove it only in the reviewed change that binds
+the separately typed commission, architecture, and sourcing evidence. Manual
+deletion is not an admission receipt; IMP-235 tracks the missing executable
+compositor. Commit the green checkpoint before advancing. A later failure
+reopens this stage only through the bounded backtrack protocol.

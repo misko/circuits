@@ -1,95 +1,198 @@
 # circuits
 
-Agent skills for taking a PCB from requirements through a fab-ready, ordered
-board and a verified printable enclosure — written for
-[Claude Code](https://claude.com/claude-code), usable as plain documentation
-by anyone.
+`circuits` is a code-first PCB engineering system. It turns a user brief into
+generated KiCad source, bounded routing candidates, independently graded
+fabrication evidence, immutable releases, printable enclosures, and measured
+first-article records.
 
-These are not tutorials. Every claim in them was paid for by a real failure on
-a real board (a 136-part, 4-layer rover power board, 2026-07): bugs that
-shipped silently past DRC, routers that produced fuses instead of traces,
-assembly previews that lied. The skills exist so the next board doesn't
-rediscover them.
+The product is the workflow under [`skills/`](skills/). Boards under
+[`projects/`](projects/) are its active applications; sealed release folders
+are immutable evidence, not templates to copy.
 
-## The skills
+## Five-minute PCB start
 
-| Skill | Covers |
-|---|---|
-| [`pcb-design`](skills/pcb-design/) | End-to-end PCB lifecycle, scope, handoffs, reviews, release, publication, and first article. |
-| [`kicad-pcb`](skills/kicad-pcb/) | Schematic generation, placement, routing, verification. 11 golden rules, 7 reference docs, 4 project-agnostic scripts. |
-| [`jlcpcb-fab`](skills/jlcpcb-fab/) | Fab outputs and ordering: gerber/BOM/CPL export, live JLCPCB stock checks, part-spec confirmation, CPL rotation correction. |
-| [`pcb-enclosure`](skills/pcb-enclosure/) | Hash-bound PCB interfaces, support-aware enclosure CAD, connector access, inserts, mesh checks, physical evidence, and candidate packages. |
-| [`shopping-list`](skills/shopping-list/) | Distributor-separated purchase lists for parts not supplied by the PCB assembler. |
-
-## The model: KiCad as a library, not a GUI
-
-Nothing here opens eeschema or pcbnew to draw. The design is **code**:
-
-- The schematic is *generated* — a Python script emits `.kicad_sch`
-  s-expressions from a component/net table.
-- The board is *generated* — a script drives the `pcbnew` Python API to load
-  footprints and place them from a floorplan.
-- Routing is **not** KiCad's job (it has no autorouter) — it is
-  [KiCadRoutingTools](https://github.com/drandyhaas/KiCadRoutingTools),
-  invoked with the exact command lines recorded in
-  [`references/routing-pipeline.md`](skills/kicad-pcb/references/routing-pipeline.md).
-- KiCad's remaining roles: the `pcbnew` API (geometry, exact collision, zone
-  fill) and `kicad-cli` (headless DRC/ERC, netlist export, plotting).
-
-Because the design is code, it is diffable, reviewable, and regenerable. The
-corollary — and the source of most of the failures below — is that a generator
-bug becomes a physical defect silently.
-
-## What this catches that nothing else does
-
-Every one of these passed DRC, passed connectivity, and was electrically
-self-consistent. All were found by a human question or a cross-check, not a
-tool:
-
-- A part in the schematic that never reached the board (one silent `print` in
-  a generator). Fix: missing footprint is a hard error, plus
-  `kicad-cli pcb drc --schematic-parity` in the gate list.
-- Three polarized parts wired backwards — including the battery connector,
-  which would have made every board dead on arrival. KiCad footprints put the
-  **cathode on pad 1**; generic `1`/`2` symbols let the author guess wrong.
-- Two 6 A buck switch nodes routed at 0.15 mm — fuses, not traces. No tool
-  checks ampacity by default. Fix: current-tiered netclasses with
-  `.kicad_dru` minimum-width rules, defined **before** routing.
-- Mounting holes underneath connector shells (no screw access).
-- BOM parts matched by value string that were the wrong voltage, the wrong
-  package, or an entirely different component (a motor driver proposed as an
-  ideal-diode controller; a thermistor coded as a plain resistor).
-
-## Install
-
-These follow the standard skill layout — `SKILL.md` frontmatter for
-discovery, `references/` and `scripts/` read only when needed — so they work
-in any agent that supports it. Only the install path differs:
+Clone the repository, create a branch, and save the user's original request as
+a UTF-8 text file:
 
 ```bash
-git clone https://github.com/misko/circuits
-
-# Claude Code   (project-scoped: .claude/skills)
-mkdir -p ~/.claude/skills && cp -r circuits/skills/* ~/.claude/skills/
-
-# Codex         (repo-scoped: .agents/skills)
-mkdir -p ~/.agents/skills && cp -r circuits/skills/* ~/.agents/skills/
+git clone https://github.com/misko/circuits.git
+cd circuits
+git switch -c codex/my-board
 ```
 
-Either agent picks a skill up implicitly when a task matches its
-`description`, or on explicit request.
+Create the governed project scaffold and choose its capability profile:
 
-The scripts need the KiCad-bundled interpreter (a `python3` where
-`import pcbnew` works); each takes `--help`-documented arguments and none
-hardcodes a board. Routing additionally needs a KiCadRoutingTools clone.
+```bash
+python3 skills/pcb-design/scripts/commission_project.py my-board \
+  --brief-file /path/to/original-brief.txt \
+  --signal-integrity ordinary \
+  --assembly jlcpcb \
+  --firmware forbidden \
+  --target design
+```
 
-Verified on KiCad 7.0.x and re-validated on 10.0.4; version deltas are noted
-in the skills.
+Use `high_speed_digital` for USB and similar controlled digital links. Use
+`rf` only when the board intentionally carries RF/microwave signals. Add
+`--foreign-mating` when the floorplan consumes geometry from third-party
+hardware. Run the command with `--help` for enclosure and target options.
+Here `--assembly jlcpcb` selects the populated JLCPCB PCBA evidence path, not
+merely bare-board fabrication.
 
-## Scope
+The command reports `PCB-SCAFFOLD OK` and leaves `PCB-COMMISSION` explicitly
+`INCOMPLETE`. It preserves the prompt and creates an executable commission
+hold; it does not accept requirements, adopt the seeded schema examples, or
+run a board producer.
 
-These cover **commission → generate → route → verify → order**, plus a separate
-**CAD → print-fit → thermal** enclosure evidence ladder. Engineering judgement
-still owns architecture, part selection, and physical acceptance; the skills
-make those decisions explicit and reproducible rather than pretending to infer
-them from attractive outputs.
+Inspect the selected lifecycle before spending engineering time:
+
+```bash
+python3 skills/pcb-design/scripts/skill_reference_router.py \
+  --profile projects/my-board/01_docs/capability-profile.json \
+  --at-stage PCB-COMMISSION \
+  --json
+```
+
+Then give Codex this instruction:
+
+```text
+Read and follow skills/pcb-design/SKILL.md for projects/my-board. Preserve the
+original brief, close the commission fact locks, and stop at the first evidence
+or operator checkpoint. Do not create firmware unless the brief explicitly
+asks.
+```
+
+Do not run `rebuild_all.sh` yet. The scaffold contains visible schema examples
+and `01_docs/COMMISSIONING-HOLD.md`; both rebuild conductors refuse to run until
+the commission boundary is reviewed and that marker is deliberately removed.
+
+Start with [`skills/pcb-design/SKILL.md`](skills/pcb-design/SKILL.md). Its
+canonical lifecycle and runnable command map is
+[`execution-graph.md`](skills/pcb-design/references/execution-graph.md).
+
+## How execution is structured
+
+The repository deliberately separates three layers:
+
+```text
+capability profile
+  -> disclosure graph (what stages/references are selected)
+  -> project conductor (what bounded commands actually run)
+  -> owning gates (what exact subjects passed)
+  -> review/seal/publication/physical claims
+```
+
+- The router is planning only. Its output is never execution evidence.
+- `projects/<name>/03_src/rebuild_all.sh` is the full source/schematic
+  conductor. It intentionally pauses at review and operator checkpoints.
+- `rebuild_reuse.sh` is the deterministic route-authority replay when the
+  schematic is unchanged; `route.yaml` selects the authenticated source.
+- Fresh route exploration is a separate candidate workflow; canonical rebuild
+  replays the authenticated route source selected by `route.yaml`.
+- Layout seal, PCB release seal, publication, ordering, and first article are
+  different claims with different owners.
+
+The declarative lifecycle is:
+
+```text
+commission -> architecture -> sourcing
+  -> schematic -> placement -> routing -> layout seal
+  -> fabrication -> assembly verification
+  -> release review -> release seal
+  -> publication | first article -> production
+```
+
+RF context/source/realized/fabrication stages and foreign-mating import are
+conditional branches. High-speed digital composes inside the ordinary stages.
+Enclosures have an implemented parallel **INCOMPLETE-candidate** release stream
+and may bind an unchanged PCB release without resealing it. Higher readiness
+still requires the enclosure skill's recomputable CAD and physical evidence.
+Firmware is currently an explicit handoff,
+not a governed release stream; [IMP-234](improvements.md#imp-234--firmware-release-stream)
+tracks that missing boundary.
+
+## Skills and authority
+
+| Skill | Owns |
+|---|---|
+| [`pcb-design`](skills/pcb-design/SKILL.md) | Commission, lifecycle composition, backtracking, reviews, release seal, publication, first article. |
+| [`kicad-pcb`](skills/kicad-pcb/SKILL.md) | TSX/KiCad schematic conversion, netlist/parity, placement, geometry, routing, DRC, SI/RF realization. |
+| [`jlcpcb-fab`](skills/jlcpcb-fab/SKILL.md) | Gerber/drill/BOM/CPL, stock/population/rotation, JLC CAD twin, manufacturer staging, bring-up cards. |
+| [`pcb-enclosure`](skills/pcb-enclosure/SKILL.md) | Mechanical commission, PCB interface binding, independent fasteners, motion/clearance, mesh/physical evidence, enclosure releases. |
+| [`shopping-list`](skills/shopping-list/SKILL.md) | Provenance-bound purchase lists for self-supplied parts. |
+
+Authority is singular. A skill links to another owner's procedure rather than
+copying it. Project `contracts.md` files own exact artifact membership. Script
+`--help` text owns exact flags. [`improvements.md`](improvements.md) tracks
+work and rationale but never overrides an executable gate or accepted ADR.
+
+## Repository map
+
+| Path | Purpose |
+|---|---|
+| [`skills/`](skills/) | Reusable workflow, references, tools, and project templates. |
+| [`projects/`](projects/) | Active boards, including manufactured and still-evolving designs. |
+| [`archived_projects/`](archived_projects/) | Retired scaffolds and frozen regression/history units. |
+| [`recovery/`](recovery/) | Read-only migration/recovery snapshots; never current project authority. |
+| [`docs/`](docs/) | Documentation index, accepted ADRs, measured proof, and historical context. |
+| [`tests/`](tests/) | Clean and known-bad fixtures proving gates can both pass and fail. |
+| [`spf/`](spf/) | Measured/cited facts about external hardware this repo must mate with. |
+| [`improvements.md`](improvements.md) | Forward work registry and retained improvement history. |
+
+See [`docs/README.md`](docs/README.md) for the documentation authority map.
+
+## Design model
+
+The board is generated from committed human-owned source:
+
+- TSX/tscircuit is the standard schematic authoring front end.
+- Shared scripts convert the circuit, generate KiCad geometry/rules, and grade
+  exact identities. Per-board source is configuration, not a copied backend.
+- KiCad's Python API owns geometry and saves; `kicad-cli` owns headless
+  ERC/DRC/netlist/export checks.
+- Routing operates on immutable candidates. Only a clean, independently graded
+  candidate can become the promoted route chain.
+- Generated `04_kicad/` is a mutable current snapshot and is never hand-source
+  authority. Immutable history lives under release streams.
+
+This makes design changes diffable and rebuildable. It also means a generator
+defect can become a physical defect, so freshness, parity, nonzero coverage,
+registered models, and independent review are first-class gates.
+
+## Claims and releases
+
+A release is an immutable reviewed candidate archive. It is not automatically
+an order event. A design can be electrically sound and sealed while remaining
+`DO-NOT-ORDER` because stock, uploader selections, physical fit, or first-
+article evidence is owed.
+
+PCB and enclosure versions are independent streams. Current enclosure release
+tooling publishes immutable `INCOMPLETE` candidates bound to one exact PCB
+release without forcing that PCB to be resealed; it does not yet publish a
+higher readiness claim from caller-supplied scope status.
+A future firmware stream and exact product lock remain tracked work, not
+current release authority.
+
+## Toolchain
+
+Core documentation and planning use normal Python 3. KiCad operations require
+the KiCad-bundled Python where `import pcbnew` succeeds plus `kicad-cli`.
+TSX generation requires the pinned tscircuit/Bun environment. Fresh routing
+requires the configured KiCadRoutingTools installation; replaying a selected
+authenticated route authority does not.
+
+Python entry points expose `--help`; shell-conductor forms are documented in
+the execution graph. Use the owning current command rather than copying an old
+invocation from a project journal.
+
+## Validate a workflow change
+
+At minimum:
+
+```bash
+python3 skills/pcb-design/scripts/skill_authority_check.py
+python3 tests/t1_skill_progressive_disclosure.py
+python3 tests/t1_pcb_documentation.py
+python3 scripts/contracts_audit.py --walk --root skills/pcb-design
+```
+
+Run the domain suites affected by the change, then commit at a green boundary.

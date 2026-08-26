@@ -2,7 +2,7 @@
 # tsx_to_board.sh — THE one-command tscircuit-native rebuild (ADR-0002 Phase E).
 #
 # Drives a tscircuit-authored board through the UNCHANGED, netlist-driven KiCad
-# backend, end to end, to DRC 0/0/0 + board-netlist parity vs the sealed reference:
+# backend, end to end, to DRC 0/0/0 + parity vs the selected exact reference:
 #
 #   tsci build                     TSX -> circuit.json
 #   circuit_json_to_kicad_sch      circuit.json -> annotated, backend-ready .kicad_sch
@@ -17,18 +17,19 @@
 #   [route_taps.py]                project tap-router if present
 #   stitch_and_fill.py             pours + thermal vias
 #   generate_rules.py LAST         pcbnew saves clobber .kicad_pro netclasses (canon R1/M3)
-#   kicad-cli pcb drc              --severity-all --refill-zones --schematic-parity -> 0/0/0
-#   board_netlist_parity.py        node-for-node vs the sealed reference board
+#   kicad-cli pcb drc              --severity-all --refill-zones --schematic-parity
+#                                     --exit-code-violations <board> -> 0/0/0
+#   board_netlist_parity.py        node-for-node vs the selected exact board
 #
 # The KiCad backend (03_src/*.py) runs BYTE-FOR-BYTE UNCHANGED — the driver only
 # wires TSX authoring into it and reparents outputs into an isolated build root so
-# the sealed 04_kicad/ and releases are NEVER touched. Idempotent: the build root
+# the generated current 04_kicad/ snapshot and releases are NEVER touched. Idempotent: the build root
 # is wiped and rebuilt each run.
 #
 # Usage: tsx_to_board.sh <project_dir> [--placement generate_board|tsx] [--build-root DIR]
 #   default build root: <project>/03_tscircuit/tsx_build
-#   sealed parity reference: <project>/04_kicad/<board>.kicad_pcb, OR the path in
-#     <project>/03_tscircuit/sealed_ref.txt (relative to <project> or absolute).
+#   exact parity reference: <project>/04_kicad/<board>.kicad_pcb, OR the path in
+#     <project>/03_tscircuit/parity_ref.txt (relative to <project> or absolute).
 set -euo pipefail
 export PATH="$HOME/.bun/bin:$PATH"
 SKILLDIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -91,12 +92,12 @@ PY
   [ -n "$BOARD" ] || { echo "FATAL: could not parse board name (project.output/name) from floorplan.yaml"; exit 2; }
 fi
 
-# Sealed parity reference (overridable via 03_tscircuit/sealed_ref.txt).
-if [ -f "$T/sealed_ref.txt" ]; then
-  SEALED=$(grep -vE '^\s*#|^\s*$' "$T/sealed_ref.txt" | head -1)
-  case "$SEALED" in /*) : ;; *) SEALED="$PROJ/$SEALED" ;; esac
+# Exact parity reference (overridable via 03_tscircuit/parity_ref.txt).
+if [ -f "$T/parity_ref.txt" ]; then
+  REFERENCE=$(grep -vE '^\s*#|^\s*$' "$T/parity_ref.txt" | head -1)
+  case "$REFERENCE" in /*) : ;; *) REFERENCE="$PROJ/$REFERENCE" ;; esac
 else
-  SEALED="$PROJ/04_kicad/$BOARD.kicad_pcb"
+  REFERENCE="$PROJ/04_kicad/$BOARD.kicad_pcb"
 fi
 
 BUILD_ROOT="${BUILD_ROOT:-$T/tsx_build}"
@@ -109,8 +110,8 @@ echo "   TSX          : $TSX"
 echo "   board name   : $BOARD"
 echo "   backend      : $BACKEND"
 echo "   placement    : $PLACEMENT"
-echo "   build root   : $BUILD_ROOT   (isolated; sealed 04_kicad/ untouched)"
-echo "   sealed ref   : $SEALED"
+echo "   build root   : $BUILD_ROOT   (isolated; current 04_kicad/ untouched)"
+echo "   parity ref   : $REFERENCE"
 echo "=================================================================="
 gate(){ echo "  --> $*"; }
 fail(){ echo "  XX FAIL: $*"; exit 1; }
@@ -136,14 +137,10 @@ PRO
 gate "[1] tsci build -> circuit.json"
 mkdir -p "$T/build"
 ( cd "$T" && \
-    if [ -f bun.lock ]; then
-      bun install --frozen-lockfile --ignore-scripts >/dev/null 2>&1
-      TSCI=./node_modules/.bin/tsci
-      [ -x "$TSCI" ]
-    else
-      echo "WARNING: no bun.lock; using ambient tsci (legacy/unmigrated project)" >&2
-      TSCI=tsci
-    fi && \
+    [ -f bun.lock ] || { echo "FATAL: 03_tscircuit/bun.lock is required; refusing ambient tsci" >&2; exit 6; } && \
+    bun install --frozen-lockfile --ignore-scripts >/dev/null 2>&1 && \
+    TSCI=./node_modules/.bin/tsci && \
+    [ -x "$TSCI" ] && \
     timeout 300 "$TSCI" build "src/$TSCBASE.tsx" >/dev/null 2>&1 \
     && cp "dist/src/$TSCBASE/circuit.json" "build/circuit.json" )
 [ -s "$T/build/circuit.json" ] || fail "tsci build produced no circuit.json"
@@ -179,7 +176,7 @@ if [ "$PLACEMENT" = "tsx" ]; then
   gate "[5] placement-as-code: circuit_json_to_kicad_pcb (authored pcbX/pcbY)"
   $PY "$SKILLDIR/circuit_json_to_kicad_pcb.py" "$T/build/circuit.json" \
       --netlist "$B/netlists/$BOARD.net" -o "$K/$BOARD.kicad_pcb" \
-      --outline-from "$SEALED" | sed 's/^/      /'
+      --outline-from "$REFERENCE" | sed 's/^/      /'
   # project-supplied legalize+silk pass (seed-agnostic), if present
   for LG in "$T/placement_proof/legalize_and_silk.py" "$SRCDIR/legalize_and_silk.py"; do
     [ -f "$LG" ] && { gate "    legalize_and_silk"; $PY "$LG" "$K/$BOARD.kicad_pcb" 2>/dev/null | tail -2 | sed 's/^/      /' || true; break; }
@@ -278,15 +275,15 @@ sys.exit(1 if (nv or nu or npar) else 0)
 PY
 echo "      DRC 0/0/0 — CLEAN"
 
-# ---- [12] board-netlist parity vs the sealed reference ----
-gate "[12] board_netlist_parity.py vs sealed reference"
-if [ -s "$SEALED" ]; then
-  $PY "$SKILLDIR/board_netlist_parity.py" "$K/$BOARD.kicad_pcb" "$SEALED" | sed 's/^/      /'
+# ---- [12] board-netlist parity vs the selected exact reference ----
+gate "[12] board_netlist_parity.py vs exact reference"
+if [ -s "$REFERENCE" ]; then
+  $PY "$SKILLDIR/board_netlist_parity.py" "$K/$BOARD.kicad_pcb" "$REFERENCE" | sed 's/^/      /'
 else
-  echo "      (no sealed reference at $SEALED — parity SKIPPED)"
+  echo "      (no exact reference at $REFERENCE — parity SKIPPED)"
 fi
 
 echo "=================================================================="
-echo " tsx_to_board.sh COMPLETE — $BOARD -> DRC 0/0/0, board parity vs sealed"
-echo " build root: $BUILD_ROOT (throwaway; sealed 04_kicad/ + releases untouched)"
+echo " tsx_to_board.sh COMPLETE — $BOARD -> DRC 0/0/0, board parity vs exact reference"
+echo " build root: $BUILD_ROOT (throwaway; current 04_kicad/ + releases untouched)"
 echo "=================================================================="

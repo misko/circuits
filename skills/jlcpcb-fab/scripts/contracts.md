@@ -10,6 +10,7 @@ stock, twin).
 | `*.py` | tools — network access mocked in tests via `$EASYEDA2KICAD` seam |
 | `*.sh` | drivers |
 | `*.csv` | data tables: `jlc_lcsc_rotations.csv` — the ONLY rotation AUTHORITY, `LCSC,rotation,evidence,polarity` (canon A-ROT); and `jlc_rotations_db.csv` — the footprint-NAME DB, kept loaded as an ADVISORY cross-check and never obeyed |
+| `tests/**` | script-local unit tests for fabrication helpers; repository integration gates remain under top-level `tests/` |
 | `contracts.md` | this file |
 
 ## Audit

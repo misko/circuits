@@ -91,10 +91,10 @@ re-commit the sch as the new pin.
   verification/             # (generated) the bridge gate (+ second-opinion under --study)
     tsc_netlist.txt         # [DEFAULT] tscircuit readable-netlist
     drc.json                # [--study only] kicad-cli DRC run ON the tscircuit kicad export
-    parity.md               # [DEFAULT] first-order component/net counts vs the sealed KiCad board (M1)
+    parity.md               # [DEFAULT] first-order component/net counts vs the selected exact KiCad reference (M1)
     erc_converter.rpt       # kicad-cli sch ERC on OUR converter kicad_sch (0 errors is the bar)
     converter_netlist.net   # netlist exported from OUR converter kicad_sch
-    parity_converter.md     # node-for-node netlist parity: converter vs sealed 04_kicad
+    parity_converter.md     # node-for-node netlist parity: converter vs selected exact KiCad reference
     notes.md                # fidelity gaps: footprint mapping, DRC deltas, unrouted nets
   parity_padmap.txt         # (optional) documented per-board pad-name deltas for the parity gate
 ```
@@ -123,7 +123,8 @@ it only to eyeball tscircuit's own layout; the capability is retained + reversib
 To rebuild the WHOLE board (not just the schematic) from TSX in one command —
 `tsci build` → converter → placement → rules → KRT → stitch → DRC 0/0/0 — use
 `scripts/tsx_to_board.sh <project>` (ADR-0002 Phase E; see below). Both scripts are
-READ-ONLY w.r.t. sealed `04_kicad/` and the releases.
+READ-ONLY w.r.t. the generated current `04_kicad/` snapshot and immutable
+release directories.
 
 ## The schematic bridge is OUR converter, not `tsci export -f kicad_sch` (ADR-0001 Phase 2)
 
@@ -172,7 +173,7 @@ tests that they resolve to identical KiCad FPIDs.
   without a genuine cross-net short (logged to stderr), so parity is never worse than v1.
 
 **Proven on all three Phase-1 boards: `kicad-cli sch erc --severity-all` = 0 errors
-and node-for-node netlist parity = 0 vs the sealed `04_kicad` board** (cook-loadcell
+and node-for-node netlist parity = 0 vs the selected exact KiCad reference** (cook-loadcell
 16 nets/75 nodes, xt60 28/151, esp32 36/189 + 25 NC). The esp32 proof: U1 (41-pad
 ESP32-S3) and J1 (USB-C, 17 distinct pads) that truncated to **2 pins each** through
 the native export now export **all** pins and reach parity. Parity normalization is
@@ -295,20 +296,21 @@ tsci build  ->  circuit_json_to_kicad_sch  ->  sch export netlist  ->  ERC (0 er
   ->  generate_rules (rules ride into the router, canon R1)
   ->  KRT route (reuse the promoted 03_src/route/r*.kicad_pcb chain if present)
   ->  [route_taps.py if present]  ->  stitch_and_fill  ->  generate_rules LAST
-  ->  DRC --severity-all --refill-zones --schematic-parity  ->  board_netlist_parity vs sealed
+  ->  DRC --severity-all --refill-zones --schematic-parity --exit-code-violations <board>
+  ->  board_netlist_parity vs exact reference
 ```
 
 **The KiCad backend is UNCHANGED** — the driver only wires TSX authoring into it and
 reparents every backend output into an isolated build root (`03_tscircuit/tsx_build/`,
 gitignored, wiped each run so the driver is idempotent) via a `03_src` symlink and
-the `__file__.parent.parent` reparent trick. The sealed `04_kicad/` and releases are
-NEVER touched. Discovery is automatic: the internal board name from
+the `__file__.parent.parent` reparent trick. The generated current `04_kicad/`
+snapshot and immutable releases are never touched. Discovery is automatic: the internal board name from
 `generate_board.py`'s `.net` path (may differ from the TSX name — `lipo3s_tsc.tsx`
 builds `usb_power_3s`), the newest promoted route chain, optional `route_taps.py` /
-`audit_board.py`. The sealed parity reference defaults to
+`audit_board.py`. The exact parity reference defaults to
 `<project>/04_kicad/<board>.kicad_pcb`, overridable with a one-line
-`03_tscircuit/sealed_ref.txt` (used by lipo3s-tsc to point at the sibling usb-power-3s
-board it reproduces).
+`03_tscircuit/parity_ref.txt` when a comparison intentionally targets another
+exact board.
 
 **Proven end-to-end on TWO tscircuit-native boards to DRC 0/0/0 + board parity 0
 (2026-07-20):**
@@ -404,8 +406,11 @@ native artifact; routing + twin stay KiCad-only. Adopt OPTIONAL, per-board. Next
 candidates: RJ45 port-channel, power-entry-protection, ESP32 standard hookup
 (`tscircuit_modules/README.md`).
 
-## Toolchain (persistent, per-user)
+## Toolchain (project-local and pinned)
 
-- `bun` at `~/.bun/bin/bun` (tscircuit's runtime).
-- `tsci` via `npm i -g tscircuit`; `@tscircuit/cli` also present.
-- Both persist on disk; a fresh shell/agent needs only `PATH="$HOME/.bun/bin:$PATH"`.
+- `bun` supplies the runtime and performs the frozen install from the committed
+  project lock.
+- Invoke the committed dependency through `./node_modules/.bin/tsci`; the full
+  rebuild restores the lock before use and has no global `tsci` fallback.
+- A fresh shell needs the pinned Bun runtime available, then follows the
+  project conductor rather than installing an ambient CLI.

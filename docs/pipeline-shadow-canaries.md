@@ -1,5 +1,8 @@
 # Pipeline shadow canaries
 
+> **Dated rollout evidence — not operating authority.** Use the current skill,
+> execution graph, owning gates, and tests for present behavior.
+
 This record separates observation of the existing PCB drivers from migration
 of their authority.  The legacy drivers, gates, accepted artifacts and release
 paths remain authoritative.

@@ -44,7 +44,7 @@ with NO per-board adapter — the five Phase-3 adapter transforms are folded in 
 Proven: cook-loadcell drives the whole backend to DRC 0/0/0 + board parity 0 from
 this output ALONE (evidence snapshot: examples/tsx-backend-proof/).
 
-Connectivity resolution (validated node-for-node vs the sealed KiCad boards):
+Connectivity resolution (validated node-for-node vs exact KiCad reference boards):
   * NET per port: group by `source_net.subcircuit_connectivity_map_key`
     (each source_port carries the same key); a port with no keyed net is a
     no-connect. Then PROPAGATE through `internally_connected_source_port_ids`

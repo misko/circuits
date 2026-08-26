@@ -1,17 +1,19 @@
 # contract: docs/
 
-**Purpose** — repo-level canon that outlives any one board: architecture
-decision records and the proof documents that state exactly what the generic
-backend is proven on.
+**Purpose** — the indexed repository documentation set: accepted architecture
+decisions, measured proof documents, and explicitly classified history.
 
 **Mutability** — ADRs are append-only once accepted (supersede, don't edit);
-proof docs are updated in place when new evidence lands.
+proof docs are updated in place when new evidence lands. Historical plans are
+frozen context: give them a non-authoritative banner rather than reviving them
+as procedure.
 
 ## Allowed
 
 | Pattern | What |
 |---|---|
-| `*.md` | proof documents (`generic-generator-proof.md`, `generic-router-proof.md`, ...) |
+| `README.md` | documentation authority and navigation index |
+| `*.md` | measured proof, implementation notes, or explicitly bannered history as classified by `README.md` |
 | `decisions/**` | numbered ADRs `NNNN-slug.md` — govern; do not contradict silently (repo CLAUDE.md) |
 | `contracts.md` | this file |
 
@@ -21,3 +23,5 @@ proof docs are updated in place when new evidence lands.
   (supersede with a new ADR instead).
 - Proof docs claim only MEASURED results and name the boards/commits that
   produced them.
+- Historical plans carry a prominent non-authoritative banner and are linked
+  only from `README.md` or retained evidence.

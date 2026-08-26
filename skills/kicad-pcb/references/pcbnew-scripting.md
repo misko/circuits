@@ -45,13 +45,15 @@ All verified on KiCad 7.0.x standalone (`/usr/bin/python3`, `import pcbnew`).
   de-collide against BOTH other ref boxes and footprint bboxes; hiding
   refs in hopeless zones is legitimate (identity lives on fab layer + CPL).
 
-## Headless vs GUI
+## Headless vs GUI history
 
-- **Zone fills differ subtly.** `starved_thermal` may be invisible to a
-  headless `WriteDRCReport` yet real in the GUI. Treat GUI DRC as
-  authoritative for fill-dependent checks; ask the user to re-run it after
-  headless changes, and to close+reopen (or Revert) since the file changed
-  on disk.
+- **Legacy `WriteDRCReport` fills differ subtly.** `starved_thermal` may be
+  invisible to that old API yet real after a GUI fill. On the supported KiCad
+  10 path, save/reopen and use
+  `kicad-cli pcb drc --severity-all --refill-zones --schematic-parity
+  --exit-code-violations 04_kicad/<board>.kicad_pcb`; bind that report as the
+  authoritative fill-dependent evidence. GUI comparison is a compatibility
+  diagnostic, not the forward release gate.
 - KiCad 7's `kicad-cli` has `sch export netlist|svg|pdf` but NO `pcb drc`.
 - Rasterize SVG with `rsvg-convert -w 6000`, crop with PIL for review.
 

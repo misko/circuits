@@ -271,8 +271,8 @@ FAMILY_RE = re.compile(r"^###\s+keys:\s+(\S+)\s*$", re.M)
 
 #: hand-authored YAML this gate expects to be governed. Discovery, not a
 #: registry: these are DIRECTORY globs over a project, and any file they find
-#: that no declared family matches is reported UNGOVERNED. `06_build`,
-#: `04_kicad` and `07_releases` are generated or sealed and are not source.
+#: that no declared family matches is reported UNGOVERNED. `06_build` and
+#: `04_kicad` are generated, while `07_releases` is sealed; none is hand source.
 SOURCE_GLOBS = ("01_docs/*.yaml", "03_src/*.yaml",
                 "03_src/mechanical/*.yaml", "03_src/rules/*.yaml",
                 "02_parts/*/part.yaml")
