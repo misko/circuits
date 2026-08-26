@@ -1071,10 +1071,12 @@ def t_padj_pair_prose_entry_does_not_crash():
 #   (c) pour + via-on-pad exemptions neutered: the sealed
 #       crow-recorder-central-v2 goes RED with 17 failures, 16 of them on a
 #       TQFP-128 power ring that carries no track at all.
-CAL_KICAD = ROOT / "projects" / "pluto-cal-switch" / "04_kicad"
-CAL_R0 = ROOT / "projects" / "pluto-cal-switch" / "06_build" / "route" / "r0.kicad_pcb"
-RX2_KICAD = ROOT / "projects" / "pluto-rx2-8way" / "04_kicad"
-CRC_KICAD = (ROOT / "projects" / "crow-recorder-central-v2" / "04_kicad")
+CAL_KICAD = ROOT / "archived_projects" / "pluto-cal-switch" / "04_kicad"
+CAL_R0 = (ROOT / "archived_projects" / "pluto-cal-switch" / "06_build" /
+          "route" / "r0.kicad_pcb")
+RX2_KICAD = ROOT / "archived_projects" / "pluto-rx2-8way" / "04_kicad"
+CRC_KICAD = (ROOT / "archived_projects" / "crow-recorder-central-v2" /
+             "04_kicad")
 
 # the eleven, verbatim from pluto-cal-switch's own nets.yaml evidence block:
 # pad, class floor, landable maximum measured by hand at stage 6

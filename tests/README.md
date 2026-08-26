@@ -473,7 +473,7 @@ refuses to report success on zero — which is the guard working, not a flake).
 
 **This suite has 8 sibling failures in a FRESH WORKTREE and they are not
 regressions:** `06_build/` is gitignored, so `t1_electrical_invariants` (6) and
-`t1_net_reference` (2) cannot find `projects/smc0985-cooksense/06_build/
+`t1_net_reference` (2) cannot find `archived_projects/smc0985-cooksense/06_build/
 netlists/cooksense.net` or the pluto-cal-switch netlists their real-bytes
 fixtures require. Full run in this worktree: **861 passed, 8 failed, 512
 known-bad**, every failure that one cause.

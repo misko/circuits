@@ -60,12 +60,12 @@ FENCE = SCRIPTS / "fence_pitch.py"
 # because smc0985-cooksense's live 04_kicad board was track-free and mid-rebuild
 # when this suite landed, so depending on it would have been a flake.
 ROUTED = [
-    ROOT / "projects/crow-mic-pod-v2/04_kicad/crow_mic_pod_v2.kicad_pcb",
-    ROOT / "projects/crow-recorder-central-v2/04_kicad/"
+    ROOT / "archived_projects/crow-mic-pod-v2/04_kicad/crow_mic_pod_v2.kicad_pcb",
+    ROOT / "archived_projects/crow-recorder-central-v2/04_kicad/"
            "crow_recorder_central_v2.kicad_pcb",
     ROOT / "projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/source/"
            "usb_hub_3s_v2.kicad_pcb",
-    ROOT / "projects/smc0985-cooksense/07_releases/cooksense-v1.6-2026-07-27/"
+    ROOT / "archived_projects/smc0985-cooksense/07_releases/cooksense-v1.6-2026-07-27/"
            "source/cooksense.kicad_pcb",
 ]
 
@@ -259,7 +259,7 @@ def t_prefix_rlen_passes_on_a_comment():
           "the pre-fix predicate should PASS a bare comment — if it does not, "
           "this test is no longer reproducing the defect")
 
-    real = ROOT / "projects/smc0985-cooksense/03_src/audit_board.py"
+    real = ROOT / "archived_projects/smc0985-cooksense/03_src/audit_board.py"
     src = real.read_text(encoding="utf-8-sig")
     check(prefix(src), f"{real} no longer trips the pre-fix predicate")
     hits = [l.strip() for l in src.splitlines()
@@ -476,7 +476,7 @@ def t_census_reproduces_the_bespoke_check():
     why `topology: chain` is verified on branches and cycles and NOT on
     component count; failing this net would have been the gate penalising the
     board for the reader's blindness."""
-    proj = ROOT / "projects/crow-recorder-central-v2"
+    proj = ROOT / "archived_projects/crow-recorder-central-v2"
     r = must_pass(run([KPY, LEN, proj, "--census"]), "census")
     contains(r.out, "USB_DP", "the pair is measured")
     dp = [l for l in r.out.splitlines() if l.strip().startswith("USB_DP")][0]
@@ -818,7 +818,7 @@ def t_pad_reader_independence():
     sys.path.insert(0, str(SCRIPTS))
     import importlib
     cla = importlib.import_module("copper_length_audit")
-    board = ROOT / "projects/pluto-rx2-8way/04_kicad/pluto_rx2_8way.kicad_pcb"
+    board = ROOT / "archived_projects/pluto-rx2-8way/04_kicad/pluto_rx2_8way.kicad_pcb"
     if not board.is_file():
         return                        # sibling tree not present; nothing to pin
     pads = cla.read_pads(board.read_text(encoding="utf-8-sig", errors="replace"))

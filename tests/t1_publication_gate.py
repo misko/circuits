@@ -17,6 +17,16 @@ HEAD_SHA = subprocess.check_output(
     ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
 
 
+@test("publication CI watches both active and frozen project collections")
+def t_workflow_watches_project_collections():
+    workflow = (ROOT / ".github" / "workflows" /
+                "pcb-publication-gate.yml").read_text(encoding="utf-8")
+    check(workflow.count('- "projects/**"') == 2,
+          "publication workflow must watch active projects on PR and push")
+    check(workflow.count('- "archived_projects/**"') == 2,
+          "publication workflow must watch frozen archives on PR and push")
+
+
 @test("publication diff selection separates enclosure work while grading PCB "
       "source, release, and review claims")
 def t_diff_selection_is_semantic():
@@ -191,30 +201,40 @@ def t_worktree_cross_domain_rename_is_material():
           f"worktree rename lost deleted electrical source: {changed}")
 
 
-def _archive_repo(*, preexisting_archive=False):
+def _archive_repo(*, preexisting_archive=False, names=("demo",),
+                  frozen_control=False):
     root = tmpdir("pub_archive_")
     must_pass(run(["git", "init", "-q"], cwd=root), "init archive fixture")
     must_pass(run(["git", "config", "user.email", "tests@example.invalid"],
                   cwd=root), "configure fixture email")
     must_pass(run(["git", "config", "user.name", "Publication Gate Tests"],
                   cwd=root), "configure fixture name")
-    active = root / "projects" / "demo"
-    (active / "03_src").mkdir(parents=True)
-    (active / "03_src" / "route.yaml").write_text("schema: 1\n")
-    rebuild = active / "03_src" / "rebuild.sh"
-    rebuild.write_text("#!/bin/sh\nexit 0\n")
-    rebuild.chmod(0o755)
-    (active / "01_docs").mkdir()
-    (active / "01_docs" / "STATUS.md").write_text("state: scaffold\n")
-    archived = root / "archived_projects" / "demo"
+    for name in names:
+        active = root / "projects" / name
+        (active / "03_src").mkdir(parents=True)
+        (active / "03_src" / "route.yaml").write_text("schema: 1\n")
+        rebuild = active / "03_src" / "rebuild.sh"
+        rebuild.write_text("#!/bin/sh\nexit 0\n")
+        rebuild.chmod(0o755)
+        (active / "01_docs").mkdir()
+        (active / "01_docs" / "STATUS.md").write_text("state: scaffold\n")
+    active = root / "projects" / names[0]
+    archived = root / "archived_projects" / names[0]
     if preexisting_archive:
         archived.mkdir(parents=True)
         (archived / "prior.txt").write_text("already reserved\n")
+    if frozen_control:
+        frozen = root / "archived_projects" / "frozen-control"
+        frozen.mkdir(parents=True)
+        (frozen / "receipt.txt").write_text("immutable\n")
     base = _commit(root, "base")
     if preexisting_archive:
         shutil.rmtree(archived)
-    archived.parent.mkdir(parents=True, exist_ok=True)
-    shutil.move(active, archived)
+    for name in names:
+        source = root / "projects" / name
+        destination = root / "archived_projects" / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(source, destination)
     return root, base, active, archived
 
 
@@ -229,6 +249,21 @@ def t_exact_archive_relocation_is_allowed():
              "archive coverage denominator")
     contains(r.out, "tracked tree byte/mode identity proven",
              "archive identity evidence")
+
+
+@test("multiple exact project-tree relocations are independently counted")
+def t_multiple_exact_archive_relocations_are_allowed():
+    root, base, _, _ = _archive_repo(names=("alpha", "beta"))
+    head = _commit(root, "archive two exact trees")
+    r = must_pass(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "two exact archive relocations")
+    contains(r.out, "2 exact archive relocation(s)",
+             "multi-archive coverage denominator")
+    contains(r.out, "ARCHIVE projects/alpha -> archived_projects/alpha",
+             "first independently proven move")
+    contains(r.out, "ARCHIVE projects/beta -> archived_projects/beta",
+             "second independently proven move")
 
 
 @test("archive allowance rejects plain deletion, byte/mode drift, retained "
@@ -262,6 +297,94 @@ def t_inexact_archive_relocations_are_refused():
                            "--base", base, "--head", head]), label)
         check("1 exact archive relocation(s)" not in r.out,
               f"{label} incorrectly earned the archive allowance:\n{r.out}")
+        contains(r.out, "ARCHIVE-", f"{label} archive diagnosis")
+
+
+def _frozen_archive_repo():
+    root = tmpdir("pub_frozen_archive_")
+    must_pass(run(["git", "init", "-q"], cwd=root),
+              "init frozen archive fixture")
+    must_pass(run(["git", "config", "user.email", "tests@example.invalid"],
+                  cwd=root), "configure fixture email")
+    must_pass(run(["git", "config", "user.name", "Publication Gate Tests"],
+                  cwd=root), "configure fixture name")
+    frozen = root / "archived_projects" / "frozen"
+    frozen.mkdir(parents=True)
+    (frozen / "receipt.txt").write_text("immutable\n")
+    replay = frozen / "replay.sh"
+    replay.write_text("#!/bin/sh\nexit 0\n")
+    replay.chmod(0o755)
+    base = _commit(root, "frozen archive base")
+    return root, base, frozen
+
+
+@test("pre-existing archive mutation, deletion, and addition are refused",
+      kind="known_bad")
+def t_preexisting_archive_is_immutable():
+    fixtures = []
+
+    root, base, frozen = _frozen_archive_repo()
+    (frozen / "receipt.txt").write_text("mutated\n")
+    fixtures.append(("byte mutation", root, base))
+
+    root, base, frozen = _frozen_archive_repo()
+    (frozen / "replay.sh").chmod(0o644)
+    fixtures.append(("mode mutation", root, base))
+
+    root, base, frozen = _frozen_archive_repo()
+    (frozen / "late.txt").write_text("not in the frozen tree\n")
+    fixtures.append(("path addition", root, base))
+
+    root, base, frozen = _frozen_archive_repo()
+    shutil.rmtree(frozen)
+    fixtures.append(("archive deletion", root, base))
+
+    for label, root, base in fixtures:
+        head = _commit(root, label)
+        r = must_fail(run([sys.executable, PUB, "--root", root,
+                           "--base", base, "--head", head]), label,
+                      "ARCHIVE-IMMUTABILITY")
+        contains(r.out, "archived_projects/frozen", f"{label} subject")
+
+
+@test("an archive-only addition and a copy retaining the active tree are "
+      "refused", kind="known_bad")
+def t_unpaired_archive_additions_are_refused():
+    root, base, _ = _frozen_archive_repo()
+    orphan = root / "archived_projects" / "orphan" / "03_src"
+    orphan.mkdir(parents=True)
+    (orphan / "route.yaml").write_text("schema: 1\n")
+    head = _commit(root, "archive-only addition")
+    r = must_fail(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "archive-only addition", "ARCHIVE-IMMUTABILITY")
+    contains(r.out, "archived_projects/orphan", "unpaired archive subject")
+
+    root, base, active, archived = _archive_repo()
+    shutil.copytree(archived, active)
+    head = _commit(root, "copy while retaining active tree")
+    r = must_fail(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "retained active copy", "ARCHIVE-IMMUTABILITY")
+    contains(r.out, "0 exact archive relocation(s)",
+             "retained active copy earns no relocation credit")
+
+
+@test("an exact archive move cannot launder a frozen archive mutation",
+      kind="known_bad")
+def t_exact_move_does_not_launder_archive_mutation():
+    root, base, _, _ = _archive_repo(frozen_control=True)
+    frozen = root / "archived_projects" / "frozen-control" / "receipt.txt"
+    frozen.write_text("mutated beside a valid move\n")
+    head = _commit(root, "exact move plus frozen archive mutation")
+    r = must_fail(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "mixed exact move and archive mutation",
+                  "ARCHIVE-IMMUTABILITY")
+    contains(r.out, "1 exact archive relocation(s)",
+             "valid move remains counted")
+    contains(r.out, "archived_projects/frozen-control",
+             "independent frozen mutation subject")
 
 
 @test("an exact archive move cannot hide another material project mutation",
@@ -281,14 +404,14 @@ def t_archive_relocation_does_not_launder_other_project_changes():
     contains(r.out, "projects/other", "unlaundered project finding")
 
 
-@test("the real RX2 v4 release is explicitly stale after material pipeline "
-      "source changed", kind="known_bad")
-def t_real_release_stales_after_pipeline_adoption():
+@test("an archived RX2 v4 project cannot be audited as a live project",
+      kind="known_bad")
+def t_archived_project_cannot_enter_live_audit():
     r = must_fail(run([sys.executable, PUB, "--project",
                        "projects/pluto-rx2-8way-v4"]),
-                  "stale reviewed RX2 publication", "STALE-RELEASE")
-    contains(r.out, "1 project(s), 1 board(s) graded", "coverage denominator")
-    contains(r.out, "03_src/route.yaml", "material source diagnosis")
+                  "archived RX2 explicit publication", "PROJECT:")
+    contains(r.out, "selected project directory is absent",
+             "live-tree boundary diagnosis")
 
 
 @test("an unsealed board cannot be published even when DRC/parity are green",

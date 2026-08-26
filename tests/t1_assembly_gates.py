@@ -70,15 +70,16 @@ from harness import (FAB_SCRIPTS, KPY, ROOT, check, contains,  # noqa: E402
 
 COV = FAB_SCRIPTS / "assembly_coverage.py"
 FRESH = FAB_SCRIPTS / "release_freshness_check.py"
-RELS = ROOT / "projects"
+ACTIVE = ROOT / "projects"
+ARCHIVED = ROOT / "archived_projects"
 
-CROW13 = (RELS / "crow-recorder-central-v2" / "07_releases"
+CROW13 = (ARCHIVED / "crow-recorder-central-v2" / "07_releases"
           / "crow-recorder-central-v2-v1.3-2026-07-24")
-CROW14 = (RELS / "crow-recorder-central-v2" / "07_releases"
+CROW14 = (ARCHIVED / "crow-recorder-central-v2" / "07_releases"
           / "crow-recorder-central-v2-v1.4-2026-07-25")
-COOK11 = (RELS / "smc0985-cooksense" / "07_releases"
+COOK11 = (ARCHIVED / "smc0985-cooksense" / "07_releases"
           / "cooksense-v1.1-2026-07-24")
-INTERP = (RELS / "smc0985-cooksense" / "07_releases"
+INTERP = (ARCHIVED / "smc0985-cooksense" / "07_releases"
           / "interposer-v1.0-2026-07-24")
 
 # A fully-declared assembly.yaml for the crow-rv2 board: J3-J10 are the
@@ -338,7 +339,7 @@ def t_pop_manifest_prose():
     and a machine-readable line on the same board's sibling release still
     produces its DECLARED-BUT-PLACED finding (t_pop_consigned_declared_
     unpopulated), so this did not simply switch the check off."""
-    usb = RELS / "usb-hub-3s-v3" / "07_releases" / "v1.4-2026-07-23"
+    usb = ACTIVE / "usb-hub-3s-v3" / "07_releases" / "v1.4-2026-07-23"
     r = must_fail(run([KPY, COV, usb, *no_asm()]), "prose MANIFEST line", "MANIFEST-PROSE")
     not_contains(r.out, "DECLARED-BUT-PLACED",
                  "no ref may be accused from a prose line")
@@ -714,7 +715,8 @@ def t_on_bom_false_is_its_own_key():
 
     def off_bom(proj):
         d = _yaml.safe_load(
-            (ROOT / "projects" / proj / "03_src/rules/assembly.yaml").read_text())
+            ((ACTIVE if proj == "usb-hub-3s-v3" else ARCHIVED) / proj /
+             "03_src/rules/assembly.yaml").read_text())
         return {r for e in (d.get("not_assembled") or [])
                 if e.get("on_bom") is False for r in (e.get("refs") or [])}
 

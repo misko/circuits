@@ -205,7 +205,7 @@ def t_parity_missing_part():
 # TEETH PROVEN 2026-07-25: with the pre-I-HW audit_board.py (git HEAD of that
 # day) swapped back in, all three tests below FAIL (--ihw is unknown to the old
 # script, which then audits the live board and exits 0); restored, all pass.
-CS = ROOT / "projects" / "smc0985-cooksense"
+CS = ROOT / "archived_projects" / "smc0985-cooksense"
 CS_AUDIT = CS / "03_src" / "cooksense" / "audit_board.py"
 # The historical defect board: cooksense v1.3 generator output at 3f781da,
 # BEFORE the H4 isolation notch landed (95db1d2). Same placement, no notch —
@@ -822,7 +822,7 @@ def _policy_fns():
     return ns
 
 
-CORRUPT = (ROOT / "projects/crow-mic-pod-v2/07_releases"
+CORRUPT = (ROOT / "archived_projects/crow-mic-pod-v2/07_releases"
            / "crow-mic-pod-v2-v1.0-2026-07-23/verification/policy_audit.md")
 
 

@@ -58,7 +58,28 @@ from harness import (KPY, ROOT, SCRIPTS, check, contains, eq, main, must_fail,
 
 PY = KPY
 WAIVER_PROV = SCRIPTS / "waiver_provenance.py"
-FLEET = ROOT / "projects"
+ACTIVE_PROJECTS = ROOT / "projects"
+ARCHIVED_PROJECTS = ROOT / "archived_projects"
+
+
+def _combined_fleet():
+    """Expose active and frozen projects to the one-root fleet CLI.
+
+    The gate deliberately compares waiver prose across projects, so running it
+    once per collection would lose cross-collection W-COPY coverage.  A
+    read-only symlink census preserves one fleet denominator without copying or
+    editing either governed tree.
+    """
+    fleet = tmpdir("waiver_real_fleet_")
+    seen = {}
+    for collection in (ACTIVE_PROJECTS, ARCHIVED_PROJECTS):
+        for project in sorted(p for p in collection.iterdir() if p.is_dir()):
+            check(project.name not in seen,
+                  f"duplicate project slug across active/archive: "
+                  f"{project.name} ({seen.get(project.name)} and {project})")
+            seen[project.name] = project
+            (fleet / project.name).symlink_to(project, target_is_directory=True)
+    return fleet
 
 # A second, independently-reasoned waiver so W-COPY has something to compare
 # and the run is never a single-project no-op (canon M-COVER).
@@ -753,7 +774,8 @@ def t_the_real_board_end_to_end_pcbnew_citation_regenerates():
     gate regenerates and what the fixture wrote down a moment earlier. If the
     board is absent (it is generated, not committed) the test grades the LADDER
     instead of skipping, so this can never become a silent no-op."""
-    board = (FLEET / "pluto-rx2-8way" / "04_kicad" / "pluto_rx2_8way.kicad_pcb")
+    board = (ARCHIVED_PROJECTS / "pluto-rx2-8way" / "04_kicad" /
+             "pluto_rx2_8way.kicad_pcb")
     if not board.is_file():
         # The board is generated, not committed. Absence is the LADDER's own
         # case, so assert that instead of skipping silently.
@@ -767,7 +789,7 @@ def t_the_real_board_end_to_end_pcbnew_citation_regenerates():
 
     measure = (
         "/usr/bin/python3 -c \"import pcbnew, math; "
-        "b = pcbnew.LoadBoard('projects/pluto-rx2-8way/04_kicad/"
+        "b = pcbnew.LoadBoard('archived_projects/pluto-rx2-8way/04_kicad/"
         "pluto_rx2_8way.kicad_pcb'); "
         "d = {(f.GetReference(), p.GetNumber()): p.GetPosition() "
         "for f in b.GetFootprints() for p in f.Pads()}; "
@@ -790,7 +812,7 @@ def t_the_real_board_end_to_end_pcbnew_citation_regenerates():
              # stating in the contract: any real pcbnew one-liner needs `|-`.
              f"      command: |-\n        {measure}\n"
              f"      output: \"{val}\"\n"
-             f"      requires: [pcbnew, projects/pluto-rx2-8way/04_kicad/"
+             f"      requires: [pcbnew, archived_projects/pluto-rx2-8way/04_kicad/"
              f"pluto_rx2_8way.kicad_pcb]\n")
     r = must_pass(run([PY, WAIVER_PROV, _pair(entry), "--repo-root", ROOT]),
                   f"a live pcbnew citation of {val} mm")
@@ -819,7 +841,8 @@ def t_real_fleet_is_measured():
     pre-existing W-FOREIGN finding (crow-recorder-central-v2's S-OCCL names
     crow-mic-pod-v2 with no `derived_from`), which is HEAD's finding, not this
     schema's — measured identical before and after."""
-    r = run([PY, WAIVER_PROV, FLEET, "--no-regen"])
+    fleet = _combined_fleet()
+    r = run([PY, WAIVER_PROV, fleet, "--repo-root", ROOT, "--no-regen"])
     contains(r.out, "waiver(s) graded", "the fleet run carries a denominator")
     contains(r.out, "EVIDENCE COVERAGE", "and a coverage line")
     contains(r.out, "MACHINE WAIVERS", "and the M1 exposure line")

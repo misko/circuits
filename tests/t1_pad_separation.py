@@ -98,7 +98,7 @@ def t_paste_intrusion():
 @test("the photographed RX2 v4 geometry is pinned in immutable release v1.0",
       kind="known_bad")
 def t_real_rx2_module_overlap():
-    project = (Path(__file__).resolve().parents[1] / "projects" /
+    project = (Path(__file__).resolve().parents[1] / "archived_projects" /
                "pluto-rx2-8way-v4")
     board = (project / "07_releases" / "v1.0-2026-08-01" / "source" /
              "pluto_rx2_8way_v4.kicad_pcb")

@@ -38,7 +38,7 @@ import bom_source_check as bsc  # noqa: E402
 GATE = FAB_SCRIPTS / "bom_source_check.py"
 EXPORT = FAB_SCRIPTS / "export_jlc_package.py"
 V3 = ROOT / "projects" / "usb-hub-3s-v3"
-POD = ROOT / "projects" / "crow-mic-pod-v2"
+POD = ROOT / "archived_projects" / "crow-mic-pod-v2"
 
 
 def circuit(codes):

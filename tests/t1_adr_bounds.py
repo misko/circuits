@@ -90,6 +90,49 @@ from harness import (KPY, ROOT, SCRIPTS, check, contains, eq, main, must_fail,
                      must_pass, not_contains, run, test, tmpdir)
 
 GATE = SCRIPTS / "adr_bound_provenance.py"
+GOVERNED_PROJECTS = (
+    "crow-mic-pod-v2", "crow-recorder-central-v2", "pi-usb-port-switch",
+    "pluto-cal-switch", "pluto-rx2-8way", "pluto-rx2-8way-v2",
+    "pluto-rx2-8way-v4", "pluto-rx2-8way-v5", "programmable-usb2-hub",
+    "smc0985-cooksense", "usb-controlled-debug-hub-2a-v1",
+    "usb-controlled-debug-hub-v1", "usb-controlled-debug-hub-v2",
+    "usb-hub-3s-v3", "usb-hub-3s-v4",
+)
+
+
+def _real_fleet_args():
+    """Build a read-only view of the exact pre-archive 15-board corpus.
+
+    ADR evidence commands embed their historical `projects/<slug>` paths. A
+    direct archive scan would therefore turn valid CITED evidence into
+    UNVERIFIED merely because its project moved. The temporary view preserves
+    those command paths without restoring or modifying any active directory.
+    A private copy of the unchanged gate lives four levels below the view so
+    its own-tree ratchets remain active, exactly as they are in the repository.
+    """
+    view = tmpdir("adrb_real_fleet_")
+    for entry in ROOT.iterdir():
+        if entry.name in {".git", "projects", "archived_projects"}:
+            continue
+        (view / entry.name).symlink_to(entry, target_is_directory=entry.is_dir())
+    project_view = view / "projects"
+    project_view.mkdir()
+    contracts = ROOT / "projects" / "contracts.md"
+    if contracts.is_file():
+        (project_view / "contracts.md").symlink_to(contracts)
+    for name in GOVERNED_PROJECTS:
+        active = ROOT / "projects" / name
+        archived = ROOT / "archived_projects" / name
+        check(active.is_dir() != archived.is_dir(),
+              f"{name}: expected in exactly one project collection")
+        source = active if active.is_dir() else archived
+        (project_view / name).symlink_to(source, target_is_directory=True)
+    private_gate = view / "audit" / "owner" / "scripts" / GATE.name
+    private_gate.parent.mkdir(parents=True)
+    shutil.copy2(GATE, private_gate)
+    (private_gate.parent / "waiver_provenance.py").symlink_to(
+        GATE.parent / "waiver_provenance.py")
+    return [KPY, private_gate, str(view), "--include-archived"]
 
 # ---------------------------------------------------------------------------
 # THE ARITHMETIC, RE-DERIVED. This is the ADR AUTHOR's side of the M1 split:
@@ -647,7 +690,8 @@ def t_the_real_fleet_passes_with_every_owed_adr_named():
     ADR-0026 changes the number without changing the verdict (tests/README,
     "which real bytes may a fixture read?").
     """
-    r = must_pass(run([KPY, GATE, str(ROOT)]), "the real fleet")
+    r = must_pass(run(_real_fleet_args()),
+                  "the governed active + frozen fleet")
     m = re.search(r"BOUND COVERAGE: (\d+) CITED / (\d+) ESTIMATED / "
                   r"(\d+) UNVERIFIED across (\d+) declared block\(s\) in "
                   r"(\d+) ADR\(s\); (\d+) of (\d+) bound-publishing ADR\(s\) "
@@ -690,9 +734,10 @@ def t_owed_above_the_ceiling_fails():
     (a scratch fixture is a different universe and a committed 37 says nothing
     about it), so this is asserted against ROOT with the ceiling dialed to one
     below the measured count."""
-    r = must_pass(run([KPY, GATE, str(ROOT)]), "measure the fleet")
+    fleet = _real_fleet_args()
+    r = must_pass(run(fleet), "measure the governed fleet")
     owed = int(re.search(r"(\d+) of \d+ bound-publishing", r.out).group(1))
-    must_fail(run([KPY, GATE, str(ROOT), "--owed-ceiling", str(owed - 1)]),
+    must_fail(run(fleet + ["--owed-ceiling", str(owed - 1)]),
               "one below the measured OWED count", "B-FLOOR")
 
 
@@ -703,9 +748,10 @@ def t_cited_below_the_floor_fails():
     the hole that opens is closed here: with a floor above the achieved count
     the run is red. Asserted against ROOT because the floors are enforced only
     on this gate's own tree."""
-    measured = must_pass(run([KPY, GATE, str(ROOT)]), "measure CITED count")
+    fleet = _real_fleet_args()
+    measured = must_pass(run(fleet), "measure governed-fleet CITED count")
     cited = int(re.search(r"BOUND COVERAGE: (\d+) CITED", measured.out).group(1))
-    must_fail(run([KPY, GATE, str(ROOT), "--cited-floor", str(cited + 1)]),
+    must_fail(run(fleet + ["--cited-floor", str(cited + 1)]),
               "a CITED floor above the achieved count", "B-FLOOR")
 
 
@@ -721,7 +767,7 @@ def t_the_cited_floor_is_pinned_to_the_measured_count():
     and this test forces every later adoption into the SAME commit."""
     sys.path.insert(0, str(SCRIPTS))
     import adr_bound_provenance as abp                        # noqa: E402
-    r = must_pass(run([KPY, GATE, str(ROOT)]), "measure the fleet")
+    r = must_pass(run(_real_fleet_args()), "measure the governed fleet")
     cited = int(re.search(r"BOUND COVERAGE: (\d+) CITED", r.out).group(1))
     eq(abp.CITED_FLOOR, cited,
        f"CITED_FLOOR is {abp.CITED_FLOOR} and {cited} bound(s) actually "

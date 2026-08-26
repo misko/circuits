@@ -10,6 +10,11 @@ no material PCB project path changed, except for a complete tracked project
 tree relocated byte/mode-identically from ``projects/<name>`` to the previously
 absent ``archived_projects/<name>``.
 
+The archive is part of that proof, not an ungraded destination.  Every committed
+change below ``archived_projects/`` is refused unless it is wholly explained by
+one such same-name relocation.  This keeps a valid archive move from laundering
+an addition, deletion, content edit, or mode edit in any frozen archive.
+
 The enclosure stream is deliberately independent.  Changes lexically rooted
 at ``03_src/mechanical`` or ``07_enclosure_releases`` are classified as
 enclosure-only and do not put the parent PCB into this gate's reseal/RF-build
@@ -148,6 +153,38 @@ def enclosure_only_projects(paths):
                    if is_enclosure_only_project_path(p)})
 
 
+def _changed_active_projects(paths):
+    """All changed ``projects/<name>`` roots, including bookkeeping-only ones."""
+    roots = set()
+    for path in paths:
+        parsed = _project_rel(path)
+        if parsed:
+            roots.add(str(parsed[0]))
+    return sorted(roots)
+
+
+def _archive_change_subject(path):
+    """Collapse one archive path to its governed project, or retain root files.
+
+    A changed leaf below ``archived_projects/<name>/`` is accounted once at the
+    project-tree boundary.  A direct child such as the archive collection's
+    own contract cannot masquerade as a project and is returned verbatim so it
+    also fails closed.
+    """
+    parts = Path(str(path)).parts
+    if not parts or parts[0] != "archived_projects":
+        return None
+    if len(parts) >= 3:
+        return (Path(parts[0]) / parts[1]).as_posix()
+    return Path(*parts).as_posix()
+
+
+def _changed_archive_subjects(paths):
+    """All independently governed subjects changed below the archive root."""
+    return sorted({subject for path in paths
+                   if (subject := _archive_change_subject(path)) is not None})
+
+
 def _tree_identity(commit, path, root):
     """Return a tracked directory's Git tree identity, or ``None`` if absent.
 
@@ -217,8 +254,8 @@ def _diff_names(base, head, root):
     # and new path.  Otherwise moving PCB source into an exempt enclosure root
     # could be reported only by its destination and launder the deletion.
     cp = _git("diff", "--no-renames", "--name-only", "-z",
-              "--diff-filter=ACDMRTUXB",
-              base, head, "--", "projects", root=root)
+              "--diff-filter=ACDMRTUXB", base, head, "--",
+              "projects", "archived_projects", root=root)
     if cp.returncode:
         raise ValueError(cp.stdout.strip() or "git diff failed")
     return [path for path in cp.stdout.split("\0") if path]
@@ -523,6 +560,7 @@ def main(argv=None):
         return 2
 
     archive_relocations = []
+    archive_findings = []
     try:
         if args.base:
             names = _diff_names(args.base, args.head, root)
@@ -531,21 +569,55 @@ def main(argv=None):
                 path for path in names if is_enclosure_only_project_path(path)
             ]
             enclosure_projects = enclosure_only_projects(enclosure_paths)
+            changed_active = _changed_active_projects(names)
+            changed_archives = _changed_archive_subjects(names)
+            changed_archive_set = set(changed_archives)
             # Remove projects one at a time only after proving the complete
-            # tracked tree is an identity-preserving move.  Every other
-            # selected project remains in the ordinary publication denominator.
+            # tracked tree is an identity-preserving move.  Candidate discovery
+            # uses every changed active project, not only material paths, so a
+            # bookkeeping-only tree cannot disappear through a zero denominator.
             archive_relocations = [
-                rel for rel in selected
-                if _is_exact_archive_relocation(
+                rel for rel in changed_active
+                if (Path("archived_projects") / Path(rel).name).as_posix()
+                in changed_archive_set
+                and _is_exact_archive_relocation(
                     rel, args.base, args.head, root)
             ]
             selected = [
                 rel for rel in selected if rel not in archive_relocations
             ]
+            allowed_archives = {
+                (Path("archived_projects") / Path(rel).name).as_posix()
+                for rel in archive_relocations
+            }
+            for subject in changed_archives:
+                if subject not in allowed_archives:
+                    archive_findings.append((
+                        subject,
+                        "ARCHIVE-IMMUTABILITY: archive bytes or modes changed "
+                        "without a complete same-name projects/<name> -> "
+                        "archived_projects/<name> relocation whose recursive "
+                        "Git tree is identical and whose destination was absent "
+                        "at the base commit",
+                    ))
+            # A project deletion with no changed archive destination also needs
+            # an explicit finding even if that project carried bookkeeping only.
+            for rel in changed_active:
+                if rel in archive_relocations:
+                    continue
+                if (_tree_identity(args.base, rel, root) is not None and
+                        _tree_identity(args.head, rel, root) is None):
+                    archive_findings.append((
+                        rel,
+                        "ARCHIVE-RELOCATION: tracked project tree disappeared "
+                        "without an exact same-name relocation into a previously "
+                        "absent archived_projects/ destination",
+                    ))
             check_worktree = False
             print(f"P-PUBLISH coverage: {len(selected)} material project(s) "
                   f"selected from {len(names)} changed path(s); "
                   f"{len(archive_relocations)} exact archive relocation(s); "
+                  f"{len(changed_archives)} archive subject(s) changed; "
                   f"{len(enclosure_paths)} enclosure-only path(s) across "
                   f"{len(enclosure_projects)} project(s)")
             for rel in archive_relocations:
@@ -568,6 +640,13 @@ def main(argv=None):
     except (ValueError, OSError) as e:
         print(f"P-PUBLISH FAIL: cannot establish diff coverage: {e}")
         return 2
+
+    if archive_findings:
+        for subject, finding in archive_findings:
+            print(f"  FAIL {subject}: {finding}")
+        print(f"P-PUBLISH FAIL: {len(archive_findings)} archive integrity "
+              "finding(s)")
+        return 1
 
     if not selected:
         if archive_relocations:

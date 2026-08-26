@@ -611,7 +611,11 @@ def t_real_finding_pins_tie_is_owed_with_its_patch():
                / "contracts.md").read_text(encoding="utf-8")
     contains(parts_c, "| `pins.<N>.tie` | OWED |", "the 02_parts OWED row")
     # and the measurement: 43 dossiers, read straight off the tree
-    n = len([p for p in (ROOT / "projects").glob("*/02_parts/*/part.yaml")
+    dossiers = [p
+                for collection in (ROOT / "projects",
+                                   ROOT / "archived_projects")
+                for p in collection.glob("*/02_parts/*/part.yaml")]
+    n = len([p for p in dossiers
              if re.search(r"^\s*\S+:\s*\{[^}]*\btie:", p.read_text(
                  encoding="utf-8-sig"), re.M)])
     check(n >= 40, f"only {n} dossiers declare a pins.<N>.tie — re-measure the "

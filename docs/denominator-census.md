@@ -26,7 +26,7 @@ it bad must still FAIL. Every conversion below is justified by a MEASURED
 | FRESH | `<scratch>/wt_fresh` | `git worktree add --detach`, same sha, **no `06_build/`** |
 | CENSUS | `<scratch>/wt_census` | same, used for the fleet gate census so `projects/` was never written |
 
-`projects/pluto-rx2-8way-v2/` was excluded from the PRIMARY gate census only —
+`archived_projects/pluto-rx2-8way-v2/` was excluded from the PRIMARY gate census only —
 another workflow owned it. It IS in the FRESH/CENSUS numbers.
 
 ## How it was measured (instrumentation was THROWAWAY; the tree is clean)
@@ -194,14 +194,14 @@ them these). 6 of the 8 are `known_bad` fixtures, which is the whole
 
 | # | suite | test | artifact whose absence flips it |
 |---|---|---|---|
-| 1 | `t1_electrical_invariants.py` | E-INV part_value passes the cooksense watchdog pull-down as SHIPPED (1k) | `projects/smc0985-cooksense/06_build/netlists/cooksense.net` |
+| 1 | `t1_electrical_invariants.py` | E-INV part_value passes the cooksense watchdog pull-down as SHIPPED (1k) | `archived_projects/smc0985-cooksense/06_build/netlists/cooksense.net` |
 | 2 | " | E-INV part_value FAILS THE INCIDENT: the watchdog pull-down at 100k | same |
 | 3 | " | the THREE topology invariants that shipped with the fix PASS on the 100k board | same |
 | 4 | " | part_value FAILS a value the netlist carries but the gate cannot decode | same |
 | 5 | " | part_value FAILS a min bound and an equals-with-tolerance | same |
 | 6 | " | part_value refuses to load an assertion that declares NO bound | same |
 | 7 | `t1_net_reference.py:490` | the REAL cooksense pre-fix silk caption is caught | `…/06_build/proof/floorplan_p0proof.yaml` + `…/06_build/netlists/cooksense.net` |
-| 8 | `t1_net_reference.py:539` | pluto-cal-switch — resolves EVERY reference | `projects/pluto-cal-switch/06_build/netlists/` |
+| 8 | `t1_net_reference.py:539` | pluto-cal-switch — resolves EVERY reference | `archived_projects/pluto-cal-switch/06_build/netlists/` |
 
 1–6 route through `cook_netlist()` at `t1_electrical_invariants.py:378`;
 7–8 are the `check(False, "missing real evidence: …")` sites named in the brief.
@@ -222,5 +222,5 @@ That is the inverse defect and its remedy, side by side.
 ./tests/run_tests.sh > log 2>&1                    # in each worktree, unpiped
 /usr/bin/python3 skills/kicad-pcb/scripts/policy_audit.py projects/<name>
 /usr/bin/python3 skills/kicad-pcb/scripts/policy_audit.py \
-    projects/smc0985-cooksense --board interposer  # the ADR-0007 split
+    archived_projects/smc0985-cooksense --board interposer  # the ADR-0007 split
 ```

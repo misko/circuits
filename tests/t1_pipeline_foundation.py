@@ -47,7 +47,7 @@ def t_contract_surface():
 
 @test("USB Hub v4 sealed canary pins live/release board identity and payload counts")
 def t_usb_hub_canary():
-    project = ROOT / "projects/usb-hub-3s-v4"
+    project = ROOT / "archived_projects/usb-hub-3s-v4"
     release = project / "07_releases/v0.6.1-2026-08-12"
     live = project / "04_kicad/usb_hub_3s_v4.kicad_pcb"
     sealed = release / "source/usb_hub_3s_v4.kicad_pcb"
@@ -65,7 +65,7 @@ def t_usb_hub_canary():
 
 @test("Pluto RX2 v4 sealed canary pins live/release board identity and payload counts")
 def t_pluto_canary():
-    project = ROOT / "projects/pluto-rx2-8way-v4"
+    project = ROOT / "archived_projects/pluto-rx2-8way-v4"
     release = project / "07_releases/v1.1-2026-08-01"
     live = project / "04_kicad/pluto_rx2_8way_v4.kicad_pcb"
     sealed = release / "source/pluto_rx2_8way_v4.kicad_pcb"
@@ -84,8 +84,8 @@ def t_pluto_canary():
 @test("canary manifests carry exact source commits")
 def t_canary_source_commits():
     manifests = (
-        ROOT / "projects/usb-hub-3s-v4/07_releases/v0.6.1-2026-08-12/MANIFEST.txt",
-        ROOT / "projects/pluto-rx2-8way-v4/07_releases/v1.1-2026-08-01/MANIFEST.txt",
+        ROOT / "archived_projects/usb-hub-3s-v4/07_releases/v0.6.1-2026-08-12/MANIFEST.txt",
+        ROOT / "archived_projects/pluto-rx2-8way-v4/07_releases/v1.1-2026-08-01/MANIFEST.txt",
     )
     for manifest in manifests:
         value = manifest_field(manifest, "git_sha").split()[0]
@@ -96,7 +96,8 @@ def t_canary_source_commits():
 @test("exact source-commit predicate REFUSES an abbreviation", kind="known_bad")
 def t_canary_source_commit_abbreviation():
     manifest = (ROOT /
-        "projects/usb-hub-3s-v4/07_releases/v0.6.1-2026-08-12/MANIFEST.txt")
+        "archived_projects/usb-hub-3s-v4/07_releases/"
+        "v0.6.1-2026-08-12/MANIFEST.txt")
     exact = manifest_field(manifest, "git_sha").split()[0]
     check(not exact_commit(exact[:12]),
           "abbreviated source commit was incorrectly accepted")

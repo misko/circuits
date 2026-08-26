@@ -2026,12 +2026,13 @@ def t_converter_refuses_two_nets_as_one_conductor():
                connectivity did not.
     """
     import sch_occlusion as SO
-    cj = (ROOT / "projects" / "pluto-rx2-8way-v2" / "03_tscircuit" / "build"
+    cj = (ROOT / "archived_projects" / "pluto-rx2-8way-v2" /
+          "03_tscircuit" / "build"
           / "circuit.json")
     if not cj.is_file():
         check(False, f"fixture circuit.json missing: {cj}")
     d = tmpdir("s12conv_")
-    parts = ROOT / "projects" / "pluto-rx2-8way-v2" / "02_parts"
+    parts = ROOT / "archived_projects" / "pluto-rx2-8way-v2" / "02_parts"
 
     # RED: the pre-fix converter, from git
     red_out = d / "red.kicad_sch"
@@ -2165,7 +2166,7 @@ def _ink_through_text(sheet):
 
 
 #: the board this whole pass exists for — the last unsealed one in the fleet.
-_RX2 = ROOT / "projects" / "pluto-rx2-8way-v2"
+_RX2 = ROOT / "archived_projects" / "pluto-rx2-8way-v2"
 
 
 @test("converter: NO graphic ink is drawn through any text on "

@@ -17,8 +17,8 @@ from harness import (KPY, ROOT, SCRIPTS, board_nodes, check, contains, eq,  # no
 GEN = SCRIPTS / "generate_board_generic.py"
 MODEL_COVERAGE = SCRIPTS / "model_coverage_check.py"
 LC = ROOT / "archived_projects" / "cook-loadcell"
-HUB4 = ROOT / "projects" / "usb-hub-3s-v4"
-PLUTO_RX2 = ROOT / "projects" / "pluto-rx2-8way"
+HUB4 = ROOT / "archived_projects" / "usb-hub-3s-v4"
+PLUTO_RX2 = ROOT / "archived_projects" / "pluto-rx2-8way"
 
 
 def gen(cfg, out, cwd=LC, expect_ok=True):

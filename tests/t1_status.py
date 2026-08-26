@@ -50,13 +50,14 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from harness import (FIXTURES, KPY, ROOT, check, contains, main,  # noqa: E402
+from harness import (FIXTURES, KPY, ROOT, check, contains, eq, main,  # noqa: E402
                      must_fail, must_pass, not_contains, run, test, tmpdir)
 
 READER = ROOT / "skills" / "kicad-pcb" / "scripts" / "pcb_status.py"
 BEACON_GATE = ROOT / "skills" / "kicad-pcb" / "scripts" / "status_beacon_check.py"
 BEACONS = FIXTURES / "beacons"
 PROJECTS = ROOT / "projects"
+ARCHIVED_PROJECTS = ROOT / "archived_projects"
 
 
 def _iso(dt):
@@ -261,7 +262,8 @@ def beacon_project(project, *, fixture=None, body=None, name="STATUS.md"):
 def beacon_gate(proj, releases_of=None, *extra):
     args = [KPY, BEACON_GATE, str(proj)]
     if releases_of:
-        args += ["--releases-root", str(PROJECTS / releases_of / "07_releases")]
+        args += ["--releases-root",
+                 str(ARCHIVED_PROJECTS / releases_of / "07_releases")]
     return run(args + list(extra))
 
 
@@ -276,7 +278,8 @@ def _live_cooksense_release():
     """
     sys.path.insert(0, str(ROOT / "skills" / "jlcpcb-fab" / "scripts"))
     import release_index as ri  # noqa: E402
-    rels = ri.releases_for_board(PROJECTS / "smc0985-cooksense", "cooksense")
+    rels = ri.releases_for_board(
+        ARCHIVED_PROJECTS / "smc0985-cooksense", "cooksense")
     check(rels, "no cooksense release found — this fixture needs the real tree")
     return rels[-1].name
 
@@ -356,8 +359,11 @@ def t_beacon_fleet_denominator():
     deliberately left drifted (see the module docstring), so pinning
     PASS/FAIL here would encode the thing under observation."""
     r = run([KPY, BEACON_GATE, "--root", str(ROOT)])   # the real fleet
+    active = sorted(p.name for p in PROJECTS.glob("*") if p.is_dir())
+    eq(active, ["pluto-rx2-8way-v5", "usb-controlled-debug-hub-2a-v1",
+                "usb-hub-3s-v3"], "the intentional active-project inventory")
     n = len(sorted(PROJECTS.glob("*/01_docs/STATUS*.md")))
-    check(n >= 5, f"expected the real fleet to carry beacons, found {n}")
+    eq(n, 3, "one status beacon for each retained active project")
     contains(r.out, f"coverage: {n}/{n} beacons graded", "full denominator")
     for b in sorted(PROJECTS.glob("*/01_docs/STATUS*.md")):
         contains(r.out, str(b), f"names the artifact it graded ({b.name})")

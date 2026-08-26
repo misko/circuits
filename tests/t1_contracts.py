@@ -686,7 +686,8 @@ def t_present_scope_is_presence_not_violations():
     finally:
         lck.unlink(missing_ok=True)
 
-    probe = (ROOT / "projects" / "programmable-usb2-hub" / "01_docs" /
+    probe = (ROOT / "projects" / "usb-controlled-debug-hub-2a-v1" /
+             "01_docs" /
              "renders" / "stray-ratchet-control.png")
     probe.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -695,7 +696,8 @@ def t_present_scope_is_presence_not_violations():
                   "an undeclared untracked unit",
                   "holds UNTRACKED-NOT-IGNORED files")
         must_pass(run([KPY, _drive(
-            'ca.STRAY_UNITS["projects/programmable-usb2-hub"] = "test control"'),
+            'ca.STRAY_UNITS["projects/usb-controlled-debug-hub-2a-v1"] = '
+            '"test control"'),
             "--present"]), "the same planted unit with an evidence row")
     finally:
         probe.unlink(missing_ok=True)

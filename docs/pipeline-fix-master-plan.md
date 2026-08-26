@@ -91,13 +91,13 @@ in a predecessor document.
 
 | quantity | measured | source |
 |---|---:|---|
-| board generations | **28** (10 active + 18 archived) — *corrected from 29* | `ls projects/ archived_projects/` |
+| board generations | **34** (**3 active + 31 archived**) after the 2026-08-26 portfolio cleanup | `find projects archived_projects -mindepth 1 -maxdepth 1 -type d` |
 | commits | 945 | `git rev-list --count HEAD` |
 | part dossiers | 614, of which **309 distinct MPNs** | `find */02_parts/*/part.yaml` |
 | dossiers with no PDF | 300 | script over all 614 |
 | …of those, recording a sha256 for a missing file | **8** — *corrected from 190 (substring artifact)* | hash-match over 314 |
 | superseded releases | 47; **17** are byte-identical boards by sha256, 33 *say so in prose*, 16 carry no `.kicad_pcb` at all — *corrected: the prose figure and the gate's own criterion are different methods* | `find -name SUPERSEDED.md` |
-| boards carrying a disposition ledger | **10 of 28** — so fleet rates over review findings are conditioned, not absolute | `find 08_reviews -name DISPOSITIONS.md` |
+| boards carrying a disposition ledger | **10 of 34** — so fleet rates over review findings are conditioned, not absolute | `find projects archived_projects -path '*/08_reviews/DISPOSITIONS.md'` |
 | D-BACK entries in journals | **39 total**: routing 25, board 7, placement 5, verify 1, schematic 1, parts 0 — *corrected from 24/5/1/0* | `grep -o D-BACK` |
 
 ### Routing (programmable-usb2-hub)
@@ -643,6 +643,7 @@ ambiguous on the only board either plan touches.
 | **Do not promote `routing_readme.md`** until its 5 P0s close | it would make four wrong numbers canonical |
 | Delete `lipo3s_trace.md` + `.gitignore:5` | dead since 2026-07-21; and it is the false precedent `routing_readme.md` leans on |
 | **DONE 2026-08-26:** Archive `pluto-rx2-8way-v3` | Moved intact to `archived_projects/`: 28 tracked files vs v2's 109, no BRIEF.md, no KiCad design or release, and `STATUS.md` still literal `YYYY-MM-DDTHH:MM:SS` |
+| **DONE 2026-08-26:** Retain only the three current hardware demonstrations as active | Moved 12 superseded or paused projects byte-for-byte into `archived_projects/`; `projects/` now contains only `pluto-rx2-8way-v5`, `usb-hub-3s-v3`, and `usb-controlled-debug-hub-2a-v1` |
 | Rewrite or delete `resume_state.md` | tracked and actively wrong: cooksense v1.7 sealed, v4 shipped twice, 6 of 10 boards listed |
 | Delete or RESOLVED-banner both stale `RESUME.md` files | usb-hub-3s-v3 is sealed through v1.12 |
 | Create `examples/routing-economics-2026-08/` | C-ISO: skills may not cite `projects/` paths |

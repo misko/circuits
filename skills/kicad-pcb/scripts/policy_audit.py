@@ -286,8 +286,8 @@ PREC_GRADED_FLOOR = 86   # in-scope parts carrying a TIER-GRADED precedent
 # PER-BOARD owed ceilings: in-scope parts with NO tier-graded record. Each may
 # only FALL, and each is TIGHT (the test asserts equality, so a board that
 # improves must lower its own row in the same commit and cannot bank slack).
-# MEASURED 2026-08-21, read-only sweep of `projects/*/02_parts/`: 216 in scope
-# across 15 boards, 86 GRADED and 130 OWED. The per-board rows below are exact;
+# RE-MEASURED 2026-08-26 across the retained 15-board regression corpus:
+# 215 in scope, 86 GRADED and 129 OWED. The per-board rows below are exact;
 # `tests/t1_layout_precedent.py` independently recomputes every denominator.
 PREC_OWED_CEILING = {
     "crow-mic-pod-v2": 4,
@@ -300,7 +300,7 @@ PREC_OWED_CEILING = {
     "pluto-rx2-8way-v5": 0,
     "programmable-usb2-hub": 10,
     "smc0985-cooksense": 35,
-    "usb-controlled-debug-hub-2a-v1": 6,
+    "usb-controlled-debug-hub-2a-v1": 5,
     "usb-controlled-debug-hub-v1": 5,
     "usb-controlled-debug-hub-v2": 5,
     "usb-hub-3s-v3": 12,

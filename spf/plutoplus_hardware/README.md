@@ -1,7 +1,7 @@
 # PlutoPlus hardware — two physical boards, measured
 
 Reference data for building anything that mates to a PlutoPlus SMA panel.
-Collected 2026-07-27 for `projects/pluto-cal-switch`, but kept here because it
+Collected 2026-07-27 for `archived_projects/pluto-cal-switch`, but kept here because it
 describes SOMEONE ELSE'S hardware and is useful to any future board.
 
 **There are two units in hand and THEY ARE NOT THE SAME BOARD.** One is a
@@ -236,7 +236,7 @@ the others), and that the 7.85–8.00 mm nut hex leaves only **2.43 mm
 corner-to-corner** at the 11.5 mm pitch — no wrench fits.
 
 **Rigid three-connector SMA direct-mount does not work.** Full reasoning, with
-sources, in `projects/pluto-cal-switch/01_docs/pluto-plus-mechanical.md`.
+sources, in `archived_projects/pluto-cal-switch/01_docs/pluto-plus-mechanical.md`.
 
 The 0.32 mm span difference between these two boards reinforces it: no rigid
 design fits both, whereas an SMP-based interface (±0.254–0.3 mm float, reached

@@ -421,11 +421,11 @@ verified: "datasheet p.2"
 def _sweep_the_fleet():
     """(graded, per_board_owed, scoped) measured with THIS FILE'S OWN reader.
 
-    canon M1: it walks `projects/*/02_parts/*/part.yaml` and applies the
-    in-scope rule directly rather than invoking `policy_audit`, so the numbers
-    the bounds claim are not produced by the code the bounds constrain. It is
-    also strictly READ-ONLY — running `policy_audit` over the live projects
-    would write `06_build/policy_audit.md` into seven boards."""
+    canon M1: it walks every active project plus each archived project named by
+    the per-board ratchet and applies the in-scope rule directly rather than
+    invoking `policy_audit`, so the numbers the bounds claim are not produced
+    by the code the bounds constrains. It is also strictly READ-ONLY — running
+    `policy_audit` would write build evidence into the subjects under test."""
     import yaml
     src = POLICY.read_text(encoding="utf-8")
     scope = re.search(r"LAYOUT_SCOPE = re\.compile\(r'([^']*)'\s*\n\s*r'([^']*)'",
@@ -433,8 +433,23 @@ def _sweep_the_fleet():
     check(scope, "could not read LAYOUT_SCOPE back out of policy_audit.py")
     rx = re.compile(scope.group(1) + scope.group(2), re.I)
 
+    _floor, caps = _read_bounds()
+    project_dirs = {p.name: p for p in sorted((ROOT / "projects").glob("*"))
+                    if p.is_dir()}
+    for name in caps:
+        archived = ROOT / "archived_projects" / name
+        if name in project_dirs:
+            check(not archived.is_dir(),
+                  f"duplicate governed project slug in active and archive: {name}")
+        else:
+            check(archived.is_dir(),
+                  f"ratcheted project {name!r} is absent from both roots")
+            project_dirs[name] = archived
+
     graded, scoped, owed = 0, 0, {}
-    for py in sorted((ROOT / "projects").glob("*/02_parts/*/part.yaml")):
+    part_files = [py for project_dir in project_dirs.values()
+                  for py in project_dir.glob("02_parts/*/part.yaml")]
+    for py in sorted(part_files):
         y = yaml.safe_load(py.read_text(encoding="utf-8-sig")) or {}
         if not (len(y.get("pins") or {}) > 2 or rx.search(str(y.get("type", "")))):
             continue

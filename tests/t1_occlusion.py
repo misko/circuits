@@ -82,6 +82,27 @@ import sch_occlusion as SO                                     # noqa: E402
 
 TOOL = SCRIPTS / "sch_occlusion.py"
 
+GOVERNED_PROJECTS = (
+    "crow-mic-pod-v2", "crow-recorder-central-v2", "pi-usb-port-switch",
+    "pluto-cal-switch", "pluto-rx2-8way", "pluto-rx2-8way-v2",
+    "pluto-rx2-8way-v4", "pluto-rx2-8way-v5", "programmable-usb2-hub",
+    "smc0985-cooksense", "usb-controlled-debug-hub-2a-v1",
+    "usb-controlled-debug-hub-v1", "usb-controlled-debug-hub-v2",
+    "usb-hub-3s-v3", "usb-hub-3s-v4",
+)
+
+
+def governed_files(pattern):
+    """Files from the exact 15-board corpus retained by these regressions."""
+    out = []
+    for name in GOVERNED_PROJECTS:
+        active = ROOT / "projects" / name
+        archived = ROOT / "archived_projects" / name
+        check(active.is_dir() != archived.is_dir(),
+              f"{name}: expected in exactly one project collection")
+        out.extend((active if active.is_dir() else archived).glob(pattern))
+    return sorted(out)
+
 #: the commit that carries the pre-fix S-OCCL bytes. A PINNED COMMIT is the
 #: strongest oracle available (tests/README, "which real bytes may a fixture
 #: read") — the path is only a locator and nothing in the working tree can
@@ -819,7 +840,7 @@ def t_fleet_is_graded_with_a_denominator():
     whose emitter is v1's label grid, which has never had a direction defect
     and must stay at zero."""
     n = 0
-    for p in sorted((ROOT / "projects").glob("*/04_kicad/*.kicad_sch")):
+    for p in governed_files("04_kicad/*.kicad_sch"):
         occl, unm, graded, total = counts(p)
         eq(unm, [], f"{p.name}: drawable objects this model could not place")
         eq(graded, total, f"{p.name}: coverage")
@@ -1103,7 +1124,7 @@ def t_the_model_is_an_upper_bound_on_ink():
     flat_short = flat_wide = flat_exact = 0
     worst_short = worst_wide = 0.0
     sheets = []
-    for p in sorted((ROOT / "projects").glob("*/04_kicad/*.kicad_sch")):
+    for p in governed_files("04_kicad/*.kicad_sch"):
         stxt = p.read_text(encoding="utf-8-sig")
         svg = svg_of(p, d)
         pl, runs = drawn_plates(svg), drawn_runs(svg)
@@ -1573,7 +1594,7 @@ def t_fleet_wire_ambiguity_is_bounded():
     release is cut for another reason."""
     EXPECT = {"crow_recorder_central_v2": 3}
     seen = 0
-    for p in sorted((ROOT / "projects").glob("*/04_kicad/*.kicad_sch")):
+    for p in governed_files("04_kicad/*.kicad_sch"):
         bad = SO.wire_net_ambiguity(p.read_text(encoding="utf-8-sig"))
         eq(len(bad), EXPECT.get(p.stem, 0),
            f"{p.stem}: two-nets-as-one-conductor findings {bad}")

@@ -55,7 +55,7 @@ import bom_legibility_check as B                                # noqa: E402
 TOOL = FAB_SCRIPTS / "sealed_dependency_check.py"
 LEGIBILITY = FAB_SCRIPTS / "bom_legibility_check.py"
 
-COOKSENSE = ROOT / "projects" / "smc0985-cooksense"
+COOKSENSE = ROOT / "archived_projects" / "smc0985-cooksense"
 USB = ROOT / "projects" / "usb-hub-3s-v3"
 
 #: the incident's dossier and the code six sealed cooksense releases ship

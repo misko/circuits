@@ -74,7 +74,7 @@ board:
       - 131.0
 libraries:
 - lib: usb_controlled_debug_hub
-  path: ../usb-controlled-debug-hub-v2/03_src/lib/usb_controlled_debug_hub.pretty
+  path: 03_src/lib/usb_controlled_debug_hub.pretty
 - lib: usb_controlled_debug_hub_2a
   path: 03_src/lib/usb_controlled_debug_hub_2a.pretty
 - /usr/share/kicad/footprints

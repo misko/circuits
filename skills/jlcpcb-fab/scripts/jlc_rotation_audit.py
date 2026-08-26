@@ -365,10 +365,21 @@ def audit_fab(fab_dir, lcsc_table, name_db, exempt=None):
 
 
 def fleet_report(root, lcsc_table, name_db, out=sys.stdout):
-    """Per-board UNSOURCED migration report. Returns total unsourced codes."""
+    """Per-board UNSOURCED report over active and frozen project history."""
     root = Path(root)
     boards = []
-    for proj in sorted((root / "projects").glob("*")):
+    projects = {}
+    for collection in ("projects", "archived_projects"):
+        base = root / collection
+        for proj in sorted(base.glob("*")) if base.is_dir() else []:
+            if not proj.is_dir():
+                continue
+            if proj.name in projects:
+                raise RuntimeError(
+                    f"duplicate project slug {proj.name!r}: "
+                    f"{projects[proj.name]} and {proj}")
+            projects[proj.name] = proj
+    for proj in (projects[name] for name in sorted(projects)):
         if not proj.is_dir():
             continue
         rels = sorted((proj / "07_releases").glob("*/fab")) if \

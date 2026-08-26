@@ -36,9 +36,9 @@ from harness import (KPY, ROOT, check, contains, main, must_fail,  # noqa: E402
 TOOL = ROOT / "skills/jlcpcb-fab/scripts/fab_payload_census.py"
 
 V18 = ROOT / "projects/usb-hub-3s-v3/07_releases/v1.8-2026-07-26"
-CRV2 = (ROOT / "projects/crow-recorder-central-v2/07_releases"
+CRV2 = (ROOT / "archived_projects/crow-recorder-central-v2/07_releases"
         / "crow-recorder-central-v2-v1.5-2026-07-25")
-INTERP = (ROOT / "projects/smc0985-cooksense/07_releases"
+INTERP = (ROOT / "archived_projects/smc0985-cooksense/07_releases"
           / "interposer-v1.0-2026-07-24")
 
 GERBER_HEAD = "%TF.FileFunction,{func}*%\n%FSLAX46Y46*%\n%MOMM*%\n"

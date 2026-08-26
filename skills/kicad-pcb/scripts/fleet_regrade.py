@@ -107,15 +107,38 @@ FAMILIES = {
 }
 
 
+def project_directories(root):
+    """Return the one authoritative directory for every retained project.
+
+    Active projects and frozen projects are separate operational populations,
+    but a release regrade is intentionally historical: it must cover sealed
+    releases in both.  A slug in both roots is ambiguous and therefore a hard
+    error, never an implicit active-first choice.
+    """
+    found = {}
+    for collection in ("projects", "archived_projects"):
+        base = root / collection
+        for path in sorted(base.glob("*")) if base.is_dir() else []:
+            if not path.is_dir():
+                continue
+            prior = found.get(path.name)
+            if prior is not None:
+                raise RuntimeError(
+                    f"duplicate project slug {path.name!r}: {prior} and {path}")
+            found[path.name] = path
+    return found
+
+
 def releases(root, project=None):
-    out = []
-    for p in sorted((root / "projects").glob("*/07_releases/*/")):
-        if project and p.parts[-3] != project:
-            continue
-        if not p.is_dir():
-            continue
-        out.append(p)
-    return out
+    projects = project_directories(root)
+    if project:
+        selected = [projects[project]] if project in projects else []
+    else:
+        selected = [projects[name] for name in sorted(projects)]
+    return [release
+            for project_dir in selected
+            for release in sorted((project_dir / "07_releases").glob("*/"))
+            if release.is_dir()]
 
 
 def run_gate(root, script, args, rel, extra=(), subs=None):
@@ -249,10 +272,8 @@ def main(argv=None):
         rows.append({"release": name, "gates": res, "not_reproducible": moved,
                      "never_graded": [f for f, ok in holes.items() if not ok]})
 
-    superseded = {r["release"] for r in rows
-                  if (root / "projects" / r["release"].split("/")[0]
-                      / "07_releases" / r["release"].split("/")[1]
-                      / "SUPERSEDED.md").is_file()}
+    superseded = {f"{rel.parts[-3]}/{rel.name}" for rel in rels
+                  if (rel / "SUPERSEDED.md").is_file()}
 
     print(f"  coverage: {len(rows)}/{len(rels)} sealed release(s) regraded "
           f"with {len(GATES)} standalone gate(s); {len(unrunnable)} gate run(s) "

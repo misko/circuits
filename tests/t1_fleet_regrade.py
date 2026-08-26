@@ -47,6 +47,18 @@ def t_declares_its_own_coverage():
     contains(r.out, "sealed release(s) regraded", "with the denominator named")
 
 
+@test("regrade refuses a project slug duplicated across active and archive",
+      kind="known_bad")
+def t_duplicate_project_slug_is_refused():
+    d = tmpdir("fleet_duplicate_")
+    for collection in ("projects", "archived_projects"):
+        (d / collection / "duplicate" / "07_releases").mkdir(parents=True)
+    r = must_fail(run([KPY, TOOL, "--root", d]),
+                  "ambiguous retained project identity", "duplicate project slug")
+    contains(r.out, "projects/duplicate", "active identity")
+    contains(r.out, "archived_projects/duplicate", "archive identity")
+
+
 @test("regrade_separates_superseded_history_from_live_defects")
 def t_separates_superseded_from_live():
     """A FAIL on a release carrying SUPERSEDED.md is history. Counting it as a
@@ -390,7 +402,7 @@ def t_confirms_clean_boards():
     # "live".
     sys.path.insert(0, str(ROOT / "skills" / "jlcpcb-fab" / "scripts"))
     import release_index as ri  # noqa: E402
-    cook = ROOT / "projects" / "smc0985-cooksense"
+    cook = ROOT / "archived_projects" / "smc0985-cooksense"
     latest = ri.releases_for_board(cook, "cooksense")[-1].name
     line, verdicts = row("smc0985-cooksense", latest)
     is_superseded = (cook / "07_releases" / latest / "SUPERSEDED.md").is_file()

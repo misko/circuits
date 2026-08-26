@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "projects/**"
+      - "archived_projects/**"
       - "skills/**"
       - "tests/**"
       - ".github/workflows/pcb-publication-gate.yml"
@@ -11,6 +12,7 @@ on:
     branches: [main]
     paths:
       - "projects/**"
+      - "archived_projects/**"
       - "skills/**"
       - "tests/**"
       - ".github/workflows/pcb-publication-gate.yml"

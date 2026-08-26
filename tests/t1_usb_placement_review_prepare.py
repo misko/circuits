@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import check, eq, main, test  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
-PROJECT = ROOT / "projects" / "usb-hub-3s-v4"
+PROJECT = ROOT / "archived_projects" / "usb-hub-3s-v4"
 ADAPTER = PROJECT / "03_src" / "prepare_placement_review.sh"
 FULL = PROJECT / "03_src" / "rebuild_all.sh"
 REUSE = PROJECT / "03_src" / "rebuild_reuse.sh"

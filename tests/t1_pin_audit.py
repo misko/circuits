@@ -6,7 +6,8 @@ import sys
 from harness import Failed, KPY, ROOT, SCRIPTS, contains, main, must_pass, not_contains, run, test, tmpdir
 
 SCRIPT = SCRIPTS / "pin_audit.py"
-PROJECT = ROOT / "projects" / "programmable-usb2-hub"
+PROJECT = ROOT / "archived_projects" / "programmable-usb2-hub"
+RELEASE = PROJECT / "07_releases" / "v1.0-2026-08-01"
 
 _spec = importlib.util.spec_from_file_location("pin_audit_under_test", SCRIPT)
 _pin_audit = importlib.util.module_from_spec(_spec)
@@ -19,8 +20,8 @@ def t_exact_pdf_alias_and_winding():
     out = tmpdir("pin_audit_")
     must_pass(run([
         KPY, SCRIPT,
-        PROJECT / "04_kicad" / "programmable_usb2_hub.kicad_pcb",
-        PROJECT / "06_build" / "fab" / "bom.csv",
+        RELEASE / "source" / "programmable_usb2_hub.kicad_pcb",
+        RELEASE / "fab" / "bom.csv",
         PROJECT / "02_parts", out, "--refs", "J2,U4",
     ]), "generate focused dossiers")
     j2 = (out / "J2.md").read_text()

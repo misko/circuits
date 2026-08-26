@@ -60,7 +60,7 @@ from harness import (ROOT, check, contains, eq, main, test,  # noqa: E402
 sys.path.insert(0, str(ROOT / "skills" / "jlcpcb-fab" / "scripts"))
 import release_index as ri  # noqa: E402
 
-COOK = ROOT / "projects" / "smc0985-cooksense"          # READ-ONLY, immutable
+COOK = ROOT / "archived_projects" / "smc0985-cooksense"  # READ-ONLY, immutable
 
 
 def _proj(boards, releases):

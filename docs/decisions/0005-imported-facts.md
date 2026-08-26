@@ -296,7 +296,7 @@ on the strength of its reproducibility (M-PROXY). Both RED-verified by
 neutering the checks: M-BAR disabled -> 18 passed / 2 failed; M-PROXY disabled
 -> 19 passed / 1 failed; restored byte-identical -> **20 passed, 15 known-bad**.
 
-**Phase 4 — `projects/pluto-cal-switch/03_src/rules/mates.yaml`**, referencing
+**Phase 4 — `archived_projects/pluto-cal-switch/03_src/rules/mates.yaml`**, referencing
 15 facts in `spf/plutoplus_hardware/facts.yaml` (the new machine index of the
 README): 9 MEASURED, 3 ESTIMATED (one dimensional, with its ±1.5 % bar), 2
 OWED, 1 superseded plot number kept visible with its grade attached. **15/15

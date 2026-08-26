@@ -146,7 +146,7 @@ def t_real_board():
     """Not a fixture: the shipped `03_src/rules/mates.yaml` graded against the
     shipped `spf/plutoplus_hardware/`. This is the artifact the gate exists
     for, and it must also print a denominator (canon M-COVER / G-COVER)."""
-    r = must_pass(gate(ROOT / "projects" / "pluto-cal-switch"),
+    r = must_pass(gate(ROOT / "archived_projects" / "pluto-cal-switch"),
                   "import_provenance on pluto-cal-switch")
     contains(r.out, "IMPORT PROVENANCE: PASS", "verdict")
     contains(r.out, "coverage:", "coverage denominator")

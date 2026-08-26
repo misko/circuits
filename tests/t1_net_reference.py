@@ -55,7 +55,7 @@ from harness import (KPY, ROOT, SCRIPTS, check, contains, eq,  # noqa: E402
 
 NRA = SCRIPTS / "net_reference_audit.py"
 
-REAL = ROOT / "projects" / "smc0985-cooksense"
+REAL = ROOT / "archived_projects" / "smc0985-cooksense"
 #: the PRE-FIX silk, preserved in-tree as a regenerated proof artifact. Its
 #: caption still reads `GND_ISO ONLY`; the live 03_src floorplan was corrected
 #: on 2026-07-29. Read-only — nothing here writes a project file.
@@ -534,7 +534,7 @@ def t_real_clean_board():
     nets through a regex read of the netlist. Two methods, one answer (canon
     M1) — if they ever disagree, one of them is reading the wrong thing.
     """
-    proj = ROOT / "projects" / "pluto-cal-switch"
+    proj = ROOT / "archived_projects" / "pluto-cal-switch"
     if not (proj / "06_build" / "netlists").is_dir():
         check(False, f"missing {proj}")
     r = must_pass(audit(proj), "pluto-cal-switch net references")

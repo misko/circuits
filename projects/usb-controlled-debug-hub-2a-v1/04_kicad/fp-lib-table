@@ -10,6 +10,6 @@
   (lib (name "Package_SON")(type "KiCad")(uri "${KICAD10_FOOTPRINT_DIR}/Package_SON.pretty")(options "")(descr ""))
   (lib (name "Package_TO_SOT_SMD")(type "KiCad")(uri "${KICAD10_FOOTPRINT_DIR}/Package_TO_SOT_SMD.pretty")(options "")(descr ""))
   (lib (name "Resistor_SMD")(type "KiCad")(uri "${KICAD10_FOOTPRINT_DIR}/Resistor_SMD.pretty")(options "")(descr ""))
-  (lib (name "usb_controlled_debug_hub")(type "KiCad")(uri "/home/mouse9911/gits/circuits/projects/usb-controlled-debug-hub-v2/03_src/lib/usb_controlled_debug_hub.pretty")(options "")(descr ""))
+  (lib (name "usb_controlled_debug_hub")(type "KiCad")(uri "${KIPRJMOD}/../03_src/lib/usb_controlled_debug_hub.pretty")(options "")(descr ""))
   (lib (name "usb_controlled_debug_hub_2a")(type "KiCad")(uri "${KIPRJMOD}/../03_src/lib/usb_controlled_debug_hub_2a.pretty")(options "")(descr ""))
 )

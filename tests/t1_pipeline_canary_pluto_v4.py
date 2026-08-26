@@ -25,7 +25,7 @@ from pipeline_catalog import CatalogValidationError, LegacyPipelineCatalog  # no
 from pipeline_xtrace import parse_xtrace  # noqa: E402
 
 
-PROJECT = ROOT / "projects" / "pluto-rx2-8way-v4"
+PROJECT = ROOT / "archived_projects" / "pluto-rx2-8way-v4"
 SRC = PROJECT / "03_src"
 ROUTE = SRC / "route.yaml"
 DRIVERS = {

@@ -46,7 +46,7 @@ from harness import (FAB_SCRIPTS, KPY, ROOT, check, contains, eq, main,  # noqa:
 
 OVL = FAB_SCRIPTS / "twin_overlay.py"
 FIX = Path(__file__).resolve().parent / "fixtures" / "twin_overlay"
-REL = (ROOT / "projects/crow-recorder-central-v2/07_releases"
+REL = (ROOT / "archived_projects/crow-recorder-central-v2/07_releases"
               "/crow-recorder-central-v2-v1.5-2026-07-25")
 BOARD = REL / "source/crow_recorder_central_v2.kicad_pcb"
 BOM = REL / "fab/bom.csv"

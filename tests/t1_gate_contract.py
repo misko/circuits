@@ -976,7 +976,7 @@ def t_dru_flags_the_real_cooksense_rule_file():
     # state (`t1_fleet_regrade` did, and the copper-length gate pre-empted it by
     # choosing the seal for the same reason). Sealed bytes are the right oracle
     # for an acceptance fixture — canon M-SHIP — and they are also flake-free.
-    dru = (ROOT / "projects/smc0985-cooksense/07_releases"
+    dru = (ROOT / "archived_projects/smc0985-cooksense/07_releases"
            / "cooksense-v1.6-2026-07-27/source/cooksense.kicad_dru")
     if not dru.exists():
         raise Failed(f"{dru} is gone — this acceptance test cannot go quiet; "

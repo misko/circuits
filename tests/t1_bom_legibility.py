@@ -35,21 +35,21 @@ from bom_legibility_check import (MpnAuthority, comment_defect,  # noqa: E402
 CHECK = FAB_SCRIPTS / "bom_legibility_check.py"
 EXPORT = FAB_SCRIPTS / "export_jlc_package.py"
 
-RELEASES = ROOT / "projects"
+ACTIVE = ROOT / "projects"
+ARCHIVED = ROOT / "archived_projects"
 #: the board whose BOM JLC could not process — the ADR's own incident
-CROW_V15 = (RELEASES / "crow-recorder-central-v2/07_releases"
+CROW_V15 = (ARCHIVED / "crow-recorder-central-v2/07_releases"
             / "crow-recorder-central-v2-v1.5-2026-07-25")
-CROW_BOARD = (RELEASES / "crow-recorder-central-v2/04_kicad"
+CROW_BOARD = (ARCHIVED / "crow-recorder-central-v2/04_kicad"
               / "crow_recorder_central_v2.kicad_pcb")
 #: the one release with a COMPLETE side-file, and the three that drifted from it
-USB_V15 = RELEASES / "usb-hub-3s-v3/07_releases/v1.5-2026-07-25"
-USB_V18 = RELEASES / "usb-hub-3s-v3/07_releases/v1.8-2026-07-26"
-USB_BOARD = (RELEASES / "usb-hub-3s-v3/04_kicad/usb_hub_3s_v2.kicad_pcb")
+USB_V15 = ACTIVE / "usb-hub-3s-v3/07_releases/v1.5-2026-07-25"
+USB_V18 = ACTIVE / "usb-hub-3s-v3/07_releases/v1.8-2026-07-26"
+USB_BOARD = (ACTIVE / "usb-hub-3s-v3/04_kicad/usb_hub_3s_v2.kicad_pcb")
 #: ARCHIVED 2026-07-28 — superseded by their -v2/-v3 successors and moved to
 #: archived_projects/, which the archive contract keeps precisely so boards can
 #: go on serving as FROZEN regression fixtures. These two are fixtures; the
 #: sealed releases are immutable, so only the path moved.
-ARCHIVED = ROOT / "archived_projects"
 #: the release that ships NO MPN column at all
 HUB_V10 = ARCHIVED / "usb-hub-3s/07_releases/v1.0-2026-07-21"
 #: the one sealed BOM that passes all three checks today
@@ -76,7 +76,7 @@ def t_mpn_field_beats_dirname():
     `mpn: LM5116MHX/NOPB`. Shipping the directory name for those puts a string
     that IS NOT THE PART NUMBER in the column whose entire job is to be the
     exact part number — the adjacent-property error, in the fix itself."""
-    parts = RELEASES / "usb-hub-3s-v3/02_parts"
+    parts = ACTIVE / "usb-hub-3s-v3/02_parts"
     table = load_part_mpns(parts)
     check(table, f"no dossiers resolved from {parts}")
     hits = {code: r for code, r in table.items() if "/" in r.mpn}
@@ -180,7 +180,7 @@ def t_bare_alternates_are_not_silently_skipped():
 
     # --- a code that is BOTH a real sourcing.lcsc and someone's bare alternate
     # must resolve to the REAL MPN, whatever order the dossiers are read in
-    crow = MpnAuthority(RELEASES / "crow-recorder-central-v2/02_parts")
+    crow = MpnAuthority(ARCHIVED / "crow-recorder-central-v2/02_parts")
     hit = crow.resolve("C79924")
     check(hit and hit.mpn,
           "C79924 (U9) is its own dossier's sourcing.lcsc AND a bare alternate "
@@ -290,11 +290,11 @@ def t_readers_survive_the_bom_marker():
     plain.write_bytes(src)
     marked.write_bytes(b"\xef\xbb\xbf" + src)
     src_check = FAB_SCRIPTS / "bom_source_check.py"
-    cj = RELEASES / "crow-recorder-central-v2/03_tscircuit/build/circuit.json"
+    cj = ARCHIVED / "crow-recorder-central-v2/03_tscircuit/build/circuit.json"
     out = {}
     for name, p in (("plain", plain), ("marked", marked)):
         r = run([KPY, src_check, p, cj, "--parts",
-                 RELEASES / "crow-recorder-central-v2/02_parts"])
+                 ARCHIVED / "crow-recorder-central-v2/02_parts"])
         m = re.search(r"coverage leg C: (\d+)/(\d+)", r.out)
         out[name] = m.group(0) if m else f"(no coverage line)\n{r.out}"
     eq(out["marked"], out["plain"],
@@ -464,7 +464,7 @@ def t_echo_clean():
 
 # ====================== a SEAL MUST BE RE-DERIVABLE FROM THE SEALED BYTES ===
 #: the live release whose verdict MOVED under it, twice, in one session
-COOK_V16 = (RELEASES / "smc0985-cooksense/07_releases"
+COOK_V16 = (ARCHIVED / "smc0985-cooksense/07_releases"
             / "cooksense-v1.6-2026-07-27")
 
 
@@ -577,7 +577,7 @@ def t_release_map_is_existence_not_equality():
     So: dossier -> ledger -> release-carried, and a release-carried hit is
     flagged so no caller can grade equality on it. This test fails if anyone
     reorders the resolution or drops the flag."""
-    parts = RELEASES / "smc0985-cooksense/02_parts"
+    parts = ARCHIVED / "smc0985-cooksense/02_parts"
     auth = MpnAuthority(parts, None, COOK_V16)
     check(auth.release, "no release-carried map read from v1.6's stock_check.csv")
     eq(auth.resolve("C9683").mpn, "ULN2803ADWR",
@@ -753,7 +753,7 @@ def detached_board(tag="expleg_"):
     return board, d / "out"
 
 
-CROW_TSC = RELEASES / "crow-recorder-central-v2/03_tscircuit"
+CROW_TSC = ARCHIVED / "crow-recorder-central-v2/03_tscircuit"
 
 
 @test("the exporter BLOCKS when a coded row resolves NO MPN, and leaves "
@@ -825,7 +825,7 @@ def t_crow_export_is_legible_now():
     must_pass(run([KPY, EXPORT, CROW_BOARD, d, "--layers", "6"]),
               "export of the incident board")
     g = must_pass(run([KPY, CHECK, d / "bom.csv", "--parts",
-                       RELEASES / "crow-recorder-central-v2/02_parts"]),
+                       ARCHIVED / "crow-recorder-central-v2/02_parts"]),
                   "independent F-LEGIBLE grading of the incident board")
     contains(g.out, "coverage F-MPN: 47/47", "every coded row resolved")
     contains(g.out, "coverage F-WORDS: 49/49", "every Comment reads")
@@ -859,7 +859,7 @@ def t_export_output_is_legible():
           "the BOM ships with NO UTF-8 byte-order-mark — a cp936 reader "
           "renders the ohm sign as mojibake (23 of 26 sealed BOMs)")
     g = must_pass(run([KPY, CHECK, bom, "--parts",
-                       RELEASES / "usb-hub-3s-v3/02_parts"]),
+                       ACTIVE / "usb-hub-3s-v3/02_parts"]),
                   "independent F-LEGIBLE grading of the fresh export")
     contains(g.out, "coverage F-MPN: 46/46", "every coded row resolved")
     contains(g.out, "F-LEGIBLE OK", "the independent verdict")
@@ -919,7 +919,11 @@ def t_fleet_measurement():
     It is written as a FLOOR (>= 20 failing, and the one clean release really
     passing) rather than an equality: a new sealed release must not silently
     weaken it, and re-grading a fixed board must not break it."""
-    rels = sorted(RELEASES.glob("*/07_releases/*/fab/bom.csv"))
+    rels = sorted([
+        bom
+        for collection in (ACTIVE, ARCHIVED)
+        for bom in collection.glob("*/07_releases/*/fab/bom.csv")
+    ])
     check(len(rels) >= 26, f"only {len(rels)} sealed BOMs found — fixture "
                            f"corpus shrank; re-measure before editing this")
     failed = []

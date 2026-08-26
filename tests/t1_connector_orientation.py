@@ -17,7 +17,7 @@ from harness import (FAB_SCRIPTS, KPY, ROOT, check, contains, eq, main,  # noqa:
 GATE = FAB_SCRIPTS / "connector_orientation_gate.py"
 sys.path.insert(0, str(FAB_SCRIPTS))
 import connector_orientation_gate as orientation_gate  # noqa: E402
-SOURCE_PROJECT = ROOT / "projects/usb-controlled-debug-hub-v1"
+SOURCE_PROJECT = ROOT / "archived_projects/usb-controlled-debug-hub-v1"
 SOURCE_BOARD = SOURCE_PROJECT / "04_kicad/usb_controlled_debug_hub.kicad_pcb"
 
 

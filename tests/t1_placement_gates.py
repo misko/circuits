@@ -176,8 +176,10 @@ def t_real_boards_pass():
     for proj, stem in (("smc0985-cooksense", "cooksense"),
                        ("usb-hub-3s-v3", "usb_hub_3s_v2"),
                        ("crow-recorder-central-v2", "crow_recorder_central_v2")):
-        board = (ROOT / "projects" / proj / SEALED[proj] if proj in SEALED
-                 else ROOT / "projects" / proj / "04_kicad" / f"{stem}.kicad_pcb")
+        root = (ROOT / "projects" if proj == "usb-hub-3s-v3"
+                else ROOT / "archived_projects")
+        board = (root / proj / SEALED[proj] if proj in SEALED
+                 else root / proj / "04_kicad" / f"{stem}.kicad_pcb")
         r = must_pass(run([KPY, PG, board]), f"placement_gates on {proj}")
         contains(r.out, "PLACEMENT-GATES: PASS", f"{proj} verdict")
 
