@@ -15,6 +15,7 @@ as procedure.
 | `README.md` | documentation authority and navigation index |
 | `*.md` | measured proof, implementation notes, or explicitly bannered history as classified by `README.md` |
 | `decisions/**` | numbered ADRs `NNNN-slug.md` — govern; do not contradict silently (repo CLAUDE.md) |
+| `assets/fab-examples/**` | provenance-bound source/display photographs used by the repository fabricated-example showcase |
 | `contracts.md` | this file |
 
 ## Audit
@@ -23,5 +24,8 @@ as procedure.
   (supersede with a new ADR instead).
 - Proof docs claim only MEASURED results and name the boards/commits that
   produced them.
+- Fabricated-example photos have a proof document that binds source and display
+  hashes, records any conversion, and separates visible observations from
+  release identity and qualification claims.
 - Historical plans carry a prominent non-authoritative banner and are linked
   only from `README.md` or retained evidence.

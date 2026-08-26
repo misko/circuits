@@ -64,23 +64,40 @@ twin are forward work, tracked by
 [IMP-234](improvements.md#imp-234--firmware-release-stream) and
 [IMP-236](improvements.md#imp-236--prompt-to-device-product-composition-and-digital-twin).
 
-### 4. See a fabricated example
+### 4. See fabricated examples
 
-The closest existing hardware is [`usb-hub-3s-v3`](projects/usb-hub-3s-v3/):
-a 3S-LiPo power board with three USB-A outputs and one USB-C output. It is not
-the exact four-USB-A target above, but its latest sealed and fabricated archive,
-[`v1.12-2026-07-28`](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/),
-shows the kind of reviewed PCB evidence this pipeline produces.
+These are physical boards produced through this workflow. The photographs are
+bench evidence, not production-qualification claims; their exact source hashes,
+conversion record, identification basis, and limits are preserved in
+[`fabricated-examples.md`](docs/fabricated-examples.md).
+
+| Pluto RX2 eight-way v5 | 3S LiPo USB power board |
+|---|---|
+| [![Fabricated Pluto RX2 eight-way v5 board with eight switched antennas and one reference antenna installed](docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg)](docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg) | [![Fabricated usb-hub-3s-v3 board during bench bring-up](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg)](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg) |
+
+[`pluto-rx2-8way-v5`](projects/pluto-rx2-8way-v5/) is the fabricated
+eight-way RF switch board. Its immutable PCB design archive is
+[`v0.2.1-2026-08-14`](projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/),
+and its independently versioned
+[`v0.5.0-2026-08-26` enclosure](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/)
+is an honest `INCOMPLETE` candidate pending printed seating and retention tests.
+The PCB archive itself predates fabrication and still records
+`DO-NOT-ORDER`; RF first-article measurements remain open.
+
+[`usb-hub-3s-v3`](projects/usb-hub-3s-v3/) is the closest existing hardware
+to the quick-start brief: three USB-A outputs and one USB-C output rather than
+four USB-A outputs. Its latest sealed and fabricated archive is
+[`v1.12-2026-07-28`](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/).
+The [bring-up journal](projects/usb-hub-3s-v3/01_docs/journal/bringup.md)
+records physical v1.12 boards and the replacement assembly's successful
+no-load regulation checks; full load, transient, and thermal qualification is
+still open.
+
+The USB board's sealed release also preserves the reviewable digital twin:
 
 | 3D digital-twin isometric render | 3D digital-twin top render |
 |---|---|
 | [![usb-hub-3s-v3 isometric 3D digital-twin PCB render](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png)](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png) | [![usb-hub-3s-v3 top 3D digital-twin PCB render](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_top.png)](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_top.png) |
-
-The [hardware bring-up journal](projects/usb-hub-3s-v3/01_docs/journal/bringup.md)
-records the physical v1.12 boards and the replacement assembly's successful
-no-load regulation checks. Full load, transient, and thermal qualification is
-still open, so this is a fabricated example rather than a production-qualified
-claim.
 
 ## What this repository is
 
