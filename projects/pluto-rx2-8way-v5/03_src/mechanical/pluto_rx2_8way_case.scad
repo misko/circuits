@@ -44,6 +44,7 @@ side_sma_y = [4.5, -13.5];
 xy_clearance = 1.00;
 wall = 2.40;
 floor = 2.40;
+base_sidewall_h = 0.00;
 roof = 2.40;
 outer_radius = 4.40;
 inner_radius = 2.00;
@@ -56,7 +57,9 @@ insert_length = 4.775;
 insert_bottom_clearance = 0.30;
 boss_d = 8.00;
 
-// Board stack. Standoff height clears trimmed through-hole tails.
+// Board stack.  The base is now an open support deck: a flat printable floor,
+// four PCB standoffs, and four independent case posts.  It has no perimeter
+// wall or alignment lip that can become an unintended SMA/USB-C support.
 standoff_h = 5.40;
 pcb_bottom_z = floor + standoff_h;
 pcb_top_z = pcb_bottom_z + pcb_thickness;
@@ -168,10 +171,27 @@ reference_holder_station_pitch = 23.75;
 reference_holder_outer_clip_d = 19.75;
 reference_holder_grip_bore_d = 9.75;
 reference_holder_retention_lip_d = 8.75;
+reference_holder_open_mouth_w = 11.75;
+reference_holder_entry_blend = 1.00;
 reference_holder_grip_radial_interference =
     (mount_candidate_body_d - reference_holder_grip_bore_d) / 2;
 reference_holder_lip_radial_interference =
     (mount_candidate_body_d - reference_holder_retention_lip_d) / 2;
+
+// Localized compliant throat inspired by the bound holder's D9.75 split
+// grip.  The 10.8 mm rigid rail channel and all full-body loading openings
+// remain unchanged.  Only a short, roof-hung key near the antenna elbow
+// narrows to D9.75; its one-millimetre open-bottom lead starts at the holder's
+// 11.75 mm mouth.  The key requires a printed fit test because its axial
+// placement and the production hinge/tongue width are not authoritative.
+mount_key_gap = reference_holder_grip_bore_d;
+mount_key_open_mouth_w = reference_holder_open_mouth_w;
+mount_key_lead_h = reference_holder_entry_blend;
+mount_key_y = [11.5, 15.5];
+mount_key_inset_each_side = (
+    mount_candidate_body_d + 2 * mount_body_radial_clearance - mount_key_gap
+) / 2;
+mount_fit_channel_gaps = [9.50, 9.75, 10.00, 10.25];
 
 // Reference-only straight exterior cable.  The PCB lid remains completely
 // closed beneath the mount.  The already-attached cable enters with the
@@ -196,8 +216,6 @@ coax_collision_joint_setback = 0.05;
 mount_insertion_travel = 45.0;
 
 antenna_label_size = 4.20;
-mount_fit_diameters = [9.0, 9.5, 10.0, 10.5];
-
 inner_size = [
     pcb_size[0] + 2 * xy_clearance,
     pcb_size[1] + 2 * xy_clearance
@@ -372,6 +390,9 @@ module case_insert_pockets() {
 module base() {
     difference() {
         union() {
+            // One flat foundation keeps the eight independent pillars a
+            // single stable, support-free print.  Nothing rises around the
+            // PCB perimeter: the board bears only on the four standoffs.
             linear_extrude(height = floor)
                 rounded_rect_2d(outer_size, outer_radius);
             // Broad floor roots carry case loads into the shell without
@@ -379,9 +400,6 @@ module base() {
             for (p = case_holes)
                 translate([p[0], p[1], 0])
                     cylinder(h = floor, d = case_lug_d);
-            translate([0, 0, floor - eps])
-                linear_extrude(height = seam_z - floor + eps)
-                    shell_2d();
             for (p = mount_holes)
                 translate([p[0], p[1], floor - eps])
                     cylinder(h = standoff_h + eps, d = boss_d);
@@ -390,10 +408,7 @@ module base() {
             for (p = case_holes)
                 translate([p[0], p[1], floor - eps])
                     cylinder(h = inner_roof_z - floor + eps, d = case_post_d);
-            base_alignment_lip();
         }
-        sma_cutouts();
-        usb_arch_cutout();
         insert_pockets();
         case_insert_pockets();
     }
@@ -536,7 +551,8 @@ module lid_final() {
             lid_mount_bosses();
         }
         sma_cutouts();
-        lid_lip_rabbet();
+        // The pillar-only base has no mating perimeter lip.  The four case
+        // posts and their D9.4 sleeves establish lid registration instead.
         service_opening();
         lid_case_fastener_cuts();
         lid_mount_fastener_cuts();
@@ -595,25 +611,91 @@ module insert_coupon() {
     }
 }
 
-module mount_locator_rails() {
-    // These two ribs hang from the roof and remain open below.  Their 10.8 mm
-    // gap keys the D10 horizontal branch while allowing the complete L-shaped
-    // antenna/cable assembly to translate vertically through the underside.
+module mount_locator_rail_right(include_key = true) {
     body_cavity_d = mount_candidate_body_d
                   + 2 * mount_body_radial_clearance;
-    rail_h = mount_h - mount_roof - mount_locator_rail_bottom_z;
+    rigid_inner_x = body_cavity_d / 2;
+    mouth_inner_x = mount_key_open_mouth_w / 2;
+    key_inner_x = mount_key_gap / 2;
+    rail_outer_x = rigid_inner_x + mount_locator_rail_t;
+    // Overlap the hood roof by the modeling epsilon so each rail is a bonded
+    // part of the adapter rather than a merely tangent STL component.
+    rail_top_z = mount_h - mount_roof + eps;
+    lead_top_z = mount_locator_rail_bottom_z + mount_key_lead_h;
     rail_y_len = mount_locator_rail_y[1] - mount_locator_rail_y[0];
-    for (side = [-1, 1])
+
+    union() {
+        // Open-bottom D11.75 mouth blends over one millimetre into the
+        // unchanged D10.8 rigid channel.  The smallest wall at the free edge
+        // remains 1.525 mm, above the configured 1.2 mm process minimum.
+        hull() {
+            translate([
+                mouth_inner_x,
+                mount_locator_rail_y[0],
+                mount_locator_rail_bottom_z
+            ]) cube([
+                rail_outer_x - mouth_inner_x,
+                rail_y_len,
+                eps
+            ]);
+            translate([
+                rigid_inner_x,
+                mount_locator_rail_y[0],
+                lead_top_z
+            ]) cube([
+                rail_outer_x - rigid_inner_x,
+                rail_y_len,
+                eps
+            ]);
+        }
         translate([
-            side * (body_cavity_d + mount_locator_rail_t) / 2,
-            (mount_locator_rail_y[0] + mount_locator_rail_y[1]) / 2,
-            mount_locator_rail_bottom_z
-        ])
-            linear_extrude(height = rail_h)
-                rounded_rect_2d(
-                    [mount_locator_rail_t, rail_y_len],
-                    mount_locator_rail_t / 2
-                );
+            rigid_inner_x,
+            mount_locator_rail_y[0],
+            lead_top_z - eps
+        ]) cube([
+            rail_outer_x - rigid_inner_x,
+            rail_y_len,
+            rail_top_z - lead_top_z + eps
+        ]);
+
+        if (include_key) {
+            // Short roof-hung key.  Its 0.125 mm/side nominal D10 witness
+            // interference deliberately mirrors the compliant D9.75 holder
+            // grip and therefore remains physical-test gated.
+            hull() {
+                translate([
+                    mouth_inner_x - eps,
+                    mount_key_y[0],
+                    mount_locator_rail_bottom_z
+                ]) cube([eps, mount_key_y[1] - mount_key_y[0], eps]);
+                translate([
+                    key_inner_x,
+                    mount_key_y[0],
+                    lead_top_z
+                ]) cube([
+                    rigid_inner_x - key_inner_x + eps,
+                    mount_key_y[1] - mount_key_y[0],
+                    eps
+                ]);
+            }
+            translate([
+                key_inner_x,
+                mount_key_y[0],
+                lead_top_z - eps
+            ]) cube([
+                rigid_inner_x - key_inner_x + eps,
+                mount_key_y[1] - mount_key_y[0],
+                rail_top_z - lead_top_z + eps
+            ]);
+        }
+    }
+}
+
+module mount_locator_rails(include_key = true) {
+    // The broad channel remains D10.8 for rigid full-body loading.  Only the
+    // localized D9.75 key is compliant; both rails stay open from below.
+    mount_locator_rail_right(include_key);
+    mirror([1, 0, 0]) mount_locator_rail_right(include_key);
 }
 
 module mount_upright_aperture() {
@@ -691,7 +773,7 @@ module mount_labels() {
                     );
 }
 
-module rx2_antenna_mount_installed() {
+module rx2_antenna_mount_installed(include_key = true) {
     difference() {
         union() {
             // Perimeter hood and closed roof.  Its relief, key walls, and
@@ -703,7 +785,7 @@ module rx2_antenna_mount_installed() {
                     linear_extrude(height = mount_h - mount_roof + 2 * eps)
                         rounded_rect_2d(mount_relief_size, 1.5);
             }
-            mount_locator_rails();
+            mount_locator_rails(include_key);
             for (p = mount_points)
                 translate([p[0], p[1], 0])
                     cylinder(h = mount_h, d = mount_screw_column_d);
@@ -738,34 +820,37 @@ module rx2_antenna_mount() {
             rx2_antenna_mount_installed();
 }
 
-module fit_gauge_cell_cuts(body_d, center_x) {
-    gauge_h = max(mount_fit_diameters) + 3.0;
-    cavity_d = body_d + 2 * mount_body_radial_clearance;
-    axis_z = body_d / 2 + 0.20;
+module fit_gauge_cell_cuts(channel_gap, center_x) {
+    gauge_h = max(mount_fit_channel_gaps) + 3.0;
+    // Labels are the actual channel gaps.  At the holder-evidenced 9.75 mm
+    // station the open-bottom mouth is exactly 11.75 mm.
+    cavity_d = channel_gap;
+    entry_w = channel_gap
+            + (reference_holder_open_mouth_w - reference_holder_grip_bore_d);
+    axis_z = channel_gap / 2 + 0.45;
 
     translate([center_x, -7.0 - eps, axis_z])
         rotate([-90, 0, 0])
             cylinder(h = 9.8, d = cavity_d);
     translate([
-        center_x - cavity_d / 2 - 0.80,
+        center_x - entry_w / 2,
         -7.0 - eps,
         -eps
     ])
         cube([
-            cavity_d + 1.60,
+            entry_w,
             10.0,
             axis_z + 1.20 + eps
         ]);
     translate([center_x, 2.0, axis_z - eps])
         cylinder(
             h = gauge_h - axis_z + 2 * eps,
-            d = mount_candidate_lower_upright_d
-              + 2 * mount_stalk_radial_clearance
+            d = channel_gap
         );
 }
 
 module rx2_antenna_fit_gauge_installed() {
-    gauge_h = max(mount_fit_diameters) + 3.0;
+    gauge_h = max(mount_fit_channel_gaps) + 3.0;
     gauge_x = [-28.5, -9.5, 9.5, 28.5];
     cell_size = [15.5, 16.0];
 
@@ -780,13 +865,13 @@ module rx2_antenna_fit_gauge_installed() {
                 linear_extrude(height = gauge_h)
                     rounded_rect_2d([74.0, 2.0], 0.8);
         }
-        for (i = [0 : len(mount_fit_diameters) - 1])
-            fit_gauge_cell_cuts(mount_fit_diameters[i], gauge_x[i]);
+        for (i = [0 : len(mount_fit_channel_gaps) - 1])
+            fit_gauge_cell_cuts(mount_fit_channel_gaps[i], gauge_x[i]);
     }
 }
 
 module rx2_antenna_fit_gauge() {
-    gauge_h = max(mount_fit_diameters) + 3.0;
+    gauge_h = max(mount_fit_channel_gaps) + 3.0;
     gauge_x = [-28.5, -9.5, 9.5, 28.5];
     difference() {
         translate([0, 0, gauge_h])
@@ -794,12 +879,12 @@ module rx2_antenna_fit_gauge() {
                 rx2_antenna_fit_gauge_installed();
         // Values face outward on the vertical spine in the exported print
         // orientation; unlike top-face labels, they do not touch the bed.
-        for (i = [0 : len(mount_fit_diameters) - 1])
+        for (i = [0 : len(mount_fit_channel_gaps) - 1])
             translate([gauge_x[i], -8.55, gauge_h / 2])
                 rotate([90, 0, 0])
                     linear_extrude(height = 0.50)
                         text(
-                            str(mount_fit_diameters[i]),
+                            str(mount_fit_channel_gaps[i]),
                             size = 2.8,
                             halign = "center",
                             valign = "center",
@@ -1084,11 +1169,11 @@ module coax_reference_route_installed() {
         coax_reference_route();
 }
 
-module mount_lid_plastic_installed() {
+module mount_lid_plastic_installed(include_key = true) {
     union() {
         lid_final();
         translate([0, 0, overall_z - eps])
-            rx2_antenna_mount_installed();
+            rx2_antenna_mount_installed(include_key);
     }
 }
 
@@ -1102,7 +1187,9 @@ module mount_fastener_references_installed() {
 module antenna_vs_mount_lid_interference() {
     intersection() {
         rx2_reference_antenna_installed();
-        mount_lid_plastic_installed();
+        // Rigid geometry must clear.  The localized compliant key is audited
+        // separately as intentional nominal interference.
+        mount_lid_plastic_installed(false);
     }
 }
 
@@ -1138,10 +1225,20 @@ module cable_vs_mount_lid_interference() {
     }
 }
 
-module insertion_sweep_vs_mount_interference() {
+module insertion_sweep_vs_rigid_mount_interference() {
     intersection() {
         rx2_reference_insertion_sweep_solid();
-        rx2_antenna_mount_installed();
+        rx2_antenna_mount_installed(false);
+    }
+}
+
+module antenna_vs_compliant_key_interference() {
+    intersection() {
+        rx2_reference_insertion_sweep_solid();
+        difference() {
+            rx2_antenna_mount_installed(true);
+            rx2_antenna_mount_installed(false);
+        }
     }
 }
 
@@ -1152,7 +1249,7 @@ module rx2_reference_interference() {
         antenna_vs_board_interference();
         antenna_vs_cable_interference();
         cable_vs_mount_lid_interference();
-        insertion_sweep_vs_mount_interference();
+        insertion_sweep_vs_rigid_mount_interference();
     }
 }
 
@@ -1458,6 +1555,8 @@ assert((case_lug_d - screw_head_d) / 2 >= 3.00,
        "Lid case lug has less than 3.00 mm wall around the screw head");
 assert(case_post_board_corner_clearance >= 1.00,
        "Independent case post is too close to the PCB corner");
+assert(base_sidewall_h == 0.00,
+       "Pillar-only base must not restore a perimeter side wall");
 assert(inner_roof_z >= pcb_top_z + sma_top_above_pcb + top_clearance,
        "Lid violates SMA top clearance");
 assert((mount_boss_bottom_d - insert_flange_recess_d) / 2 >= 0.90,
@@ -1484,6 +1583,19 @@ assert(
     mount_locator_rail_t >= 2.00,
     "RX2 roof-hung locator rail is thinner than 2.00 mm"
 );
+assert(abs(mount_key_gap - reference_holder_grip_bore_d) <= 0.001,
+       "RX2 compliant key drifted from the bound D9.75 holder grip");
+assert(abs(mount_key_open_mouth_w - reference_holder_open_mouth_w) <= 0.001,
+       "RX2 compliant key mouth drifted from the bound D11.75 opening");
+assert(mount_key_lead_h >= 1.00,
+       "RX2 compliant key has less than a one-millimetre entry lead");
+assert(mount_key_inset_each_side >= 0.50,
+       "RX2 compliant key no longer materially reduces lateral play");
+assert(mount_key_y[0] >= mount_body_south_y
+        && mount_key_y[1] <= mount_stalk_y,
+       "RX2 compliant key is not localized on the straight hinge branch");
+assert(mount_fit_channel_gaps == [9.50, 9.75, 10.00, 10.25],
+       "RX2 channel coupon ladder no longer brackets the D9.75 target");
 assert(
     mount_locator_rail_bottom_z >= 1.00
         && mount_locator_rail_bottom_z < mount_body_axis_z,
@@ -1548,6 +1660,11 @@ echo(str("PCB_ENCLOSURE_SELECTOR:", part));
 echo(str(
     "PCB_ENCLOSURE_FACTS:",
     "board_bottom_z=", pcb_bottom_z,
+    ";base_sidewall_h=", base_sidewall_h,
+    ";base_floor_h=", floor,
+    ";base_board_support_count=", len(mount_holes),
+    ";base_case_post_count=", len(case_holes),
+    ";case_post_board_corner_clearance=", case_post_board_corner_clearance,
     ";case_top_z=", overall_z,
     ";mount_h=", mount_h,
     ";mount_roof=", mount_roof,
@@ -1569,6 +1686,15 @@ echo(str(
     ";relief_y=", mount_relief_size[1],
     ";rail_gap=", mount_candidate_body_d + 2 * mount_body_radial_clearance,
     ";rail_t=", mount_locator_rail_t,
+    ";key_gap=", mount_key_gap,
+    ";key_open_mouth_w=", mount_key_open_mouth_w,
+    ";key_lead_h=", mount_key_lead_h,
+    ";key_length=", mount_key_y[1] - mount_key_y[0],
+    ";key_inset_each_side=", mount_key_inset_each_side,
+    ";key_candidate_radial_interference=",
+        (mount_candidate_body_d - mount_key_gap) / 2,
+    ";coupon_gap_min=", min(mount_fit_channel_gaps),
+    ";coupon_gap_max=", max(mount_fit_channel_gaps),
     ";cable_d=", coax_candidate_d,
     ";cable_core_d=", coax_exit_clearance_d,
     ";flare_length=", coax_exit_entry_flare_length,
@@ -1599,7 +1725,8 @@ selector_known =
     || part == "antenna_vs_board"
     || part == "antenna_vs_cable"
     || part == "cable_vs_mount_lid"
-    || part == "insertion_sweep_vs_mount"
+    || part == "insertion_sweep_vs_rigid_mount"
+    || part == "antenna_vs_compliant_key"
     || part == "antenna_mount_cutaway"
     || part == "antenna_mount_insertion"
     || part == "antenna_mount_insertion_entry"
@@ -1642,8 +1769,10 @@ if (part == "base") {
     antenna_vs_cable_interference();
 } else if (part == "cable_vs_mount_lid") {
     cable_vs_mount_lid_interference();
-} else if (part == "insertion_sweep_vs_mount") {
-    insertion_sweep_vs_mount_interference();
+} else if (part == "insertion_sweep_vs_rigid_mount") {
+    insertion_sweep_vs_rigid_mount_interference();
+} else if (part == "antenna_vs_compliant_key") {
+    antenna_vs_compliant_key_interference();
 } else if (part == "antenna_mount_cutaway") {
     antenna_mount_cutaway_view();
 } else if (part == "antenna_mount_insertion") {

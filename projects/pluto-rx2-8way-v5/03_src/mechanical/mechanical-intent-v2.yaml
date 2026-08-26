@@ -91,7 +91,7 @@ unknowns:
     blocks_readiness: CAD_READY
   - id: shell_first_article_fit
     scope: shell
-    question: Print the complete shell and mate every connector and service opening on the ordered PCB assembly.
+    question: Print the revised pillar-only base; prove the PCB sits simultaneously on all four intended supports, every SMA/USB-C body is clear of the base, and every connector/service opening mates on the ordered PCB assembly.
     blocks_readiness: PRINT_VERIFIED
   - id: physical_lid_off_retention
     scope: board_retention
@@ -99,7 +99,7 @@ unknowns:
     blocks_readiness: PRINT_VERIFIED
   - id: physical_accessory_retention
     scope: antenna_accessory
-    question: Confirm full-body insertion, adapter retention, rattle, cable strain, and removal with the actual prewired antenna.
+    question: Use the 9.50/9.75/10.00/10.25 mm channel coupon, then confirm the localized open-bottom key snugly constrains the actual elbow/tongue while preserving full-body insertion, removal, cable strain clearance, and no-rattle retention of the complete prewired antenna.
     blocks_readiness: PRINT_VERIFIED
   - id: installed_thermal_behavior
     scope: thermal

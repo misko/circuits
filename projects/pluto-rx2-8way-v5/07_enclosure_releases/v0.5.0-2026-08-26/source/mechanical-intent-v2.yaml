@@ -1,0 +1,113 @@
+schema: 2
+kind: pcb-enclosure-mechanical-intent-v2
+name: pluto-rx2-8way-v5-split-shell
+desired_release:
+  lifecycle: draft
+  readiness: CAD_READY
+requirements:
+  pcb_retained_with_lid_removed: true
+  cabled_parts:
+    - id: rx2_reference_antenna_cable
+      part: antenna
+      cable_pre_attached: true
+      threading_permitted: false
+      bending_permitted: false
+      disconnecting_permitted: false
+states:
+  - id: empty_antenna_mount
+    purpose: initial
+    present_parts: [antenna_mount]
+    secured_fastener_groups: []
+    enclosure_closed: false
+    pcb_retained: false
+  - id: loaded_antenna_mount
+    purpose: insertion
+    present_parts: [antenna_mount, antenna]
+    secured_fastener_groups: []
+    enclosure_closed: false
+    pcb_retained: false
+  - id: lid_removed_service
+    purpose: lid_removed
+    present_parts: [base, pcb]
+    secured_fastener_groups: [pcb_screws]
+    enclosure_closed: false
+    pcb_retained: true
+  - id: lid_placed
+    purpose: service
+    present_parts: [base, pcb, lid]
+    secured_fastener_groups: [pcb_screws]
+    enclosure_closed: false
+    pcb_retained: true
+  - id: installed
+    purpose: installed
+    present_parts: [base, pcb, lid, antenna_mount, antenna]
+    secured_fastener_groups:
+      - pcb_screws
+      - case_screws
+      - antenna_mount_screws
+    enclosure_closed: true
+    pcb_retained: true
+operations:
+  - id: insert_antenna_from_mount_bottom
+    kind: linear_insert
+    from_state: empty_antenna_mount
+    to_state: loaded_antenna_mount
+    moving_parts: [antenna]
+    direction: [0, 0, 1]
+    travel_mm: 45.0
+    cable_condition: pre_attached
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: antenna_bottom_load
+  - id: place_lid
+    kind: linear_insert
+    from_state: lid_removed_service
+    to_state: lid_placed
+    moving_parts: [lid]
+    direction: [0, 0, -1]
+    travel_mm: 12.0
+    cable_condition: not_applicable
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: lid_installation
+  - id: install_loaded_antenna_mount
+    kind: linear_insert
+    from_state: lid_placed
+    to_state: installed
+    moving_parts: [antenna_mount, antenna]
+    direction: [0, 0, -1]
+    travel_mm: 13.6
+    cable_condition: pre_attached
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: loaded_mount_installation
+unknowns:
+  - id: actual_antenna_envelope
+    scope: antenna_accessory
+    question: Measure the production antenna body, elbow, connector, cable termination, cable diameter, and bend radius; the current L-envelope is only conservative candidate geometry.
+    blocks_readiness: CAD_READY
+  - id: shell_first_article_fit
+    scope: shell
+    question: Print the revised pillar-only base; prove the PCB sits simultaneously on all four intended supports, every SMA/USB-C body is clear of the base, and every connector/service opening mates on the ordered PCB assembly.
+    blocks_readiness: PRINT_VERIFIED
+  - id: physical_lid_off_retention
+    scope: board_retention
+    question: Confirm on a printed case that the four PCB screws retain the PCB while all four case screws and the lid are removed.
+    blocks_readiness: PRINT_VERIFIED
+  - id: physical_accessory_retention
+    scope: antenna_accessory
+    question: Use the 9.50/9.75/10.00/10.25 mm channel coupon, then confirm the localized open-bottom key snugly constrains the actual elbow/tongue while preserving full-body insertion, removal, cable strain clearance, and no-rattle retention of the complete prewired antenna.
+    blocks_readiness: PRINT_VERIFIED
+  - id: installed_thermal_behavior
+    scope: thermal
+    question: Record enclosure temperatures during the representative RF-switching and USB-powered load case.
+    blocks_readiness: THERMALLY_VERIFIED
+excluded_claims:
+  - exact_antenna_geometry
+  - physical_fit
+  - print_verified
+  - thermal_performance
+  - order_readiness

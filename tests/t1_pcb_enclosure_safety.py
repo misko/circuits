@@ -425,6 +425,38 @@ def t_collision_builder_uses_private_subjects():
           "snapshot-wrapped collision implementation was not called")
 
 
+@test("collision receipts name the published mesh, not the atomic staging file")
+def t_collision_metrics_use_published_name():
+    root = _base.tmpdir("enclosure_collision_metric_name_")
+    staged = root / ".intersection.stl.synthetic.stl"
+    staged.write_text(
+        "solid empty_intersection\n"
+        "  facet normal 0 0 0\n"
+        "    outer loop\n"
+        "      vertex 0 0 0\n"
+        "      vertex 0 0 0\n"
+        "      vertex 0 0 0\n"
+        "    endloop\n"
+        "  endfacet\n"
+        "endsolid empty_intersection\n")
+
+    spec = importlib.util.spec_from_file_location(
+        "_enclosure_collision_metric_name_test", BUILD_COLLISION)
+    check(spec is not None and spec.loader is not None,
+          "could not load collision module")
+    module = importlib.util.module_from_spec(spec)
+    sys.path.insert(0, str(SCRIPTS))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.pop(0)
+
+    metrics = module._metrics_named(staged, "intersection.stl")
+    eq(metrics["path"], "intersection.stl", "published collision-mesh name")
+    check(staged.name not in json.dumps(metrics),
+          "collision metrics leaked the atomic staging filename")
+
+
 @test("bounded enclosure subprocess capture truncates and times out safely",
       kind="known_bad", gate="enclosure_common.py")
 def t_bounded_subprocess_limits_bite():

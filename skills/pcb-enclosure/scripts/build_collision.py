@@ -38,6 +38,13 @@ def _binding_named(path: Path, name: str) -> dict[str, Any]:
             "size": path.stat().st_size}
 
 
+def _metrics_named(path: Path, name: str) -> dict[str, Any]:
+    """Measure staged mesh bytes while recording their published filename."""
+    metrics = stl_metrics(path)
+    metrics["path"] = name
+    return metrics
+
+
 def _snapshot_binding(record: Mapping[str, Any]) -> dict[str, Any]:
     return {"path": Path(record["path"]).name,
             "sha256": record["sha256"], "size": record["size"]}
@@ -206,7 +213,7 @@ def _build_snapshots(
                 raise EnclosureError("CadQuery wrote no intersection mesh")
             result = "INTERSECTION"
             representation = "tessellation-of-exact-brep-common"
-        collision_metrics = stl_metrics(temporary)
+        collision_metrics = _metrics_named(temporary, output.name)
         collision_record = _binding_named(temporary, output.name)
     receipt = {
         "schema": 1,

@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "kind": "pluto-rx2-antenna-adapter-candidate-contract-v1",
+  "status": "INCOMPLETE",
+  "status_reason": "The rigid loading path is collision-free and the localized compliant key is derived from the bound holder void, but the actual pre-wired antenna profile and physical retention/rattle/print fit remain unmeasured.",
+  "authority": "Reviewed machine contract for the pillar-only base and bottom-loaded, already-wired RX2 reference-antenna adapter. Values describe the CAD candidate, not production antenna measurements.",
+  "subjects": {
+    "holder_measurement": {
+      "path": "antenna-holder-measurement.json",
+      "sha256": "7c096deaa74e1234206329f3040c67124715363128a0dd763aa832a369139194",
+      "size": 8172
+    }
+  },
+  "facts": {
+    "board_bottom_z": 7.8,
+    "base_sidewall_h": 0.0,
+    "base_floor_h": 2.4,
+    "base_board_support_count": 4,
+    "base_case_post_count": 4,
+    "case_post_board_corner_clearance": 1.15685,
+    "case_top_z": 27.1,
+    "mount_h": 13.6,
+    "mount_roof": 3.0,
+    "mount_wall": 3.0,
+    "mount_half_x": 32.0,
+    "mount_center_y": 5.5,
+    "body_d": 10.0,
+    "lower_upright_d": 10.0,
+    "upper_upright_d": 8.75,
+    "body_axis_z": 5.2,
+    "body_south_y": 0.0,
+    "stalk_y": 16.5,
+    "transition_start_z": 20.0,
+    "transition_end_z": 30.0,
+    "stalk_top_z": 39.2,
+    "body_radial_clearance": 0.4,
+    "stalk_radial_clearance": 0.4,
+    "relief_x": 58.0,
+    "relief_y": 31.0,
+    "rail_gap": 10.8,
+    "rail_t": 2.0,
+    "key_gap": 9.75,
+    "key_open_mouth_w": 11.75,
+    "key_lead_h": 1.0,
+    "key_length": 4.0,
+    "key_inset_each_side": 0.525,
+    "key_candidate_radial_interference": 0.125,
+    "coupon_gap_min": 9.5,
+    "coupon_gap_max": 10.25,
+    "cable_d": 2.5,
+    "cable_core_d": 10.8,
+    "flare_length": 1.0,
+    "flare_d": 10.8,
+    "insertion_sweep": 45.0,
+    "cable_tail_length": 45.0,
+    "mount_south_y": -13.0,
+    "mount_north_y": 24.0,
+    "service_right_x": -4.0,
+    "service_north_y": -17.3,
+    "north_label_y": 27.2,
+    "antenna_label_size": 4.2,
+    "outer_half_y": 35.9
+  },
+  "reference_meshes": {
+    "antenna": {
+      "selector": "rx2_antenna_reference",
+      "bbox_min_mm": [-5.0, 0.0, 0.2],
+      "bbox_max_mm": [5.0, 21.5, 39.2],
+      "absolute_volume_mm3": 3530.612015,
+      "bbox_tolerance_mm": 0.001,
+      "volume_tolerance_mm3": 0.05
+    },
+    "cable": {
+      "selector": "rx2_cable_reference",
+      "bbox_min_mm": [-1.25, -45.0, 3.95],
+      "bbox_max_mm": [1.25, 0.0, 6.45],
+      "absolute_volume_mm3": 220.538574,
+      "bbox_tolerance_mm": 0.001,
+      "volume_tolerance_mm3": 0.05
+    }
+  },
+  "derived_assertions": [
+    "board_bottom_z equals enclosure.geometry.board_bottom_z_mm",
+    "base_sidewall_h is zero and the lower perimeter is absent",
+    "the base contains four PCB supports and four geometrically independent case posts",
+    "each case post clears its nearest PCB corner by at least 1.00 mm",
+    "case_top_z equals enclosure.geometry.inside_top_z_mm plus roof_mm",
+    "body_axis_z equals body_d/2 plus the 0.20 mm closed-lid floor gap",
+    "rail_gap equals body_d plus twice body_radial_clearance",
+    "the localized compliant key gap, open mouth, and entry blend equal the bound holder's D9.75/D11.75/R1 compliant void evidence",
+    "the localized key overlaps the D10 candidate envelope by 0.125 mm radially and therefore remains a physical-fit candidate, not rigid clearance",
+    "the fit coupon exposes actual channel gaps 9.50, 9.75, 10.00, and 10.25 mm",
+    "south U-arch diameter equals body_d plus twice body_radial_clearance and therefore clears the complete lower antenna radius",
+    "reference mesh bounds and volumes match fresh SCAD selector exports",
+    "all access margins in the receipt are recomputed from these facts and the bound enclosure interfaces"
+  ],
+  "excluded_claims": [
+    "This contract does not convert the supplied flexible-holder voids into an authoritative antenna drawing.",
+    "It does not prove physical lock, rattle resistance, cable termination clearance, printer fit, PCB seating, or PRINT_VERIFIED status.",
+    "The four-millimeter compliant-key length is a candidate and requires coupon/assembly testing."
+  ]
+}

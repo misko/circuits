@@ -22,22 +22,22 @@ subject:
     size: 31058
   mechanical_intent:
     path: 03_src/mechanical/mechanical-intent-v2.yaml
-    sha256: b3c15b798f1e8d28ccc6f68ab483b0e42a70c802f8691e02a2ee44301cfc84f2
-    size: 3741
+    sha256: 1e88ee66852316dc78b42d28d86c95f2b9b92b9af885d37d7f25e144c80092d8
+    size: 4004
   cad_design:
     path: 03_src/mechanical/enclosure-cad-design-v2.yaml
-    sha256: 1603c421c3da521bee8c9fc388dae2ae1d1094764911142e688c889cda9dd531
+    sha256: 06277e1d813951a4aa6f3a56b88034c9c01f10a21595d644f7b4feb7762305b5
     size: 5740
 external_subjects:
   - id: antenna_candidate_contract
     role: antenna_envelope_candidate
     source:
       path: 03_src/mechanical/reference/antenna-adapter-candidate-contract.json
-      sha256: adae3da7e0317ea608350e4f592a6360b2f0cf79f50382a32ab3a9efafa6e6e9
-      size: 3019
+      sha256: c4a97cae3d835472bfd3e7151cf6ab55bed633949b966214c3f30c19b43c7f48
+      size: 4213
     authority:
       grade: conservative_candidate
-      basis: Reviewed machine contract for a conservative L-shaped envelope derived from the supplied holder, not measurements of the production antenna.
+      basis: Reviewed machine contract for the pillar-only base, conservative L-shaped antenna envelope, rigid loading path, and localized compliant-key candidate; none measures the production antenna.
       excluded_claims: [exact_geometry, physical_fit]
   - id: holder_reference_stl
     role: holder_design_inspiration
@@ -57,23 +57,23 @@ external_subjects:
     role: holder_derived_measurement
     source:
       path: 03_src/mechanical/reference/antenna-holder-measurement.json
-      sha256: 91d0dfe9bbac84c665b1eaf6e99c22fee710e9913ed0f320214ef2f17ef71be4
-      size: 7432
+      sha256: 7c096deaa74e1234206329f3040c67124715363128a0dd763aa832a369139194
+      size: 8172
     authority:
       grade: derived_measurement
-      basis: Reproducible measurements of the supplied holder mesh and its compliant voids; dimensions do not measure the production antenna.
+      basis: Reproducible measurements of the supplied holder mesh and its compliant D9.75 grip, D11.75 mouth, and R1 lead-in; dimensions do not measure the production antenna.
       excluded_claims: [physical_fit]
 verification_scopes:
   - id: shell
-    description: Base, lid, connector openings, and immutable PCB/STEP fit envelope.
+    description: Pillar-only open base, lid, connector access, and immutable PCB/STEP fit envelope; no lower perimeter wall may support the PCB through connector bodies.
     required: true
     depends_on: []
   - id: board_retention
-    description: Four PCB screws retain the board independently of the four perimeter case screws.
+    description: Four PCB screws retain a board seated on four dedicated supports independently of four external case screws/posts.
     required: true
     depends_on: [shell]
   - id: antenna_accessory
-    description: Separately printed top adapter accepts the full prewired right-angle antenna through its rectangular underside and mounts with two screws.
+    description: Separately printed top adapter accepts the full prewired right-angle antenna through its rectangular underside and uses a short open-bottom compliant key to constrain the elbow/tongue before two-screw mounting.
     required: true
     depends_on: [shell]
   - id: thermal

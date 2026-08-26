@@ -1,0 +1,61 @@
+{
+  "bindings": {
+    "cad_design": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml",
+      "sha256": "06277e1d813951a4aa6f3a56b88034c9c01f10a21595d644f7b4feb7762305b5",
+      "size": 5740
+    },
+    "external_subjects": {
+      "antenna_candidate_contract": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-adapter-candidate-contract.json",
+        "sha256": "c4a97cae3d835472bfd3e7151cf6ab55bed633949b966214c3f30c19b43c7f48",
+        "size": 4213
+      },
+      "holder_measurement": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-holder-measurement.json",
+        "sha256": "7c096deaa74e1234206329f3040c67124715363128a0dd763aa832a369139194",
+        "size": 8172
+      },
+      "holder_reference_stl": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-antenna-holder-reference.stl",
+        "sha256": "a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f",
+        "size": 14303684
+      }
+    },
+    "interface": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.4.0-2026-08-25/verification/board-interface.json",
+      "sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+      "size": 31058
+    },
+    "mechanical_intent": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/03_src/mechanical/mechanical-intent-v2.yaml",
+      "sha256": "1e88ee66852316dc78b42d28d86c95f2b9b92b9af885d37d7f25e144c80092d8",
+      "size": 4004
+    },
+    "pcb": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/source/pluto_rx2_8way_v5.kicad_pcb",
+      "sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+      "size": 538805
+    },
+    "release_manifest": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/MANIFEST.txt",
+      "sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+      "size": 17338
+    },
+    "step": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-physical-fit-20260826/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step",
+      "sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f",
+      "size": 23398573
+    }
+  },
+  "config_semantic_sha256": "365634797623dc0c2e3da317347c7d473bdfb3e41d5ed09c167a207a1e5c0504",
+  "kind": "pcb-enclosure-v2-validation",
+  "schema": 2,
+  "scope_readiness_ceilings": {
+    "antenna_accessory": "INCOMPLETE",
+    "board_retention": "CAD_READY",
+    "shell": "CAD_READY",
+    "thermal": "PRINT_VERIFIED"
+  },
+  "status": "VALID"
+}

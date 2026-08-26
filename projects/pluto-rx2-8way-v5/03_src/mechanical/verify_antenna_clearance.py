@@ -16,8 +16,25 @@ import tempfile
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-COMMON = REPO_ROOT / "skills/pcb-enclosure/scripts"
+SCRIPT_PATH = Path(__file__).resolve()
+SCRIPT_DIR = SCRIPT_PATH.parent
+REPO_CANDIDATE = (SCRIPT_PATH.parents[4]
+                  if len(SCRIPT_PATH.parents) > 4 else None)
+COMMON_CANDIDATES = [SCRIPT_DIR]
+if REPO_CANDIDATE is not None:
+    COMMON_CANDIDATES.append(
+        REPO_CANDIDATE / "skills/pcb-enclosure/scripts")
+COMMON = next((candidate for candidate in COMMON_CANDIDATES
+               if (candidate / "enclosure_common.py").is_file()
+               and (candidate / "inspect_step.py").is_file()), None)
+if COMMON is None:
+    raise RuntimeError(
+        "cannot locate enclosure_common.py and inspect_step.py beside the "
+        "verifier or in the repository skill")
+REPO_ROOT = (COMMON.parent if COMMON == SCRIPT_DIR
+             else REPO_CANDIDATE)
+if REPO_ROOT is None:  # defensive; COMMON can only differ when repo exists
+    raise RuntimeError("cannot determine verifier evidence root")
 sys.path.insert(0, str(COMMON))
 from enclosure_common import (  # noqa: E402
     load_yaml, sha256_file, stl_metrics,
@@ -38,19 +55,25 @@ EMPTY_SELECTORS = (
     "antenna_vs_board",
     "antenna_vs_cable",
     "cable_vs_mount_lid",
-    "insertion_sweep_vs_mount",
+    "insertion_sweep_vs_rigid_mount",
     "interference",
 )
+COMPLIANT_SELECTORS = ("antenna_vs_compliant_key",)
 SOLID_SELECTORS = ("rx2_antenna_reference", "rx2_cable_reference")
-EVALUATED_SELECTORS = EMPTY_SELECTORS + SOLID_SELECTORS
+EVALUATED_SELECTORS = EMPTY_SELECTORS + COMPLIANT_SELECTORS + SOLID_SELECTORS
 FACT_KEYS = (
-    "board_bottom_z", "case_top_z", "mount_h", "mount_roof",
+    "board_bottom_z", "base_sidewall_h", "base_floor_h",
+    "base_board_support_count", "base_case_post_count",
+    "case_post_board_corner_clearance", "case_top_z", "mount_h", "mount_roof",
     "mount_wall", "mount_half_x", "mount_center_y", "body_d",
     "lower_upright_d", "upper_upright_d", "body_axis_z",
     "body_south_y", "stalk_y", "transition_start_z",
     "transition_end_z", "stalk_top_z", "body_radial_clearance",
     "stalk_radial_clearance", "relief_x", "relief_y", "rail_gap",
-    "rail_t", "cable_d", "cable_core_d", "flare_length", "flare_d",
+    "rail_t", "key_gap", "key_open_mouth_w", "key_lead_h",
+    "key_length", "key_inset_each_side",
+    "key_candidate_radial_interference", "coupon_gap_min",
+    "coupon_gap_max", "cable_d", "cable_core_d", "flare_length", "flare_d",
     "insertion_sweep", "cable_tail_length", "mount_south_y",
     "mount_north_y", "service_right_x", "service_north_y",
     "north_label_y", "antenna_label_size", "outer_half_y",
@@ -83,6 +106,40 @@ def require_input(path: Path) -> Path:
     if not path.is_file():
         raise RuntimeError(f"evidence input is not a regular file: {path}")
     return path
+
+
+def bound_subject_from_config(config_path: Path,
+                              subject: Mapping[str, Any],
+                              label: str) -> tuple[Path, Path]:
+    """Resolve one bound subject below the nearest config ancestor.
+
+    Mutable project configs use project-relative paths while immutable release
+    configs use release-root-relative paths.  Hash/size matching prevents a
+    same-named file in an intermediate directory from becoming authority.
+    """
+    relative = subject.get("path")
+    expected_sha = subject.get("sha256")
+    expected_size = subject.get("size")
+    if not isinstance(relative, str) or not relative or "\\" in relative:
+        raise RuntimeError(f"configured {label} path is invalid")
+    relative_path = Path(relative)
+    if relative_path.is_absolute() or any(
+            part in {"", ".", ".."} for part in relative_path.parts):
+        raise RuntimeError(f"configured {label} path is not a safe relative path")
+    candidates: list[tuple[Path, Path]] = []
+    roots = [config_path.parent, *config_path.parents[1:]]
+    for root in roots:
+        candidate = absolute(root / relative_path)
+        if not candidate.is_file():
+            continue
+        checked = require_input(candidate)
+        if sha256_file(checked) == expected_sha and \
+                checked.stat().st_size == expected_size:
+            candidates.append((absolute(root), checked))
+    if not candidates:
+        raise RuntimeError(
+            f"configured {label} does not resolve from any config ancestor")
+    return candidates[0]
 
 
 def binding(path: Path) -> dict[str, Any]:
@@ -377,7 +434,8 @@ def validate_holder_measurement(path: Path, holder_stl: Path,
     interpretation = exact_keys(doc["interpretation"], (
         "classification", "not_an_antenna_solid", "candidate_antenna_envelope",
         "reference_holder_nested_fit", "feature_frame_comparison",
-        "production_rigid_mount", "prewired_cable_loading_path"),
+        "production_rigid_mount", "production_compliant_key",
+        "prewired_cable_loading_path"),
         "holder measurement.interpretation")
     candidate = exact_keys(interpretation["candidate_antenna_envelope"], (
         "authority", "horizontal_lower_body_diameter_mm",
@@ -406,6 +464,10 @@ def validate_holder_measurement(path: Path, holder_stl: Path,
         "roof_hung_locator_rail_thickness_mm", "roof_hung_locator_gap_mm",
         "closed_lid_body_floor_clearance_mm", "result"),
         "production rigid mount")
+    compliant_key = exact_keys(interpretation["production_compliant_key"], (
+        "authority", "target_gap_mm", "open_mouth_mm", "entry_blend_mm",
+        "axial_length_mm", "nominal_d10_radial_interference_mm",
+        "coupon_gap_ladder_mm", "status"), "production compliant key")
     cable = exact_keys(interpretation["prewired_cable_loading_path"], (
         "loading_method", "threading_required", "cable_exit_direction",
         "candidate_cable_diameter_mm", "open_bottom_u_channel",
@@ -498,6 +560,20 @@ def validate_holder_measurement(path: Path, holder_stl: Path,
     for key in ("candidate_cable_diameter_mm", "insertion_sweep_mm"):
         if finite_number(cable[key], f"prewired cable {key}") <= 0:
             raise RuntimeError(f"prewired cable {key} must be positive")
+    for key in ("target_gap_mm", "open_mouth_mm", "entry_blend_mm",
+                "axial_length_mm", "nominal_d10_radial_interference_mm"):
+        if finite_number(compliant_key[key], f"compliant key {key}") <= 0:
+            raise RuntimeError(f"compliant key {key} must be positive")
+    if not isinstance(compliant_key["coupon_gap_ladder_mm"], list) or \
+            len(compliant_key["coupon_gap_ladder_mm"]) != 4:
+        raise RuntimeError("compliant key coupon ladder must contain four gaps")
+    for index, value in enumerate(compliant_key["coupon_gap_ladder_mm"]):
+        if finite_number(value, f"compliant key coupon gap {index}") <= 0:
+            raise RuntimeError("compliant key coupon gaps must be positive")
+    if compliant_key["status"] != "INCOMPLETE_PHYSICAL_FIT_REQUIRED" or \
+            not isinstance(compliant_key["authority"], str) or \
+            not compliant_key["authority"].strip():
+        raise RuntimeError("compliant key authority/status changed")
     for key in ("core_width_mm", "centerline_z_above_lid_mm",
                 "core_crown_z_above_lid_mm", "outer_entry_flare_length_mm",
                 "outer_entry_flare_width_mm", "roof_ligament_at_flare_mm"):
@@ -826,6 +902,16 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
         "corner_post_mm", "lid_column_board_gap_mm"), "enclosure geometry")
     require_close(actual["board_bottom_z"], geometry["board_bottom_z_mm"],
                   "board bottom config/fact")
+    require_close(actual["base_floor_h"], geometry["floor_mm"],
+                  "base floor config/fact")
+    require_close(actual["base_sidewall_h"], 0.0,
+                  "pillar-only base sidewall height")
+    require_close(actual["base_board_support_count"], 4.0,
+                  "pillar-only board-support census")
+    require_close(actual["base_case_post_count"], 4.0,
+                  "independent case-post census")
+    if actual["case_post_board_corner_clearance"] < 1.0:
+        raise RuntimeError("case posts do not clear the PCB corners")
     require_close(actual["case_top_z"],
                   finite_number(geometry["inside_top_z_mm"], "inside top")
                   + finite_number(geometry["roof_mm"], "roof"),
@@ -835,6 +921,7 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
     candidate = interpretation["candidate_antenna_envelope"]
     transition = candidate["upright_transition"]
     production = interpretation["production_rigid_mount"]
+    compliant_key = interpretation["production_compliant_key"]
     cable = interpretation["prewired_cable_loading_path"]
     channel = cable["open_bottom_u_channel"]
     measured = measurement["measured_holder_geometry"]
@@ -890,6 +977,24 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
     require_close(production["closed_lid_body_floor_clearance_mm"],
                   actual["body_axis_z"] - actual["body_d"] / 2,
                   "production body floor clearance")
+    key_comparisons = {
+        "key_gap": compliant_key["target_gap_mm"],
+        "key_open_mouth_w": compliant_key["open_mouth_mm"],
+        "key_lead_h": compliant_key["entry_blend_mm"],
+        "key_length": compliant_key["axial_length_mm"],
+        "key_candidate_radial_interference":
+            compliant_key["nominal_d10_radial_interference_mm"],
+        "coupon_gap_min": min(compliant_key["coupon_gap_ladder_mm"]),
+        "coupon_gap_max": max(compliant_key["coupon_gap_ladder_mm"]),
+    }
+    for key, value in key_comparisons.items():
+        require_close(actual[key], value, f"compliant-key/fact {key}")
+    require_close(actual["key_gap"], tunnel["diameter_mm"],
+                  "compliant key/holder grip gap")
+    require_close(actual["key_open_mouth_w"], tunnel["entry_width_at_z0_mm"],
+                  "compliant key/holder open mouth")
+    require_close(actual["key_lead_h"], tunnel["entry_blend_radius_mm"],
+                  "compliant key/holder entry blend")
     require_close(channel["centerline_z_above_lid_mm"], actual["body_axis_z"],
                   "U-channel centerline/fact")
     require_close(channel["core_crown_z_above_lid_mm"],
@@ -935,6 +1040,12 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
     require_close(actual["rail_gap"],
                   actual["body_d"] + 2 * actual["body_radial_clearance"],
                   "locator rail gap derivation")
+    require_close(actual["key_inset_each_side"],
+                  (actual["rail_gap"] - actual["key_gap"]) / 2,
+                  "compliant key inset derivation")
+    require_close(actual["key_candidate_radial_interference"],
+                  (actual["body_d"] - actual["key_gap"]) / 2,
+                  "compliant key nominal-interference derivation")
     require_close(actual["cable_core_d"],
                   actual["body_d"] + 2 * actual["body_radial_clearance"],
                   "full-antenna arch derivation")
@@ -1065,6 +1176,16 @@ def derive_candidate_evidence(facts: Mapping[str, float],
         "upright_aperture_d_mm": aperture_d,
         "upright_north_extent_y_mm": facts["stalk_y"] + aperture_d / 2,
         "roof_hung_rail_gap_mm": facts["rail_gap"],
+        "localized_compliant_key": {
+            "gap_mm": facts["key_gap"],
+            "open_mouth_mm": facts["key_open_mouth_w"],
+            "entry_lead_mm": facts["key_lead_h"],
+            "axial_length_mm": facts["key_length"],
+            "nominal_candidate_radial_interference_mm":
+                facts["key_candidate_radial_interference"],
+            "selector_result": "SOLID_EXPECTED_COMPLIANT_INTERFERENCE",
+            "physical_fit_status": "INCOMPLETE",
+        },
         "prewired_assembly_u_arch": {
             "open_bottom": True,
             "core_d_mm": facts["cable_core_d"],
@@ -1074,7 +1195,8 @@ def derive_candidate_evidence(facts: Mapping[str, float],
             "entry_flare_d_mm": facts["flare_d"],
             "threading_required": False,
         },
-        "selector_result": "EMPTY",
+        "rigid_loading_path_selector": "insertion_sweep_vs_rigid_mount",
+        "rigid_loading_path_result": "EMPTY",
     }
     if assembly["start_upright_top_below_adapter_underside_mm"] <= 0:
         raise RuntimeError("insertion witness does not begin fully below adapter")
@@ -1129,6 +1251,8 @@ def derive_candidate_evidence(facts: Mapping[str, float],
             (facts["flare_d"] - facts["body_d"]) / 2,
         "u_entry_roof_ligament":
             facts["mount_h"] - (facts["body_axis_z"] + facts["flare_d"] / 2),
+        "compliant_key_coupon_gap_min": facts["coupon_gap_min"],
+        "compliant_key_coupon_gap_max": facts["coupon_gap_max"],
     }
     if min(clearances.values()) <= 0:
         raise RuntimeError(f"non-positive candidate clearance: {clearances}")
@@ -1164,6 +1288,23 @@ def require_generation(config_path: Path, config: Mapping[str, Any],
             "base", "lid", "insert_coupon", "rx2_antenna_mount",
             "rx2_antenna_fit_gauge"]:
         raise RuntimeError("enclosure printable-part census changed")
+
+
+def require_generated_part(generation: Mapping[str, Any], name: str,
+                           supplied: Path) -> Mapping[str, Any]:
+    rows = generation.get("parts")
+    if not isinstance(rows, list):
+        raise RuntimeError("generation receipt has no parts array")
+    matches = [row for row in rows if isinstance(row, Mapping)
+               and row.get("part") == name]
+    if len(matches) != 1:
+        raise RuntimeError(f"generation receipt must bind one {name} part")
+    row = matches[0]
+    if row.get("path") != supplied.name or \
+            row.get("sha256") != sha256_file(supplied) or \
+            row.get("size") != supplied.stat().st_size:
+        raise RuntimeError(f"generated {name} mesh binding is stale")
+    return row
 
 
 def parse_args() -> argparse.Namespace:
@@ -1204,21 +1345,17 @@ def main() -> int:
     preliminary_config = load_yaml(inputs["config"])
     if not isinstance(preliminary_config, Mapping):
         raise RuntimeError("enclosure config must be an object")
-    interface_relative = preliminary_config.get("subject", {}).get(
-        "interface", {}).get("path")
-    if not isinstance(interface_relative, str):
+    interface_subject = preliminary_config.get("subject", {}).get("interface")
+    if not isinstance(interface_subject, Mapping):
         raise RuntimeError("enclosure config has no bound subject interface path")
-    project_root = inputs["config"].parents[2]
-    interface_path = absolute(project_root / interface_relative)
-    try:
-        interface_path.relative_to(project_root)
-    except ValueError as exc:
-        raise RuntimeError("configured interface escapes the project root") from exc
+    _config_root, interface_path = bound_subject_from_config(
+        inputs["config"], interface_subject, "interface")
     inputs["interface"] = require_input(interface_path)
     build_dir = absolute(args.build_dir)
     reject_symlink_chain(build_dir)
     if not build_dir.is_dir():
         raise RuntimeError("build directory must already exist")
+    inputs["base_mesh"] = require_input(build_dir / "base.stl")
     initial_input_snapshot = snapshot_inputs(inputs)
     snapshot_owner, work_inputs, work_input_snapshot = private_input_snapshots(
         inputs, build_dir, initial_input_snapshot)
@@ -1244,6 +1381,7 @@ def main() -> int:
     generation = strict_json(work_inputs["generation"])
     require_generation(work_inputs["config"], config, work_inputs["generation"],
                        generation, work_inputs["scad"])
+    require_generated_part(generation, "base", work_inputs["base_mesh"])
     validate_selector_census(EVALUATED_SELECTORS)
     measurement = validate_holder_measurement(
         work_inputs["holder_measurement"], work_inputs["holder_stl"],
@@ -1277,6 +1415,22 @@ def main() -> int:
                 name, True, tmp)
             require_unchanged_inputs(work_inputs, work_input_snapshot)
             validate_facts(facts, contract_facts, config, measurement)
+            selector_rows.append(row)
+            observed_facts.append(facts)
+        for name in COMPLIANT_SELECTORS:
+            row, facts = selector(
+                str(work_inputs["openscad_binary"]), work_inputs["scad"],
+                name, False, tmp)
+            require_unchanged_inputs(work_inputs, work_input_snapshot)
+            validate_facts(facts, contract_facts, config, measurement)
+            metrics = stl_metrics(tmp / f"{name}.stl")
+            if metrics["absolute_volume_mm3"] <= 0 or metrics["components"] <= 0:
+                raise RuntimeError(
+                    f"{name} did not prove the declared compliant overlap")
+            row["interpretation"] = (
+                "intentional localized overlap; requires a printed coupon and "
+                "assembly test, never a rigid-clearance PASS")
+            row["mesh_metrics"] = metrics
             selector_rows.append(row)
             observed_facts.append(facts)
         exported: dict[str, tuple[Path, dict[str, Any], dict[str, Any]]] = {}
@@ -1329,6 +1483,9 @@ def main() -> int:
                      registration[2] + board_bottom_z]
         component_shape = cq.Compound.makeCompound(components).translate(
             tuple(transform))
+        complete_step_shape = cq.Compound.makeCompound(solids).translate(
+            tuple(transform))
+        base_shape = brep_from_stl(work_inputs["base_mesh"], cq)
         antenna_local = brep_from_stl(
             exported["rx2_antenna_reference"][0], cq)
         cable_local = brep_from_stl(exported["rx2_cable_reference"][0], cq)
@@ -1342,6 +1499,8 @@ def main() -> int:
         antenna_installed = antenna_local.translate((0, 0, facts["case_top_z"]))
         cable_installed = cable_local.translate((0, 0, facts["case_top_z"]))
         exact = {
+            "base_vs_complete_step_mm3": exact_volume(
+                base_shape.intersect(complete_step_shape)),
             "antenna_vs_step_components_mm3": exact_volume(
                 antenna_installed.intersect(component_shape)),
             "cable_vs_step_components_mm3": exact_volume(
@@ -1351,6 +1510,43 @@ def main() -> int:
         }
         if any(value > 1e-9 for value in exact.values()):
             raise RuntimeError(f"exact candidate collision found: {exact}")
+
+        board_drop_offsets = [0.0, 5.0, 15.0, facts["insertion_sweep"]]
+        board_drop_checkpoints = []
+        raw_complete_step = cq.Compound.makeCompound(solids)
+        for offset in board_drop_offsets:
+            checkpoint_shape = raw_complete_step.translate((
+                transform[0], transform[1], transform[2] + offset))
+            overlap = exact_volume(base_shape.intersect(checkpoint_shape))
+            board_drop_checkpoints.append({
+                "offset_above_installed_mm": offset,
+                "base_vs_complete_step_mm3": overlap,
+                "result": "EMPTY" if overlap <= 1e-9 else "SOLID",
+            })
+        if any(row["result"] != "EMPTY" for row in board_drop_checkpoints):
+            raise RuntimeError(
+                f"board drop-in checkpoint collision found: "
+                f"{board_drop_checkpoints}")
+        board_drop_path = {
+            "kind": "straight-negative-z-open-deck-board-loading",
+            "direction": "-Z from above to installed board datum",
+            "sidewall_height_mm": facts["base_sidewall_h"],
+            "floor_top_z_mm": facts["base_floor_h"],
+            "board_bottom_z_mm": facts["board_bottom_z"],
+            "board_bottom_above_floor_mm":
+                facts["board_bottom_z"] - facts["base_floor_h"],
+            "board_support_count": int(facts["base_board_support_count"]),
+            "independent_case_post_count": int(facts["base_case_post_count"]),
+            "minimum_case_post_to_board_corner_clearance_mm":
+                facts["case_post_board_corner_clearance"],
+            "exact_brep_checkpoints": board_drop_checkpoints,
+            "continuous_path_basis": (
+                "The base has no perimeter/sidewall or alignment lip; all "
+                "retained features are vertical posts at fixed XY positions. "
+                "Exact installed and elevated BREP checkpoints supplement the "
+                "machine-checked zero-sidewall/open-deck topology."),
+            "physical_seating_status": "INCOMPLETE",
+        }
 
         # No input may drift between selector export, exact STEP evaluation,
         # and publication of the validated meshes.
@@ -1397,8 +1593,10 @@ def main() -> int:
         "run_status": "COMPLETE",
         "candidate_collision": "PASS",
         "status_reason": (
-            "candidate envelope is collision-free, but the actual antenna/cable "
-            "profile and physical retention/rattle/print fit are not evidenced"),
+            "the open-deck base and rigid antenna loading path are collision-free; "
+            "the localized compliant key intentionally overlaps the conservative "
+            "candidate envelope, while PCB seating and actual antenna retention/"
+            "rattle/print fit remain physically untested"),
         "backend": {
             "openscad": version.stdout.strip(),
             "cadquery": getattr(cq, "__version__", "unknown"),
@@ -1439,6 +1637,10 @@ def main() -> int:
                 "supplied_geometry_match": "PASS",
             },
             "reference_mesh_subjects": exact_mesh_subjects,
+            "base_mesh_subject": {
+                **binding(inputs["base_mesh"]),
+                "mesh_metrics": stl_metrics(inputs["base_mesh"]),
+            },
             "step_solid_count": len(solids),
             "pcb_related_solid_count": len(excluded),
             "component_solid_count": len(components),
@@ -1450,10 +1652,12 @@ def main() -> int:
         },
         "analytic_access_clearances_mm": analytic_clearances,
         "candidate_clearances_mm": candidate_clearances,
+        "base_fit_revision": board_drop_path,
         "excluded_claims": [
             "No actual antenna or cable dimension is inferred from holder voids.",
             "Clearance does not prove retention, rattle resistance, or physical fit.",
-            "No board drop-in, interface-mating, or antenna fit test was performed.",
+            "Exact BREP checks and open-deck topology do not prove physical PCB seating, interface mating, or screw access.",
+            "No printed board drop-in or antenna fit test was performed.",
         ],
     }
     require_unchanged_inputs(inputs, initial_input_snapshot)

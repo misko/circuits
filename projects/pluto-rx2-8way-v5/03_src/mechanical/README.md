@@ -10,6 +10,12 @@ the PCB directly to its four base standoffs. Four different M3 × 6 screws in
 external corner lugs close the lid to tall base posts. Removing the lid cannot
 release the PCB or leave it free to move inside the powered enclosure.
 
+The revised base is an **open support deck**, not a lower shell. It has a flat
+2.40 mm printable foundation, four PCB support/insert pillars, and four
+independent case posts, but no surrounding sidewall or alignment lip. This
+removes the predecessor load path that allowed the base perimeter to reach the
+SMA bodies before the PCB seated on its intended supports.
+
 This revision adds a **separate, closed-top, bottom-loaded RX2/reference
 antenna adapter**. Here, “top” means the exterior/top side of the PCB
 enclosure. The complete right-angle antenna already has its cable attached;
@@ -28,18 +34,23 @@ cable run, S-bend, or snap geometry.
 Two M3 × 8 socket-head screws attach the adapter to two E-Z LOK inserts in
 reinforced lid bosses. The upright aperture fixes translation, two roof-hung
 rails key the horizontal D10 candidate branch, and the south full-body U-arch
-fixes its exit axis. The lid becomes the cavity floor only after the adapter seats.
-This topology captures the candidate against lift and gross rotation without
-loading a Pluto+ SMA connector.
+fixes its exit axis. A short open-bottom compliant key narrows only a 4 mm
+section near the antenna elbow/tongue from the rigid 10.8 mm rail gap to
+9.75 mm. Its 11.75 mm mouth and 1.0 mm lead-in preserve slide-in loading. The
+lid becomes the cavity floor only after the adapter seats. This topology
+captures the candidate against lift and gross rotation without loading a
+Pluto+ SMA connector.
 
 ## Honest status
 
-This design is **`INCOMPLETE`**, not `CAD_READY` or `PRINT_VERIFIED`, for the
-antenna accessory. The supplied STL is authoritative evidence for a flexible
+This design is **`INCOMPLETE`**, not `PRINT_VERIFIED`. User photographs show
+that the predecessor base bore on SMA bodies and that the predecessor antenna
+adapter was loose. The revised pillar-only base and localized key have not yet
+been printed. The supplied STL is authoritative evidence for a flexible
 holder's clearance concept, not for the antenna itself. The modeled D10/D8.75
 antenna and D2.50 cable are conservative candidate witnesses. Automated
 collision and insertion-path checks cannot qualify physical retention,
-rattle, printer-process fit, or the unmeasured cable termination.
+rattle, PCB seating, printer-process fit, or the unmeasured cable termination.
 
 Production requires one authoritative antenna/cable profile from calipers or
 a dimensioned vendor drawing:
@@ -50,9 +61,10 @@ a dimensioned vendor drawing:
 - attached cable OD, termination/ferrule envelope, and exit direction;
 - any external bend-radius and strain-relief requirement after the U-channel.
 
-`rx2_antenna_fit_gauge.stl` provides 9.0, 9.5, 10.0, and 10.5 mm nominal body
-stations using the same 0.40 mm radial clearance. It can qualify printed body
-clearance only; it cannot qualify the complete L profile or attached cable.
+`rx2_antenna_fit_gauge.stl` provides actual open-bottom channel gaps of 9.50,
+9.75, 10.00, and 10.25 mm with the same 11.75 mm mouth and 1.0 mm lead-in.
+It can select a printer/material-specific snug gap only; it cannot qualify the
+complete L profile, key length, elbow placement, or attached cable.
 
 ## Supplied-holder evidence
 
@@ -72,9 +84,12 @@ D9.75 U-path, a D9.75 lower vertical grip, a D9.75→D8.75 taper, a D8.75 top
 throat, and a D19.75 four-petal split collar. The 0.40 mm diagonal slots prove
 that those voids rely on flex. They must not be copied as rigid D10 cavities.
 
-The current rigid adapter therefore uses 0.40 mm radial clearance around the
-conservative D10 lower L envelope. D9.75/D8.75 remain holder-void evidence,
-not claimed antenna measurements.
+The rigid loading path therefore keeps 0.40 mm radial clearance around the
+conservative D10 lower L envelope. Only the short roof-hung key copies the
+holder-evidenced D9.75 grip gap, D11.75 mouth, and R1 lead-in. That key is
+deliberately compliant and has 0.125 mm nominal radial overlap with the D10
+candidate witness. D9.75/D8.75 remain holder-void evidence, not claimed
+antenna measurements; the rigid design does not copy the D8.75 top throat.
 
 ## Adapter geometry and loading path
 
@@ -87,6 +102,9 @@ not claimed antenna measurements.
 | Candidate taper / upper upright | D10→D8.75 at z20…30 / D8.75 |
 | Rigid radial clearance | 0.40 mm; D10.8 rail gap/aperture |
 | Roof-hung locator rails | 2.0 mm thick; z1.2…10.6; y -2…18 |
+| Localized compliant key | 9.75 mm gap; 11.75 mm open mouth; R1 lead; 4.0 mm candidate length |
+| Key candidate overlap | 0.125 mm radial against the conservative D10 witness; physical test required |
+| Fit coupon actual gaps | 9.50 / 9.75 / 10.00 / 10.25 mm |
 | Body-to-lid / body-to-roof gaps | 0.20 / 0.40 mm |
 | Upright aperture north extent / wall | y21.9 / 2.1 mm |
 | Cable witness | D2.50, straight south, center z5.20 above lid |
@@ -104,10 +122,13 @@ y=21.0, while the aperture continues to y=21.9 from z=0 through the roof.
 Thus the full D10 upright footprint reaches the underside with no hidden
 undercut. Roof-hung rails leave the D10.8 vertical path open below them.
 
-The deterministic `part="insertion_sweep_vs_mount"` selector sweeps each
+The deterministic `part="insertion_sweep_vs_rigid_mount"` selector sweeps each
 convex antenna/cable primitive through the full 45 mm straight-Z insertion
-path and intersects that swept volume with the adapter. An empty export is the
-required result. This is stronger than checking only the final seated state.
+path and intersects that swept volume with the rigid adapter geometry. An
+empty export is required. The separate `part="antenna_vs_compliant_key"`
+selector must be solid: it proves the declared localized grip overlap without
+mislabeling that interference as rigid clearance. Printed insertion and
+retention still remain required.
 
 Access-zone checks use conservative configured plug envelopes:
 
@@ -181,28 +202,35 @@ the lid. Do not use the antenna cable as a lifting handle.
 
 The PCB bottom is 7.80 mm above the case exterior floor. The SMA RF centerline
 and wall seam are at Z=19.70 mm. The inside lid face is Z=24.70 mm and the
-case top is Z=27.10 mm. The connector-wall body remains 96.8 × 71.8 mm; four
-external closure lugs make the total envelope 112.0 × 87.0 mm without
-recessing any connector. The closed adapter sits on the exterior top plane.
+case top is Z=27.10 mm. The base has no lower perimeter wall: its 96.8 × 71.8
+mm foundation is open on every side above Z=2.40 mm. Four external closure
+posts/lugs make the total envelope 112.0 × 87.0 mm. The lid supplies the upper
+connector skirt and the closed adapter sits on its exterior top plane.
 
 ## Print and assembly
 
 Print PETG at 0.20 mm layers with a 0.4 mm nozzle, four perimeters, at least
 five top/bottom layers, and 25–35% infill. Disable supports for all five parts.
+`base.stl` prints foundation-down; the PCB pillars and case posts rise directly
+from the deck with every side open.
 `lid.stl` prints exterior-face-down. `rx2_antenna_mount.stl` prints its closed
 top face on the bed, so the rectangular underside cavity, roof-hung rails,
 screw wells, and bottom-open full-body U-arch grow upward without trapped support.
 
 Assembly sequence:
 
-1. Reconfirm the 4.25 mm insert coupon on the production printer/material and
-   use the antenna fit gauge without forcing or marring the real antenna.
+1. Reconfirm the 4.25 mm insert coupon on the production printer/material.
+   Starting with the loosest antenna channel coupon, select a snug gap without
+   forcing or marring the real antenna; do not assume 9.75 mm will be correct
+   for every printer/material.
 2. Press four board inserts into the short base standoffs and four case inserts
    into the tall external base posts, all from above. Press the two antenna
    adapter inserts into the lid underside bosses. Support each feature
    directly; do not melt or screw-pull.
 3. Install the unpowered PCB and retain it independently with four M3 × 6
-   screws at H1–H4. Verify the board remains secure before fitting the lid.
+   screws at H1–H4. Before fitting the lid, prove the PCB is simultaneously
+   seated on all four supports, cannot rock, and has visible clearance around
+   every SMA/USB-C body. Verify it remains secure with all case screws absent.
 4. Lower the lid over the four base posts and close it with the separate four
    M3 × 6 case screws. Confirm no case screw loads or contacts the PCB, then
    complete all-interface mating checks.
@@ -281,8 +309,9 @@ uv run --offline --with cadquery python \
 
 The generic verifier binds the sealed PCB/STEP and exact installed-case
 collision evidence. `antenna-clearance.json` separately binds the non-printable
-antenna reference, full-body U-arch, continuous insertion sweep, exact STEP component
-checks, and access-zone calculations. A passing CAD pipeline does not promote
+antenna reference, pillar-only base, full-body U-arch, rigid continuous
+insertion sweep, declared compliant-key overlap, exact STEP/base/component
+checks, board drop-in checkpoints, and access-zone calculations. A passing CAD pipeline does not promote
 the accessory above `INCOMPLETE` until the missing antenna/cable and physical
 fit evidence exists.
 

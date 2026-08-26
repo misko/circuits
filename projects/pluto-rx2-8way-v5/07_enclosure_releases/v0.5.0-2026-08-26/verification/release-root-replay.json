@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "kind": "pcb-enclosure-release-root-replay-v1",
+  "recorded_date": "2026-08-26",
+  "status": "COMPLETE",
+  "governing_status": "INCOMPLETE",
+  "isolation": {
+    "copied_outside_repository": true,
+    "working_directory_outside_repository": true,
+    "pythonpath": "empty",
+    "python_bytecode_writes": false,
+    "network_required": false,
+    "cadquery_runtime": "uv --offline --with cadquery"
+  },
+  "release_local_tools": {
+    "enclosure_v2.py": "f13beb2b6a064b20cf0e3890e5a3b60bd246b02f12dbb9429caecb1373928e9f",
+    "generate_enclosure.py": "170eabe7e4745a517ba549a68c38be62f4c34559cdecdab670e4153384991642",
+    "inspect_step.py": "049e1d95f628dc942b7567f9a8a30a3c968098ba41421d578ec8f97623bfdefc",
+    "build_collision.py": "ea2d4bad98106d647541dc4ded58e6b6826ba885fa3315101d38dcb4991e32e7",
+    "verify_enclosure.py": "edb5b583bf7d30b013a269298811fed0a9e5f13484a442e97b8fd0b8ef5980d9",
+    "verify_antenna_clearance.py": "bd9af7eacd1d260b197353f80bbf302ad1a3e5fe145df3c4e8c4289105929fc2",
+    "enclosure_common.py": "bc23e4ac7c0dc0a3d1ecb92a4dc7fac17c2db32bd2f0e3067b592b1ffc93f440",
+    "process_runner.py": "1314cb382fc9bab8bbae960c818712a01acbf9517cd9a98840ba58580b861670",
+    "pipeline_runtime.py": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+    "verify_enclosure_release.py": "1c351151f9cb8c4821fd693987f6c2386badac7dafbcc89b5f3481e9b10ae648"
+  },
+  "checks": {
+    "mechanical_intent_v2": "VALID",
+    "enclosure_config_v2": "VALID",
+    "generated_part_census": "5/5",
+    "canonical_printable_mesh_bytes": "MATCH",
+    "step_occurrence_coverage": "30/30",
+    "step_component_mesh_sha256": "853ab6711b8bd62efac00bc65ca5b2926cf3dff681cef260e0e5279340b2faf7",
+    "step_component_mesh_bytes": "MATCH",
+    "exact_installed_case_collision_mm3": 0.0,
+    "generic_verification": "CAD_READY_6_OF_7_PHYSICAL_INCOMPLETE",
+    "antenna_verifier_run": "COMPLETE_PASS_STATUS_INCOMPLETE",
+    "exact_base_vs_complete_step_mm3": 0.0,
+    "exact_antenna_vs_step_components_mm3": 0.0,
+    "exact_cable_vs_step_components_mm3": 0.0,
+    "rigid_antenna_insertion": "EMPTY",
+    "compliant_key_intersection_mm3": 2.6674010060170428,
+    "compliant_key_components": 2,
+    "board_drop_checkpoint_offsets_mm": [0.0, 5.0, 15.0, 45.0],
+    "board_drop_checkpoint_results": ["EMPTY", "EMPTY", "EMPTY", "EMPTY"]
+  },
+  "reference_mesh_comparison": {
+    "cable_bytes": "MATCH",
+    "antenna_bbox_triangles_and_topology": "MATCH",
+    "antenna_absolute_volume_delta_mm3": 1.5e-12,
+    "antenna_byte_difference_reason": "OpenSCAD facet ordering; candidate contract metrics remain within the bound 0.05 mm3 tolerance"
+  },
+  "excluded_claims": [
+    "Release-root replay does not prove physical PCB seating.",
+    "Release-root replay does not prove antenna retention, rattle, or printer-process fit.",
+    "No replay result raises any release scope above INCOMPLETE."
+  ]
+}

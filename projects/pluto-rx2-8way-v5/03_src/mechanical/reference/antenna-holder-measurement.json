@@ -138,6 +138,16 @@
       "closed_lid_body_floor_clearance_mm": 0.2,
       "result": "PASS_CANDIDATE_CLEARANCE_NO_FLEX_REQUIRED"
     },
+    "production_compliant_key": {
+      "authority": "The D9.75 grip gap, D11.75 open mouth, and R1 entry blend are compliant-void geometry proven by the bound user holder STL. The 4.0 mm axial length and placement are a CAD candidate, not an antenna measurement.",
+      "target_gap_mm": 9.75,
+      "open_mouth_mm": 11.75,
+      "entry_blend_mm": 1.0,
+      "axial_length_mm": 4.0,
+      "nominal_d10_radial_interference_mm": 0.125,
+      "coupon_gap_ladder_mm": [9.5, 9.75, 10.0, 10.25],
+      "status": "INCOMPLETE_PHYSICAL_FIT_REQUIRED"
+    },
     "prewired_cable_loading_path": {
       "loading_method": "complete L-shaped antenna and already-attached cable translate vertically through one rectangular underside opening as the adapter is lowered",
       "threading_required": false,
@@ -166,6 +176,7 @@
     "It does not provide antenna body length, elbow fillet, connector size/gender, cable diameter, or bend radius.",
     "The bottom-open D10.80 U-arch is governed by the conservative D10 antenna envelope plus 0.40 mm radial clearance, not merely by the D2.50 cable witness; neither dimension is a measurement of the production antenna or termination.",
     "The modeled 0.40 mm radial clearance and 0.20 mm lid-floor gap do not prove physical retention, rattle resistance, or printer-process fit.",
+    "The localized D9.75 compliant key is derived from a holder void and does not assert a D10 production antenna diameter; its 4.0 mm axial length requires a fit coupon and physical test.",
     "The visual reference is not asserted to depict the exact bound STL.",
     "Derived-envelope collision clearance is not physical fit or PRINT_VERIFIED evidence."
   ]

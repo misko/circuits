@@ -39,8 +39,8 @@ cad:
   source:
     kind: authored_scad
     path: 03_src/mechanical/pluto_rx2_8way_case.scad
-    sha256: f7fe12952ddd1d92624b8f9b611af8cb5cf7ff0c6e61f374e8e90b978bcd0be9
-    size: 59465
+    sha256: 75dff1ffeac11740f1a7a85639e5baf03c992494fbba66e1420903b62e8cecb9
+    size: 65178
 geometry:
   topology: split_shell
   xy_clearance_mm: 1.0
