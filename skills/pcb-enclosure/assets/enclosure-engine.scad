@@ -16,6 +16,10 @@ outer_size = [inner_size[0] + 2 * wall, inner_size[1] + 2 * wall];
 overall_z = inside_top_z + roof;
 pcb_top_z = board_bottom_z + board_thickness;
 
+assert(fastener_strategy == "shared_board" ||
+       fastener_strategy == "separate_perimeter",
+       str("Unknown fastener strategy: ", fastener_strategy));
+
 module rounded_rect_2d(size, radius) {
     rr = min(radius, min(size[0], size[1]) / 2 - 0.01);
     offset(r = rr)
@@ -161,10 +165,14 @@ module split_base() {
                 linear_extrude(height = seam_z - floor + eps)
                     shell_2d();
             boss_set(board_mount_holes, boss_d, board_bottom_z);
+            if (fastener_strategy == "separate_perimeter")
+                boss_set(case_holes, case_post_d, inside_top_z);
             base_lip();
         }
         all_side_access_cuts();
         insert_pocket_set(board_mount_holes, board_bottom_z);
+        if (fastener_strategy == "separate_perimeter")
+            insert_pocket_set(case_holes, inside_top_z);
     }
 }
 
@@ -179,6 +187,8 @@ module lid_fastener_cuts(points, bearing_z) {
 
 module split_lid_assembled() {
     bearing_z = overall_z - screw_head_recess_depth;
+    closure_holes = fastener_strategy == "shared_board"
+        ? board_mount_holes : case_holes;
     difference() {
         union() {
             translate([0, 0, seam_z - eps])
@@ -187,15 +197,16 @@ module split_lid_assembled() {
             translate([0, 0, inside_top_z - eps])
                 linear_extrude(height = roof + eps)
                     rounded_rect_2d(outer_size, corner_radius);
-            for (p = board_mount_holes)
-                translate([p[0], p[1], pcb_top_z + lid_column_board_gap])
-                    cylinder(h = inside_top_z - pcb_top_z - lid_column_board_gap + eps,
-                             d = lid_column_d);
+            if (fastener_strategy == "shared_board")
+                for (p = board_mount_holes)
+                    translate([p[0], p[1], pcb_top_z + lid_column_board_gap])
+                        cylinder(h = inside_top_z - pcb_top_z - lid_column_board_gap + eps,
+                                 d = lid_column_d);
         }
         all_side_access_cuts();
         top_access_cuts();
         lid_rabbet();
-        lid_fastener_cuts(board_mount_holes, bearing_z);
+        lid_fastener_cuts(closure_holes, bearing_z);
     }
 }
 
@@ -341,6 +352,16 @@ module assembly() {
     if (show_reference_board) reference_board();
 }
 
+selector_known = part == "base" || part == "lid" ||
+    part == "insert_coupon" || part == "panel_north" ||
+    part == "panel_south" || part == "panel_east" ||
+    part == "panel_west" || part == "installed_case" ||
+    part == "assembly";
+
+assert(selector_known, str("Unknown pcb-enclosure selector: ", part));
+echo(str("PCB_ENCLOSURE_SELECTOR_OK:", part));
+echo(str("PCB_ENCLOSURE_FASTENER_STRATEGY:", fastener_strategy));
+
 if (part == "base") base_part();
 else if (part == "lid") lid_print();
 else if (part == "insert_coupon") insert_coupon();
@@ -349,4 +370,4 @@ else if (part == "panel_south") flat_panel("south");
 else if (part == "panel_east") flat_panel("east");
 else if (part == "panel_west") flat_panel("west");
 else if (part == "installed_case") installed_case();
-else assembly();
+else if (part == "assembly") assembly();

@@ -4,6 +4,10 @@ name: usb-hub-3s-v1.12-panel-case
 mode: derived
 subject:
   release: v1.12-2026-07-28
+  release_manifest:
+    path: 07_releases/v1.12-2026-07-28/MANIFEST.txt
+    sha256: 2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4
+    size: 41456
   pcb:
     path: 07_releases/v1.12-2026-07-28/source/usb_hub_3s_v2.kicad_pcb
     sha256: 2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf

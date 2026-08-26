@@ -1,0 +1,4 @@
+MANIFEST — sanitized-edge-panel synthetic-v1
+PCB: subject/board.snapshot.txt
+STEP: subject/assembly.snapshot.txt
+SCOPE: documentation-only enclosure canary

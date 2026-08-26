@@ -4,17 +4,17 @@
   "reference_only": true,
   "observed_on": "2026-08-24",
   "config": {
-    "raw_sha256": "f37faecd46313f01d4169a664b7e27259f7838265a5ab09b4e5e2561f98663d1",
-    "semantic_sha256": "992f3d86fc3dbbfe711dc47f2e0adaa0457bee5e2f713df6e86c1ec543c3cd84"
+    "raw_sha256": "72165c485267c45e3f31e2762783f3159678bd7645b17ab87d8b407e7d663c02",
+    "semantic_sha256": "6d39dd5670eb751663363d60d95af1ae9f28e33a51c039069c7d91a4fe84dd26"
   },
   "generated_parts": ["base", "lid", "insert_coupon"],
   "expected_status": "INCOMPLETE",
   "expected_exit_code_for_cad_target": 2,
   "checks": [
-    {"name": "subject_binding", "status": "PASS", "graded": 3, "total": 3},
+    {"name": "subject_binding", "status": "PASS", "graded": 4, "total": 4},
     {"name": "interface_coverage", "status": "PASS", "graded": 10, "total": 10},
     {"name": "fastener_geometry", "status": "PASS", "graded": 9, "total": 9},
-    {"name": "printable_meshes", "status": "PASS", "graded": 3, "total": 3},
+    {"name": "printable_meshes", "status": "PASS", "graded": 4, "total": 4},
     {"name": "exact_solid_clearance", "status": "INCOMPLETE", "graded": 0, "total": 2, "reason": "exact STEP inspection report is intentionally absent"},
     {"name": "thermal_plan", "status": "PASS", "graded": 2, "total": 2},
     {"name": "physical_evidence", "status": "INCOMPLETE", "graded": 0, "total": 3, "reason": "operator evidence is intentionally absent"}

@@ -1,25 +1,37 @@
 #!/usr/bin/env python3
 """Shared strict schemas and geometry helpers for pcb-enclosure.
 
-This module is intentionally dependency-light. PyYAML is used only for the
-authored configuration; STL parsing and all verification arithmetic use the
-standard library so the verifier remains runnable on a stock KiCad host.
+PyYAML is used for authored configuration, while subprocess ownership is
+delegated to the repository's bounded pipeline runtime. STL parsing and all
+verification arithmetic otherwise use the standard library so the verifier
+remains runnable on a stock repository/KiCad host.
 """
 from __future__ import annotations
 
 import hashlib
 import json
 import math
+import os
 import re
+import stat
 import struct
+import subprocess
+import sys
+import tempfile
 from collections import Counter, defaultdict, deque
+from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, BinaryIO, Iterable, Iterator, Mapping, Sequence
 
 try:
     import yaml
 except ImportError as exc:  # pragma: no cover - environment failure
     raise SystemExit("pcb-enclosure needs PyYAML") from exc
+
+KICAD_SCRIPT_DIR = Path(__file__).resolve().parents[2] / "kicad-pcb" / "scripts"
+if str(KICAD_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(KICAD_SCRIPT_DIR))
+from process_runner import run_bounded as _pipeline_run_bounded  # noqa: E402
 
 
 CONFIG_KIND = "pcb-enclosure-config-v1"
@@ -61,7 +73,8 @@ StrictLoader.add_constructor(
 
 def load_yaml(path: Path) -> dict[str, Any]:
     try:
-        value = yaml.load(path.read_text(encoding="utf-8"), Loader=StrictLoader)
+        value = yaml.load(read_stable_bytes(path, f"YAML input {path}").decode(
+            "utf-8"), Loader=StrictLoader)
     except (OSError, yaml.YAMLError) as exc:
         raise EnclosureError(f"cannot read {path}: {exc}") from exc
     if not isinstance(value, dict):
@@ -70,8 +83,19 @@ def load_yaml(path: Path) -> dict[str, Any]:
 
 
 def load_json(path: Path) -> dict[str, Any]:
+    def reject_duplicate_keys(
+            pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise EnclosureError(f"duplicate JSON key {key!r}")
+            result[key] = value
+        return result
+
     try:
-        value = json.loads(path.read_text(encoding="utf-8"))
+        value = json.loads(read_stable_bytes(
+            path, f"JSON input {path}").decode("utf-8"),
+                           object_pairs_hook=reject_duplicate_keys)
     except (OSError, json.JSONDecodeError) as exc:
         raise EnclosureError(f"cannot read {path}: {exc}") from exc
     if not isinstance(value, dict):
@@ -79,18 +103,320 @@ def load_json(path: Path) -> dict[str, Any]:
     return value
 
 
-def write_json(path: Path, value: Mapping[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(value, indent=2, sort_keys=True) + "\n",
-                    encoding="utf-8")
+def _absolute_lexical(path: Path) -> Path:
+    """Return an absolute normalized path without following symbolic links."""
+    return Path(os.path.abspath(os.fspath(path)))
+
+
+def reject_symlink_path(path: Path, where: str) -> Path:
+    """Reject a symlink at the leaf or at any existing path component."""
+    absolute = _absolute_lexical(path)
+    for candidate in reversed((absolute, *absolute.parents)):
+        if candidate.is_symlink():
+            raise EnclosureError(
+                f"{where}: symlink path component is not accepted: {candidate}")
+    return absolute
+
+
+def require_ordinary_file(path: Path, where: str, *,
+                          single_link: bool = True) -> Path:
+    """Require a regular no-symlink file with an independent inode."""
+    absolute = reject_symlink_path(path, where)
+    try:
+        info = absolute.lstat()
+    except OSError as exc:
+        raise EnclosureError(f"{where}: cannot inspect {absolute}: {exc}") from exc
+    if not stat.S_ISREG(info.st_mode) or stat.S_ISLNK(info.st_mode):
+        raise EnclosureError(f"{where}: expected an ordinary file: {absolute}")
+    if single_link and info.st_nlink != 1:
+        raise EnclosureError(f"{where}: hard-linked files are not accepted")
+    return absolute
+
+
+def stable_file_digest(path: Path, where: str) -> tuple[Path, os.stat_result, str]:
+    """Hash one ordinary file descriptor and retain its exact path identity."""
+    absolute = require_ordinary_file(path, where)
+    before = absolute.lstat()
+    expected = (before.st_dev, before.st_ino, before.st_size,
+                before.st_mtime_ns)
+    descriptor = os.open(
+        absolute, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    digest = hashlib.sha256()
+    try:
+        opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode) or opened.st_nlink != 1 or \
+                (opened.st_dev, opened.st_ino, opened.st_size,
+                 opened.st_mtime_ns) != expected:
+            raise EnclosureError(f"{where}: file changed while opening")
+        while True:
+            chunk = os.read(descriptor, 1024 * 1024)
+            if not chunk:
+                break
+            digest.update(chunk)
+        finished = os.fstat(descriptor)
+        if (finished.st_dev, finished.st_ino, finished.st_size,
+                finished.st_mtime_ns) != expected:
+            raise EnclosureError(f"{where}: file changed while reading")
+    finally:
+        os.close(descriptor)
+    after = require_ordinary_file(absolute, where).lstat()
+    if (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns) != expected:
+        raise EnclosureError(f"{where}: path changed while reading")
+    return absolute, before, digest.hexdigest()
+
+
+def read_stable_bytes(path: Path, where: str) -> bytes:
+    """Read exact bytes and prove the ordinary path remained unchanged."""
+    absolute = require_ordinary_file(path, where)
+    before = absolute.lstat()
+    expected = (before.st_dev, before.st_ino, before.st_size,
+                before.st_mtime_ns)
+    descriptor = os.open(
+        absolute, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+    payload = bytearray()
+    try:
+        opened = os.fstat(descriptor)
+        if not stat.S_ISREG(opened.st_mode) or opened.st_nlink != 1 or \
+                (opened.st_dev, opened.st_ino, opened.st_size,
+                 opened.st_mtime_ns) != expected:
+            raise EnclosureError(f"{where}: file changed while opening")
+        while True:
+            chunk = os.read(descriptor, 1024 * 1024)
+            if not chunk:
+                break
+            payload.extend(chunk)
+        finished = os.fstat(descriptor)
+        if (finished.st_dev, finished.st_ino, finished.st_size,
+                finished.st_mtime_ns) != expected:
+            raise EnclosureError(f"{where}: file changed while reading")
+    finally:
+        os.close(descriptor)
+    after = require_ordinary_file(absolute, where).lstat()
+    if (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns) != expected \
+            or len(payload) != before.st_size:
+        raise EnclosureError(f"{where}: path changed while reading")
+    return bytes(payload)
+
+
+@contextmanager
+def stable_input_snapshot(path: Path, where: str) -> Iterator[tuple[Path, dict[str, Any]]]:
+    """Yield a private, identity-bound copy for parsers that reopen paths.
+
+    Checking a digest before and after a multi-pass parser cannot detect a
+    transient A->B->A replacement between passes.  Every downstream parser
+    instead consumes this one copied descriptor, and both the snapshot and
+    original are revalidated before the context may close successfully.
+    """
+    absolute = require_ordinary_file(path, where)
+    before = absolute.lstat()
+    expected = (before.st_dev, before.st_ino, before.st_size,
+                before.st_mtime_ns)
+    with tempfile.TemporaryDirectory(prefix=".pcb-enclosure-input-") as raw_dir:
+        snapshot = Path(raw_dir) / ("subject" + absolute.suffix)
+        source_fd = os.open(
+            absolute, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+        output_fd: int | None = None
+        digest = hashlib.sha256()
+        size = 0
+        try:
+            opened = os.fstat(source_fd)
+            if not stat.S_ISREG(opened.st_mode) or opened.st_nlink != 1 or \
+                    (opened.st_dev, opened.st_ino, opened.st_size,
+                     opened.st_mtime_ns) != expected:
+                raise EnclosureError(f"{where}: file changed while opening")
+            output_fd = os.open(
+                snapshot, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o400)
+            while True:
+                chunk = os.read(source_fd, 1024 * 1024)
+                if not chunk:
+                    break
+                digest.update(chunk)
+                size += len(chunk)
+                view = memoryview(chunk)
+                while view:
+                    written = os.write(output_fd, view)
+                    view = view[written:]
+            os.fsync(output_fd)
+            finished = os.fstat(source_fd)
+            if (finished.st_dev, finished.st_ino, finished.st_size,
+                    finished.st_mtime_ns) != expected:
+                raise EnclosureError(f"{where}: file changed while snapshotting")
+        finally:
+            os.close(source_fd)
+            if output_fd is not None:
+                os.close(output_fd)
+        after = require_ordinary_file(absolute, where).lstat()
+        if (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns) != \
+                expected or size != before.st_size:
+            raise EnclosureError(f"{where}: path changed while snapshotting")
+        binding: dict[str, Any] = {
+            "path": absolute,
+            "name": absolute.name,
+            "sha256": digest.hexdigest(),
+            "size": size,
+        }
+        try:
+            yield snapshot, binding
+        finally:
+            _, snap_info, snap_digest = stable_file_digest(
+                snapshot, f"{where} private snapshot")
+            if snap_info.st_size != size or snap_digest != binding["sha256"]:
+                raise EnclosureError(f"{where}: private snapshot changed during use")
+            final_path, final_info, final_digest = stable_file_digest(
+                absolute, where)
+            if final_path != absolute or \
+                    (final_info.st_dev, final_info.st_ino, final_info.st_size,
+                     final_info.st_mtime_ns) != expected or \
+                    final_digest != binding["sha256"]:
+                raise EnclosureError(f"{where}: original changed during use")
+
+
+def validate_output_path(path: Path, *, where: str = "output",
+                         root: Path | None = None,
+                         inputs: Iterable[Path] = ()) -> Path:
+    """Reject output escapes, symlinks, and path/inode aliases to inputs."""
+    output = reject_symlink_path(path, where)
+    if root is not None:
+        safe_root = reject_symlink_path(root, f"{where} root")
+        if output == safe_root or not output.is_relative_to(safe_root):
+            raise EnclosureError(
+                f"{where}: must be a file beneath build root {safe_root}")
+    if output.exists() and not output.is_file():
+        raise EnclosureError(f"{where}: existing destination is not a file")
+    for raw_input in inputs:
+        input_path = _absolute_lexical(raw_input)
+        aliases = output == input_path
+        if output.exists() and input_path.exists():
+            try:
+                aliases = aliases or output.samefile(input_path)
+            except OSError as exc:
+                raise EnclosureError(
+                    f"{where}: cannot compare destination with input "
+                    f"{input_path}: {exc}") from exc
+        if aliases:
+            raise EnclosureError(
+                f"{where}: destination aliases input file {input_path}")
+    return output
+
+
+@contextmanager
+def atomic_output(path: Path, *, where: str = "output",
+                  root: Path | None = None,
+                  inputs: Iterable[Path] = (),
+                  temporary_suffix: str = ".tmp") -> Iterator[tuple[Path, BinaryIO]]:
+    """Stage beside ``path`` and atomically replace it only after success."""
+    input_paths = tuple(Path(item) for item in inputs)
+    if not isinstance(temporary_suffix, str) or not temporary_suffix.startswith(".") \
+            or "/" in temporary_suffix or "\\" in temporary_suffix:
+        raise EnclosureError("atomic output: unsafe temporary suffix")
+    destination = validate_output_path(
+        path, where=where, root=root, inputs=input_paths)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    destination = validate_output_path(
+        destination, where=where, root=root, inputs=input_paths)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{destination.name}.", suffix=temporary_suffix,
+        dir=destination.parent)
+    temporary = Path(temporary_name)
+    stream = os.fdopen(descriptor, "w+b")
+    try:
+        yield temporary, stream
+        stream.flush()
+        os.fsync(stream.fileno())
+        stream.close()
+        validate_output_path(
+            destination, where=where, root=root, inputs=input_paths)
+        os.chmod(temporary, 0o644)
+        os.replace(temporary, destination)
+        try:
+            directory_fd = os.open(destination.parent, os.O_RDONLY)
+            try:
+                os.fsync(directory_fd)
+            finally:
+                os.close(directory_fd)
+        except OSError:
+            # Some supported filesystems cannot fsync a directory.  The file
+            # itself was flushed before the atomic replace.
+            pass
+    except BaseException:
+        if not stream.closed:
+            stream.close()
+        temporary.unlink(missing_ok=True)
+        raise
+
+
+def write_json(path: Path, value: Mapping[str, Any], *,
+               inputs: Iterable[Path] = (), root: Path | None = None,
+               where: str = "JSON output") -> None:
+    payload = (json.dumps(value, indent=2, sort_keys=True) + "\n").encode()
+    with atomic_output(path, where=where, root=root, inputs=inputs) as (_, stream):
+        stream.write(payload)
+
+
+def run_bounded(command: Sequence[str | Path], *, cwd: Path | None = None,
+                env: Mapping[str, str] | None = None,
+                timeout_s: float = 120.0,
+                max_output_bytes_per_stream: int = 1_000_000,
+                check: bool = False) -> subprocess.CompletedProcess[str]:
+    """Adapt enclosure callers to the repository's shared bounded runtime.
+
+    ``process_runner``/``pipeline_runtime`` remains the sole process-launch,
+    nested-group, deadline, descendant-cleanup, and output-draining authority.
+    This adapter only applies the enclosure API's retained-output cap and
+    error vocabulary.
+    """
+    argv = [os.fspath(item) for item in command]
+    if not argv:
+        raise EnclosureError("bounded subprocess: command is empty")
+    if not math.isfinite(timeout_s) or timeout_s <= 0:
+        raise EnclosureError("bounded subprocess: timeout must be finite and > 0")
+    if isinstance(max_output_bytes_per_stream, bool) or not isinstance(
+            max_output_bytes_per_stream, int) or \
+            max_output_bytes_per_stream <= 0:
+        raise EnclosureError(
+            "bounded subprocess: output limit must be a positive integer")
+    try:
+        shared = _pipeline_run_bounded(
+            argv, cwd=cwd, env=env, timeout_s=timeout_s,
+            heartbeat_s=min(10.0, max(5.0, timeout_s / 2)),
+            label="pcb-enclosure", echo=False)
+    except (OSError, ValueError) as exc:
+        raise EnclosureError(f"bounded subprocess could not start: {exc}") from exc
+
+    encoded = shared.output.encode("utf-8", errors="replace")
+    truncated = len(encoded) > max_output_bytes_per_stream
+    if truncated:
+        encoded = encoded[:max_output_bytes_per_stream]
+    stdout = encoded.decode("utf-8", errors="replace")
+    if truncated:
+        stdout += (
+            f"\n[pcb-enclosure: stdout truncated at "
+            f"{max_output_bytes_per_stream} bytes]\n")
+    # ``pipeline_runtime`` deliberately grades a leader that exits while a
+    # descendant keeps running as ERROR, even if the declared deadline was
+    # crossed during cleanup.  The legacy RunResult surface carries only the
+    # normalized return code, so retain the enclosure API's stronger rule:
+    # crossing the deadline is always an exception, never an ordinary nonzero
+    # tool result.
+    deadline_breached = shared.elapsed_s >= timeout_s
+    if shared.timed_out or (deadline_breached and shared.returncode != 0):
+        detail = stdout[-2000:]
+        suffix = f"; output tail:\n{detail}" if detail else ""
+        raise EnclosureError(
+            f"bounded subprocess timed out after {timeout_s:g}s: "
+            f"{argv[0]}{suffix}")
+    result = subprocess.CompletedProcess(
+        argv, shared.returncode, stdout, "")
+    if check and result.returncode:
+        detail = result.stdout[-2000:]
+        suffix = f"; output tail:\n{detail}" if detail else ""
+        raise EnclosureError(
+            f"bounded subprocess exited {result.returncode}: {argv[0]}{suffix}")
+    return result
 
 
 def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
+    return stable_file_digest(path, f"file {path}")[2]
 
 
 def sha256_bytes(value: bytes) -> str:
@@ -168,7 +494,7 @@ def safe_relative_path(value: Any, root: Path, where: str) -> Path:
                                                   for part in path.parts):
         raise EnclosureError(
             f"{where}: path must be normalized, relative, and traversal-free")
-    base = root.resolve()
+    base = reject_symlink_path(root, f"{where} root").resolve()
     unresolved = base / path
     # Resolving first would erase evidence that an otherwise in-root subject
     # was reached through a symlink.  Subject bindings are deliberately made
@@ -196,6 +522,8 @@ def validate_file_binding(value: Any, root: Path, where: str,
     if isinstance(expected_size, bool) or not isinstance(expected_size, int) \
             or expected_size <= 0:
         raise EnclosureError(f"{where}.size: expected positive integer")
+    if path.exists():
+        path = require_ordinary_file(path, where)
     result = {
         "path": path,
         "expected_sha256": expected_hash,
@@ -206,8 +534,10 @@ def validate_file_binding(value: Any, root: Path, where: str,
         if require_exists:
             raise EnclosureError(f"{where}: bound file is missing: {path}")
         return result
-    result["actual_sha256"] = sha256_file(path)
-    result["actual_size"] = path.stat().st_size
+    path, info, digest = stable_file_digest(path, where)
+    result["path"] = path
+    result["actual_sha256"] = digest
+    result["actual_size"] = info.st_size
     result["matches"] = (
         result["actual_sha256"] == expected_hash and
         result["actual_size"] == expected_size)
@@ -367,6 +697,10 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
             "config.subject: fields differ; "
             f"missing={sorted(required_subject - set(subject))}, "
             f"unknown={sorted(set(subject) - required_subject - optional_subject)}")
+    if top["mode"] == "derived" and "release_manifest" not in subject:
+        raise EnclosureError(
+            "config.subject.release_manifest: mode derived requires an exact "
+            "PCB release-manifest binding")
     _string(subject["release"], "config.subject.release")
     bound_subjects = ["pcb", "step", "interface"]
     if "release_manifest" in subject:
@@ -490,8 +824,14 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     case_holes = fasteners["case_holes_mm"]
     if not isinstance(case_holes, list):
         raise EnclosureError("config.fasteners.case_holes_mm: expected list")
-    for index, point in enumerate(case_holes):
+    normalized_case_holes = [
         _vec(point, 2, f"config.fasteners.case_holes_mm[{index}]")
+        for index, point in enumerate(case_holes)
+    ]
+    if len({tuple(point) for point in normalized_case_holes}) != \
+            len(normalized_case_holes):
+        raise EnclosureError(
+            "config.fasteners.case_holes_mm: duplicate case-fastener axis")
     if strategy == "shared_board" and case_holes:
         raise EnclosureError("shared_board fasteners cannot declare case holes")
     if strategy == "separate_perimeter" and len(case_holes) < 4:
@@ -627,6 +967,15 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     }, "config.physical_validation")
     for field in physical:
         _boolean(physical[field], f"config.physical_validation.{field}")
+    baseline_physical = (
+        "insert_coupon_required", "board_drop_in_required",
+        "all_interfaces_mated_required",
+    )
+    if any(not physical[field] for field in baseline_physical):
+        raise EnclosureError(
+            "config.physical_validation: schema v1 requires insert coupon, "
+            "board drop-in, and all-interface mating evidence; a zero physical "
+            "acceptance denominator cannot authorize print or thermal readiness")
     if physical["thermal_soak_required"] != thermal["physical_soak_required"]:
         raise EnclosureError("config: thermal soak requirements disagree")
     if physical["insert_coupon_required"] and "insert_coupon" not in parts:
@@ -641,6 +990,7 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
 
 def load_bound_config(config_path: Path, root: Path) -> tuple[dict[str, Any],
                                                                dict[str, Any]]:
+    config_path = require_ordinary_file(config_path, "enclosure config")
     config = validate_config(load_yaml(config_path))
     bindings = {}
     subject_fields = ["pcb", "step", "interface"]
@@ -671,8 +1021,9 @@ def load_bound_config(config_path: Path, root: Path) -> tuple[dict[str, Any],
 
 def stl_metrics(path: Path, *, quantization: float = 1e-6) -> dict[str, Any]:
     """Return strict, dependency-free ASCII/binary STL topology metrics."""
+    path = require_ordinary_file(path, "STL input")
     try:
-        payload = path.read_bytes()
+        payload = read_stable_bytes(path, "STL input")
     except OSError as exc:
         raise EnclosureError(f"cannot read STL {path}: {exc}") from exc
     if len(payload) < 15:
@@ -771,7 +1122,7 @@ def stl_metrics(path: Path, *, quantization: float = 1e-6) -> dict[str, Any]:
             directed_edges[(edge[1], edge[0])] == 1))
     return {
         "path": path.name,
-        "sha256": sha256_file(path),
+        "sha256": sha256_bytes(payload),
         "size": len(payload),
         "format": "binary" if binary else "ascii",
         "triangles": len(triangles),

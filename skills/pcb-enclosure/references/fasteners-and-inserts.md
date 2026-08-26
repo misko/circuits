@@ -30,6 +30,25 @@ For flanged cold-press inserts, install from the designed access face and seat t
 
 Never infer that a longer screw is safer: it can bottom in the insert before clamping. Never infer that a short screw is harmless: insufficient engagement can pull threads or inserts out.
 
+## Schema-v2 role groups
+
+For new schema-v2 work, replace the single strategy flag with explicit
+fastener groups. `board_retention` retains the PCB to the base and must not
+retain the lid. `case_closure` retains the lid to the base and must not retain
+the PCB. Optional `accessory` groups retain an installed accessory to a base or
+lid structural part.
+
+Give every group its actual 3-D screw axes, retained members, thread, screw
+length, minimum engagement, and minimum tip clearance. Board-retention and
+case-closure axes must be disjoint. A visually separate boss is not sufficient
+if its screw line still passes through the PCB mounting hole.
+
+Schema v2 requires `pcb_retained_with_lid_removed: true`. Mechanical intent
+must include a lid-removed state with all board-retention groups still secured
+and all case-closure groups released. Require the typed physical tests
+`lid_off_pcb_retention` and `case_closure_independence` before claiming
+`PRINT_VERIFIED`.
+
 ## Print and qualify a coupon
 
 Include `insert_coupon` in printable parts when insert validation is required. Print it with the same:

@@ -1,6 +1,23 @@
-# Interface and configuration schema
+# Interface and schema-v1 CAD configuration
 
-Use schema version 1 exactly. The strict loader rejects duplicate YAML keys, unknown fields, omitted fields, unsafe paths, hash/size mismatches, and stale interface bindings.
+This reference defines the exact schema-v1 CAD adapter consumed by
+`generate_enclosure.py`, `verify_enclosure.py`, and `package_enclosure.py`.
+Use version 1 exactly for that file. New commissioned work also needs the
+additive schema-v2 composition in `configuration-schema-v2.md`; v2 binds this
+v1 file as `subject.cad_design` and rejects different subject identities. It
+does not replace or silently translate the stable geometry contract.
+
+The v1 strict loader rejects duplicate YAML keys, unknown fields, omitted
+fields, unsafe paths, hash/size mismatches, and stale interface bindings.
+
+## Contents
+
+- [Subject binding](#subject-binding)
+- [Extracted interface frame](#extracted-interface-frame)
+- [Process and CAD](#process-and-cad)
+- [Geometry](#geometry)
+- [Fasteners](#fasteners)
+- [Interfaces and thermal intent](#interfaces-and-thermal-intent)
 
 ## Subject binding
 
@@ -91,6 +108,23 @@ All dimensions except panel clearance and lid-column gap are positive. The two c
 
 `fasteners.strategy` is `shared_board` or `separate_perimeter`. Declare thread, unique board-hole refs, case-hole points, boss and post diameters, and minimum radial wall.
 
+- `shared_board` routes case closure through the PCB mounting axes. It is kept
+  for replay of legacy v1 designs, but it does not satisfy schema v2's
+  lid-off PCB-retention requirement.
+- `separate_perimeter` gives the PCB its own board-hole bosses/inserts and
+  gives base/lid closure distinct perimeter posts/inserts. Use it for new v2
+  work. The built-in split-shell engine emits both groups; the generated
+  `assembly_contract` records their roles and axes, and the v1 verifier checks
+  that their radial envelopes are disjoint.
+
+Schema v2 separately requires explicit `board_retention`, `case_closure`, and
+optional accessory fastener groups with retained-part censuses and 3-D axes.
+The current v2 validator checks those declarations against one another, but it
+does not derive them from the v1 CAD geometry. Before assigning a
+`board_retention` scope result, compare the generated v1 assembly contract and
+geometry with the v2 groups. An authored SCAD adapter must implement the same
+independence itself.
+
 The insert mapping requires family, `cold_press|heat_set`, hole/body/flange/recess dimensions, length, and bottom clearance. It may also declare `pilot_basis: datasheet|coupon_qualified`; omission means `datasheet`. A datasheet-based cold-press pilot must remain smaller than the nominal insert body. `coupon_qualified` may use a larger modeled pilot to represent measured FDM undersizing, but requires the insert coupon to remain a declared and required physical test. This declaration records design basis; it is not itself physical evidence and does not promote verification status. The screw mapping requires clearance/head/recess dimensions, board and lid lengths, minimum engagement, and minimum tip clearance.
 
 Shared-board designs require no case holes. Separate-perimeter designs require at least four case holes.
@@ -102,3 +136,8 @@ Create one unique row per access candidate with: `id`, `ref`, `role`, `side`, `d
 Thermal intent requires `risk: low|moderate|high`, a soak requirement, named load case, and zero or more vent groups. Each vent group declares center, positive count/length/width/pitch, and `axis: x|y`.
 
 `physical_validation` contains four booleans: insert coupon, board drop-in, all interfaces mated, and thermal soak. Its thermal value must match `thermal.physical_soak_required`.
+
+These booleans govern the closed schema-v1 physical-evidence census. The v2
+composition adds scoped, extensible physical tests, including lid-off board
+retention, closure independence, and prewired-accessory operations; see
+`configuration-schema-v2.md`.

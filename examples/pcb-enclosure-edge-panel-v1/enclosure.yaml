@@ -4,6 +4,10 @@ name: sanitized-edge-panel-v1
 mode: derived
 subject:
   release: synthetic-v1
+  release_manifest:
+    path: subject/release-MANIFEST.snapshot.txt
+    sha256: 51a77c4f9b0bcd451e1ba483258bc88765b87fe9988cd544adcaeb15e37d6c5a
+    size: 158
   pcb:
     path: subject/board.snapshot.txt
     sha256: 65c58fdff0f53641fe016df7e0abee76b173d51b519f1a0ba82be97f87465b99

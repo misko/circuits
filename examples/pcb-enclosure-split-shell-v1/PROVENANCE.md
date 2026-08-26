@@ -1,6 +1,6 @@
 # Sanitized split-shell enclosure fixture
 
-- Source path: this clean-room synthetic snapshot directory; no production board or sealed release binary was copied.
+- Source path: this clean-room synthetic snapshot directory; no production board or sealed release binary was copied. The synthetic release-manifest snapshot exists solely to exercise the derived-enclosure dependency contract.
 - Repository baseline commit: `d36f032cd5a658d528909a1255b2b2a70c84c803`.
 - Extraction date: 2026-08-24.
 - Evidence of: a minimal `split_shell` configuration with shared board fasteners, two connector openings, and support-aware FDM outputs.

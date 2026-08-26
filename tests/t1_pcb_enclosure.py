@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sys
 import zipfile
 from pathlib import Path
@@ -55,6 +56,23 @@ def _write_json(path: Path, value: dict) -> None:
 
 def _write_yaml(path: Path, value: dict) -> None:
     path.write_text(yaml.safe_dump(value, sort_keys=False))
+
+
+def _assembly_contract(config: dict, interface: dict) -> dict:
+    by_ref = {row["ref"]: row["position_mm"]
+              for row in interface["board"]["mounting_holes"]}
+    board_axes = [by_ref[ref] for ref in config["fasteners"]["board_holes"]]
+    case_axes = config["fasteners"]["case_holes_mm"]
+    separate = config["fasteners"]["strategy"] == "separate_perimeter"
+    return {
+        "kind": "pcb-enclosure-assembly-contract-v1",
+        "fastener_strategy": config["fasteners"]["strategy"],
+        "board_fastener_axes_mm": board_axes,
+        "case_fastener_axes_mm": case_axes,
+        "shell_closure_axes_mm": case_axes if separate else board_axes,
+        "pcb_retained_with_lid_removed": separate,
+        "shared_board_shell_axes": not separate,
+    }
 
 
 def _cube_triangles(offset=(0.0, 0.0, 0.0)):
@@ -310,6 +328,7 @@ def _fresh_fixture(step_refs=("J1", "SW1")) -> dict[str, Path]:
         "source": {"path": "enclosure.scad", "sha256": _sha(build / "enclosure.scad"),
                    "size": (build / "enclosure.scad").stat().st_size},
         "authority": {"kind": "built_in_v1"},
+        "assembly_contract": _assembly_contract(parsed_config, interface),
         "parts": [
             {"part": part, "path": f"{part}.stl",
              "sha256": _sha(build / f"{part}.stl"),
@@ -411,6 +430,8 @@ def _refresh_generation_config(fixture: dict[str, Path]) -> None:
     config = yaml.safe_load(fixture["config"].read_text())
     generation["config"]["raw_sha256"] = _sha(fixture["config"])
     generation["config"]["semantic_sha256"] = _semantic_sha(config)
+    interface = json.loads(fixture["interface"].read_text())
+    generation["assembly_contract"] = _assembly_contract(config, interface)
     _write_json(generation_path, generation)
     collision = json.loads(fixture["collision_report"].read_text())
     _refresh_collision_receipt(
@@ -800,6 +821,25 @@ def t_verify_undersize_boss_bites():
     _assert_only_failed(fixture, "fastener_geometry")
 
 
+@test("separate board and case fasteners cannot reuse or overlap screw axes",
+      kind="known_bad", gate="verify_enclosure.py")
+def t_verify_overlapping_independent_fasteners_bites():
+    fixture = _fresh_fixture()
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["fasteners"]["strategy"] = "separate_perimeter"
+    config["fasteners"]["case_holes_mm"] = [
+        [-25.0, -15.0], [25.0, -15.0], [-25.0, 15.0], [25.0, 15.0],
+    ]
+    config["fasteners"]["screw"]["board_length_mm"] = 5.0
+    config["fasteners"]["screw"]["lid_length_mm"] = 5.0
+    _write_yaml(fixture["config"], config)
+    _refresh_generation_config(fixture)
+    must_fail(run(_verify_args(fixture)),
+              "verify_enclosure overlapping independent axes",
+              "posts require >= 8.000 mm")
+    _assert_only_failed(fixture, "fastener_geometry")
+
+
 @test("enclosure verifier refuses a non-manifold printable STL",
       kind="known_bad", gate="verify_enclosure.py")
 def t_verify_nonmanifold_mesh_bites():
@@ -1047,6 +1087,56 @@ def t_package_stale_mesh_bites():
         "--build-dir", fixture["build"], "--output", output,
     ]), "package_enclosure stale mesh", "generated mesh base: file changed")
     check(not output.exists(), "stale package run published an archive")
+
+
+@test("enclosure verifier report cannot overwrite a bound input",
+      kind="known_bad", gate="verify_enclosure.py")
+def t_verify_report_alias_bites():
+    fixture = _fresh_fixture()
+    before = fixture["config"].read_bytes()
+    args = list(_verify_args(fixture))
+    args[args.index("--report") + 1] = fixture["config"]
+    must_fail(run(args), "verification report aliases config",
+              "verification report must be the canonical build artifact")
+    eq(fixture["config"].read_bytes(), before,
+       "verification alias refusal preserved config")
+
+
+@test("enclosure verifier rejects linked build meshes",
+      kind="known_bad", gate="verify_enclosure.py")
+def t_verify_linked_meshes_bite():
+    for kind in ("symlink", "hardlink"):
+        fixture = _fresh_fixture()
+        base = fixture["build"] / "base.stl"
+        outside = fixture["work"] / f"outside-{kind}.stl"
+        outside.write_bytes(base.read_bytes())
+        base.unlink()
+        if kind == "symlink":
+            os.symlink(outside, base)
+            expected = "symlink path component"
+        else:
+            os.link(outside, base)
+            expected = "hard-linked files are not accepted"
+        must_fail(run(_verify_args(fixture)), f"verification {kind} mesh",
+                  expected)
+
+
+@test("schema-v1 physical readiness cannot use a zero acceptance denominator",
+      kind="known_bad", gate="enclosure_common.py")
+def t_zero_physical_acceptance_denominator_bites():
+    fixture = _fresh_fixture()
+    config = yaml.safe_load(fixture["config"].read_text())
+    config["physical_validation"].update({
+        "insert_coupon_required": False,
+        "board_drop_in_required": False,
+        "all_interfaces_mated_required": False,
+        "thermal_soak_required": False,
+    })
+    config["thermal"]["physical_soak_required"] = False
+    _write_yaml(fixture["config"], config)
+    must_fail(
+        run(_verify_args(fixture)), "zero physical acceptance denominator",
+        "a zero physical acceptance denominator cannot authorize")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,218 @@
+schema: 2
+kind: pcb-enclosure-config-v2
+name: pluto-rx2-8way-v5-split-shell
+mode: derived
+subject:
+  release: v0.2.1-2026-08-14
+  release_manifest:
+    path: 07_releases/v0.2.1-2026-08-14/MANIFEST.txt
+    sha256: 084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc
+    size: 17338
+  pcb:
+    path: 07_releases/v0.2.1-2026-08-14/source/pluto_rx2_8way_v5.kicad_pcb
+    sha256: e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5
+    size: 538805
+  step:
+    path: 07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step
+    sha256: 650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f
+    size: 23398573
+  interface:
+    path: 07_enclosure_releases/v0.4.0-2026-08-25/verification/board-interface.json
+    sha256: 3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3
+    size: 31058
+  mechanical_intent:
+    path: 03_src/mechanical/mechanical-intent-v2.yaml
+    sha256: b3c15b798f1e8d28ccc6f68ab483b0e42a70c802f8691e02a2ee44301cfc84f2
+    size: 3741
+  cad_design:
+    path: 03_src/mechanical/enclosure-cad-design-v2.yaml
+    sha256: 1603c421c3da521bee8c9fc388dae2ae1d1094764911142e688c889cda9dd531
+    size: 5740
+external_subjects:
+  - id: antenna_candidate_contract
+    role: antenna_envelope_candidate
+    source:
+      path: 03_src/mechanical/reference/antenna-adapter-candidate-contract.json
+      sha256: adae3da7e0317ea608350e4f592a6360b2f0cf79f50382a32ab3a9efafa6e6e9
+      size: 3019
+    authority:
+      grade: conservative_candidate
+      basis: Reviewed machine contract for a conservative L-shaped envelope derived from the supplied holder, not measurements of the production antenna.
+      excluded_claims: [exact_geometry, physical_fit]
+  - id: holder_reference_stl
+    role: holder_design_inspiration
+    source:
+      path: 03_src/mechanical/reference/user-antenna-holder-reference.stl
+      sha256: a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f
+      size: 14303684
+    authority:
+      grade: inspiration_only
+      basis: User-supplied compliant holder used only to understand bottom loading and an L-shaped retention topology; it is not an antenna solid.
+      excluded_claims:
+        - exact_geometry
+        - clearance
+        - physical_fit
+        - manufacturing_dimensions
+  - id: holder_measurement
+    role: holder_derived_measurement
+    source:
+      path: 03_src/mechanical/reference/antenna-holder-measurement.json
+      sha256: 91d0dfe9bbac84c665b1eaf6e99c22fee710e9913ed0f320214ef2f17ef71be4
+      size: 7432
+    authority:
+      grade: derived_measurement
+      basis: Reproducible measurements of the supplied holder mesh and its compliant voids; dimensions do not measure the production antenna.
+      excluded_claims: [physical_fit]
+verification_scopes:
+  - id: shell
+    description: Base, lid, connector openings, and immutable PCB/STEP fit envelope.
+    required: true
+    depends_on: []
+  - id: board_retention
+    description: Four PCB screws retain the board independently of the four perimeter case screws.
+    required: true
+    depends_on: [shell]
+  - id: antenna_accessory
+    description: Separately printed top adapter accepts the full prewired right-angle antenna through its rectangular underside and mounts with two screws.
+    required: true
+    depends_on: [shell]
+  - id: thermal
+    description: Installed enclosure behavior under the representative RF-switching and USB-powered load case.
+    required: true
+    depends_on: [shell]
+installed_parts:
+  - id: pcb
+    role: pcb
+    source: {kind: subject, id: pcb}
+    scopes: [shell, board_retention, thermal]
+  - id: base
+    role: base
+    source: {kind: generated, id: base}
+    scopes: [shell, board_retention, antenna_accessory, thermal]
+  - id: lid
+    role: lid
+    source: {kind: generated, id: lid}
+    scopes: [shell, antenna_accessory, thermal]
+  - id: antenna_mount
+    role: accessory
+    source: {kind: generated, id: rx2_antenna_mount}
+    scopes: [antenna_accessory]
+  - id: antenna
+    role: accessory
+    source: {kind: external_subject, id: antenna_candidate_contract}
+    scopes: [antenna_accessory]
+fastener_policy:
+  axis_disjoint_tolerance_mm: 0.1
+  pcb_retained_with_lid_removed: true
+fastener_groups:
+  - id: pcb_screws
+    role: board_retention
+    axes:
+      - {id: h1, origin_mm: [-40.0, 27.5, 0.0], direction: [0, 0, 1]}
+      - {id: h2, origin_mm: [40.0, 27.5, 0.0], direction: [0, 0, 1]}
+      - {id: h3, origin_mm: [-40.0, -27.5, 0.0], direction: [0, 0, 1]}
+      - {id: h4, origin_mm: [40.0, -27.5, 0.0], direction: [0, 0, 1]}
+    retained_parts: [pcb, base]
+    hardware:
+      thread: M3-0.5
+      screw_length_mm: 6.0
+      minimum_engagement_mm: 4.0
+      minimum_tip_clearance_mm: 0.2
+  - id: case_screws
+    role: case_closure
+    axes:
+      - {id: c1, origin_mm: [-49.0, -36.5, 0.0], direction: [0, 0, 1]}
+      - {id: c2, origin_mm: [49.0, -36.5, 0.0], direction: [0, 0, 1]}
+      - {id: c3, origin_mm: [-49.0, 36.5, 0.0], direction: [0, 0, 1]}
+      - {id: c4, origin_mm: [49.0, 36.5, 0.0], direction: [0, 0, 1]}
+    retained_parts: [base, lid]
+    hardware:
+      thread: M3-0.5
+      screw_length_mm: 6.0
+      minimum_engagement_mm: 4.0
+      minimum_tip_clearance_mm: 0.2
+  - id: antenna_mount_screws
+    role: accessory
+    axes:
+      - {id: m1, origin_mm: [-22.0, 8.0, 0.0], direction: [0, 0, 1]}
+      - {id: m2, origin_mm: [22.0, 8.0, 0.0], direction: [0, 0, 1]}
+    retained_parts: [lid, antenna_mount]
+    hardware:
+      thread: M3-0.5
+      screw_length_mm: 8.0
+      minimum_engagement_mm: 4.0
+      minimum_tip_clearance_mm: 0.2
+clearance_cases:
+  - id: antenna_bottom_load
+    scope: antenna_accessory
+    operation: insert_antenna_from_mount_bottom
+    opening_id: mount_rectangular_underside
+    moving_parts: [antenna]
+    obstacles: [antenna_mount]
+    envelope_basis: full_part
+    method: linear_sweep_envelope
+    minimum_clearance_mm: 0.4
+  - id: lid_installation
+    scope: shell
+    operation: place_lid
+    opening_id: case_seam
+    moving_parts: [lid]
+    obstacles: [base, pcb]
+    envelope_basis: full_part
+    method: linear_sweep_exact
+    minimum_clearance_mm: 0.15
+  - id: loaded_mount_installation
+    scope: antenna_accessory
+    operation: install_loaded_antenna_mount
+    opening_id: lid_antenna_mount_seat
+    moving_parts: [antenna_mount, antenna]
+    obstacles: [base, pcb, lid]
+    envelope_basis: full_part
+    method: linear_sweep_envelope
+    minimum_clearance_mm: 0.0
+physical_tests:
+  - id: insert_coupon
+    type: insert_coupon
+    scope: shell
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid, antenna_mount]
+  - id: board_drop_in
+    type: board_drop_in
+    scope: board_retention
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, pcb]
+  - id: all_interfaces_mated
+    type: all_interfaces_mated
+    scope: shell
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid, pcb]
+  - id: lid_off_retention
+    type: lid_off_pcb_retention
+    scope: board_retention
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, pcb]
+  - id: closure_independence
+    type: case_closure_independence
+    scope: board_retention
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid, pcb]
+  - id: antenna_insertion
+    type: accessory_insertion_removal
+    scope: antenna_accessory
+    required_for: PRINT_VERIFIED
+    subject_parts: [antenna_mount, antenna]
+  - id: antenna_retention
+    type: accessory_retention_rattle
+    scope: antenna_accessory
+    required_for: PRINT_VERIFIED
+    subject_parts: [lid, antenna_mount, antenna]
+  - id: antenna_cable_clearance
+    type: cable_strain_clearance
+    scope: antenna_accessory
+    required_for: PRINT_VERIFIED
+    subject_parts: [lid, antenna_mount, antenna]
+  - id: thermal_soak
+    type: thermal_soak
+    scope: thermal
+    required_for: THERMALLY_VERIFIED
+    subject_parts: [base, lid, pcb]

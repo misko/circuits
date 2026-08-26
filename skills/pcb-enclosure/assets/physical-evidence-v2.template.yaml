@@ -1,0 +1,51 @@
+# Replace the semantic hash and make this census exactly match config.physical_tests.
+# Add namespaced custom types as custom.<owner>.<test>; never relabel a failed run.
+schema: 2
+kind: pcb-enclosure-physical-evidence-v2
+config_semantic_sha256: 0000000000000000000000000000000000000000000000000000000000000000
+tests:
+  - id: insert_coupon
+    type: insert_coupon
+    scope: shell
+    status: NOT_RUN
+    evidence: Not run; replace with dated measurements and process identity.
+  - id: board_drop_in
+    type: board_drop_in
+    scope: board_retention
+    status: NOT_RUN
+    evidence: Not run; replace with an inspectable record.
+  - id: all_interfaces_mated
+    type: all_interfaces_mated
+    scope: shell
+    status: NOT_RUN
+    evidence: Not run; replace with an inspectable record.
+  - id: lid_off_pcb_retention
+    type: lid_off_pcb_retention
+    scope: board_retention
+    status: NOT_RUN
+    evidence: Not run; verify the PCB remains secured after lid removal.
+  - id: case_closure_independence
+    type: case_closure_independence
+    scope: board_retention
+    status: NOT_RUN
+    evidence: Not run; verify case screws do not retain or release the PCB.
+  - id: accessory_insertion_removal
+    type: accessory_insertion_removal
+    scope: antenna_accessory
+    status: NOT_RUN
+    evidence: Not run; insert the fully prewired accessory along the declared path.
+  - id: accessory_retention_rattle
+    type: accessory_retention_rattle
+    scope: antenna_accessory
+    status: NOT_RUN
+    evidence: Not run; record retention and rattle observations.
+  - id: cable_strain_clearance
+    type: cable_strain_clearance
+    scope: antenna_accessory
+    status: NOT_RUN
+    evidence: Not run; record full-body opening and cable strain clearance.
+  - id: thermal_soak
+    type: thermal_soak
+    scope: thermal
+    status: NOT_RUN
+    evidence: Not run; replace with load case, duration, and temperatures.

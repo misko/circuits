@@ -16,7 +16,9 @@ from typing import Any, Sequence
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 from enclosure_common import (  # noqa: E402
-    EnclosureError, load_json, sha256_file, validate_interface, write_json,
+    EnclosureError, atomic_output, load_json, reject_symlink_path,
+    read_stable_bytes, sha256_file, stable_input_snapshot, validate_interface,
+    validate_output_path, write_json,
 )
 
 
@@ -28,7 +30,8 @@ DESIGNATOR_RE = re.compile(r"^[A-Za-z]+[0-9]+[A-Za-z0-9_.+-]*$")
 
 def step_designators(step_path: Path) -> list[str]:
     try:
-        text = step_path.read_text(encoding="latin-1")
+        text = read_stable_bytes(
+            step_path, f"STEP occurrence input {step_path}").decode("latin-1")
     except OSError as exc:
         raise EnclosureError(f"cannot read STEP {step_path}: {exc}") from exc
     refs = [match.group(1).replace("''", "'") for match in
@@ -38,7 +41,8 @@ def step_designators(step_path: Path) -> list[str]:
 
 def _cadquery_geometry(step_path: Path, mesh_path: Path | None,
                        board_size: Sequence[float],
-                       board_thickness: float) -> dict[str, Any]:
+                       board_thickness: float,
+                       protected_inputs: Sequence[Path] = ()) -> dict[str, Any]:
     try:
         import cadquery as cq
     except ImportError:
@@ -105,11 +109,17 @@ def _cadquery_geometry(step_path: Path, mesh_path: Path | None,
         if mesh_path is not None:
             if not component_indices:
                 raise EnclosureError("STEP contains no component solids after PCB removal")
-            mesh_path.parent.mkdir(parents=True, exist_ok=True)
             compound = cq.Compound.makeCompound([solids[index]
                                                  for index in component_indices])
-            cq.exporters.export(compound, str(mesh_path), tolerance=0.03,
-                                angularTolerance=0.1)
+            with atomic_output(
+                    mesh_path, where="STEP component mesh",
+                    root=mesh_path.parent, inputs=protected_inputs,
+                    temporary_suffix=".stl") as (temporary, stream):
+                stream.flush()
+                cq.exporters.export(compound, str(temporary), tolerance=0.03,
+                                    angularTolerance=0.1)
+                if not temporary.is_file() or temporary.stat().st_size == 0:
+                    raise EnclosureError("CadQuery wrote no component mesh")
             if not mesh_path.is_file() or mesh_path.stat().st_size == 0:
                 raise EnclosureError("CadQuery wrote no component mesh")
             mesh_record = {
@@ -145,48 +155,58 @@ def _cadquery_geometry(step_path: Path, mesh_path: Path | None,
 
 def inspect(step_path: Path, interface_path: Path,
             mesh_path: Path | None) -> dict[str, Any]:
-    interface = validate_interface(load_json(interface_path))
-    occurrences = step_designators(step_path)
-    occurrence_set = set(occurrences)
-    expected = sorted(row["ref"] for row in interface["board"]["footprints"]
-                      if row["model_declared"])
-    missing = sorted(set(expected) - occurrence_set)
-    access_refs = {row["ref"] for row in interface["board"]["access_candidates"]}
-    unmodeled_access = sorted(row["ref"] for row in interface["board"]["footprints"]
-                              if row["ref"] in access_refs and
-                              not row["model_declared"])
-    geometry = _cadquery_geometry(
-        step_path, mesh_path, interface["board"]["outline"]["size_mm"],
-        interface["board"]["thickness_mm"])
-    zero_denominator = len(expected) == 0
-    coverage_status = ("COMPLETE" if not zero_denominator and not missing and
-                       not unmodeled_access else "FAIL")
-    if coverage_status == "FAIL" or geometry["status"] == "FAIL":
-        status = "FAIL"
-    elif geometry["status"] != "COMPLETE":
-        status = "INCOMPLETE"
-    else:
-        status = "COMPLETE"
-    return {
-        "schema": 1,
-        "kind": "pcb-enclosure-step-inspection-v1",
-        "status": status,
-        "step": {"path": step_path.name, "sha256": sha256_file(step_path),
-                 "size": step_path.stat().st_size},
-        "interface": {"path": interface_path.name,
-                      "sha256": sha256_file(interface_path),
-                      "size": interface_path.stat().st_size},
-        "occurrence_coverage": {
-            "status": coverage_status,
-            "zero_modeled_denominator": zero_denominator,
-            "expected_modeled_refs": len(expected),
-            "observed_designators": len(occurrences),
-            "covered_modeled_refs": len(set(expected) & occurrence_set),
-            "missing_modeled_refs": missing,
-            "unmodeled_access_refs": unmodeled_access,
-        },
-        "geometry": geometry,
-    }
+    with stable_input_snapshot(step_path, "STEP inspection input") as \
+            (step_snapshot, step_binding), stable_input_snapshot(
+                interface_path, "STEP interface input") as \
+            (interface_snapshot, interface_binding):
+        interface = validate_interface(load_json(interface_snapshot))
+        occurrences = step_designators(step_snapshot)
+        occurrence_set = set(occurrences)
+        expected = sorted(
+            row["ref"] for row in interface["board"]["footprints"]
+            if row["model_declared"])
+        missing = sorted(set(expected) - occurrence_set)
+        access_refs = {
+            row["ref"] for row in interface["board"]["access_candidates"]}
+        unmodeled_access = sorted(
+            row["ref"] for row in interface["board"]["footprints"]
+            if row["ref"] in access_refs and not row["model_declared"])
+        geometry = _cadquery_geometry(
+            step_snapshot, mesh_path,
+            interface["board"]["outline"]["size_mm"],
+            interface["board"]["thickness_mm"],
+            [step_snapshot, interface_snapshot])
+        zero_denominator = len(expected) == 0
+        coverage_status = (
+            "COMPLETE" if not zero_denominator and not missing and
+            not unmodeled_access else "FAIL")
+        if coverage_status == "FAIL" or geometry["status"] == "FAIL":
+            status = "FAIL"
+        elif geometry["status"] != "COMPLETE":
+            status = "INCOMPLETE"
+        else:
+            status = "COMPLETE"
+        return {
+            "schema": 1,
+            "kind": "pcb-enclosure-step-inspection-v1",
+            "status": status,
+            "step": {"path": step_binding["name"],
+                     "sha256": step_binding["sha256"],
+                     "size": step_binding["size"]},
+            "interface": {"path": interface_binding["name"],
+                          "sha256": interface_binding["sha256"],
+                          "size": interface_binding["size"]},
+            "occurrence_coverage": {
+                "status": coverage_status,
+                "zero_modeled_denominator": zero_denominator,
+                "expected_modeled_refs": len(expected),
+                "observed_designators": len(occurrences),
+                "covered_modeled_refs": len(set(expected) & occurrence_set),
+                "missing_modeled_refs": missing,
+                "unmodeled_access_refs": unmodeled_access,
+            },
+            "geometry": geometry,
+        }
 
 
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
@@ -201,10 +221,26 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
     try:
-        report = inspect(args.step.resolve(strict=True),
-                         args.interface.resolve(strict=True),
-                         args.component_mesh)
-        write_json(args.output, report)
+        step = reject_symlink_path(args.step, "STEP input").resolve(strict=True)
+        interface = reject_symlink_path(
+            args.interface, "interface input").resolve(strict=True)
+        output = validate_output_path(
+            args.output, where="STEP inspection report",
+            root=args.output.parent,
+            inputs=[step, interface, *([args.component_mesh]
+                                      if args.component_mesh else [])])
+        component_mesh = None
+        if args.component_mesh is not None:
+            component_mesh = validate_output_path(
+                args.component_mesh, where="STEP component mesh",
+                root=args.component_mesh.parent,
+                inputs=[step, interface, output])
+        report = inspect(step, interface, component_mesh)
+        write_json(
+            output, report,
+            inputs=[step, interface, *([component_mesh]
+                                      if component_mesh is not None else [])],
+            root=output.parent, where="STEP inspection report")
     except (OSError, EnclosureError) as exc:
         print(f"STEP INSPECTION ERROR — input: {args.step}: {exc}", file=sys.stderr)
         return 1

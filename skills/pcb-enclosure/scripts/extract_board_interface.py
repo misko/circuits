@@ -9,7 +9,6 @@ disposition every resulting candidate.
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
@@ -22,7 +21,10 @@ except ImportError as exc:  # pragma: no cover - host dependency
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
-from enclosure_common import INTERFACE_KIND, EnclosureError, sha256_file  # noqa: E402
+from enclosure_common import (  # noqa: E402
+    INTERFACE_KIND, EnclosureError, require_ordinary_file,
+    stable_input_snapshot, write_json,
+)
 
 
 AUTO_ACCESS_RE = re.compile(r"^(?:J|P|CN|USB|SW|F|TP)\d", re.I)
@@ -71,7 +73,8 @@ def _pad_attribute(pad: Any) -> str:
     return "SMD"
 
 
-def extract(board_path: Path, required_access: Sequence[str]) -> dict[str, Any]:
+def _extract_snapshot(board_path: Path, required_access: Sequence[str],
+                      subject: dict[str, Any]) -> dict[str, Any]:
     board = pcbnew.LoadBoard(str(board_path))
     if board is None:
         raise EnclosureError(f"cannot load board {board_path}")
@@ -141,9 +144,9 @@ def extract(board_path: Path, required_access: Sequence[str]) -> dict[str, Any]:
         "schema": 1,
         "kind": INTERFACE_KIND,
         "subject": {"board": {
-            "name": board_path.name,
-            "sha256": sha256_file(board_path),
-            "size": board_path.stat().st_size,
+            "name": subject["name"],
+            "sha256": subject["sha256"],
+            "size": subject["size"],
         }},
         "frame": {
             "units": "mm",
@@ -175,6 +178,12 @@ def extract(board_path: Path, required_access: Sequence[str]) -> dict[str, Any]:
     return payload
 
 
+def extract(board_path: Path, required_access: Sequence[str]) -> dict[str, Any]:
+    """Extract every fact from one private snapshot of the exact PCB bytes."""
+    with stable_input_snapshot(board_path, "PCB source") as (snapshot, binding):
+        return _extract_snapshot(snapshot, required_access, binding)
+
+
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("board", type=Path)
@@ -187,11 +196,10 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
     try:
-        board = args.board.resolve(strict=True)
+        board = require_ordinary_file(args.board, "PCB source")
         payload = extract(board, args.access_ref)
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n",
-                               encoding="utf-8")
+        write_json(args.output, payload, inputs=[board], root=args.output.parent,
+                   where="board-interface output")
     except (OSError, EnclosureError) as exc:
         print(f"INTERFACE EXTRACTION ERROR — input: {args.board}: {exc}",
               file=sys.stderr)

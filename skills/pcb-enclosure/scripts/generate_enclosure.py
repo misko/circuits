@@ -6,7 +6,6 @@ import argparse
 import math
 import re
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any, Sequence
@@ -15,8 +14,9 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 sys.path.insert(0, str(SCRIPT_DIR))
 from enclosure_common import (  # noqa: E402
-    BUILT_IN_PRINTABLE_PARTS, EnclosureError, load_bound_config, scad,
-    semantic_sha256, sha256_file, write_json,
+    BUILT_IN_PRINTABLE_PARTS, EnclosureError, atomic_output,
+    load_bound_config, read_stable_bytes, reject_symlink_path, run_bounded, scad,
+    semantic_sha256, sha256_file, validate_output_path, write_json,
 )
 
 
@@ -35,10 +35,8 @@ def _version_tuple(value: str) -> tuple[int, ...]:
 
 
 def _openscad_identity(executable: str, minimum: str) -> dict[str, str]:
-    result = subprocess.run([executable, "--version"], text=True,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                            check=False)
-    version = result.stdout.strip()
+    result = run_bounded([executable, "--version"], timeout_s=30)
+    version = (result.stdout + result.stderr).strip()
     if result.returncode or not version:
         raise EnclosureError("OpenSCAD version probe failed")
     actual_tuple = _version_tuple(version)
@@ -89,7 +87,8 @@ def _require_rectangular_outline(interface: dict[str, Any]) -> None:
 def _canonicalize_ascii_stl(path: Path) -> None:
     """Write a stable facet/vertex ordering without changing mesh topology."""
     try:
-        source = path.read_text(encoding="ascii")
+        source = read_stable_bytes(
+            path, f"generated ASCII STL {path}").decode("ascii")
     except UnicodeDecodeError as exc:
         raise EnclosureError(
             f"custom authored STL is not OpenSCAD ASCII: {path}") from exc
@@ -148,28 +147,36 @@ def _canonicalize_ascii_stl(path: Path) -> None:
 
 def _run_selector(executable: str, source: Path, build_dir: Path,
                   selector: str, filename: str,
-                  *, canonicalize: bool = False) -> dict[str, Any]:
+                  *, canonicalize: bool = False,
+                  protected_inputs: Sequence[Path] = ()) -> dict[str, Any]:
     output = build_dir / filename
-    if output.is_symlink():
-        raise EnclosureError(f"OpenSCAD output must not be a symlink: {output}")
-    output.unlink(missing_ok=True)
-    command = [executable, "-o", str(output.resolve()), "-D",
+    command = [executable, "-o", str(output.resolve(strict=False)), "-D",
                f'part="{selector}"', "-D", "show_reference_board=false",
                str(source.resolve())]
-    result = subprocess.run(command, text=True, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, check=False)
-    if result.returncode or not output.is_file() or output.stat().st_size == 0:
-        raise EnclosureError(
-            f"OpenSCAD could not generate {selector} (rc={result.returncode}):\n"
-            + result.stdout[-4000:])
-    if canonicalize:
-        _canonicalize_ascii_stl(output)
+    with atomic_output(
+            output, where=f"OpenSCAD {selector} output", root=build_dir,
+            inputs=[source, *protected_inputs],
+            temporary_suffix=".stl") as (temporary, stream):
+        stream.flush()
+        staged_command = [*command]
+        staged_command[2] = str(temporary)
+        result = run_bounded(staged_command, timeout_s=300)
+        diagnostic = result.stdout + result.stderr
+        if result.returncode or "ERROR:" in diagnostic or \
+                "WARNING:" in diagnostic or not temporary.is_file() or \
+                temporary.stat().st_size == 0:
+            raise EnclosureError(
+                f"OpenSCAD could not generate {selector} "
+                f"(rc={result.returncode}):\n" + diagnostic[-4000:])
+        if canonicalize:
+            _canonicalize_ascii_stl(temporary)
     record = {
         "selector": selector,
         "path": output.name,
         "sha256": sha256_file(output),
         "size": output.stat().st_size,
         "command": command,
+        "execution": {"kind": "atomic-same-directory-output-v1"},
     }
     if canonicalize:
         record["canonicalization"] = CANONICAL_STL_KIND
@@ -178,23 +185,32 @@ def _run_selector(executable: str, source: Path, build_dir: Path,
 
 def _probe_closed_authored_selectors(executable: str, source: Path,
                                      build_dir: Path,
-                                     declared: Sequence[str]) -> dict[str, Any] | None:
+                                     declared: Sequence[str],
+                                     protected_inputs: Sequence[Path] = (),
+                                     ) -> dict[str, Any] | None:
     """Reject catch-all authored entrypoints when custom parts are declared."""
     custom = [part for part in declared
               if part not in BUILT_IN_PRINTABLE_PARTS]
     if not custom:
         return None
     output = build_dir / ".selector-contract-probe.stl"
-    if output.is_symlink():
-        raise EnclosureError(
-            f"OpenSCAD selector probe output must not be a symlink: {output}")
-    output.unlink(missing_ok=True)
     command = [executable, "-o", str(output.resolve()), "-D",
                f'part="{UNKNOWN_SELECTOR_PROBE}"', "-D",
                "show_reference_board=false", str(source.resolve())]
-    result = subprocess.run(command, text=True, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, check=False)
-    generated = output.is_file() and output.stat().st_size > 0
+    with atomic_output(
+            output, where="OpenSCAD unknown-selector probe", root=build_dir,
+            inputs=[source, *protected_inputs],
+            temporary_suffix=".stl") as (temporary, stream):
+        stream.flush()
+        staged_command = [*command]
+        staged_command[2] = str(temporary)
+        result = run_bounded(staged_command, timeout_s=120)
+        diagnostic = result.stdout + result.stderr
+        generated = temporary.is_file() and temporary.stat().st_size > 0
+        if "WARNING:" in diagnostic:
+            raise EnclosureError(
+                "OpenSCAD unknown-selector probe emitted a warning:\n" +
+                diagnostic[-4000:])
     output.unlink(missing_ok=True)
     if generated:
         raise EnclosureError(
@@ -205,7 +221,8 @@ def _probe_closed_authored_selectors(executable: str, source: Path,
         "declared": list(declared),
         "custom": custom,
         "probe_selector": UNKNOWN_SELECTOR_PROBE,
-        "probe_result": "REJECTED" if result.returncode else "EMPTY",
+        "probe_result": ("REJECTED" if result.returncode or
+                         "ERROR:" in diagnostic else "EMPTY"),
         "mesh_canonicalization": CANONICAL_STL_KIND,
     }
 
@@ -234,6 +251,7 @@ def _prelude(config: dict[str, Any], interface: dict[str, Any]) -> str:
         "board_thickness": board["thickness_mm"],
         "board_mount_holes": mount_points,
         "case_holes": fasteners["case_holes_mm"],
+        "fastener_strategy": fasteners["strategy"],
         "xy_clearance": geometry["xy_clearance_mm"],
         "wall": geometry["wall_mm"],
         "floor": geometry["floor_mm"],
@@ -274,19 +292,52 @@ def _prelude(config: dict[str, Any], interface: dict[str, Any]) -> str:
     return "\n".join(header) + "\n\n"
 
 
+def _assembly_contract(config: dict[str, Any],
+                       interface: dict[str, Any]) -> dict[str, Any]:
+    """Project the authored fastener intent into generated-CAD semantics."""
+    fasteners = config["fasteners"]
+    board_axes = _mount_points(interface, fasteners["board_holes"])
+    case_axes = fasteners["case_holes_mm"]
+    separate = fasteners["strategy"] == "separate_perimeter"
+    return {
+        "kind": "pcb-enclosure-assembly-contract-v1",
+        "fastener_strategy": fasteners["strategy"],
+        "board_fastener_axes_mm": board_axes,
+        "case_fastener_axes_mm": case_axes,
+        "shell_closure_axes_mm": case_axes if separate else board_axes,
+        "pcb_retained_with_lid_removed": separate,
+        "shared_board_shell_axes": not separate,
+    }
+
+
 def generate(config_path: Path, root: Path, build_dir: Path,
              parts: Sequence[str], openscad: str) -> dict[str, Any]:
     config, loaded = load_bound_config(config_path, root)
     interface = loaded["interface"]
+    build_dir = reject_symlink_path(build_dir, "generation build directory")
+    subject_root = reject_symlink_path(root, "generation subject root")
+    if build_dir == subject_root:
+        raise EnclosureError(
+            "generation build directory must not be the subject root")
     build_dir.mkdir(parents=True, exist_ok=True)
+    build_dir = reject_symlink_path(build_dir, "generation build directory")
+    protected_inputs = [
+        config_path.resolve(strict=True),
+        *(row["path"] for row in loaded["bindings"].values()
+          if isinstance(row, dict) and isinstance(row.get("path"), Path)),
+    ]
     source = build_dir / "enclosure.scad"
     authored = config["cad"].get("source")
     if authored is None:
         _require_rectangular_outline(interface)
         if not ENGINE.is_file():
             raise EnclosureError(f"OpenSCAD engine missing: {ENGINE}")
-        source.write_text(_prelude(config, interface) +
-                          ENGINE.read_text(encoding="utf-8"), encoding="utf-8")
+        payload = (_prelude(config, interface).encode("utf-8") +
+                   read_stable_bytes(ENGINE, "built-in enclosure engine"))
+        with atomic_output(
+                source, where="generated OpenSCAD source", root=build_dir,
+                inputs=[*protected_inputs, ENGINE]) as (_, stream):
+            stream.write(payload)
         authority = {
             "kind": "built_in_v1",
             "engine_source": {
@@ -302,7 +353,11 @@ def generate(config_path: Path, root: Path, build_dir: Path,
                 "config.cad.source: authored input must be outside the build directory")
         # Preserve the exact reviewed source bytes.  Command-line -D values
         # select parts without modifying or wrapping the authored entrypoint.
-        source.write_bytes(authored_path.read_bytes())
+        with atomic_output(
+                source, where="copied authored OpenSCAD source", root=build_dir,
+                inputs=protected_inputs) as (_, stream):
+            stream.write(read_stable_bytes(
+                authored_path, "authored OpenSCAD source"))
         authority = {
             "kind": "authored_scad",
             "binding": {
@@ -317,7 +372,8 @@ def generate(config_path: Path, root: Path, build_dir: Path,
     engine_identity = _openscad_identity(executable,
                                         config["cad"]["minimum_version"])
     selector_contract = (_probe_closed_authored_selectors(
-        executable, source, build_dir, config["cad"]["printable_parts"])
+        executable, source, build_dir, config["cad"]["printable_parts"],
+        protected_inputs)
         if authored is not None else None)
     canonicalize = selector_contract is not None
     records = []
@@ -325,11 +381,13 @@ def generate(config_path: Path, root: Path, build_dir: Path,
         if part not in config["cad"]["printable_parts"]:
             raise EnclosureError(f"requested part {part!r} is not declared printable")
         record = _run_selector(executable, source, build_dir, part,
-                               f"{part}.stl", canonicalize=canonicalize)
+                               f"{part}.stl", canonicalize=canonicalize,
+                               protected_inputs=protected_inputs)
         records.append({"part": part, **record})
     installed_case = _run_selector(
         executable, source, build_dir, INSTALLED_CASE_SELECTOR,
-        INSTALLED_CASE_FILENAME, canonicalize=canonicalize)
+        INSTALLED_CASE_FILENAME, canonicalize=canonicalize,
+        protected_inputs=protected_inputs)
     receipt = {
         "schema": 1,
         "kind": "pcb-enclosure-generation-v1",
@@ -341,13 +399,22 @@ def generate(config_path: Path, root: Path, build_dir: Path,
         "interface": {"semantic_sha256": semantic_sha256(interface),
                       "raw_sha256": sha256_file(loaded["bindings"]["interface"]["path"])},
         "authority": authority,
+        "assembly_contract": _assembly_contract(config, interface),
         "selector_contract": selector_contract,
         "source": {"path": source.name, "sha256": sha256_file(source),
                    "size": source.stat().st_size},
         "parts": records,
         "installed_case": installed_case,
     }
-    write_json(build_dir / "generation.json", receipt)
+    generation_path = build_dir / "generation.json"
+    receipt_inputs = [*protected_inputs, source,
+                      *(build_dir / f"{part}.stl" for part in parts),
+                      build_dir / INSTALLED_CASE_FILENAME]
+    validate_output_path(
+        generation_path, where="generation receipt", root=build_dir,
+        inputs=receipt_inputs)
+    write_json(generation_path, receipt, inputs=receipt_inputs, root=build_dir,
+               where="generation receipt")
     return receipt
 
 

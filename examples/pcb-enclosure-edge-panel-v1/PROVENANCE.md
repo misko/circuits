@@ -1,6 +1,6 @@
 # Sanitized edge-panel enclosure fixture
 
-- Source path: this clean-room synthetic snapshot directory; no production board or sealed release binary was copied.
+- Source path: this clean-room synthetic snapshot directory; no production board or sealed release binary was copied. The synthetic release-manifest snapshot exists solely to exercise the derived-enclosure dependency contract.
 - Repository baseline commit: `d36f032cd5a658d528909a1255b2b2a70c84c803`.
 - Extraction date: 2026-08-24.
 - Evidence of: a minimal `base_lid_panels` configuration with separate perimeter fasteners, removable edge panels, top service access, and a declared ventilation group.

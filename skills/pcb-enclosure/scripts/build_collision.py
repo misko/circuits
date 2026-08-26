@@ -12,13 +12,16 @@ from __future__ import annotations
 import argparse
 import math
 import sys
+from contextlib import ExitStack
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 from enclosure_common import (  # noqa: E402
-    EnclosureError, load_json, sha256_file, stl_metrics, write_json,
+    EnclosureError, atomic_output, load_json, reject_symlink_path,
+    sha256_file, stable_input_snapshot, stl_metrics, validate_output_path,
+    write_json,
 )
 
 
@@ -28,6 +31,16 @@ KIND = "pcb-enclosure-collision-v1"
 def _binding(path: Path) -> dict[str, Any]:
     return {"path": path.name, "sha256": sha256_file(path),
             "size": path.stat().st_size}
+
+
+def _binding_named(path: Path, name: str) -> dict[str, Any]:
+    return {"path": name, "sha256": sha256_file(path),
+            "size": path.stat().st_size}
+
+
+def _snapshot_binding(record: Mapping[str, Any]) -> dict[str, Any]:
+    return {"path": Path(record["path"]).name,
+            "sha256": record["sha256"], "size": record["size"]}
 
 
 def _require_binding(path: Path, record: Any, where: str) -> None:
@@ -55,9 +68,12 @@ def _empty_marker(path: Path) -> None:
         encoding="ascii")
 
 
-def build(step_path: Path, step_report_path: Path, component_mesh_path: Path,
-          generation_path: Path, case_mesh_path: Path, board_bottom_z: float,
-          output: Path, report_path: Path) -> dict[str, Any]:
+def _build_snapshots(
+        step_path: Path, step_report_path: Path, component_mesh_path: Path,
+        generation_path: Path, case_mesh_path: Path, source_path: Path,
+        board_bottom_z: float, output: Path, report_path: Path,
+        originals: Mapping[str, Path],
+        bindings: Mapping[str, Mapping[str, Any]]) -> dict[str, Any]:
     try:
         import cadquery as cq
         import OCP
@@ -69,23 +85,8 @@ def build(step_path: Path, step_report_path: Path, component_mesh_path: Path,
         raise EnclosureError(
             "CadQuery/OCP is not installed; exact collision is unavailable") from exc
 
-    paths = [step_report_path, component_mesh_path, generation_path, case_mesh_path]
-    if any(not path.is_file() or path.is_symlink() for path in paths) or \
-            not step_path.is_file() or step_path.is_symlink():
-        raise EnclosureError("collision inputs must be regular, non-symlink files")
     if not math.isfinite(board_bottom_z):
         raise EnclosureError("board-bottom Z must be finite")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    if report_path.parent.resolve() != output.parent.resolve():
-        raise EnclosureError("collision mesh and receipt must share one build directory")
-    for path in (step_report_path, component_mesh_path, generation_path,
-                 case_mesh_path):
-        if path.parent.resolve() != output.parent.resolve():
-            raise EnclosureError(
-                "STEP report, component mesh, generation receipt, and case mesh "
-                "must share the output build directory")
-    if len({path.resolve() for path in [*paths, output, report_path]}) != 6:
-        raise EnclosureError("collision inputs and outputs must be distinct files")
 
     generation = load_json(generation_path)
     if generation.get("kind") != "pcb-enclosure-generation-v1":
@@ -102,7 +103,6 @@ def build(step_path: Path, step_report_path: Path, component_mesh_path: Path,
             not isinstance(source_record.get("path"), str) or \
             Path(source_record["path"]).name != source_record["path"]:
         raise EnclosureError("generation receipt lacks its CAD source identity")
-    source_path = generation_path.parent / source_record["path"]
     _require_binding(source_path, source_record, "generation CAD source")
     command = installed_case.get("command")
     engine = generation.get("engine")
@@ -110,9 +110,10 @@ def build(step_path: Path, step_report_path: Path, component_mesh_path: Path,
                      "show_reference_board=false"]
     if not isinstance(engine, Mapping) or not isinstance(command, list) or \
             len(command) != 8 or \
-            command[1] != "-o" or Path(command[2]).resolve() != case_mesh_path or \
+            command[1] != "-o" or Path(command[2]).resolve() != \
+            originals["case_mesh"] or \
             command[3:7] != expected_tail or \
-            Path(command[7]).resolve() != source_path.resolve() or \
+            Path(command[7]).resolve() != originals["source"] or \
             engine.get("executable") != command[0]:
         raise EnclosureError("generation installed_case command is not canonical")
 
@@ -189,19 +190,24 @@ def build(step_path: Path, step_report_path: Path, component_mesh_path: Path,
     if not intersection.isValid():
         raise EnclosureError("OCP intersection result is invalid")
     exact_volume = sum(abs(solid.Volume()) for solid in intersection.Solids())
-    output.unlink(missing_ok=True)
-    if exact_volume <= 1e-12:
-        _empty_marker(output)
-        result = "EMPTY"
-        representation = "zero-area-marker-for-empty-brep"
-    else:
-        cq.exporters.export(intersection, str(output), tolerance=0.01,
-                            angularTolerance=0.1)
-        if not output.is_file() or output.stat().st_size == 0:
-            raise EnclosureError("CadQuery wrote no intersection mesh")
-        result = "INTERSECTION"
-        representation = "tessellation-of-exact-brep-common"
-    collision_metrics = stl_metrics(output)
+    with atomic_output(
+            output, where="collision mesh", root=output.parent,
+            inputs=[*originals.values(), report_path],
+            temporary_suffix=".stl") as (temporary, stream):
+        stream.flush()
+        if exact_volume <= 1e-12:
+            _empty_marker(temporary)
+            result = "EMPTY"
+            representation = "zero-area-marker-for-empty-brep"
+        else:
+            cq.exporters.export(intersection, str(temporary), tolerance=0.01,
+                                angularTolerance=0.1)
+            if not temporary.is_file() or temporary.stat().st_size == 0:
+                raise EnclosureError("CadQuery wrote no intersection mesh")
+            result = "INTERSECTION"
+            representation = "tessellation-of-exact-brep-common"
+        collision_metrics = stl_metrics(temporary)
+        collision_record = _binding_named(temporary, output.name)
     receipt = {
         "schema": 1,
         "kind": KIND,
@@ -212,10 +218,10 @@ def build(step_path: Path, step_report_path: Path, component_mesh_path: Path,
             "ocp_version": getattr(OCP, "__version__", "unknown"),
         },
         "inputs": {
-            "step_inspection": _binding(step_report_path),
-            "step": _binding(step_path),
-            "component_mesh": _binding(component_mesh_path),
-            "generation": _binding(generation_path),
+            "step_inspection": _snapshot_binding(bindings["step_report"]),
+            "step": _snapshot_binding(bindings["step"]),
+            "component_mesh": _snapshot_binding(bindings["component_mesh"]),
+            "generation": _snapshot_binding(bindings["generation"]),
             "assembled_case_mesh": dict(installed_case),
         },
         "transform": {
@@ -233,12 +239,94 @@ def build(step_path: Path, step_report_path: Path, component_mesh_path: Path,
             "classification": result,
             "exact_brep_volume_mm3": exact_volume,
             "representation": representation,
-            "collision_mesh": _binding(output),
+            "collision_mesh": collision_record,
             "mesh_metrics": collision_metrics,
         },
     }
-    write_json(report_path, receipt)
+    write_json(
+        report_path, receipt,
+        inputs=[*originals.values(), output],
+        root=report_path.parent, where="collision receipt")
     return receipt
+
+
+def build(step_path: Path, step_report_path: Path, component_mesh_path: Path,
+          generation_path: Path, case_mesh_path: Path, board_bottom_z: float,
+          output: Path, report_path: Path) -> dict[str, Any]:
+    """Snapshot every authority used by the multi-pass exact collision run."""
+    input_paths = {
+        "step": reject_symlink_path(step_path, "STEP input").resolve(strict=True),
+        "step_report": reject_symlink_path(
+            step_report_path, "STEP inspection input").resolve(strict=True),
+        "component_mesh": reject_symlink_path(
+            component_mesh_path, "component mesh input").resolve(strict=True),
+        "generation": reject_symlink_path(
+            generation_path, "generation input").resolve(strict=True),
+        "case_mesh": reject_symlink_path(
+            case_mesh_path, "assembled-case input").resolve(strict=True),
+    }
+    if not math.isfinite(board_bottom_z):
+        raise EnclosureError("board-bottom Z must be finite")
+    output = validate_output_path(
+        output, where="collision mesh", root=output.parent,
+        inputs=[*input_paths.values(), report_path])
+    report_path = validate_output_path(
+        report_path, where="collision receipt", root=output.parent,
+        inputs=[*input_paths.values(), output])
+    if report_path.parent != output.parent:
+        raise EnclosureError(
+            "collision mesh and receipt must share one build directory")
+    for key in ("step_report", "component_mesh", "generation", "case_mesh"):
+        if input_paths[key].parent != output.parent:
+            raise EnclosureError(
+                "STEP report, component mesh, generation receipt, and case "
+                "mesh must share the output build directory")
+    all_paths = [*input_paths.values(), output, report_path]
+    if len(set(all_paths)) != len(all_paths):
+        raise EnclosureError("collision inputs and outputs must be distinct files")
+    for index, first in enumerate(all_paths):
+        if not first.exists():
+            continue
+        for second in all_paths[index + 1:]:
+            if second.exists() and first.samefile(second):
+                raise EnclosureError(
+                    "collision inputs and outputs must not be hardlink aliases")
+
+    with ExitStack() as stack:
+        snapshots: dict[str, Path] = {}
+        bindings: dict[str, Mapping[str, Any]] = {}
+        for key, path in input_paths.items():
+            snapshot, binding = stack.enter_context(
+                stable_input_snapshot(path, f"collision {key} input"))
+            snapshots[key] = snapshot
+            bindings[key] = binding
+        generation = load_json(snapshots["generation"])
+        source_record = generation.get("source")
+        if not isinstance(source_record, Mapping) or \
+                not isinstance(source_record.get("path"), str) or \
+                Path(source_record["path"]).name != source_record["path"]:
+            raise EnclosureError("generation receipt lacks its CAD source identity")
+        source_original = reject_symlink_path(
+            input_paths["generation"].parent / source_record["path"],
+            "generation CAD source").resolve(strict=True)
+        if source_original.parent != output.parent:
+            raise EnclosureError(
+                "generation CAD source must share the output build directory")
+        validate_output_path(
+            output, where="collision mesh", root=output.parent,
+            inputs=[*input_paths.values(), source_original, report_path])
+        validate_output_path(
+            report_path, where="collision receipt", root=output.parent,
+            inputs=[*input_paths.values(), source_original, output])
+        source_snapshot, source_binding = stack.enter_context(
+            stable_input_snapshot(source_original, "generation CAD source"))
+        originals = {**input_paths, "source": source_original}
+        bindings["source"] = source_binding
+        return _build_snapshots(
+            snapshots["step"], snapshots["step_report"],
+            snapshots["component_mesh"], snapshots["generation"],
+            snapshots["case_mesh"], source_snapshot, board_bottom_z,
+            output, report_path, originals, bindings)
 
 
 def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
@@ -257,13 +345,17 @@ def _parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parse_args(argv)
     try:
-        receipt = build(args.step.resolve(strict=True),
-                        args.step_inspection.resolve(strict=True),
-                        args.component_mesh.resolve(strict=True),
-                        args.generation.resolve(strict=True),
-                        args.assembled_case_mesh.resolve(strict=True),
-                        args.board_bottom_z_mm, args.output.resolve(),
-                        args.report.resolve())
+        receipt = build(
+            reject_symlink_path(args.step, "STEP input").resolve(strict=True),
+            reject_symlink_path(args.step_inspection,
+                                "STEP inspection input").resolve(strict=True),
+            reject_symlink_path(args.component_mesh,
+                                "component mesh input").resolve(strict=True),
+            reject_symlink_path(args.generation,
+                                "generation input").resolve(strict=True),
+            reject_symlink_path(args.assembled_case_mesh,
+                                "assembled-case input").resolve(strict=True),
+            args.board_bottom_z_mm, args.output, args.report)
     except (OSError, EnclosureError) as exc:
         print(f"ENCLOSURE COLLISION ERROR — {exc}", file=sys.stderr)
         return 1

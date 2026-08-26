@@ -18,7 +18,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 from enclosure_common import (  # noqa: E402
     PHYSICAL_KIND, EnclosureError, load_bound_config, load_json, load_yaml,
-    semantic_sha256, sha256_file, stl_metrics, write_json,
+    semantic_sha256, sha256_file, stl_metrics, validate_output_path,
+    write_json,
 )
 
 
@@ -132,8 +133,10 @@ def _fastener_check(config: Mapping[str, Any],
     f = config["fasteners"]; g = config["geometry"]
     insert = f["insert"]; screw = f["screw"]
     mount_counts: dict[str, int] = {}
+    mount_positions: dict[str, list[list[float]]] = {}
     for row in interface["board"]["mounting_holes"]:
         mount_counts[row["ref"]] = mount_counts.get(row["ref"], 0) + 1
+        mount_positions.setdefault(row["ref"], []).append(row["position_mm"])
     findings = []
     evidence = {}
     for ref in f["board_holes"]:
@@ -201,16 +204,101 @@ def _fastener_check(config: Mapping[str, Any],
                 findings.append(f"{label} screw has insufficient insert engagement")
             if tip + 1e-9 < screw["minimum_tip_clearance_mm"]:
                 findings.append(f"{label} screw bottoms in insert")
-        fixed_checks += 6
+        # Independent screws must also be independent geometry.  Merely
+        # naming two groups is insufficient if their posts overlap or reuse
+        # the same axis.
+        minimum_axis_distance = (f["boss_d_mm"] + f["case_post_d_mm"]) / 2
+        axis_distances = []
+        for ref in f["board_holes"]:
+            if len(mount_positions.get(ref, [])) != 1:
+                continue
+            board_point = mount_positions[ref][0]
+            for case_index, case_point in enumerate(f["case_holes_mm"]):
+                distance = math.hypot(board_point[0] - case_point[0],
+                                      board_point[1] - case_point[1])
+                axis_distances.append({
+                    "board_ref": ref,
+                    "case_index": case_index,
+                    "distance_mm": distance,
+                })
+                if distance + 1e-9 < minimum_axis_distance:
+                    findings.append(
+                        f"board screw {ref} and case screw {case_index} axes "
+                        f"are {distance:.3f} mm apart; posts require "
+                        f">= {minimum_axis_distance:.3f} mm")
+        evidence["minimum_board_case_axis_distance_mm"] = minimum_axis_distance
+        evidence["board_case_axis_distances"] = axis_distances
+        fixed_checks += 6 + len(axis_distances)
     total = fixed_checks + len(f["board_holes"])
     return check("fastener_geometry", "FAIL" if findings else "PASS",
                  max(0, total - len(findings)), total, findings, **evidence)
 
 
-def _mesh_check(config: Mapping[str, Any], build_dir: Path) -> dict[str, Any]:
+def _mesh_check(config_path: Path, config: Mapping[str, Any],
+                interface: Mapping[str, Any],
+                build_dir: Path) -> dict[str, Any]:
     parts = config["cad"]["printable_parts"]
     findings = []
     metrics = {}
+    generation_file = None
+    generation_contract = None
+    generation_path = build_dir / "generation.json"
+    try:
+        if not generation_path.is_file() or generation_path.is_symlink():
+            raise EnclosureError("generation.json is missing or unsafe")
+        generation = load_json(generation_path)
+        if generation.get("schema") != 1 or \
+                generation.get("kind") != "pcb-enclosure-generation-v1":
+            raise EnclosureError("generation.json has wrong schema/kind")
+        if generation.get("config", {}).get("raw_sha256") != \
+                sha256_file(config_path):
+            raise EnclosureError("generation.json is stale for requested config bytes")
+        if generation["config"].get("semantic_sha256") != semantic_sha256(config):
+            raise EnclosureError("generation.json differs from requested config semantics")
+        if generation["interface"].get("semantic_sha256") != \
+                semantic_sha256(interface):
+            raise EnclosureError("generation.json differs from requested interface")
+        part_rows = generation.get("parts")
+        if not isinstance(part_rows, list) or \
+                any(not isinstance(row, Mapping) or
+                    not isinstance(row.get("part"), str) for row in part_rows):
+            raise EnclosureError("generation.json lacks its printable-part census")
+        part_by_name = {row["part"]: row for row in part_rows}
+        if len(part_by_name) != len(part_rows) or set(part_by_name) != set(parts):
+            raise EnclosureError("generation.json printable-part census differs from config")
+        mount_by_ref: dict[str, list[list[float]]] = {}
+        for row in interface["board"]["mounting_holes"]:
+            mount_by_ref.setdefault(row["ref"], []).append(row["position_mm"])
+        board_axes = []
+        for ref in config["fasteners"]["board_holes"]:
+            matches = mount_by_ref.get(ref, [])
+            if len(matches) != 1:
+                raise EnclosureError(
+                    f"cannot derive generated assembly contract for {ref}")
+            board_axes.append(matches[0])
+        case_axes = config["fasteners"]["case_holes_mm"]
+        separate = config["fasteners"]["strategy"] == "separate_perimeter"
+        expected_contract = {
+            "kind": "pcb-enclosure-assembly-contract-v1",
+            "fastener_strategy": config["fasteners"]["strategy"],
+            "board_fastener_axes_mm": board_axes,
+            "case_fastener_axes_mm": case_axes,
+            "shell_closure_axes_mm": case_axes if separate else board_axes,
+            "pcb_retained_with_lid_removed": separate,
+            "shared_board_shell_axes": not separate,
+        }
+        generation_contract = generation.get("assembly_contract")
+        if generation_contract != expected_contract:
+            raise EnclosureError(
+                "generation.json assembly contract differs from fastener intent")
+        generation_file = {
+            "path": generation_path.name,
+            "sha256": sha256_file(generation_path),
+            "size": generation_path.stat().st_size,
+        }
+    except (KeyError, OSError, EnclosureError) as exc:
+        findings.append(f"generation: {exc}")
+        part_by_name = {}
     for part in parts:
         path = build_dir / f"{part}.stl"
         if not path.is_file():
@@ -235,9 +323,21 @@ def _mesh_check(config: Mapping[str, Any], build_dir: Path) -> dict[str, Any]:
         if row["degenerate_facets"] / row["triangles"] > 0.002:
             findings.append(
                 f"{part}: degenerate facet rate exceeds 0.2 percent")
+        record = part_by_name.get(part)
+        if record is None or record.get("path") != path.name or \
+                record.get("sha256") != sha256_file(path) or \
+                record.get("size") != path.stat().st_size:
+            findings.append(f"{part}: mesh differs from generation.json")
+    failed_parts = {item.split(":", 1)[0] for item in findings
+                    if item.split(":", 1)[0] in parts}
+    auxiliary_failures = int(any(item.startswith("generation:")
+                                 for item in findings))
+    total = len(parts) + 1
     return check("printable_meshes", "FAIL" if findings else "PASS",
-                 len(parts) - len({item.split(":", 1)[0] for item in findings}),
-                 len(parts), findings, parts=metrics,
+                 max(0, total - len(failed_parts) - auxiliary_failures),
+                 total, findings, parts=metrics,
+                 generation_file=generation_file,
+                 assembly_contract=generation_contract,
                  support_policy=config["process"]["support_policy"])
 
 
@@ -566,7 +666,7 @@ def verify(config_path: Path, root: Path, build_dir: Path,
         _subject_check(loaded),
         _interface_check(config, loaded["interface"]),
         _fastener_check(config, loaded["interface"]),
-        _mesh_check(config, build_dir),
+        _mesh_check(config_path, config, loaded["interface"], build_dir),
         _clearance_check(config_path, config, step_report, collision_mesh,
                          collision_report, collision_tolerance),
         _thermal_check(config),
@@ -622,11 +722,33 @@ def main(argv: Sequence[str] | None = None) -> int:
         if not math.isfinite(args.collision_tolerance_mm3) or \
                 args.collision_tolerance_mm3 < 0:
             raise EnclosureError("collision tolerance must be finite and >= 0")
+        expected_report = (args.build_dir / "verification.json").absolute()
+        if args.report.absolute() != expected_report:
+            raise EnclosureError(
+                f"verification report must be the canonical build artifact "
+                f"{expected_report}")
+        _, preflight = load_bound_config(args.config, args.root)
+        protected: list[Path] = [args.config]
+        for record in preflight["bindings"].values():
+            if isinstance(record, Mapping) and isinstance(record.get("path"), Path):
+                protected.append(record["path"])
+        protected.extend(path for path in (
+            args.step_inspection, args.collision_mesh, args.collision_report,
+            args.physical_evidence) if path is not None)
+        if args.build_dir.is_dir():
+            protected.extend(path for path in args.build_dir.iterdir()
+                             if path.is_file() and
+                             path.absolute() != expected_report)
+        validate_output_path(
+            args.report, where="enclosure verification report",
+            inputs=protected)
         report = verify(args.config, args.root, args.build_dir,
                         args.step_inspection, args.collision_mesh,
                         args.collision_report,
                         args.collision_tolerance_mm3, args.physical_evidence)
-        write_json(args.report, report)
+        write_json(
+            args.report, report, inputs=protected,
+            where="enclosure verification report")
     except (OSError, EnclosureError) as exc:
         print(f"ENCLOSURE VERIFICATION FAIL — input: {args.config}: 0/1 input valid — {exc}",
               file=sys.stderr)

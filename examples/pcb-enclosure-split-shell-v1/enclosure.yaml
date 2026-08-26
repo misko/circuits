@@ -4,6 +4,10 @@ name: sanitized-split-shell-v1
 mode: derived
 subject:
   release: synthetic-v1
+  release_manifest:
+    path: subject/release-MANIFEST.snapshot.txt
+    sha256: c11055a6763b70b0959422aa6191a7ed5f45f4079f053af5a2268a844a5446f1
+    size: 159
   pcb:
     path: subject/board.snapshot.txt
     sha256: acd16d2510597586398203d0f918e9df368bca6e3fd5cbdd5c94a84702bf73c1

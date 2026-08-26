@@ -1,4 +1,4 @@
 interface:
   display_name: "PCB Enclosure"
-  short_description: "Design and verify printable PCB enclosures"
-  default_prompt: "Use $pcb-enclosure to design and verify a printable enclosure for this PCB."
+  short_description: "Commission and verify printable PCB enclosures"
+  default_prompt: "Use $pcb-enclosure to commission, design, verify, and independently release a printable enclosure for this PCB."

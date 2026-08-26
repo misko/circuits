@@ -1,0 +1,69 @@
+# Copy into the mutable mechanical build workspace and replace every example.
+# This document is design authority: do not delete an unknown to make a gate pass.
+schema: 2
+kind: pcb-enclosure-mechanical-intent-v2
+name: replace-me
+desired_release:
+  lifecycle: draft
+  readiness: CAD_READY
+requirements:
+  pcb_retained_with_lid_removed: true
+  cabled_parts:
+    - id: antenna_cable
+      part: antenna
+      cable_pre_attached: true
+      threading_permitted: false
+      bending_permitted: false
+      disconnecting_permitted: false
+states:
+  - id: lid_removed_before_accessory
+    purpose: lid_removed
+    present_parts: [base, pcb]
+    secured_fastener_groups: [pcb_screws]
+    enclosure_closed: false
+    pcb_retained: true
+  - id: lid_removed_accessory_installed
+    purpose: insertion
+    present_parts: [base, pcb, antenna]
+    secured_fastener_groups: [pcb_screws]
+    enclosure_closed: false
+    pcb_retained: true
+  - id: installed
+    purpose: installed
+    present_parts: [base, pcb, antenna, lid]
+    secured_fastener_groups: [pcb_screws, case_screws]
+    enclosure_closed: true
+    pcb_retained: true
+operations:
+  - id: insert_antenna
+    kind: linear_insert
+    from_state: lid_removed_before_accessory
+    to_state: lid_removed_accessory_installed
+    moving_parts: [antenna]
+    direction: [0, 0, 1]
+    travel_mm: 25.0
+    cable_condition: pre_attached
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: antenna_installation
+  - id: install_lid
+    kind: linear_insert
+    from_state: lid_removed_accessory_installed
+    to_state: installed
+    moving_parts: [lid]
+    direction: [0, 0, -1]
+    travel_mm: 12.0
+    cable_condition: not_applicable
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: lid_installation
+unknowns:
+  - id: actual_antenna_envelope
+    scope: antenna_accessory
+    question: Replace the candidate body envelope with measured or vendor-authoritative dimensions.
+    blocks_readiness: CAD_READY
+excluded_claims:
+  - physical_fit
+  - thermal_performance

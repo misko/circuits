@@ -4,17 +4,17 @@
   "reference_only": true,
   "observed_on": "2026-08-24",
   "config": {
-    "raw_sha256": "40d35f3bf245987c67ed94768f38cc6cf09dee03c30551cd83c3e0d60a837de8",
-    "semantic_sha256": "c6ea965585de0195787cab3f72bd2188e88e334dc38b7341604338f211129e90"
+    "raw_sha256": "1d2d043e0c21a3ca4577189e9083597f21a1df3a48ba6414befb31e769fcb147",
+    "semantic_sha256": "245104760ee51eaddd9c43027b88f1d1bc1a3daf5e59e187999dd213406aa82d"
   },
   "generated_parts": ["base", "lid", "insert_coupon", "panel_north", "panel_south", "panel_east", "panel_west"],
   "expected_status": "INCOMPLETE",
   "expected_exit_code_for_cad_target": 2,
   "checks": [
-    {"name": "subject_binding", "status": "PASS", "graded": 3, "total": 3},
+    {"name": "subject_binding", "status": "PASS", "graded": 4, "total": 4},
     {"name": "interface_coverage", "status": "PASS", "graded": 15, "total": 15},
-    {"name": "fastener_geometry", "status": "PASS", "graded": 13, "total": 13},
-    {"name": "printable_meshes", "status": "PASS", "graded": 7, "total": 7},
+    {"name": "fastener_geometry", "status": "PASS", "graded": 29, "total": 29},
+    {"name": "printable_meshes", "status": "PASS", "graded": 8, "total": 8},
     {"name": "exact_solid_clearance", "status": "INCOMPLETE", "graded": 0, "total": 2, "reason": "exact STEP inspection report is intentionally absent"},
     {"name": "thermal_plan", "status": "PASS", "graded": 2, "total": 2},
     {"name": "physical_evidence", "status": "INCOMPLETE", "graded": 0, "total": 4, "reason": "operator evidence is intentionally absent"}
