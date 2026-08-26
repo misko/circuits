@@ -1,0 +1,477 @@
+{
+  "analytic_access_clearances_mm": {
+    "cable_lower_surface_above_usb_arch_top": 14.050000000000004,
+    "cable_witness_beyond_south_case_edge": 9.100000000000001,
+    "mount_to_north_label": 1.0999999999999979,
+    "mount_to_service_opening": 4.300000000000001,
+    "north_sma_plug_to_mount": 3.5,
+    "side_sma_plug_to_mount": 8.0,
+    "u_arch_to_service_opening_y": 4.300000000000001
+  },
+  "assembly_path": {
+    "direction": "+Z through adapter underside",
+    "kind": "single-axis-complete-prewired-assembly-sweep",
+    "prewired_assembly_u_arch": {
+      "center_z_above_lid_mm": 5.2,
+      "core_d_mm": 10.8,
+      "entry_flare_d_mm": 10.8,
+      "entry_flare_length_mm": 1.0,
+      "governing_envelope_d_mm": 10.0,
+      "open_bottom": true,
+      "threading_required": false
+    },
+    "rectangular_relief_mm": [
+      58.0,
+      31.0
+    ],
+    "relief_extents_xy_mm": [
+      [
+        -29.0,
+        29.0
+      ],
+      [
+        -10.0,
+        21.0
+      ]
+    ],
+    "roof_hung_rail_gap_mm": 10.8,
+    "selector_result": "EMPTY",
+    "start_upright_top_below_adapter_underside_mm": 5.799999999999997,
+    "travel_mm": 45.0,
+    "upright_aperture_d_mm": 10.8,
+    "upright_north_extent_y_mm": 21.9
+  },
+  "backend": {
+    "cadquery": "2.8.0",
+    "ocp": "7.9.3.1",
+    "openscad": "OpenSCAD version 2021.01"
+  },
+  "candidate_antenna_reference": {
+    "mesh_metrics": {
+      "absolute_volume_mm3": 3530.612015177814,
+      "bbox_mm": {
+        "max": [
+          5.0,
+          21.5,
+          39.2
+        ],
+        "min": [
+          -5.0,
+          0.0,
+          0.2
+        ],
+        "size": [
+          10.0,
+          21.5,
+          39.0
+        ]
+      },
+      "boundary_edges": 0,
+      "component_absolute_volume_mm3": 3530.6120151778055,
+      "components": 1,
+      "degenerate_facets": 0,
+      "edge_manifold": true,
+      "format": "ascii",
+      "nonmanifold_edges": 0,
+      "orientation_consistent": true,
+      "orientation_mismatches": 0,
+      "path": "rx2_antenna_reference.stl",
+      "sha256": "bef390c889871e60a93ecb187552ab937067da7f0b356d325786203e79894d51",
+      "signed_volume_mm3": 3530.612015177814,
+      "size": 118584,
+      "triangles": 698
+    },
+    "path": "projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/rx2_antenna_reference.stl",
+    "printable": false,
+    "selector": "rx2_antenna_reference",
+    "sha256": "bef390c889871e60a93ecb187552ab937067da7f0b356d325786203e79894d51",
+    "size": 118584
+  },
+  "candidate_cable_reference": {
+    "mesh_metrics": {
+      "absolute_volume_mm3": 220.53857417910058,
+      "bbox_mm": {
+        "max": [
+          1.25,
+          0.0,
+          6.45
+        ],
+        "min": [
+          -1.25,
+          -45.0,
+          3.95
+        ],
+        "size": [
+          2.5,
+          45.0,
+          2.5
+        ]
+      },
+      "boundary_edges": 0,
+      "component_absolute_volume_mm3": 220.5385741791006,
+      "components": 1,
+      "degenerate_facets": 0,
+      "edge_manifold": true,
+      "format": "ascii",
+      "nonmanifold_edges": 0,
+      "orientation_consistent": true,
+      "orientation_mismatches": 0,
+      "path": "rx2_cable_reference.stl",
+      "sha256": "525b0a627f321225f3cce2ea8f3fe1d0ce588d7d6eb43f179a48978636fb1e60",
+      "signed_volume_mm3": 220.53857417910058,
+      "size": 41486,
+      "triangles": 252
+    },
+    "path": "projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/rx2_cable_reference.stl",
+    "printable": false,
+    "selector": "rx2_cable_reference",
+    "sha256": "525b0a627f321225f3cce2ea8f3fe1d0ce588d7d6eb43f179a48978636fb1e60",
+    "size": 41486
+  },
+  "candidate_clearances_mm": {
+    "arch_entry_over_full_antenna_radial": 0.40000000000000036,
+    "body_above_lid": 0.20000000000000018,
+    "body_below_roof": 0.40000000000000036,
+    "cable_radial_within_arch": 4.15,
+    "full_antenna_arch_radial": 0.40000000000000036,
+    "rigid_body_radial": 0.4,
+    "total_vertical_play": 0.5999999999999996,
+    "u_entry_roof_ligament": 2.9999999999999982
+  },
+  "candidate_collision": "PASS",
+  "exact_step_checks": {
+    "antenna_vs_cable_mm3": 0,
+    "antenna_vs_step_components_mm3": 0,
+    "applied_component_translate_mm": [
+      -65.0,
+      52.5,
+      7.8
+    ],
+    "authority": "private byte-snapshot SCAD selector meshes sewn to OCP solids; component transform/classification freshly regraded from the private STEP and bound PCB interface",
+    "board_bottom_z_mm_from_config": 7.8,
+    "cable_vs_step_components_mm3": 0,
+    "case_top_z_mm_from_config": 27.1,
+    "component_solid_count": 65,
+    "fresh_step_regrade": {
+      "coverage": {
+        "covered_modeled_refs": 30,
+        "expected_modeled_refs": 30,
+        "missing_modeled_refs": [],
+        "observed_designators": 30,
+        "status": "COMPLETE",
+        "unmodeled_access_refs": [],
+        "zero_modeled_denominator": false
+      },
+      "status": "COMPLETE",
+      "supplied_geometry_match": "PASS"
+    },
+    "pcb_related_solid_count": 1065,
+    "reference_mesh_subjects": {
+      "rx2_antenna_reference": {
+        "sha256": "bef390c889871e60a93ecb187552ab937067da7f0b356d325786203e79894d51",
+        "size": 118584
+      },
+      "rx2_cable_reference": {
+        "sha256": "525b0a627f321225f3cce2ea8f3fe1d0ce588d7d6eb43f179a48978636fb1e60",
+        "size": 41486
+      }
+    },
+    "result": "EMPTY",
+    "step_solid_count": 1130
+  },
+  "excluded_claims": [
+    "No actual antenna or cable dimension is inferred from holder voids.",
+    "Clearance does not prove retention, rattle resistance, or physical fit.",
+    "No board drop-in, interface-mating, or antenna fit test was performed."
+  ],
+  "inputs": {
+    "candidate_contract": {
+      "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-adapter-candidate-contract.json",
+      "sha256": "adae3da7e0317ea608350e4f592a6360b2f0cf79f50382a32ab3a9efafa6e6e9",
+      "size": 3019
+    },
+    "config": {
+      "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml",
+      "sha256": "eb288742e1688f6d11c2108c7ee55d15b2d85092784eae33a001111580a1cbee",
+      "size": 5725
+    },
+    "enclosure_common": {
+      "path": "skills/pcb-enclosure/scripts/enclosure_common.py",
+      "sha256": "6dc9903db344ccdd02c92fb792d5256d39c21ac8210c29ec811d39f5ad3b0175",
+      "size": 39258
+    },
+    "generation": {
+      "path": "projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/generation.json",
+      "sha256": "9f6076997031d5a5d8c3e7c7c91e076e860f0ce6cccd901bf0d5920741977697",
+      "size": 6113
+    },
+    "holder_measurement": {
+      "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-holder-measurement.json",
+      "sha256": "91d0dfe9bbac84c665b1eaf6e99c22fee710e9913ed0f320214ef2f17ef71be4",
+      "size": 7432
+    },
+    "holder_png": {
+      "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-clearance-reference.png",
+      "sha256": "fa11c8a1376bdc0d80fc2e80a17872a27423fed0575a5d7faea16b94124b4486",
+      "size": 53857
+    },
+    "holder_stl": {
+      "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-antenna-holder-reference.stl",
+      "sha256": "a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f",
+      "size": 14303684
+    },
+    "interface": {
+      "path": "projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/board-interface.json",
+      "sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+      "size": 31058
+    },
+    "openscad_binary": {
+      "path": "/usr/bin/openscad",
+      "sha256": "ca63bba23a3186003603895e2aba8baaebfc56d4153351cdf08c06205a155865",
+      "size": 8387456
+    },
+    "scad": {
+      "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/pluto_rx2_8way_case.scad",
+      "sha256": "f7fe12952ddd1d92624b8f9b611af8cb5cf7ff0c6e61f374e8e90b978bcd0be9",
+      "size": 59465
+    },
+    "step": {
+      "path": "projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step",
+      "sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f",
+      "size": 23398573
+    },
+    "step_inspection": {
+      "path": "projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json",
+      "sha256": "821e264587f5715d0984c7189de63e5e8c07a6504087c3eb28902f4e18b6d893",
+      "size": 13561
+    },
+    "step_inspection_script": {
+      "path": "skills/pcb-enclosure/scripts/inspect_step.py",
+      "sha256": "3da588448810c5e09bda9192279acfc68d1316cfe8088df7c681a0c16244993f",
+      "size": 10355
+    },
+    "verification_script": {
+      "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/verify_antenna_clearance.py",
+      "sha256": "7a5692b2e08ec99efccb2134277d58a930db11ff6a365132820954cb21a14151",
+      "size": 74187
+    }
+  },
+  "kind": "pluto-rx2-antenna-clearance-v1",
+  "machine_contract": {
+    "fact_census": [
+      "board_bottom_z",
+      "case_top_z",
+      "mount_h",
+      "mount_roof",
+      "mount_wall",
+      "mount_half_x",
+      "mount_center_y",
+      "body_d",
+      "lower_upright_d",
+      "upper_upright_d",
+      "body_axis_z",
+      "body_south_y",
+      "stalk_y",
+      "transition_start_z",
+      "transition_end_z",
+      "stalk_top_z",
+      "body_radial_clearance",
+      "stalk_radial_clearance",
+      "relief_x",
+      "relief_y",
+      "rail_gap",
+      "rail_t",
+      "cable_d",
+      "cable_core_d",
+      "flare_length",
+      "flare_d",
+      "insertion_sweep",
+      "cable_tail_length",
+      "mount_south_y",
+      "mount_north_y",
+      "service_right_x",
+      "service_north_y",
+      "north_label_y",
+      "antenna_label_size",
+      "outer_half_y"
+    ],
+    "kind": "pluto-rx2-antenna-adapter-candidate-contract-v1",
+    "result": "PASS",
+    "scad_facts": {
+      "antenna_label_size": 4.2,
+      "board_bottom_z": 7.8,
+      "body_axis_z": 5.2,
+      "body_d": 10.0,
+      "body_radial_clearance": 0.4,
+      "body_south_y": 0.0,
+      "cable_core_d": 10.8,
+      "cable_d": 2.5,
+      "cable_tail_length": 45.0,
+      "case_top_z": 27.1,
+      "flare_d": 10.8,
+      "flare_length": 1.0,
+      "insertion_sweep": 45.0,
+      "lower_upright_d": 10.0,
+      "mount_center_y": 5.5,
+      "mount_h": 13.6,
+      "mount_half_x": 32.0,
+      "mount_north_y": 24.0,
+      "mount_roof": 3.0,
+      "mount_south_y": -13.0,
+      "mount_wall": 3.0,
+      "north_label_y": 27.2,
+      "outer_half_y": 35.9,
+      "rail_gap": 10.8,
+      "rail_t": 2.0,
+      "relief_x": 58.0,
+      "relief_y": 31.0,
+      "service_north_y": -17.3,
+      "service_right_x": -4.0,
+      "stalk_radial_clearance": 0.4,
+      "stalk_top_z": 39.2,
+      "stalk_y": 16.5,
+      "transition_end_z": 30.0,
+      "transition_start_z": 20.0,
+      "upper_upright_d": 8.75
+    },
+    "status": "INCOMPLETE"
+  },
+  "openscad_checks": [
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:antenna_vs_mount_lid",
+      "expectation": "EMPTY",
+      "hardwarnings": true,
+      "result": "EMPTY",
+      "returncode": 1,
+      "selector": "antenna_vs_mount_lid",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:antenna_vs_mount_lid"
+    },
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:antenna_vs_fasteners",
+      "expectation": "EMPTY",
+      "hardwarnings": true,
+      "result": "EMPTY",
+      "returncode": 1,
+      "selector": "antenna_vs_fasteners",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:antenna_vs_fasteners"
+    },
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:antenna_vs_board",
+      "expectation": "EMPTY",
+      "hardwarnings": true,
+      "result": "EMPTY",
+      "returncode": 1,
+      "selector": "antenna_vs_board",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:antenna_vs_board"
+    },
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:antenna_vs_cable",
+      "expectation": "EMPTY",
+      "hardwarnings": true,
+      "result": "EMPTY",
+      "returncode": 1,
+      "selector": "antenna_vs_cable",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:antenna_vs_cable"
+    },
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:cable_vs_mount_lid",
+      "expectation": "EMPTY",
+      "hardwarnings": true,
+      "result": "EMPTY",
+      "returncode": 1,
+      "selector": "cable_vs_mount_lid",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:cable_vs_mount_lid"
+    },
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:insertion_sweep_vs_mount",
+      "expectation": "EMPTY",
+      "hardwarnings": true,
+      "result": "EMPTY",
+      "returncode": 1,
+      "selector": "insertion_sweep_vs_mount",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:insertion_sweep_vs_mount"
+    },
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:interference",
+      "expectation": "EMPTY",
+      "hardwarnings": true,
+      "result": "EMPTY",
+      "returncode": 1,
+      "selector": "interference",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:interference"
+    },
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:rx2_antenna_reference",
+      "expectation": "SOLID",
+      "hardwarnings": true,
+      "result": "SOLID",
+      "returncode": 0,
+      "selector": "rx2_antenna_reference",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:rx2_antenna_reference"
+    },
+    {
+      "evaluation_sentinel": "PCB_ENCLOSURE_SELECTOR:rx2_cable_reference",
+      "expectation": "SOLID",
+      "hardwarnings": true,
+      "result": "SOLID",
+      "returncode": 0,
+      "selector": "rx2_cable_reference",
+      "success_sentinel": "PCB_ENCLOSURE_SELECTOR_OK:rx2_cable_reference"
+    }
+  ],
+  "run_status": "COMPLETE",
+  "schema": 1,
+  "selector_contract": {
+    "evaluated_census": [
+      "antenna_vs_mount_lid",
+      "antenna_vs_fasteners",
+      "antenna_vs_board",
+      "antenna_vs_cable",
+      "cable_vs_mount_lid",
+      "insertion_sweep_vs_mount",
+      "interference",
+      "rx2_antenna_reference",
+      "rx2_cable_reference"
+    ],
+    "known_bad_probes": [
+      {
+        "generated_mesh": false,
+        "probe": "unknown_selector",
+        "result": "REJECTED",
+        "returncode": 1
+      },
+      {
+        "probe": "unsafe_selector_token",
+        "result": "REJECTED"
+      },
+      {
+        "probe": "duplicate_selector_census",
+        "result": "REJECTED"
+      },
+      {
+        "probe": "symlink_output_path",
+        "result": "REJECTED"
+      },
+      {
+        "probe": "rx2_antenna_reference_translated_1000mm",
+        "result": "REJECTED"
+      },
+      {
+        "probe": "rx2_antenna_reference_substituted_volume",
+        "result": "REJECTED"
+      },
+      {
+        "probe": "rx2_cable_reference_translated_1000mm",
+        "result": "REJECTED"
+      },
+      {
+        "probe": "rx2_cable_reference_substituted_volume",
+        "result": "REJECTED"
+      }
+    ],
+    "sentinel_prefix": "PCB_ENCLOSURE_SELECTOR:",
+    "success_sentinel_prefix": "PCB_ENCLOSURE_SELECTOR_OK:"
+  },
+  "status": "INCOMPLETE",
+  "status_reason": "candidate envelope is collision-free, but the actual antenna/cable profile and physical retention/rattle/print fit are not evidenced"
+}

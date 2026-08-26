@@ -31,6 +31,12 @@ mount_holes = [
     [-40, -27.5], [40, -27.5],
     [-40,  27.5], [40,  27.5]
 ];
+// Independent case-closure axes sit outside the PCB corners.  The base posts
+// clear the PCB outline while the larger lid lugs remain entirely external.
+case_holes = [
+    [-49.0, -36.5], [49.0, -36.5],
+    [-49.0,  36.5], [49.0,  36.5]
+];
 north_sma_x = [-30, -15, 0, 15, 30];
 side_sma_y = [4.5, -13.5];
 
@@ -70,20 +76,32 @@ usb_vertical_top_z = pcb_top_z + 2.60;
 usb_arch_top_z = usb_vertical_top_z + 5.00;
 usb_arch_flat_w = 4.00;
 
-// Lid alignment and shared PCB/lid fasteners.
+// Lid alignment and independent PCB/case fasteners.
 lip_h = 1.20;
 lip_t = 0.80;
 lip_clearance = 0.25;
-lid_column_d = 7.20;
-lid_column_board_gap = 0.15;
 screw_clearance_d = 3.50;
 screw_head_d = 6.30;
-screw_length = 20.00;
-// Keep the screw tip inside the threaded insert without bottoming out.
-screw_tip_above_insert_bottom = 0.475;
-// M3x20 tip lands 0.5 mm above the nominal blind-pocket bottom.
-screw_seat_z = pcb_bottom_z - insert_length
-             + screw_tip_above_insert_bottom + screw_length;
+board_screw_length = 6.00;
+board_screw_bearing_z = pcb_top_z;
+board_screw_engagement = board_screw_length - pcb_thickness;
+board_screw_tip_clearance = insert_length - board_screw_engagement;
+
+case_post_d = 9.00;
+case_lug_d = 14.00;
+case_post_clearance_d = 9.40;
+case_screw_length = 6.00;
+case_screw_head_recess_depth = 0.80;
+case_insert_top_z = inner_roof_z;
+case_insert_bottom_z = case_insert_top_z - insert_length;
+case_screw_bearing_z = overall_z - case_screw_head_recess_depth;
+case_screw_nonthread_z = case_screw_bearing_z - case_insert_top_z;
+case_screw_engagement = case_screw_length - case_screw_nonthread_z;
+case_screw_tip_clearance = insert_length - case_screw_engagement;
+case_post_board_corner_clearance = sqrt(
+    pow(abs(case_holes[0][0]) - pcb_size[0] / 2, 2)
+    + pow(abs(case_holes[0][1]) - pcb_size[1] / 2, 2)
+) - case_post_d / 2;
 
 // Shared top service opening.
 service_size = [24.0, 13.0];
@@ -335,22 +353,49 @@ module insert_pockets() {
     }
 }
 
+module case_insert_pockets() {
+    pocket_depth = insert_length + insert_bottom_clearance;
+    for (p = case_holes) {
+        translate([p[0], p[1], case_insert_top_z - pocket_depth])
+            cylinder(h = pocket_depth + eps, d = insert_hole_d);
+        translate([
+            p[0], p[1],
+            case_insert_top_z - insert_flange_recess_depth
+        ])
+            cylinder(
+                h = insert_flange_recess_depth + eps,
+                d = insert_flange_recess_d
+            );
+    }
+}
+
 module base() {
     difference() {
         union() {
             linear_extrude(height = floor)
                 rounded_rect_2d(outer_size, outer_radius);
+            // Broad floor roots carry case loads into the shell without
+            // enlarging or recessing any connector wall.
+            for (p = case_holes)
+                translate([p[0], p[1], 0])
+                    cylinder(h = floor, d = case_lug_d);
             translate([0, 0, floor - eps])
                 linear_extrude(height = seam_z - floor + eps)
                     shell_2d();
             for (p = mount_holes)
                 translate([p[0], p[1], floor - eps])
                     cylinder(h = standoff_h + eps, d = boss_d);
+            // These posts belong to the base and remain standing when the lid
+            // is removed.  They never retain or touch the PCB.
+            for (p = case_holes)
+                translate([p[0], p[1], floor - eps])
+                    cylinder(h = inner_roof_z - floor + eps, d = case_post_d);
             base_alignment_lip();
         }
         sma_cutouts();
         usb_arch_cutout();
         insert_pockets();
+        case_insert_pockets();
     }
 }
 
@@ -360,12 +405,24 @@ module service_opening() {
             rounded_rect_2d(service_size, 2.0);
 }
 
-module lid_fastener_cuts() {
-    for (p = mount_holes) {
-        translate([p[0], p[1], pcb_top_z])
-            cylinder(h = overall_z - pcb_top_z + eps, d = screw_clearance_d);
-        translate([p[0], p[1], screw_seat_z])
-            cylinder(h = overall_z - screw_seat_z + eps, d = screw_head_d);
+module lid_case_fastener_cuts() {
+    for (p = case_holes) {
+        // Clearance sleeve around the independent base post.
+        translate([p[0], p[1], seam_z - eps])
+            cylinder(
+                h = inner_roof_z - seam_z + 2 * eps,
+                d = case_post_clearance_d
+            );
+        translate([p[0], p[1], inner_roof_z - eps])
+            cylinder(
+                h = case_screw_bearing_z - inner_roof_z + 2 * eps,
+                d = screw_clearance_d
+            );
+        translate([p[0], p[1], case_screw_bearing_z])
+            cylinder(
+                h = overall_z - case_screw_bearing_z + eps,
+                d = screw_head_d
+            );
     }
 }
 
@@ -471,21 +528,17 @@ module lid_final() {
             translate([0, 0, inner_roof_z])
                 linear_extrude(height = roof)
                     rounded_rect_2d(outer_size, outer_radius);
-            for (p = mount_holes)
-                translate([
-                    p[0], p[1],
-                    pcb_top_z + lid_column_board_gap
-                ])
-                    cylinder(
-                        h = inner_roof_z - pcb_top_z - lid_column_board_gap + eps,
-                        d = lid_column_d
-                    );
+            // External closure lugs surround the independent base posts.  No
+            // lid column bears on or shares an axis with the PCB.
+            for (p = case_holes)
+                translate([p[0], p[1], seam_z])
+                    cylinder(h = overall_z - seam_z, d = case_lug_d);
             lid_mount_bosses();
         }
         sma_cutouts();
         lid_lip_rabbet();
         service_opening();
-        lid_fastener_cuts();
+        lid_case_fastener_cuts();
         lid_mount_fastener_cuts();
         lid_engraving();
     }
@@ -934,6 +987,61 @@ module rx2_reference_insertion_sweep_solid() {
     }
 }
 
+module board_insert_references() {
+    color([0.76, 0.52, 0.16])
+        for (p = mount_holes) {
+            translate([p[0], p[1], pcb_bottom_z - insert_length])
+                cylinder(h = insert_length, d = 4.216);
+            translate([
+                p[0], p[1],
+                pcb_bottom_z - insert_flange_recess_depth
+            ])
+                cylinder(h = insert_flange_recess_depth, d = 5.537);
+        }
+}
+
+module board_screw_references() {
+    color([0.50, 0.53, 0.56])
+        for (p = mount_holes) {
+            translate([
+                p[0], p[1],
+                board_screw_bearing_z - board_screw_length
+            ])
+                cylinder(h = board_screw_length, d = 3.0);
+            translate([p[0], p[1], board_screw_bearing_z])
+                cylinder(h = 3.0, d = 5.5);
+        }
+}
+
+module case_insert_references() {
+    color([0.76, 0.52, 0.16])
+        for (p = case_holes) {
+            translate([p[0], p[1], case_insert_bottom_z])
+                cylinder(h = insert_length, d = 4.216);
+            translate([
+                p[0], p[1],
+                case_insert_top_z - insert_flange_recess_depth
+            ])
+                cylinder(h = insert_flange_recess_depth, d = 5.537);
+        }
+}
+
+module case_screw_references(lid_shift = 0) {
+    color([0.50, 0.53, 0.56])
+        for (p = case_holes) {
+            translate([
+                p[0], p[1],
+                case_screw_bearing_z - case_screw_length + lid_shift
+            ])
+                cylinder(h = case_screw_length, d = 3.0);
+            translate([
+                p[0], p[1],
+                case_screw_bearing_z + lid_shift
+            ])
+                cylinder(h = 3.0, d = 5.5);
+        }
+}
+
 module mount_insert_references(lid_shift = 0) {
     color([0.76, 0.52, 0.16])
         for (p = mount_points) {
@@ -1267,6 +1375,10 @@ module assembly_view() {
         translate([0, 0, overall_z + explode + mount_explode])
             rx2_reference_antenna();
     if (show_fastener_references) {
+        board_insert_references();
+        board_screw_references();
+        case_insert_references();
+        case_screw_references(explode);
         mount_insert_references(explode);
         mount_screw_references(explode + mount_explode);
     }
@@ -1300,6 +1412,20 @@ module interference_check() {
             }
         }
 
+        // Independent base posts must slide through the lid sleeves without
+        // sharing material.  This remains part of the hardened EMPTY selector
+        // used by the accessory verifier.
+        intersection() {
+            union()
+                for (p = case_holes)
+                    translate([p[0], p[1], floor - eps])
+                        cylinder(
+                            h = inner_roof_z - floor + 2 * eps,
+                            d = case_post_d
+                        );
+            lid_final();
+        }
+
         // Candidate antenna, cable, mount/lid, fasteners, and simplified-board
         // witnesses must have no volumetric overlap.  The rendered antenna
         // and cable are tangent at one intended zero-volume interface; the
@@ -1314,10 +1440,24 @@ assert(insert_hole_d < insert_flange_recess_d,
        "Insert bore must be smaller than its flange recess");
 assert(pcb_bottom_z - insert_length - insert_bottom_clearance > floor,
        "Insert pocket breaks through the case floor");
-assert(screw_seat_z - screw_length >= pcb_bottom_z - insert_length,
-       "M3x20 screw would run deeper than the nominal insert");
-assert(screw_seat_z < inner_roof_z,
-       "Screw-head seat must remain inside the roof-supported lid column");
+assert(board_screw_engagement >= 4.00,
+       "M3x6 PCB screw has less than 4.00 mm insert engagement");
+assert(board_screw_tip_clearance >= 0.20,
+       "M3x6 PCB screw would bottom in its insert");
+assert(case_screw_engagement >= 4.00,
+       "M3x6 case screw has less than 4.00 mm insert engagement");
+assert(case_screw_tip_clearance >= 0.20,
+       "M3x6 case screw would bottom in its insert");
+assert((case_post_d - insert_flange_recess_d) / 2 >= 0.90,
+       "Case-post insert boss violates 0.90 mm minimum radial wall");
+assert((case_lug_d - case_post_clearance_d) / 2 >= 2.00,
+       "Lid case lug has less than 2.00 mm wall around the base post");
+assert((case_post_clearance_d - case_post_d) / 2 >= 0.20,
+       "Lid sleeve has less than 0.20 mm radial clearance around the base post");
+assert((case_lug_d - screw_head_d) / 2 >= 3.00,
+       "Lid case lug has less than 3.00 mm wall around the screw head");
+assert(case_post_board_corner_clearance >= 1.00,
+       "Independent case post is too close to the PCB corner");
 assert(inner_roof_z >= pcb_top_z + sma_top_above_pcb + top_clearance,
        "Lid violates SMA top clearance");
 assert((mount_boss_bottom_d - insert_flange_recess_d) / 2 >= 0.90,

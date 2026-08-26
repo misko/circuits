@@ -39,8 +39,8 @@ cad:
   source:
     kind: authored_scad
     path: 03_src/mechanical/pluto_rx2_8way_case.scad
-    sha256: 9ad98a9ed2e5dead3779ae11f281cd4cd04428862fbc3c94e0bc98a7da3c117a
-    size: 54081
+    sha256: f7fe12952ddd1d92624b8f9b611af8cb5cf7ff0c6e61f374e8e90b978bcd0be9
+    size: 59465
 geometry:
   topology: split_shell
   xy_clearance_mm: 1.0
@@ -57,12 +57,16 @@ geometry:
   corner_post_mm: 8.0
   lid_column_board_gap_mm: 0.15
 fasteners:
-  strategy: shared_board
+  strategy: separate_perimeter
   thread: M3-0.5
   board_holes: [H1, H2, H3, H4]
-  case_holes_mm: []
+  case_holes_mm:
+    - [-49.0, -36.5]
+    - [49.0, -36.5]
+    - [-49.0, 36.5]
+    - [49.0, 36.5]
   boss_d_mm: 8.0
-  case_post_d_mm: 8.0
+  case_post_d_mm: 9.0
   minimum_radial_wall_mm: 0.9
   insert:
     family: E-Z-LOK-260-M3-BR-or-CR
@@ -78,9 +82,9 @@ fasteners:
   screw:
     clearance_d_mm: 3.5
     head_d_mm: 6.3
-    head_recess_depth_mm: 3.6
+    head_recess_depth_mm: 0.8
     board_length_mm: 6.0
-    lid_length_mm: 20.0
+    lid_length_mm: 6.0
     minimum_engagement_mm: 4.0
     minimum_tip_clearance_mm: 0.2
 interfaces:

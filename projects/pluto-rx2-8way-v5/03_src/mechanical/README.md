@@ -5,6 +5,11 @@ This is a support-conscious split enclosure for the exact 90 × 65 × 1.6 mm
 all nine right-angle SMA jacks, USB-C power, and the J11/J12 top service bay.
 The connector-relative lid labels are the larger `A1` through `A8` markings.
 
+The PCB and shell now use **independent fasteners**. Four M3 × 6 screws retain
+the PCB directly to its four base standoffs. Four different M3 × 6 screws in
+external corner lugs close the lid to tall base posts. Removing the lid cannot
+release the PCB or leave it free to move inside the powered enclosure.
+
 This revision adds a **separate, closed-top, bottom-loaded RX2/reference
 antenna adapter**. Here, “top” means the exterior/top side of the PCB
 enclosure. The complete right-angle antenna already has its cable attached;
@@ -127,7 +132,27 @@ Use only the coupon-qualified E-Z LOK E-Z Press flanged M3-0.5 family
 - 6.10 × 0.80 mm flange recess.
 
 Do not substitute a generic heat-set insert. These inserts are cold-pressed.
-The base and two reinforced lid bosses preserve the same 4.25 mm authority.
+Four PCB standoffs and four independent case posts in the base, plus the two
+reinforced antenna-adapter bosses in the lid, preserve the same 4.25 mm pilot
+authority.
+
+| Independent PCB/case fastener dimension | Value |
+|---|---:|
+| PCB screws | 4 × M3 × 6 socket-head cap |
+| PCB insert engagement / tip clearance | 4.400 / 0.375 mm |
+| Case screws | 4 × M3 × 6 socket-head cap |
+| Case axes | (±49.0, ±36.5) mm, outside PCB corners |
+| Base case post / lid lug diameters | 9.0 / 14.0 mm |
+| Post-to-PCB-corner clearance | 1.157 mm |
+| Case insert engagement / tip clearance | 4.400 / 0.375 mm |
+| Lid screw-head recess | 0.800 mm |
+| Lid wall around D9.4 post sleeve | 2.300 mm radial |
+
+The four board inserts enter the standoffs from above and remain below the
+PCB. The PCB screws bear directly on the board at H1–H4. The four case inserts
+enter the tall base posts from above; the lid's D14 external lugs slide over
+those posts and carry only shell-closing load. No lid column bears on the PCB,
+and none of the eight PCB/case screws shares an axis or stack.
 
 | RX2 adapter fastener dimension | Value |
 |---|---:|
@@ -156,7 +181,9 @@ the lid. Do not use the antenna cable as a lifting handle.
 
 The PCB bottom is 7.80 mm above the case exterior floor. The SMA RF centerline
 and wall seam are at Z=19.70 mm. The inside lid face is Z=24.70 mm and the
-case top is Z=27.10 mm. The closed adapter sits on that exterior top plane.
+case top is Z=27.10 mm. The connector-wall body remains 96.8 × 71.8 mm; four
+external closure lugs make the total envelope 112.0 × 87.0 mm without
+recessing any connector. The closed adapter sits on the exterior top plane.
 
 ## Print and assembly
 
@@ -170,21 +197,26 @@ Assembly sequence:
 
 1. Reconfirm the 4.25 mm insert coupon on the production printer/material and
    use the antenna fit gauge without forcing or marring the real antenna.
-2. Press four qualified E-Z LOK inserts into the base and two into the lid
-   underside bosses. Support each boss directly; do not melt or screw-pull.
-3. Complete the normal unpowered board drop-in, lid closure, and all-interface
-   mating checks before adding the antenna adapter.
-4. Place the complete pre-wired L antenna on the closed lid exterior: upright
+2. Press four board inserts into the short base standoffs and four case inserts
+   into the tall external base posts, all from above. Press the two antenna
+   adapter inserts into the lid underside bosses. Support each feature
+   directly; do not melt or screw-pull.
+3. Install the unpowered PCB and retain it independently with four M3 × 6
+   screws at H1–H4. Verify the board remains secure before fitting the lid.
+4. Lower the lid over the four base posts and close it with the separate four
+   M3 × 6 case screws. Confirm no case screw loads or contacts the PCB, then
+   complete all-interface mating checks.
+5. Place the complete pre-wired L antenna on the closed lid exterior: upright
    at `(0,16.5)`, horizontal branch toward south, attached cable continuing
    straight south. Nothing passes through the lid.
-5. Hold the adapter above the assembly. Align the upright with the D10.8 top
+6. Hold the adapter above the assembly. Align the upright with the D10.8 top
    aperture and the complete D10 lower antenna body with the bottom-open
    D10.8 south U-arch.
-6. Lower the adapter straight down. The entire L assembly enters the one
+7. Lower the adapter straight down. The entire L assembly enters the one
    rectangular underside opening; the antenna body and attached cable rise
    through the full-body U-arch from below.
    **Do not thread the cable through any bore.**
-7. Confirm the adapter seats flat, antenna and cable are free in the U-arch, service bay
+8. Confirm the adapter seats flat, antenna and cable are free in the U-arch, service bay
    remains usable, and antenna/cable are not pinched. Install the two M3 × 8
    screws alternately and only snug them enough to prevent adapter motion.
 

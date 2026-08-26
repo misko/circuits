@@ -1,0 +1,159 @@
+{
+  "authority": {
+    "binding": {
+      "path": "03_src/mechanical/pluto_rx2_8way_case.scad",
+      "sha256": "f7fe12952ddd1d92624b8f9b611af8cb5cf7ff0c6e61f374e8e90b978bcd0be9",
+      "size": 59465
+    },
+    "kind": "authored_scad"
+  },
+  "config": {
+    "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml",
+    "raw_sha256": "eb288742e1688f6d11c2108c7ee55d15b2d85092784eae33a001111580a1cbee",
+    "semantic_sha256": "c76fba71a7396696df319f3c26d607c67765677cec298058309b2503d9520118"
+  },
+  "engine": {
+    "executable": "/usr/bin/openscad",
+    "minimum_version": "2021.01",
+    "version": "OpenSCAD version 2021.01"
+  },
+  "installed_case": {
+    "canonicalization": "ascii-stl-facet-order-v1",
+    "command": [
+      "/usr/bin/openscad",
+      "-o",
+      "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/assembled-case.stl",
+      "-D",
+      "part=\"installed_case\"",
+      "-D",
+      "show_reference_board=false",
+      "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+    ],
+    "path": "assembled-case.stl",
+    "selector": "installed_case",
+    "sha256": "ba733246b1b2be5e4b481c9971d5a8756bfced89445b67793091784a9cfebcab",
+    "size": 6159980
+  },
+  "interface": {
+    "raw_sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+    "semantic_sha256": "c75481b39a3a1b6101823f7d6f62e73e99be529915d30c6228a842595f7af409"
+  },
+  "kind": "pcb-enclosure-generation-v1",
+  "mode": "derived",
+  "name": "pluto-rx2-8way-v5-split-shell",
+  "parts": [
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/base.stl",
+        "-D",
+        "part=\"base\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "part": "base",
+      "path": "base.stl",
+      "selector": "base",
+      "sha256": "280ca73a147d2a6fa3464369b2c3685ba9c819dd12713d4facf2efa656b6497b",
+      "size": 1861305
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/lid.stl",
+        "-D",
+        "part=\"lid\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "part": "lid",
+      "path": "lid.stl",
+      "selector": "lid",
+      "sha256": "c904a7d5a6c56179f3615695f36d57476a7bdbed1d46abc6d4a09a919065fc32",
+      "size": 3705153
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/insert_coupon.stl",
+        "-D",
+        "part=\"insert_coupon\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "part": "insert_coupon",
+      "path": "insert_coupon.stl",
+      "selector": "insert_coupon",
+      "sha256": "d81727855a0aa2ace7bdb2cf98e2eed7f2eac0e12dd9b86b2ab6ed8ddc946429",
+      "size": 1162772
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/rx2_antenna_mount.stl",
+        "-D",
+        "part=\"rx2_antenna_mount\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "part": "rx2_antenna_mount",
+      "path": "rx2_antenna_mount.stl",
+      "selector": "rx2_antenna_mount",
+      "sha256": "42430873439e120923228e661ffca3568475fabf5d31e4d7aa9adbf59f68689b",
+      "size": 816639
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/rx2_antenna_fit_gauge.stl",
+        "-D",
+        "part=\"rx2_antenna_fit_gauge\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/enclosure-pluto-rx2-v5-20260825/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/enclosure.scad"
+      ],
+      "part": "rx2_antenna_fit_gauge",
+      "path": "rx2_antenna_fit_gauge.stl",
+      "selector": "rx2_antenna_fit_gauge",
+      "sha256": "a1ae92ebddb434fe4af4bd81232dbfaf07b3a0012b73d36b1552a070f3f14b41",
+      "size": 1140562
+    }
+  ],
+  "schema": 1,
+  "selector_contract": {
+    "custom": [
+      "rx2_antenna_mount",
+      "rx2_antenna_fit_gauge"
+    ],
+    "declared": [
+      "base",
+      "lid",
+      "insert_coupon",
+      "rx2_antenna_mount",
+      "rx2_antenna_fit_gauge"
+    ],
+    "kind": "closed-authored-selectors-v1",
+    "mesh_canonicalization": "ascii-stl-facet-order-v1",
+    "probe_result": "REJECTED",
+    "probe_selector": "__pcb_enclosure_unknown__"
+  },
+  "source": {
+    "path": "enclosure.scad",
+    "sha256": "f7fe12952ddd1d92624b8f9b611af8cb5cf7ff0c6e61f374e8e90b978bcd0be9",
+    "size": 59465
+  }
+}

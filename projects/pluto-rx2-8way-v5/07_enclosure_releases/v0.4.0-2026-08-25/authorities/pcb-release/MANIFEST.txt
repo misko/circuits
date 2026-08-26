@@ -1,0 +1,180 @@
+MANIFEST — Pluto RX2 eight-way v5 v0.2.1-2026-08-14
+
+board:        pluto_rx2_8way_v5, 90 x 65 mm, 4 layer
+version:      v0.2.1
+ordered:      not ordered — bench-power, rounded-RF and independent-model-registration hardware archive sealed 2026-08-14
+git_sha:      aa97e64ef61af4c462d658bd6d170cdea2cd1c5a
+git_dirty:    false
+kicad:        10.0.4
+tools:        repository kicad-pcb/jlcpcb-fab skills; Python 3.12.3
+fab:          JLCPCB, 4 layer, advanced selective via-in-pad and controlled impedance
+quantity:     5
+gates:        DRC 0/0/0; standalone DRC 0/0/0; ERC 0 errors / 179 warnings;
+              parity 22 nets / 133 nodes / 0 discrepancies; F-PAYLOAD 6/6;
+              BOM 14/14; CPL 30/30; stock 14/14; catalog twin bodies 30/30;
+              P-MODEL-REG 9/9 native SMA bodies and 45/45 drilled centres;
+              RF context/source/realized blocking; RF fence 18/18;
+              RF bends 14/14, minimum radius 3.350W; via process 624/624;
+              reviews SOUND/SOUND; policy_audit 0 FAIL
+DESIGN:       PASS
+SOURCING:     CLEAR
+order:        DO-NOT-ORDER — JLC uploader/process acknowledgement and physical
+              first-article RF/electrical acceptance are not complete
+supersedes:   v0.1.2-2026-08-14
+scope:        hardware-only design archive; J12 bench input, strict rounded RF,
+              and independent native-model registration
+3d:           component-bearing STEP present; glTF absent
+assembly:     JLC top SMT plus required J2-J10 and J12 through-hole connector service
+not_assembled:
+msl:          no consigned parts; follow JLC handling for exposed-pad U1
+
+sha256:
+  3d/pluto_rx2_8way_v5.step  650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f
+  ORDER_README.md  848296189a800a96cc0b6de2b7c1e632c20097dcec87d3113357a1d49fa8b6dc
+  fab/bom.csv  6583037303ee74a7d569563c11034ad375e4c351c9f5f503b8dd206abaca5523
+  fab/bom_echo_gate.txt  73471ebd0da75524a0a3729f7eb3883d1b617084167dd0b44e6b40a19878669a
+  fab/cpl.csv  ae54c2d6efd0e6d2a8b4b792d56307ba197d9dbb87b8709c319a17e0d10c9ff0
+  fab/order_notes.txt  1b8574616d32a8268df1f2192e99bde56e99cce4f898e779b2329f97e2482f48
+  fab/pluto_rx2_8way_v5-B_Cu.gbl  7c106bc9783aad10fe5e800037869fcb783cdd3bf96e47aef445d14eb94beed2
+  fab/pluto_rx2_8way_v5-B_Mask.gbs  584c6e85af00d8103a076be63fadd5cf88b1b2642b09d5e4db029215a1721672
+  fab/pluto_rx2_8way_v5-B_Paste.gbp  610e0e1853bcb9b697433d77ecc05b9233561c4a03d8207b8e798715d06a540e
+  fab/pluto_rx2_8way_v5-B_Silkscreen.gbo  dfec0f2882d328a90b7ead474be7a39e45f734d312700f6a0fd08c94af3da78a
+  fab/pluto_rx2_8way_v5-Edge_Cuts.gm1  db979f1fd8940bd264c102c43229d7e81617ac684cb537e1513875effb35f41b
+  fab/pluto_rx2_8way_v5-F_Cu.gtl  480f6b56cc856c3d7185af94ec0065d4a6a1fb6584d094a6e52e44a1a91607d5
+  fab/pluto_rx2_8way_v5-F_Mask.gts  38d617ded22bbbcf77e7e9e481a91b01f1cc08c8cd9b1892fa956ac83cf0a9eb
+  fab/pluto_rx2_8way_v5-F_Paste.gtp  fc12380da35670c384140cb67ac75f1f560e44cb4c420af4e8805812573894a0
+  fab/pluto_rx2_8way_v5-F_Silkscreen.gto  70b8d519f46cb1cce8407ccf6fe6916280c13f2207c4431b666897b6bf9a8677
+  fab/pluto_rx2_8way_v5-In1_Cu.g1  91e62db8c48cb2921026f2d402f150500a9dcd11a86cfc65277d4e7428c7aafb
+  fab/pluto_rx2_8way_v5-In2_Cu.g2  22be9577b0a8d77db60267ce22fd37a3b1f668b5ae6aeb10778ae4d091acb206
+  fab/pluto_rx2_8way_v5-NPTH.drl  1cbb192937e2d273e65c5afa54ebaa6d8daaea070b058d775ab1d3a51d60c6ab
+  fab/pluto_rx2_8way_v5-PTH.drl  95261856d20e824f276c943cb1ea41bd53c3a4af1fb9224b0373507b8b10efb4
+  fab/pluto_rx2_8way_v5_gerbers.zip  4e5fe8a6e4da3ec791f1abd1954eb9840399e826c212871c71b3d4285da285ef
+  fab/rotation_human_gate.txt  054be56e1a575b1cc52e0357739052d0a5e1d819ac6a7b2a5ab9cf9c42c92e44
+  pdf/assembly.pdf  da1c6b72ca7f5b71f3f9f1577c6f171d04b745eb3f8fd12b672db011292ffc9c
+  pdf/pcb_layers.pdf  845a4c5c40c4d6000ef693b68044864ed9b07c9dd988a65408e033098e121860
+  pdf/schematic.pdf  eafe50122e048fde289ecfdc26dcf6e28a2bc27e6c5b232db9c9f0786da365c0
+  source/fp-lib-table  cba4ec036b93bf4d67768ba17fb000a6ff33bf805d4ee0491eac68f69b9fc971
+  source/pluto_rx2_8way_v5.kicad_dru  d3c913948acfe3e7170c6b04b6c3c7c1bbb0eff4366fad61040b85ce033ab759
+  source/pluto_rx2_8way_v5.kicad_pcb  e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5
+  source/pluto_rx2_8way_v5.kicad_prl  4f72ff5f304455523629041c653948c05a06f11da2dcd1e00e1da12fb0d67cc9
+  source/pluto_rx2_8way_v5.kicad_pro  b591aefa57648bd3cf23d7760a7b7b37bb417af5754cdf78343ae55a15cfb04e
+  source/pluto_rx2_8way_v5.kicad_sch  a21b84984b934ee37d65d04976193df6f5ff2ac8747323c22397e003744c7b0f
+  source/pluto_rx2_8way_v5.net  dab68a6458c2f3070380a3c887e862a1d8277970fd8f159d498990decdfc94e0
+  source/pluto_rx2_8way_v5.pretty/Amphenol_901_143_6RFX.kicad_mod  c76c502b78556e4937db7b401f701df172ededaac755b2853e9c6ad11c8039da
+  source/pluto_rx2_8way_v5.pretty/GCT_USB4105_GF_A_120.kicad_mod  c8961d2548bf3828f3fd51aa11911c9feff66ac866e3721a92501a0e2630dc43
+  source/pluto_rx2_8way_v5.pretty/Psemi_PE42482_QFN24_4x4_P0.5.kicad_mod  d47c4c6ebc51cf57d7e148f2bc1edbccf5381e8e40820ea19c110d26490a6419
+  source/pluto_rx2_8way_v5.pretty/Samtec_FTSH_105_01_L_DV_K_P_TR.kicad_mod  fd599be7e7b1de94451984067b9eb93387efaff856be98d94846cac2273a4576
+  source/pluto_rx2_8way_v5.tsx  d7780efb61bf5f3f1577aef4776a7f32484847a4fd121f88ebbbf11b07b52d73
+  verification/DISPOSITIONS.md  8928613f9a88955644f87b441ecf83f804553770a73c59dd2984121197ce4cbb
+  verification/FIRST_ARTICLE_TEST_PLAN.md  d76a3e0ed15c622bcf57a16e63e47ed494bcfdb964b6781a38755594a990ec70
+  verification/assembly.yaml  32010672589d173592fa3466def51be65d145002650f5577d9ec21aa571701ac
+  verification/assembly_coverage.json  8337724da0410eacc032c1684950e5abea8dc1a46fe3c7ef98bedeb7efd54ef1
+  verification/assembly_coverage.txt  2e9153bcb3cc08a476b0b93b98d973e2c95ecfaa4bfac144361c6a44fc758729
+  verification/audit.txt  8b7fec83f32eae3cd2d6794e26e064a49a9a5b1b1be09fb7a078db888bdf0a43
+  verification/bom_echo_gate.txt  f3de775e3d3606f3f5d0b6ec866680658954f8ada9b23382ba3435a75cabab63
+  verification/bom_legibility.json  83ff74a1c7fc7933ebdaf7ff4b59120768ff3a2b098206f5d1ea8810bc05d2b4
+  verification/bom_legibility.txt  13ee770488e6116946f703d6c9acc66d33cabc552349f9c6b8d01a551d92ff77
+  verification/bom_source_check.txt  e36e67c5784d630adb1dcb9154e0b7959ce54e7600f5d437598c1466f9d4872b
+  verification/design_math.md  6febf3ad964cac25d3f84149e2ece3188f2003cdd5bbc1aff23063fd813be3e1
+  verification/drc.json  fb7d3c4f8a229289f3f9f09a2edd817135f78556216cead6f525954300809a7a
+  verification/erc.json  ed88bb0cc88baba0fef6c25196ab1182a293b0736c218657f6cf69bd33c2c768
+  verification/erc_errors.json  af08de63a355abe7eb191833d5d13d68d7aa73719759905938d2cc2633bd2fe1
+  verification/fab_payload_census.json  a1558e1704b3a4e3cc1e6f89fadd9cbad6599ca19c7d633a43ad4c36a63a59e5
+  verification/fab_payload_census.txt  8ca082146bf1336424321219631e6b5e0cbd62b9496c6ddf074a0e3d1cb72556
+  verification/fence_pitch.json  869a3e765dfb81e55c5cb7cf7b412921edfdf555d515ea6cf9f0fb133aaaa9c7
+  verification/final_iso_3200.png  8afc7a45af63c3733137201f9403f73d223ca13bcd13bf782b820c644b5da27c
+  verification/final_top_3200.png  a402c62e59730f0983cb3defe1436bf80305b0bf08865de7e826f1e9878061bf
+  verification/jlc_catalog_twin/NOT_PHYSICAL_REGISTRATION.md  6eb8a10705ba5718c0c129631fb8531560f2f0ba897cf28ed672e98927ea1c42
+  verification/jlc_catalog_twin/missing_models.txt  47295bc8073cc06a7a87d7ccf3f7471d3d6eac16d4387c337127361f49b88ead
+  verification/jlc_catalog_twin/twin_bare_bottom.png  300ddf3eed2161414aa18d7aec83edc3c8d2ee1bab0a7fd8ba3a41c168049df2
+  verification/jlc_catalog_twin/twin_bare_top.png  eca9319abe75ddac1074a90374f2c723da78b97af742a8ec6e0cd5704186a0e5
+  verification/jlc_catalog_twin/twin_bottom.png  73243f955df71d063be68acc0ea6f18ca699fdcae181f2f30e63232fef05b23a
+  verification/jlc_catalog_twin/twin_edge_east.png  61e7d874e736003db57693d1f0ece3ea7b82d5709933508684f93bd80d63dd18
+  verification/jlc_catalog_twin/twin_edge_west.png  80791fff85a4dab88cce86f420f75cb77e08517c85d6d3f39c70d82e67b9c855
+  verification/jlc_catalog_twin/twin_iso_nw.png  1199f6dbf5b29137e0a7b1c8593d16fcd6e350dc4068241a3fb00296cf3e4a82
+  verification/jlc_catalog_twin/twin_iso_se.png  86abc76775a8556550926b4dde035d4d5b746cbbcb3c44ed3604235f7eb4f1ab
+  verification/jlc_catalog_twin/twin_overlay_top.md  ba6869255ff79a34c499ff01ddcb2a15c7689f9be1e91bcf912a3bf599f47b4c
+  verification/jlc_catalog_twin/twin_report.csv  24fe6aec547928756109cab693efcdfbeaa7c1f79c580443cee611a0e366ce72
+  verification/jlc_catalog_twin/twin_top.png  a6f842efbd43a2a07e8227121eb8a8fe099a3117a6b05f8d54036a539ec1e4c1
+  verification/jlc_catalog_twin/twin_top_courtyard_overlay.png  52041788867be842491cd23f929953bc0968fada74266f124bdaa1eafb924edd
+  verification/missing_models.txt  47295bc8073cc06a7a87d7ccf3f7471d3d6eac16d4387c337127361f49b88ead
+  verification/model_coverage.json  a641832614b3b4e5108bf4a1b90246d2c4c794faea9157448d4a8fbb02533298
+  verification/model_registration.yaml  9d7d6e786f3e5bfbeb5533f35f37c160eed166c7f9399c40ef4d84842be54936
+  verification/nets.yaml  cc0ca262755da4e7350d318a9c61ec9a8bccdc76159ad2ac5c0d8918468d7128
+  verification/parity.md  ab5494100fc90fb996c0dad73d19018e7d5ae1d34940ea6b0002c5a4192713c8
+  verification/pin_review.md  1f489e8843c0b74506449f53292e75c65bec2b92b0a9c28c19f926c6e05de619
+  verification/policy_audit.md  ac321d55bb24710ab7b3ecf6ce6447eb99f77b8a46c93c700794381bd39c7955
+  verification/policy_waivers.yaml  d923b9682802606239fc0471958b6cd14a7494e546815ce59070281a09576782
+  verification/power_tree.yaml  2d943e25656a0f03114898ccdad4102166e4fe51ffa7eeadd8855122f8f7c272
+  verification/redteam_layout.md  3962c0e8739cee4b30d21ca1891bd20d64ffbaab446a9b56da5b0cf5ff64d1ce
+  verification/redteam_topology.md  5c3c9cd8823306267e4a80ff5e71afa14c3f63eea99dbbb766617355959201ff
+  verification/render_bottom_bare.png  d84777968c67b1df3aaa86c9b80b4cc25ce1bd44d677cbdfcdb3d96a608fa620
+  verification/render_review.md  b12850d9f435f7e7c4d1a867fedcb3921110c3ee43093328459f04a377e75e36
+  verification/render_top_bare.png  2347fc29ee3e8e01f0dd5f1f5e1304d8cbb063d1470c16a3e7c994c27a59e7f4
+  verification/rf.yaml  625acbc4c6f40b1a521c011399c0617fa5ec02817a3bccac31f2b149918b00bb
+  verification/rf/context/bundle.json  b250e238daf57fd53b7d688ab70aa607729d800931510210d09fdb935b4f95d6
+  verification/rf/context/context.json  7554419a62aa409e31f8f78a41d39928f090e77d1acab5c280987cdace3f5064
+  verification/rf/context/report.txt  2b70dedbb531dcd3969a8378fc28e4d531dba71af8ce8bed1e2a72b761b8b756
+  verification/rf/realized/bundle.json  2893a81003f5c90ea962d9ce627c2170896652ce7cf58ff2666c48571c859cc8
+  verification/rf/realized/fence.json  869a3e765dfb81e55c5cb7cf7b412921edfdf555d515ea6cf9f0fb133aaaa9c7
+  verification/rf/realized/fence.txt  f34c0ef98194cb97ec41d4600dbb60bc1ca321dca1c4ed88526d2a60e71cf5df
+  verification/rf/realized/fence_process.json  b84bb8c0b1a8eb1990886dc542e340b2f157b4d3611c0eee42d987557bbf78ab
+  verification/rf/realized/report.json  d1e4d45bc780cd765bf80cb13e02d459a09ad23ae6c677d1c2e09bf5b738a053
+  verification/rf/realized/report.txt  ef4e919f243b1b143b1eeb859d04b8946033e8d44db248b2b20a76e2369d9496
+  verification/rf/source/bundle.json  a89deb1fe5f387458061f22670d43920a046bd9e9bc9feca29472cfb50693fb6
+  verification/rf/source/report.json  d13009ad5068c1d1203a9373c92e6435cb7f05786ba99d33892af096f004a498
+  verification/rf/source/report.txt  382cfb313a70e381a36de359fd251ccbb7793e1d6f974847b27af7b76b01d62c
+  verification/rf_contract.txt  9ed4c1e147dcbc1f75fd269e6d4c3e55cc605f33918f5d3c47423a5fb75bf953
+  verification/rf_fab.md  549a5cce13c0cb61297b21d4ff90579132e77d5208e8e39a1e15431a7184685b
+  verification/rf_module/context/bundle.json  0aa791ae9d54864e2c12abe28ee4e2e51367a1f5948b1853b2ae774337949766
+  verification/rf_module/context/context.json  7554419a62aa409e31f8f78a41d39928f090e77d1acab5c280987cdace3f5064
+  verification/rf_module/context/report.txt  5cdf8546c50610a029cdfe99925c8da649f285eefa4c3cf4bc23d0a561d5bf29
+  verification/rf_module/realized/bundle.json  87b09623456b22792aecf409f80640e636f6ef82a4037400ff59f5a50c70a5d0
+  verification/rf_module/realized/fence.json  0ceb1ad2b46949ac67a4464ce24e2b8657424f35e408c7574894c33368480d0e
+  verification/rf_module/realized/fence.txt  6c3b37a139e0b8d3299a855e17267675d72d0b15e45c62ab3e7b80bff9e24ea2
+  verification/rf_module/realized/fence_process.json  d2739e6f87c239c4856369af639fc0f8bff2f7fcd469ed903313c36d82ea77cb
+  verification/rf_module/realized/report.json  364b2fd8f94173166079b8ac440025d49c200ffd06d00f6c0d99a809a944fb0f
+  verification/rf_module/realized/report.txt  f9ea49ecaa1a121a79bea23c8b0347de4be017573a28e2ffb64982acaefb932b
+  verification/rf_module/source/bundle.json  18bd40500ecf3c1a91bdcad5a4e4454374aea68914b16ffa9d12c6b75d465d61
+  verification/rf_module/source/report.json  d13009ad5068c1d1203a9373c92e6435cb7f05786ba99d33892af096f004a498
+  verification/rf_module/source/report.txt  b45eb01d3a137a8f1d5f8796c8e3e15491a464861757329fef4760b9991a2693
+  verification/rf_module_review.md  d637bc332ae6e66efbb9e0b3f8165234ea5da6d95ddc574b3ac5126a5c855075
+  verification/rf_pcb.md  d1e381586311064d65183ce1682de8c4b5b9b67b83c6824b57042db811c1d7af
+  verification/rf_schematic.md  f79244f373db9d855dbc8ab924dafac2480c3c4e18a4896fe6d2d2012022e76f
+  verification/rotation_human_gate.txt  db5036e949eddf7454bf9b2d701f267d4d279a868db774108039ffbab05f61be
+  verification/rules_audit.txt  f18eac6bcedc67e61053a6e836291b2e510c502d9536cf720a0404fcde5ff8aa
+  verification/sma_native_registration/native_bare.kicad_pcb  387b0516c77c561c7ad15f36675ecd88193ee719e5685edc8e964abe0bf33b41
+  verification/sma_native_registration/native_bare.kicad_prl  a59ee2ae3e33cc4723b0a969ed2d8a0384faac8470a9ef5da8467b78a3cce8dc
+  verification/sma_native_registration/native_bare.kicad_pro  fdbd6d3d3ea2551068ff1772940614e61dba71b13ef12c9bda7d6681694bd8e9
+  verification/sma_native_registration/native_bare_top.png  1c742eeb93befcd2b4b190b62c981c0e6df43e91c13c54579abfe1f7fec94471
+  verification/sma_native_registration/native_model_registration.md  f6819bc32e5064bd4dff21d396d0abea1020e8158a495737783c9f07b2ffcd7f
+  verification/sma_native_registration/native_overlay_J10.png  79ae8354ad52ddc564b900a81556ed42cf562f900c33deff21fb21d16e8960fe
+  verification/sma_native_registration/native_overlay_J2.png  8c0d81f201fa1ea57a70135dde35b2e56ceca11ad0db310c6ba92b2c25c2c263
+  verification/sma_native_registration/native_overlay_J3.png  c56aee448f16e9fb388752d8ad9ea508e56c1ca6c3cf605233279073511fed37
+  verification/sma_native_registration/native_overlay_J4.png  de4238d6d45d1dfd89ba2bda0ffb4aac5db2791053a71730192a899acce58246
+  verification/sma_native_registration/native_overlay_J5.png  ac5c0a6cd366360172e0d0dfe33fddaf67595a4811ab42567c4e5597b8d0b72a
+  verification/sma_native_registration/native_overlay_J6.png  40ecd9345139b56c76b4721894610a241a3aa7bdf607e232b5556699f7287678
+  verification/sma_native_registration/native_overlay_J7.png  2f14394ac26aa8110cd3adc16d8fa783ea2fa258ebed28ed068bb580d59e29c9
+  verification/sma_native_registration/native_overlay_J8.png  2e6b4b281bb7aad69ffd024117ddb2722895c4c51247efe0e40fab6a93af85b6
+  verification/sma_native_registration/native_overlay_J9.png  69181e86de302425b4c87e533f503f7f23b8cb1c6e5c272da2cb76d7c2466412
+  verification/sma_native_registration/native_top.png  519a5ad282900a0b59422cc48ae7bb17bc7fcf98e52468dbb3b1c248ebd5c9cc
+  verification/sma_native_registration/native_top_registration_overlay.png  aeea18b8ac09f0aa7467492dbc8ac0190d01895b7f21e5df302edfbba31e31fc
+  verification/standalone_archive_drc.json  e990048b982c45e2520c297b04d7c7abf73ba8c2604b110025f0e05d76a593b9
+  verification/standalone_replot.txt  a66d1f3afdc0250f0c3e9a6b34f3a3cec549c7f096ff6f174257896015ffab2d
+  verification/stock_check.csv  ad7abb8f7b4da7a89637dbdf87c6060c460cc40be722444887db8a14dd6b55d1
+  verification/stock_check.json  6c8be0853e640c57bcf8d73f5739f068eaa5120b715d1337f325cfe9704c040e
+  verification/stock_check.txt  a561e7dffac664cca233f6edd7a51c137a482e8dccf33503174b5618f93dd4bb
+  verification/twin_adjudications.yaml  1f35ebdc041d138f1d9c9ef106fd1423c4abc3e54f8dfc6ef34f4a6338f0803a
+  verification/twin_bare_bottom.png  d84777968c67b1df3aaa86c9b80b4cc25ce1bd44d677cbdfcdb3d96a608fa620
+  verification/twin_bare_top.png  2347fc29ee3e8e01f0dd5f1f5e1304d8cbb063d1470c16a3e7c994c27a59e7f4
+  verification/twin_bottom.png  29a30a8c9933aaa9e0088c7527146e4a1d97a3989d98e5cd79300e5a8f90e6aa
+  verification/twin_edge_east.png  0f355b5115195fdebe3ada725352ae419e01e9bfd1b09e4d99211d52fe6e36db
+  verification/twin_edge_west.png  ebba9a13a1df1921a2d9a4f396ffa4d721cee27ed0a35ec7a040671c5bc821f0
+  verification/twin_iso_nw.png  21d9e8c28699efe53be679db3c24fa28f61f77960acb26cb21688bf71b55c073
+  verification/twin_iso_se.png  5543aa5588799309a601032a864b97033ab0018a048e7eb2afc8dcb299dced5d
+  verification/twin_overlay_top.md  f6819bc32e5064bd4dff21d396d0abea1020e8158a495737783c9f07b2ffcd7f
+  verification/twin_report.csv  24fe6aec547928756109cab693efcdfbeaa7c1f79c580443cee611a0e366ce72
+  verification/twin_report.txt  24fe6aec547928756109cab693efcdfbeaa7c1f79c580443cee611a0e366ce72
+  verification/twin_top.png  9e3e99060bef5135273011239d2d453b9c4b02e30678fde49487561f30fbb72d
+  verification/twin_top_courtyard_overlay.png  aeea18b8ac09f0aa7467492dbc8ac0190d01895b7f21e5df302edfbba31e31fc
+  verification/via_process.json  5cff6a34db414bede285e14f3695cc4b4bae779e2beb8245d235fde8b5a99055
