@@ -6,7 +6,9 @@ This is the boundary between "the generated board is mechanically green" and
 every materially changed project and requires each live board to be represented
 by a complete sealed release whose independent reviews bind the exact board
 bytes.  A zero-project denominator is only a pass when the git diff proves that
-no material PCB project path changed.
+no material PCB project path changed, except for a complete tracked project
+tree relocated byte/mode-identically from ``projects/<name>`` to the previously
+absent ``archived_projects/<name>``.
 
 The gate is intentionally pcbnew-free.  It composes the existing release gates
 and adds the publication-only properties they cannot infer from an isolated
@@ -95,6 +97,66 @@ def affected_projects(paths):
     """Material diff paths -> sorted project-relative directories."""
     return sorted({str(_project_rel(p)[0]) for p in paths
                    if is_material_project_path(p)})
+
+
+def _tree_identity(commit, path, root):
+    """Return a tracked directory's Git tree identity, or ``None`` if absent.
+
+    A tree object recursively binds every tracked pathname, blob byte, and
+    executable/symlink mode below the directory.  Query the named commit rather
+    than the worktree so an untracked copy cannot satisfy publication coverage.
+    """
+    rel = Path(path).as_posix().rstrip("/")
+    cp = _git("ls-tree", "-z", commit, "--", rel, root=root)
+    if cp.returncode:
+        raise ValueError(
+            f"cannot inspect tracked tree {rel!r} at {commit}: "
+            f"{cp.stdout.strip() or 'git ls-tree failed'}")
+    matches = []
+    for record in cp.stdout.split("\0"):
+        if not record:
+            continue
+        try:
+            metadata, listed = record.split("\t", 1)
+            mode, kind, oid = metadata.split()
+        except ValueError as e:
+            raise ValueError(
+                f"cannot parse git tree identity for {rel!r} at {commit}") from e
+        if listed == rel:
+            matches.append((mode, kind, oid))
+    if not matches:
+        return None
+    if len(matches) != 1 or matches[0][1] != "tree":
+        raise ValueError(
+            f"tracked archive subject {rel!r} at {commit} is not one directory")
+    mode, _, oid = matches[0]
+    return mode, oid
+
+
+def _is_exact_archive_relocation(project_rel, base, head, root):
+    """Whether one live project was *only* moved into the archive.
+
+    This is deliberately stricter than rename detection.  The old active tree
+    must exist only at ``base``; the same-name archive tree must exist only at
+    ``head``; and their recursive Git tree identities must match.  Consequently
+    content edits, file-mode edits, partial copies, retained active files, an
+    overwritten archive, and worktree-only bytes cannot earn the allowance.
+    """
+    parts = Path(project_rel).parts
+    if len(parts) != 2 or parts[0] != "projects":
+        raise ValueError(
+            f"archive relocation subject is not one project root: {project_rel!r}")
+    active = Path(*parts).as_posix()
+    archived = (Path("archived_projects") / parts[1]).as_posix()
+    base_active = _tree_identity(base, active, root)
+    head_archived = _tree_identity(head, archived, root)
+    return (
+        base_active is not None
+        and head_archived is not None
+        and _tree_identity(base, archived, root) is None
+        and _tree_identity(head, active, root) is None
+        and base_active == head_archived
+    )
 
 
 def _diff_names(base, head, root):
@@ -403,13 +465,30 @@ def main(argv=None):
               "one --project for explicit audit mode")
         return 2
 
+    archive_relocations = []
     try:
         if args.base:
             names = _diff_names(args.base, args.head, root)
             selected = affected_projects(names)
+            # Remove projects one at a time only after proving the complete
+            # tracked tree is an identity-preserving move.  Every other
+            # selected project remains in the ordinary publication denominator.
+            archive_relocations = [
+                rel for rel in selected
+                if _is_exact_archive_relocation(
+                    rel, args.base, args.head, root)
+            ]
+            selected = [
+                rel for rel in selected if rel not in archive_relocations
+            ]
             check_worktree = False
             print(f"P-PUBLISH coverage: {len(selected)} material project(s) "
-                  f"selected from {len(names)} changed path(s)")
+                  f"selected from {len(names)} changed path(s); "
+                  f"{len(archive_relocations)} exact archive relocation(s)")
+            for rel in archive_relocations:
+                name = Path(rel).name
+                print(f"  ARCHIVE {rel} -> archived_projects/{name} "
+                      "(tracked tree byte/mode identity proven)")
         else:
             selected = []
             for raw in args.project:
@@ -428,6 +507,12 @@ def main(argv=None):
         return 2
 
     if not selected:
+        if archive_relocations:
+            print(
+                "P-PUBLISH PASS: 0 live project(s), 0 board(s) graded; "
+                f"{len(archive_relocations)} complete tracked project tree(s) "
+                "moved byte/mode-identically into archived_projects/")
+            return 0
         print("P-PUBLISH PASS: 0 project(s), 0 board(s) graded; the git diff "
               "contains no material PCB project path")
         return 0

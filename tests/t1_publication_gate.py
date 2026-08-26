@@ -54,6 +54,104 @@ def t_claim_only_diff_selects_project():
               f"claim-only path escaped the publication denominator: {path}")
 
 
+def _commit(repo, message):
+    must_pass(run(["git", "add", "-A"], cwd=repo), f"stage {message}")
+    must_pass(run(["git", "commit", "-q", "-m", message], cwd=repo),
+              f"commit {message}")
+    return must_pass(run(["git", "rev-parse", "HEAD"], cwd=repo),
+                     f"resolve {message}").out.strip()
+
+
+def _archive_repo(*, preexisting_archive=False):
+    root = tmpdir("pub_archive_")
+    must_pass(run(["git", "init", "-q"], cwd=root), "init archive fixture")
+    must_pass(run(["git", "config", "user.email", "tests@example.invalid"],
+                  cwd=root), "configure fixture email")
+    must_pass(run(["git", "config", "user.name", "Publication Gate Tests"],
+                  cwd=root), "configure fixture name")
+    active = root / "projects" / "demo"
+    (active / "03_src").mkdir(parents=True)
+    (active / "03_src" / "route.yaml").write_text("schema: 1\n")
+    rebuild = active / "03_src" / "rebuild.sh"
+    rebuild.write_text("#!/bin/sh\nexit 0\n")
+    rebuild.chmod(0o755)
+    (active / "01_docs").mkdir()
+    (active / "01_docs" / "STATUS.md").write_text("state: scaffold\n")
+    archived = root / "archived_projects" / "demo"
+    if preexisting_archive:
+        archived.mkdir(parents=True)
+        (archived / "prior.txt").write_text("already reserved\n")
+    base = _commit(root, "base")
+    if preexisting_archive:
+        shutil.rmtree(archived)
+    archived.parent.mkdir(parents=True, exist_ok=True)
+    shutil.move(active, archived)
+    return root, base, active, archived
+
+
+@test("an exact tracked project-tree relocation into the archive is allowed")
+def t_exact_archive_relocation_is_allowed():
+    root, base, _, _ = _archive_repo()
+    head = _commit(root, "archive exact tree")
+    r = must_pass(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "exact archive relocation")
+    contains(r.out, "1 exact archive relocation(s)",
+             "archive coverage denominator")
+    contains(r.out, "tracked tree byte/mode identity proven",
+             "archive identity evidence")
+
+
+@test("archive allowance rejects plain deletion, byte/mode drift, retained "
+      "active trees, and overwritten destinations", kind="known_bad")
+def t_inexact_archive_relocations_are_refused():
+    fixtures = []
+
+    root, base, _, archived = _archive_repo()
+    (archived / "03_src" / "route.yaml").write_text("schema: 2\n")
+    fixtures.append(("byte drift", root, base))
+
+    root, base, _, archived = _archive_repo()
+    (archived / "03_src" / "rebuild.sh").chmod(0o644)
+    fixtures.append(("mode drift", root, base))
+
+    root, base, active, _ = _archive_repo()
+    (active / "03_src").mkdir(parents=True)
+    (active / "03_src" / "residual.yaml").write_text("left: true\n")
+    fixtures.append(("retained active tree", root, base))
+
+    root, base, _, _ = _archive_repo(preexisting_archive=True)
+    fixtures.append(("overwritten archive", root, base))
+
+    root, base, _, archived = _archive_repo()
+    shutil.rmtree(archived)
+    fixtures.append(("plain deletion", root, base))
+
+    for label, root, base in fixtures:
+        head = _commit(root, f"hostile {label}")
+        r = must_fail(run([sys.executable, PUB, "--root", root,
+                           "--base", base, "--head", head]), label)
+        check("1 exact archive relocation(s)" not in r.out,
+              f"{label} incorrectly earned the archive allowance:\n{r.out}")
+
+
+@test("an exact archive move cannot hide another material project mutation",
+      kind="known_bad")
+def t_archive_relocation_does_not_launder_other_project_changes():
+    root, base, _, _ = _archive_repo()
+    other = root / "projects" / "other" / "03_src"
+    other.mkdir(parents=True)
+    (other / "route.yaml").write_text("schema: 1\n")
+    head = _commit(root, "archive plus unrelated project mutation")
+    r = must_fail(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "archive plus unrelated project mutation",
+                  "BOARD-COVERAGE")
+    contains(r.out, "1 exact archive relocation(s)",
+             "valid archive move remains independently accounted")
+    contains(r.out, "projects/other", "unlaundered project finding")
+
+
 @test("the real RX2 v4 release is explicitly stale after material pipeline "
       "source changed", kind="known_bad")
 def t_real_release_stales_after_pipeline_adoption():

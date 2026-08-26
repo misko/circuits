@@ -638,7 +638,7 @@ ambiguous on the only board either plan touches.
 | Correct the give-up number to **19 events** in both routing documents | currently wrong in the document that "corrected" it |
 | **Do not promote `routing_readme.md`** until its 5 P0s close | it would make four wrong numbers canonical |
 | Delete `lipo3s_trace.md` + `.gitignore:5` | dead since 2026-07-21; and it is the false precedent `routing_readme.md` leans on |
-| Archive `pluto-rx2-8way-v3` | 28 tracked files vs v2's 109, no BRIEF.md, `STATUS.md` still literal `YYYY-MM-DDTHH:MM:SS` |
+| **DONE 2026-08-26:** Archive `pluto-rx2-8way-v3` | Moved intact to `archived_projects/`: 28 tracked files vs v2's 109, no BRIEF.md, no KiCad design or release, and `STATUS.md` still literal `YYYY-MM-DDTHH:MM:SS` |
 | Rewrite or delete `resume_state.md` | tracked and actively wrong: cooksense v1.7 sealed, v4 shipped twice, 6 of 10 boards listed |
 | Delete or RESOLVED-banner both stale `RESUME.md` files | usb-hub-3s-v3 is sealed through v1.12 |
 | Create `examples/routing-economics-2026-08/` | C-ISO: skills may not cite `projects/` paths |
@@ -916,14 +916,14 @@ a log that has no such string), :102 (RUDY needs route-time widths), :221
 | FR2 | :718,723 — revision-3 residue the rev-4 body reverses | P2 | **FOLDED** §7 R6 (un-demoted) + §2 congestion row + §13 (`global_route.py` deferred) |
 | FR3 | :543-546 — `C422`/`C32` distances transposed | P2 | **FOLDED** §4 X5 (C32 17.7 / C422 27.8 / C201 30.2, correct order) |
 
-#### root `contracts.md` — 2 · `RESUME.md` — 1 · `pluto-rx2-8way-v3` — 1 · `lipo3s_trace.md` — 1
+#### root `contracts.md` — 2 · `RESUME.md` — 1 · `pluto-rx2-8way-v3` — 1 resolved · `lipo3s_trace.md` — 1
 
 | # | lines — claim | P | disposition |
 |---|---|---|---|
 | CM1 | :14-24,30-46 — coverage rule scopes to `git ls-files`; 3 root plans FAIL C-ALLOW | P1 | **FOLDED** — plan "Home:" ¶ (:47-52) names exactly this and widens `docs/contracts.md` *(addendum below)* |
 | CM2 | :30-46 — the corpus has no index | P2 | **ACTION-HERE** §9-r8 |
 | RM1 | `projects/usb-hub-3s-v3/RESUME.md:1-12` — "no currently-orderable release" | P1 | **ACTION-HERE** §9-r6 |
-| PV1 | `pluto-rx2-8way-v3` — scaffold-only board in `projects/` | P1 | **ACTION-HERE** §9-r4 |
+| PV1 | `pluto-rx2-8way-v3` — scaffold-only board in `projects/` | P1 | **RESOLVED 2026-08-26** — moved intact to `archived_projects/pluto-rx2-8way-v3/` |
 | LT1 | `lipo3s_trace.md:1-8,155-169` — dead pre-run trace, gitignored | P2 | **ACTION-HERE** §9-r3 |
 
 ### New §9 rows owed (paste into the §9 table)
@@ -970,11 +970,12 @@ a log that has no such string), :102 (RUDY needs route-time widths), :221
 
 ### Census
 
-> **56 findings → 34 action (16 ACTION-HERE, 18 ACTION-OWED), 21 folded, 1 no-action.**
+> **56 findings → 33 action (15 ACTION-HERE, 18 ACTION-OWED), 21 folded, 1 no-action, 1 resolved.**
 > By document: `routing_readme.md` 7 here / 16 owed; `fix_pcb_design.md` 18
 > folded / 1 owed / 1 no-action; `resume_state.md` 5 here;
 > `fix_routing_to_industry_standards.md` 3 folded; root `contracts.md` 1 folded /
-> 1 here; `RESUME.md`, `pluto-rx2-8way-v3`, `lipo3s_trace.md` 1 here each.
+> 1 here; `RESUME.md` and `lipo3s_trace.md` 1 here each;
+> `pluto-rx2-8way-v3` 1 resolved.
 > §9 grows from 8 rows to **18**.
 
 ### Commands run for this disposition (all read-only, HEAD `809b38af` + working tree)
@@ -1717,7 +1718,7 @@ Insert **immediately after 431**, before `prep.waves.*` (432), four rows:
 The project copies carry the same table; `prep.keepouts.*` sits at
 `projects/programmable-usb2-hub/03_src/contracts.md:431`,
 `projects/pluto-rx2-8way-v4/03_src/contracts.md:400`,
-`projects/pluto-rx2-8way-v3/03_src/contracts.md:398`,
+`archived_projects/pluto-rx2-8way-v3/03_src/contracts.md:398`,
 `projects/pluto-rx2-8way-v2/03_src/contracts.md:303`. Template is the source of
 truth; copies re-sync on their next revision (CLAUDE.md structure governance),
 and `t1_contracts.py t_skill_contract_sync` is the backstop.
