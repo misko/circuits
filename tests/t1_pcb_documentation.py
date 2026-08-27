@@ -270,6 +270,14 @@ def t_documented_commissioning_commands():
 @test("root quick start begins with an installed pcb-design brief")
 def t_root_brief_only_skill_quick_start():
     section = markdown_section(README.read_text(), "## Quick start")
+    headings = (
+        "### 1. Give the PCB skill a brief",
+        "### 2. See fabricated examples",
+        "### 3. Follow the prompt-to-device loop",
+    )
+    check(section.index(headings[0]) < section.index(headings[1])
+          < section.index(headings[2]),
+          "quick-start sections are not in brief, examples, loop order")
     check("$skill-installer" not in section,
           "quick start should not teach skill installation")
     check("Install the skills" not in section,

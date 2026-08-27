@@ -19,32 +19,7 @@ from committed status and evidence rather than restarting or restating the
 brief. Prompt to device is an iterative development loop, not a one-shot
 generator.
 
-### 2. Follow the prompt-to-device loop
-
-```text
-plain-language brief
-  → fact locks and architecture
-  → schematic, placement, routing, and enclosure development
-  ↺ independent review, correction, regeneration, and measurement
-  → sealed fabrication and mechanical artifacts
-  → first article, physical findings, and the next development cycle
-```
-
-Today the governed output can include:
-
-- native KiCad schematics and a rendered schematic PDF;
-- the routed KiCad PCB plus Gerbers, drill files, BOM, and CPL for fabrication;
-- top, bottom, and 3D PCB renders plus a STEP assembly;
-- when mechanical work is selected, enclosure source, printable STLs, assembly
-  renders, and clearance evidence.
-
-The pipeline already uses board-level CAD/assembly twins as verification
-instruments. Governed firmware releases and an integrated product-level digital
-twin are forward work, tracked by
-[IMP-234](improvements.md#imp-234--firmware-release-stream) and
-[IMP-236](improvements.md#imp-236--prompt-to-device-product-composition-and-digital-twin).
-
-### 3. See fabricated examples
+### 2. See fabricated examples
 
 These two projects show the path from a plain-English request to electrical
 CAD, mechanical CAD, and fabricated hardware. The prompt cells preserve the
@@ -92,6 +67,31 @@ coupon. It deliberately remains mutable source—not an enclosure release—unti
 the 15 component bodies omitted by the sealed STEP, the unmodeled switch, real
 connector mating hardware, printed fit, and closed-case thermal behavior are
 resolved.
+
+### 3. Follow the prompt-to-device loop
+
+```text
+plain-language brief
+  → fact locks and architecture
+  → schematic, placement, routing, and enclosure development
+  ↺ independent review, correction, regeneration, and measurement
+  → sealed fabrication and mechanical artifacts
+  → first article, physical findings, and the next development cycle
+```
+
+Today the governed output can include:
+
+- native KiCad schematics and a rendered schematic PDF;
+- the routed KiCad PCB plus Gerbers, drill files, BOM, and CPL for fabrication;
+- top, bottom, and 3D PCB renders plus a STEP assembly;
+- when mechanical work is selected, enclosure source, printable STLs, assembly
+  renders, and clearance evidence.
+
+The pipeline already uses board-level CAD/assembly twins as verification
+instruments. Governed firmware releases and an integrated product-level digital
+twin are forward work, tracked by
+[IMP-234](improvements.md#imp-234--firmware-release-stream) and
+[IMP-236](improvements.md#imp-236--prompt-to-device-product-composition-and-digital-twin).
 
 ## What this repository is
 
