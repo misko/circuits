@@ -12,10 +12,6 @@ renumbering `04_kicad` … `07_releases`. A project may carry both (`03_src/` = 
 KiCad-side generators + promoted route; `03_tscircuit/` = the TSX authoring
 source); together they are stage 03, "the hand-written truth".
 
-Note the shared module library `tscircuit_modules/` at the REPO ROOT is NOT a
-project stage and keeps its unnumbered name; so does the tool/product name
-"tscircuit" everywhere it appears in prose.
-
 ## Contents
 
 1. Authoring boundary and two schematic audiences
@@ -23,7 +19,7 @@ project stage and keeps its unnumbered name; so does the tool/product name
 3. KiCad schematic and PCB bridges
 4. Go-forward rebuild command
 5. Verification limits and authoring notes
-6. Shared module registry and toolchain
+6. Toolchain and retired module-registry decision
 
 Producer-boundary gates routed here include `TSX-PRE` and `TSX-DIAG`.
 
@@ -359,52 +355,17 @@ Proof records: each project's `03_tscircuit/verification/tsx_to_board_proof.md`.
   handful of real auto-router shorts in congested corners. Parity proves the DESIGN;
   the copper is a study, not fab-grade. Classify in `notes.md` (parametric vs real).
 
-## The registry — reusable module library (ADR-0002 Phase C, PROVEN 2026-07-20)
+## Retired shared-module experiment
 
-Our proven, repeated subcircuits live as **parameterized tscircuit modules** in a
-shared library at the repo root, `tscircuit_modules/` (NOT inside any one project — so
-many boards import the same certified block):
+ADR-0002 Phase C demonstrated one reusable `ShuntMonitor` TSX module, but no
+project adopted it and no repository test or conductor executed it. ADR-0010
+therefore removed the top-level experimental registry. Git history retains its
+demo and parity evidence; it is not current pipeline authority.
 
-```
-tscircuit_modules/
-  README.md                 # catalog + compose pattern + each module's API + next candidates
-  src/<Module>.tsx          # the reusable parameterized components (export a function component)
-  demo/                     # a gate board that composes the module(s) + its verification stack
-    <demo>.tsx  package.json
-    build/circuit.json  kicad/<demo>.kicad_sch  verification/{parity.md,channel_parity.py,erc.rpt,*.net}
-```
-
-**Compose pattern.** A new board `import`s the module and instantiates it (once per
-instance, `.map` for N-identical channels), passing ONLY board-level nets + parameters;
-the module channel-PREFIXES its internal nets so instances never collide. Render +
-certify with the EXISTING bridge — no new tooling:
-
-```tsx
-import { ShuntMonitor } from "../src/ShuntMonitor"
-{[1,2,3,4,5,6].map((ch) => (
-  <ShuntMonitor key={`mon${ch}`} channel={ch} i2cAddress={0x40+(ch-1)}
-    busNet={`VF${ch}`} loadNet={`VP${ch}`} sdaNet="SDA" sclNet="SCL"
-    alertNet="ALERT" vsNet="N3V3" gndNet="GND" />
-))}
-```
-```
-tsci build <demo>.tsx  →  circuit_json_to_kicad_sch.py build/circuit.json \
-   -o kicad/<demo>.kicad_sch --parts-dir <project>/02_parts  →  kicad-cli sch erc / export netlist
-```
-
-**Two authoring rules the registry leans on:** (1) a specialty part in a module needs
-BOTH `supplierPartNumbers={{ jlcpcb: [...] }}` (the JLC code links to the `02_parts`
-footprint via the converter override) AND a `<footprint>` child or footprinter token
-(so tscircuit renders it); point `--parts-dir` at the project that owns those footprints.
-(2) the ADR-0001 canonical-net convention still applies (`N3V3` → `3V3`).
-
-**Proven.** `ShuntMonitor` (INA238 + WSLP2726 Kelvin shunt + input filter + decoupler,
-from ble-bus-bar's `port_channel`) composed **6×** reproduced the 6 hand-authored
-channels **node-for-node** (parity PASS all 6, addresses distinct 0x40..0x45, Kelvin
-preserved, ERC 0 errors). A module emits circuit.json only — every gate still runs on the
-native artifact; routing + twin stay KiCad-only. Adopt OPTIONAL, per-board. Next
-candidates: RJ45 port-channel, power-entry-protection, ESP32 standard hookup
-(`tscircuit_modules/README.md`).
+Author reusable code inside a governed project's `03_tscircuit/` source until
+a second real project proves a shared package is needed. A future shared module
+must land with actual downstream adoption, pinned dependency identity, replay,
+and automated tests rather than a self-contained demonstration alone.
 
 ## Toolchain (project-local and pinned)
 
