@@ -33,6 +33,7 @@ The normal commission creates:
 - a navigation-only project `README.md` and `.gitignore`;
 - the exact original prompt in `01_docs/BRIEF.md` with its SHA-256;
 - `01_docs/capability-profile.json` plus architecture/status/checklist starters;
+- a governed `01_docs/reports/` home for Markdown investigations;
 - `01_docs/COMMISSIONING-HOLD.md`, a conductor-enforced hold that prevents
   either rebuild conductor from consuming schema examples as adopted design;
 - sourcing policy and decision/journal/learning skeletons;

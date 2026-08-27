@@ -42,6 +42,8 @@ That enclosure remains an honest `INCOMPLETE` candidate pending printed
 seating and retention tests.
 The PCB archive itself predates fabrication and still records
 `DO-NOT-ORDER`; RF first-article measurements remain open.
+The current human-readable engineering study is
+[RF isolation, leakage paths, and a v6 mitigation strategy](projects/pluto-rx2-8way-v5/01_docs/reports/2026-08-27-rf-isolation-and-v6-mitigation.md).
 
 [`usb-hub-3s-v3`](projects/usb-hub-3s-v3/) is the closest existing hardware
 to the quick-start brief: three USB-A outputs and one USB-C output rather than
@@ -78,7 +80,8 @@ Today the governed output can include:
 - the routed KiCad PCB plus Gerbers, drill files, BOM, and CPL for fabrication;
 - top, bottom, and 3D PCB renders plus a STEP assembly;
 - when mechanical work is selected, enclosure source, printable STLs, assembly
-  renders, and clearance evidence.
+  renders, and clearance evidence; and
+- governed Markdown investigations under each project's `01_docs/reports/`.
 
 The pipeline already uses board-level CAD/assembly twins as verification
 instruments. Governed firmware releases and an integrated product-level digital

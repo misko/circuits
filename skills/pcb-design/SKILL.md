@@ -186,6 +186,7 @@ domains. References longer than 100 lines have a contents list.
 | Commission, fact locks, sourcing, module/tier decisions | [commission-and-scope.md](references/commission-and-scope.md) |
 | Canonical stage/command/dependency map | [execution-graph.md](references/execution-graph.md) |
 | Backtrack, checkpoint, journal, or handoff | [lifecycle-and-backtrack.md](references/lifecycle-and-backtrack.md) |
+| Human investigation report | [project-reports.md](references/project-reports.md) |
 | Bounded task/process/agent execution | [execution-runtime.md](references/execution-runtime.md) |
 | Operator pause/resume evidence | [operator-checkpoints.md](references/operator-checkpoints.md) |
 | Review, seal, supersession, publication | [review-and-publication.md](references/review-and-publication.md) |
@@ -242,6 +243,16 @@ After three non-improving iterations, stop local repair. Record the repeated
 finding set, verify the causal artifact, and use `D-BACK` to reopen its owner.
 A fresh agent resumes from committed source, the live beacon, journal, and
 content-addressed handoff—not from hidden conversation history.
+
+## Human reports
+
+When the user asks for an investigation, design study, issue analysis, or
+option comparison, follow
+[the project report contract](references/project-reports.md). Keep the editable
+Markdown under `01_docs/reports/`. Mark measurements, cited specifications,
+inferences, proposals, and owed tests explicitly. Distill an accepted decision
+into its owning ADR or executable source; a polished report never becomes
+silent design authority.
 
 ## Validate changes to this skill
 
