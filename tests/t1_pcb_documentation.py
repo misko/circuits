@@ -276,6 +276,11 @@ def t_root_brief_only_skill_quick_start():
              "brief-only USB-C requirement")
     contains(section, "v1.12-2026-07-28", "fabricated example release")
     contains(section, "twin_iso_nw.png", "fabricated example hero render")
+    contains(section,
+             "projects/usb-hub-3s-v3/03_src/mechanical/README.md",
+             "USB hub enclosure source candidate")
+    contains(section, "not an enclosure release",
+             "USB hub enclosure readiness boundary")
 
 
 @test("fabricated-example photos retain exact source and display identities")

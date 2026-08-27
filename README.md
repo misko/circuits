@@ -98,6 +98,15 @@ records physical v1.12 boards and the replacement assembly's successful
 no-load regulation checks; full load, transient, and thermal qualification is
 still open.
 
+The exact v1.12 board also has a new
+[three-part printable enclosure source candidate](projects/usb-hub-3s-v3/03_src/mechanical/README.md)
+with a foundation base whose only raised features are dedicated PCB and case
+pillars, an independently fastened one-piece four-skirt lid, and an insert-fit
+coupon. It deliberately remains mutable source—not an enclosure release—until
+the 15 component bodies omitted by the sealed STEP, the unmodeled switch, real
+connector mating hardware, printed fit, and closed-case thermal behavior are
+resolved.
+
 The USB board's sealed release also preserves the reviewable digital twin:
 
 | 3D digital-twin isometric render | 3D digital-twin top render |
