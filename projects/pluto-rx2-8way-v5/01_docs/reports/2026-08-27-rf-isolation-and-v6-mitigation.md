@@ -65,6 +65,7 @@ readiness.
 | [Exact routed RF PCB review](../../07_releases/v0.2.1-2026-08-14/verification/rf_pcb.md) | **MEASURED** on CAD artifact | 0/0/0 DRC/parity, nine branch-free top routes, zero RF vias, 18/18 fence flanks, continuous reference | RF S-parameters |
 | [First-article test plan](../../07_releases/v0.2.1-2026-08-14/verification/FIRST_ARTICLE_TEST_PLAN.md) | **CITED** project procedure | Required calibration plane, terminations, state census and acceptance targets | A test result |
 | [Fabricated-board photograph](../../../../docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg) in the repository showcase | **MEASURED** visual configuration | Direct antenna elements were operated physically close to one another | Coupling magnitude or antenna impedance |
+| [Smateway HexRay TX-in-middle study](https://github.com/misko/smateway/tree/codex/stm32-bringup/docs/hexray_tx_in_middle_calibration) | **CITED** cross-project experiment | Excellent fixed-setup 2.4 GHz repeatability, rejected exact-5.8-GHz admission, and a staged leakage-localization hypothesis using the same Pluto/selector system | A locally reopened raw-artifact chain, VNA isolation matrix, or attribution of the unresolved 5.8 GHz leakage path |
 | v0.6 PETG enclosure evidence | **MEASURED** mechanical CAD, physical RF **OWED** | Fit, collision and printable geometry under its stated assumptions | Shielding effectiveness or antenna isolation |
 
 ![Bare-board top view showing the central SP8T, radial RF fanout, ground fencing, and nine edge SMA launches](../../07_releases/v0.2.1-2026-08-14/verification/render_top_bare.png)
@@ -145,6 +146,47 @@ These facts reduce board-created leakage risk. They do not exclude radiation
 between connectors or antennas, and they do not override the switch's own
 isolation floor.
 
+### Cross-project evidence from the HexRay experiment
+
+The Smateway HexRay TX-in-middle experiment exercises the same Pluto/selector
+system in a six-element circular array. **CITED:** its accepted 2.4 GHz v2.2 run
+retained 15 unique streams with no retries, passed independent held-out-round
+checks and showed very strong fixed-setup repeatability. The uncorrected system
+nevertheless reached a 9.68 dB gain span and 41.01° phase RMS, while sparse
+leave-one-frequency-out errors reached 3.14 dB and 18.19° RMS. Its coefficients
+are therefore correctly limited to the measured frequencies and configuration.
+
+That result supports two findings in this report:
+
+- **INFERRED:** connector, cable, switch, antenna, mutual-coupling and room terms
+  can dominate over the realized PCB-length prior even when the PCB routes are
+  stable and well controlled; and
+- **PROPOSED:** v6 validation must test frequency and physical-configuration
+  transportability rather than only reapplying one centered-array correction.
+
+The exact-5.8-GHz extension was correctly rejected because direct/common leakage
+masked the ALL_OFF amplitude marker. Removing the separately attached TX2
+antenna changed the RX2 peak at the strongest tested condition from an attached
+mean of 383 counts to 389 counts, only +1.57%. **CITED:** that controlled change
+deprioritizes TX1-to-TX2-antenna reradiation as the dominant RX2 path, but it
+does not identify the remaining path. The retained candidates are Pluto-internal
+TX1-to-RX2 leakage, RX2 cable/common-route coupling, finite selector/PCB
+isolation, and cable or connector faults.
+
+The study's inverse analysis also rejects one static relative path delay for
+ANT2 through ANT6, with best-fit residuals of 12.29–18.91° RMS and a shared
+2.440 GHz excursion. **CITED:** this is consistent with a frequency-dependent
+end-to-end response, not a correction reducible to PCB or cable length alone.
+The associated [follow-up analysis issue](https://github.com/misko/smateway/issues/1)
+records the proposed boundary-isolation, dense-sweep, conducted-fixture,
+transportability and spatial-mode experiments.
+
+**OWED:** the Smateway repository currently retains summary snapshots and
+hashes but not a release-local raw evidence package containing the timing pair,
+15 accepted SigMF streams and exact-5.8-GHz diagnostic captures. Treat these
+findings as cited experimental evidence until that chain can be reopened from a
+durable artifact package.
+
 ## Recommendations
 
 ### Recommended v6A — change the RF system boundary first
@@ -217,19 +259,35 @@ their combined leakage.
 
 Repeat the same matrix with one controlled change at a time:
 
-1. bare board with 50-ohm terminations;
-2. current plastic enclosure;
-3. short coax and bulkhead connectors, antennas absent;
-4. bonded metal RF cassette;
-5. antennas attached at increasing separation and changed orientation; and
-6. final cable routing and closed enclosure.
+1. keep the bounded TX1 stimulus, disconnect the selector and terminate Pluto
+   RX2 directly at its own reference plane;
+2. add only the immobilized RX2 cable with a 50-ohm termination at its far end;
+3. add the bare selector with every antenna input terminated in 50 ohms;
+4. add the current plastic enclosure;
+5. replace it with the bonded metal RF cassette;
+6. attach antennas at increasing separation and changed orientation; and
+7. test the final cable routing and closed enclosure.
 
 The delta between steps identifies whether the switch, PCB, connector harness,
 enclosure or antenna field dominates. A near-field probe scan around the switch,
 SMA launches and enclosure seams is useful diagnostic evidence, but the calibrated
 S-parameter matrix remains the acceptance authority.
 
-### Phase 3 — compare v6 options
+### Phase 3 — map frequency dependence and transportability
+
+1. Without moving the assembly, acquire a dense immutable 2.400–2.483 GHz
+   sweep at approximately 1–2 MHz spacing.
+2. Fit an unwrapped affine phase/group-delay model per antenna and retain the
+   residual versus frequency as the dispersive/coupling fingerprint.
+3. Repeat with a conducted through-path fixture and a predeclared cable/antenna
+   permutation to separate PCB/switch, cable/connector and OTA terms.
+4. Re-run after controlled source-position, source-height, antenna-polarization,
+   cable-routing, enclosure and day changes. Report when a fresh calibration is
+   required rather than assuming coefficient transportability.
+5. Retain C6 spatial-mode power, physical opposite-pair residuals and equal-PCB-
+   length-pair residuals across the sweep.
+
+### Phase 4 — compare v6 options
 
 Build otherwise-comparable coupons for PE42482 and any alternative SP8T. Use the
 same launches, stackup, connector planes and loads. If per-branch double switching
@@ -250,6 +308,8 @@ temperature-relevant conditions and expected antenna return loss.
 | [ADI ADRF5080 data sheet](https://www.analog.com/media/en/technical-documentation/data-sheets/adrf5080.pdf) | Alternative exact-part primary source | Candidate insertion loss, isolation, topology, package and supply comparison |
 | [TE Connectivity EMI shielding resources](https://www.te.com/en/products/emi-and-emc-solutions/emi-shielding/resources/knowledge-hub.html) and [EMI vent guidance](https://www.te.com/en/products/emi-and-emc-solutions/emi-shielding/emi-vents.html) | Manufacturer mechanical guidance | Conductive seams/gaskets and waveguide-below-cutoff ventilation approach |
 | [Enclosure v0.6.0 README](../../07_enclosure_releases/v0.6.0-2026-08-27/README.md) | Immutable mechanical candidate evidence | Current fit architecture and explicit physical/RF evidence boundary |
+| [Smateway HexRay TX-in-middle calibration study](https://github.com/misko/smateway/tree/codex/stm32-bringup/docs/hexray_tx_in_middle_calibration) | Cross-project experimental report | Accepted fixed-setup 2.4 GHz calibration, rejected 5.8 GHz extension, frequency-dependent path finding and staged leakage discriminator |
+| [Smateway issue #1 — follow-up analysis ideas](https://github.com/misko/smateway/issues/1) | Public follow-up record | Boundary isolation, conducted leakage matrix, dense sweep, controlled permutation, transportability and evidence-package work |
 
 ## Disposition
 
