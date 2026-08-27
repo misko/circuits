@@ -26,6 +26,8 @@ SKILL = ROOT / "skills/pcb-design/SKILL.md"
 GRAPH = ROOT / "skills/pcb-design/references/execution-graph.md"
 CATALOG = ROOT / "skills/pcb-design/references/skill-authority-map.json"
 DOCS_INDEX = ROOT / "docs/README.md"
+HISTORY_DIR = ROOT / "docs/history"
+HISTORY_INDEX = HISTORY_DIR / "README.md"
 IMPROVEMENTS = ROOT / "improvements.md"
 CLAUDE = ROOT / "CLAUDE.md"
 ROOT_CONTRACT = ROOT / "skills/pcb-design/templates/contracts/ROOT.contracts.md"
@@ -63,7 +65,7 @@ FAB_EXAMPLE_BINDINGS = {
     ),
 }
 
-ENTRY_DOCS = (README, SKILL, GRAPH, DOCS_INDEX, IMPROVEMENTS)
+ENTRY_DOCS = (README, SKILL, GRAPH, DOCS_INDEX, HISTORY_INDEX, IMPROVEMENTS)
 CURRENT_ROOT_DOCS = {"CLAUDE.md", "README.md", "contracts.md", "improvements.md"}
 LINK_RE = re.compile(
     r"!?\[[^\]]*\]\(\s*(?:<(?P<angle>[^>]+)>|(?P<plain>[^\s)]+))"
@@ -410,23 +412,28 @@ def t_routed_references_exist_and_are_direct():
               f"routed reference is not linked directly from SKILL.md: {reference}")
 
 
-@test("documentation index classifies every non-current root document as history")
-def t_root_history_is_classified():
+@test("root contains only current docs and history has an exact indexed census")
+def t_root_and_history_are_classified():
     root_markdown = {path.name for path in ROOT.glob("*.md")}
-    historical = root_markdown - CURRENT_ROOT_DOCS
-    history_section = markdown_section(
-        DOCS_INDEX.read_text(), "## Historical plans and snapshots")
+    eq(root_markdown, CURRENT_ROOT_DOCS, "current root document census")
+
+    historical = {
+        path.name for path in HISTORY_DIR.glob("*.md")
+        if path.name not in {"README.md", "contracts.md"}
+    }
+    history_section = markdown_section(HISTORY_INDEX.read_text(),
+                                       "## Retained documents")
     indexed = set()
     for target in markdown_links(history_section):
         split = urlsplit(target)
         if split.scheme or not split.path:
             continue
-        resolved = (DOCS_INDEX.parent / unquote(split.path)).resolve()
-        if resolved.parent == ROOT and resolved.suffix == ".md":
+        resolved = (HISTORY_INDEX.parent / unquote(split.path)).resolve()
+        if resolved.parent == HISTORY_DIR and resolved.suffix == ".md":
             indexed.add(resolved.name)
-    eq(indexed, historical, "root historical document classification")
+    eq(indexed, historical, "historical document index census")
     for name in sorted(historical):
-        opening = "\n".join((ROOT / name).read_text().splitlines()[:12])
+        opening = "\n".join((HISTORY_DIR / name).read_text().splitlines()[:12])
         contains(opening, "Historical", f"{name} historical banner")
 
 

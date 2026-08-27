@@ -9,8 +9,9 @@
 #                   any user directives). Never includes maintainer notes.
 #
 # What it does (and prints): cuts a fresh worktree from current main, strips
-# projects/ resume_state.md tests/ (prior-board knowledge and the canary
-# briefs must not be readable in-root), commits the strip, recreates an empty
+# projects/, the dated historical resume snapshot, and tests/ (prior-board
+# knowledge and the canary briefs must not be readable in-root), commits the
+# strip, recreates an empty
 # projects/, then renders the standard isolation prompt to
 # <worktree>/CLEANROOM_PROMPT.txt for the orchestrator to launch an agent
 # with. The scaffolding lives HERE, outside the skill, because the skill
@@ -26,8 +27,8 @@ BRIEF="$(cat "$BRIEF_FILE")"
 cd "$REPO"
 git worktree add "$WT" -b "$BR" main
 cd "$WT"
-git rm -r -q projects resume_state.md tests 2>/dev/null || git rm -r -q projects tests
-git commit -q -m "$BR: physical isolation — strip projects/, resume_state.md, tests/ (cleanroom_prep.sh)"
+git rm -r -q projects docs/history/2026-07-30-resume-state.md tests
+git commit -q -m "$BR: physical isolation — strip projects/, historical resume state, tests/ (cleanroom_prep.sh)"
 mkdir projects
 
 cat > CLEANROOM_PROMPT.txt <<EOF

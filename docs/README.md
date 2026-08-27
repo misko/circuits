@@ -71,10 +71,13 @@ The following are retained only to explain why current behavior exists. They
 are not entry points and must not be used as command or ownership authority:
 
 - [`pipeline-fix-master-plan.md`](pipeline-fix-master-plan.md)
-- [`../fix_pcb_design.md`](../fix_pcb_design.md)
-- [`../fix_routing_to_industry_standards.md`](../fix_routing_to_industry_standards.md)
-- [`../routing_readme.md`](../routing_readme.md)
-- [`../resume_state.md`](../resume_state.md)
+- [`history/2026-08-02-fix-pcb-design.md`](history/2026-08-02-fix-pcb-design.md)
+- [`history/2026-08-02-routing-industry-plan.md`](history/2026-08-02-routing-industry-plan.md)
+- [`history/2026-08-02-routing-investigation.md`](history/2026-08-02-routing-investigation.md)
+- [`history/2026-07-30-resume-state.md`](history/2026-07-30-resume-state.md)
+
+The [`history/` index](history/README.md) records why each retained document is
+non-authoritative and where its current owner lives.
 
 Git history is the source for earlier versions. Unresolved work harvested from
 these documents belongs in `improvements.md`; current procedure belongs in the

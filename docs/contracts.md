@@ -15,6 +15,7 @@ as procedure.
 | `README.md` | documentation authority and navigation index |
 | `*.md` | measured proof, implementation notes, or explicitly bannered history as classified by `README.md` |
 | `decisions/**` | numbered ADRs `NNNN-slug.md` — govern; do not contradict silently (repo CLAUDE.md) |
+| `history/` | frozen, non-authoritative plans and dated snapshots (own contract) |
 | `assets/fab-examples/**` | provenance-bound source/display photographs and generated render copies used by the fabricated-example showcase |
 | `contracts.md` | this file |
 

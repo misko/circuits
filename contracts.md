@@ -35,11 +35,7 @@ via an explicit pattern (see the coverage rule below).
 | `contracts.md` | this file |
 | `.gitignore` | build/cache exclusions |
 | `.github/` | repository automation and publication checks (own contract) |
-| `resume_state.md` | retained historical snapshot; current resume state comes from Git plus project STATUS/journal |
 | `improvements.md` | repository-wide pipeline/process improvement ledger harvested from project stages | entries remain visible until completed or rejected with evidence |
-| `fix_pcb_design.md` | historical PCB workflow proposal; non-authoritative |
-| `fix_routing_to_industry_standards.md` | historical routing proposal; non-authoritative |
-| `routing_readme.md` | historical routing investigation; non-authoritative |
 | `skills/` | the product: pcb-design, kicad-pcb, jlcpcb-fab, pcb-enclosure, shopping-list (own contract) |
 | `docs/` | repo-level canon: ADRs + proof docs (own contract) |
 | `examples/` | frozen evidence snapshots skills may cite (own contract) |
