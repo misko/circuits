@@ -46,14 +46,20 @@ twin are forward work, tracked by
 
 ### 3. See fabricated examples
 
-These are physical boards produced through this workflow. The photographs are
-bench evidence, not production-qualification claims; their exact source hashes,
-conversion record, identification basis, and limits are preserved in
+These two projects show the path from a plain-English request to electrical
+CAD, mechanical CAD, and fabricated hardware. The prompt cells quote the
+compact product sentence from each earliest authenticated lineage prompt; the
+links retain the complete verbatim records. Photographs are bench evidence,
+not production-qualification claims. Exact provenance and claim limits are in
 [`fabricated-examples.md`](docs/fabricated-examples.md).
 
-| Pluto RX2 eight-way v5 | 3S LiPo USB power board |
-|---|---|
-| [![Fabricated Pluto RX2 eight-way v5 board with eight switched antennas and one reference antenna installed](docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg)](docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg) | [![Fabricated usb-hub-3s-v3 board during bench bring-up](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg)](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg) |
+|  | **Pluto eight-way fast switch** | **3S LiPo USB power board** |
+|---|---|---|
+| **Original prompt** | [“we want a high speed switching 8 pole on RX2.”](archived_projects/pluto-rx2-8way/01_docs/BRIEF.md#original-prompt) | [“Please from scratch start a new project, and lets design a board that takes 3S lipo XT60 power as input , and outputs 3 x USB A ports (2.5A max) and 1 x USB C port (6A max).”](archived_projects/usb-power-3s/01_docs/BRIEF.md#original-prompt) |
+| **PCB rendering** | [![Rendered Pluto RX2 eight-way v5 PCB](projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/final_iso_3200.png)](projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/final_iso_3200.png) | [![Rendered usb-hub-3s-v3 v1.12 PCB](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png)](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png) |
+| **Enclosure rendering** | [![Rendered Pluto RX2 eight-way v5 enclosure](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/renders/closed-assembly.png)](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/renders/closed-assembly.png) | [![Rendered usb-hub-3s-v3 v1.12 enclosure candidate](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosure-candidate.png)](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosure-candidate.png) |
+| **Fabricated board** | [![Fabricated Pluto RX2 eight-way v5 board with eight switched antennas and one reference antenna installed](docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg)](docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg) | [![Fabricated usb-hub-3s-v3 board during bench bring-up](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg)](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg) |
+| **Board in enclosure** | _Photo pending._ | _Photo pending._ |
 
 [`pluto-rx2-8way-v5`](projects/pluto-rx2-8way-v5/) is the fabricated
 eight-way RF switch board. Its immutable PCB design archive is
@@ -86,12 +92,6 @@ coupon. It deliberately remains mutable source—not an enclosure release—unti
 the 15 component bodies omitted by the sealed STEP, the unmodeled switch, real
 connector mating hardware, printed fit, and closed-case thermal behavior are
 resolved.
-
-The USB board's sealed release also preserves the reviewable digital twin:
-
-| 3D digital-twin isometric render | 3D digital-twin top render |
-|---|---|
-| [![usb-hub-3s-v3 isometric 3D digital-twin PCB render](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png)](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png) | [![usb-hub-3s-v3 top 3D digital-twin PCB render](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_top.png)](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_top.png) |
 
 ## What this repository is
 

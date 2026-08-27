@@ -40,7 +40,7 @@ TSCIRCUIT_CONTRACT = ROOT / "skills/pcb-design/templates/contracts/03_tscircuit/
 SKILLS_CONTRACT = ROOT / "skills/contracts.md"
 PCB_OPENAI_YAML = ROOT / "skills/pcb-design/agents/openai.yaml"
 FAB_PHOTO_EVIDENCE = ROOT / "docs/fabricated-examples.md"
-FAB_PHOTO_BINDINGS = {
+FAB_EXAMPLE_BINDINGS = {
     "docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.heic": (
         1539754,
         "4e7cb71008ba4918d625765c39e400e51b56f5867f0c9d9dad08fd9fc288fd8e",
@@ -56,6 +56,10 @@ FAB_PHOTO_BINDINGS = {
     "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg": (
         37705,
         "b7efd5b53912e7d26704ffef0ec041a0d0bb7354622cc829ac979a22bfe6de85",
+    ),
+    "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosure-candidate.png": (
+        63394,
+        "c19ff717bf85ce3bb9bfc22bebc7f0ebc3dbd40e1368c0d7f676a578ea906cac",
     ),
 }
 
@@ -279,8 +283,28 @@ def t_root_brief_only_skill_quick_start():
              "brief-only USB-A requirement")
     contains(section, "1× USB-C output at 5 V / 5 A",
              "brief-only USB-C requirement")
+    for row in ("Original prompt", "PCB rendering", "Enclosure rendering",
+                "Fabricated board", "Board in enclosure"):
+        contains(section, row, f"showcase row {row}")
+    contains(section, "we want a high speed switching 8 pole on RX2.",
+             "authenticated Pluto lineage prompt")
+    contains(section,
+             "takes 3S lipo XT60 power as input , and outputs 3 x USB A",
+             "authenticated USB lineage prompt")
+    contains(section,
+             "archived_projects/pluto-rx2-8way/01_docs/BRIEF.md",
+             "Pluto prompt provenance link")
+    contains(section,
+             "archived_projects/usb-power-3s/01_docs/BRIEF.md",
+             "USB prompt provenance link")
     contains(section, "v1.12-2026-07-28", "fabricated example release")
     contains(section, "twin_iso_nw.png", "fabricated example hero render")
+    contains(section, "final_iso_3200.png", "Pluto PCB render")
+    contains(section,
+             "usb-hub-3s-v3-v1.12-enclosure-candidate.png",
+             "USB enclosure candidate render")
+    eq(section.count("_Photo pending._"), 2,
+       "board-in-enclosure photo placeholders")
     contains(section,
              "projects/usb-hub-3s-v3/03_src/mechanical/README.md",
              "USB hub enclosure source candidate")
@@ -288,11 +312,11 @@ def t_root_brief_only_skill_quick_start():
              "USB hub enclosure readiness boundary")
 
 
-@test("fabricated-example photos retain exact source and display identities")
-def t_fabricated_example_photo_bindings():
+@test("fabricated-example media retain exact source and display identities")
+def t_fabricated_example_media_bindings():
     readme = README.read_text()
     evidence = FAB_PHOTO_EVIDENCE.read_text()
-    for relative, (expected_size, expected_hash) in FAB_PHOTO_BINDINGS.items():
+    for relative, (expected_size, expected_hash) in FAB_EXAMPLE_BINDINGS.items():
         path = ROOT / relative
         check(path.is_file() and not path.is_symlink(),
               f"fabricated-example subject is not an ordinary file: {relative}")

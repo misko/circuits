@@ -61,7 +61,7 @@ support decisions but do not replace the owning skill procedure.
 | [`denominator-census.md`](denominator-census.md) | Coverage/denominator census |
 | [`pipeline-reliability.md`](pipeline-reliability.md) | Runtime and reliability measurements |
 | [`pipeline-shadow-canaries.md`](pipeline-shadow-canaries.md) | Dated rollout/canary evidence; not current authority |
-| [`fabricated-examples.md`](fabricated-examples.md) | Source/display hashes and claim limits for README bench photographs |
+| [`fabricated-examples.md`](fabricated-examples.md) | Prompt, photograph, and rendering provenance plus claim limits for the README showcase |
 
 ## Historical plans and snapshots
 
