@@ -37,8 +37,8 @@ cad:
   source:
     kind: authored_scad
     path: 03_src/mechanical/usb_hub_3s_v3_case.scad
-    sha256: 75403330822f4b45ad56aded9abdab834e6e78a0e8ff26e45cbf899b22782c9b
-    size: 16658
+    sha256: 034c9dc09f89ca02a9cddd78afe1b844b4f79d2db698133a62e40c7405e8e2f2
+    size: 16806
 geometry:
   topology: split_shell
   xy_clearance_mm: 8.0
@@ -69,8 +69,8 @@ fasteners:
   insert:
     family: E-Z-LOK-260-M3-BR-or-CR
     installation: cold_press
-    pilot_basis: datasheet
-    hole_d_mm: 3.95
+    pilot_basis: coupon_prior
+    hole_d_mm: 4.25
     body_d_mm: 4.216
     flange_d_mm: 5.537
     flange_recess_d_mm: 6.10

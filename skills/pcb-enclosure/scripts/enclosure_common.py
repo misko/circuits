@@ -856,7 +856,7 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     _enum(insert["installation"], {"cold_press", "heat_set"},
           "config.fasteners.insert.installation")
     pilot_basis = _enum(insert.get("pilot_basis", "datasheet"),
-                        {"datasheet", "coupon_qualified"},
+                        {"datasheet", "coupon_prior", "coupon_qualified"},
                         "config.fasteners.insert.pilot_basis")
     for field in ("hole_d_mm", "body_d_mm", "flange_d_mm",
                   "flange_recess_d_mm", "flange_recess_depth_mm", "length_mm"):
@@ -871,10 +871,10 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
             "config.fasteners.insert: flange recess depth reaches past insert")
     if insert["installation"] == "cold_press" and \
             insert["hole_d_mm"] >= insert["body_d_mm"] and \
-            pilot_basis != "coupon_qualified":
+            pilot_basis not in {"coupon_prior", "coupon_qualified"}:
         raise EnclosureError(
             "config.fasteners.insert: cold-press pilot lacks nominal "
-            "interference and is not coupon-qualified")
+            "interference and has no coupon basis")
 
     screw = _exact(fasteners["screw"], {
         "clearance_d_mm", "head_d_mm", "head_recess_depth_mm",
@@ -981,10 +981,11 @@ def validate_config(value: Mapping[str, Any]) -> dict[str, Any]:
     if physical["insert_coupon_required"] and "insert_coupon" not in parts:
         raise EnclosureError(
             "config.cad.printable_parts: required insert coupon is absent")
-    if pilot_basis == "coupon_qualified" and not physical["insert_coupon_required"]:
+    if pilot_basis in {"coupon_prior", "coupon_qualified"} and \
+            not physical["insert_coupon_required"]:
         raise EnclosureError(
-            "config.fasteners.insert.pilot_basis: coupon-qualified pilot "
-            "requires insert_coupon_required")
+            "config.fasteners.insert.pilot_basis: coupon-based pilot requires "
+            "insert_coupon_required")
     return dict(value)
 
 

@@ -43,7 +43,9 @@ skirt_center_z = skirt_bottom_z + skirt_height / 2;
 
 boss_d = 9;
 case_post_d = 9;
-insert_hole_d = 3.95;
+// D4.25 is a transferred same-hardware/process coupon prior, not a physical
+// result for this enclosure.  The bracketed coupon remains mandatory.
+insert_hole_d = 4.25;
 insert_flange_recess_d = 6.1;
 insert_flange_recess_depth = 0.6;
 insert_length = 4.775;
@@ -390,8 +392,8 @@ module lid_print() {
 }
 
 module insert_coupon() {
-    sizes = [3.95, 4.05, 4.15, 4.25, 4.35];
-    labels = ["3.95", "4.05", "4.15", "4.25", "4.35"];
+    sizes = [4.05, 4.15, 4.25, 4.35, 4.45];
+    labels = ["4.05", "4.15", "4.25", "4.35", "4.45"];
     difference() {
         union() {
             translate([-36, -12, 0]) cube([72, 24, 6]);

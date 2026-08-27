@@ -1,0 +1,137 @@
+{
+  "composition": {
+    "augmentation_receipt": {
+      "path": "obstruction-augmentation.json",
+      "sha256": "53710c8627931b8963e97b658f17a0e525dc0892d2c853cb080e88159307283b",
+      "size": 5911
+    },
+    "coverage_union_complete": true,
+    "kind": "pcb-enclosure-obstruction-composition-v1",
+    "parent_step": {
+      "path": "usb_hub_3s_v2.step",
+      "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+      "size": 2239061,
+      "solid_count": 111
+    },
+    "solid_count": 258,
+    "supplemental_step": {
+      "path": "supplemental-obstructions.step",
+      "refs": [
+        "F2",
+        "J1",
+        "J2",
+        "J3",
+        "J4",
+        "J5",
+        "Q1",
+        "Q2",
+        "Q3",
+        "Q4",
+        "Q5",
+        "Q6",
+        "SW1",
+        "U3",
+        "U4",
+        "U5"
+      ],
+      "sha256": "8ef4addba3826d8e5e45be8577000bd77d12c486fe4b0fdf55042e3b23ccfb3c",
+      "size": 8483265,
+      "solid_count": 147
+    }
+  },
+  "geometry": {
+    "assembly_bbox_mm": {
+      "max": [
+        154.06000000000003,
+        -20.0,
+        9.6951001
+      ],
+      "min": [
+        17.94999989999999,
+        -112.0,
+        -5.705
+      ],
+      "size": [
+        136.11000010000004,
+        92.0,
+        15.4001001
+      ]
+    },
+    "backend": "cadquery-step-exact",
+    "case_registration_translate_mm_at_board_z0": [
+      -85.0,
+      66.0,
+      -0.0
+    ],
+    "component_mesh": {
+      "path": "composite-components.stl",
+      "sha256": "c9137171e1362716ec1957402d885fe4272a3d2e74725eec8f3ddae64ec3cea7",
+      "size": 28861184
+    },
+    "component_solid_count": 244,
+    "pcb_outline_candidate_indices": [
+      110
+    ],
+    "pcb_related_solid_indices": [
+      110,
+      150,
+      151,
+      152,
+      153,
+      154,
+      155,
+      156,
+      157,
+      158,
+      159,
+      160,
+      161,
+      162
+    ],
+    "pcb_solid": {
+      "index": 110,
+      "max_mm": [
+        150.0,
+        -20.0,
+        1.51
+      ],
+      "min_mm": [
+        20.0,
+        -112.0,
+        0.0
+      ],
+      "size_mm": [
+        130.0,
+        92.0,
+        1.51
+      ]
+    },
+    "solid_count": 258,
+    "status": "COMPLETE"
+  },
+  "interface": {
+    "path": "board-interface-v1.12.json",
+    "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+    "size": 61228
+  },
+  "kind": "pcb-enclosure-step-inspection-v1",
+  "occurrence_coverage": {
+    "covered_modeled_refs": 121,
+    "expected_modeled_refs": 121,
+    "missing_modeled_refs": [],
+    "observed_designators": 122,
+    "status": "COMPLETE",
+    "supplemented_access_refs": [
+      "SW1"
+    ],
+    "unmodeled_access_refs": [],
+    "zero_modeled_denominator": false
+  },
+  "schema": 1,
+  "status": "COMPLETE",
+  "step": {
+    "path": "composite-obstructions.step",
+    "sha256": "7f3e75a38ca79f2f87349be4e905bd3cc452733fd80b245c4780068366d4338c",
+    "size": 22386695
+  }
+}

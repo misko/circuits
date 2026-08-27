@@ -26,8 +26,8 @@ subject:
     size: 4383
   cad_design:
     path: 03_src/mechanical/enclosure.yaml
-    sha256: b175f606b1b20c9312039a37742fa0283af3d3e5fd3d65c238e1153f4c748251
-    size: 6259
+    sha256: 6c429ab65df3af03efbe4381982e7832340d31cef37648367d0d00f1015e699f
+    size: 6262
 external_subjects:
   - id: supplemental_obstruction_decision
     role: supplemental_obstruction_authority_decision

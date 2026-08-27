@@ -91,7 +91,7 @@ Key files are:
 |---|---|
 | `base.stl` | foundation, H1-H4 bosses, and four independent case posts |
 | `lid.stl` | roof-down one-piece four-skirt lid with bottom-open notches |
-| `insert_coupon.stl` | 3.95/4.05/4.15/4.25/4.35 mm pilot ladder |
+| `insert_coupon.stl` | 4.05/4.15/4.25/4.35/4.45 mm pilot ladder |
 | `assembled-case.stl` | installed enclosure selector for review checks |
 | `assembly.png` | exploded CAD review |
 | `closed-assembly.png` | closed lid plus reference PCB review |
@@ -104,6 +104,16 @@ Key files are:
 Generated files are intentionally ignored and reproducible; they are not
 hidden under `08_reviews/`. Printable copies and their governing evidence are
 published under `07_enclosure_releases/v0.1.0-2026-08-27/`.
+
+## Insert-fit revision
+
+The production pilot is now D4.25 mm and is declared
+`pilot_basis: coupon_prior`. It is centred on the closest same-family PETG,
+0.4 mm nozzle, 0.2 mm layer observation in the repository-wide fit registry,
+not on a physical test of this enclosure. The new 4.05–4.45 mm ladder brackets
+that prior. Print it with the production boss orientation and process before
+installing inserts in the full base; until then the enclosure remains
+`INCOMPLETE` and D4.25 is not a USB Hub production-fit claim.
 
 ## Exact replay
 

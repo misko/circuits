@@ -1,0 +1,156 @@
+{
+  "authority_files": [
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C130056/SON-8_L3.0-W3.0-H1.0-P0.65.step",
+      "sha256": "fe4edffe6c341b4a1972262e087900083e16735d623278a987347963f15dc070",
+      "size": 1972353
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C130056/SON-8_L3.0-W3.0-P0.65-LS3.0-BL-EP.kicad_mod",
+      "sha256": "2c0752567b86e95cab5f53736278713aa78837b79410fa6e61bc97f1d99684cd",
+      "size": 2473
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C2760089/PDFN-8_L5.6-W5.2-P1.27-LS6.1-BL.kicad_mod",
+      "sha256": "e6cac692d0fbd576c20025cf1d1e46c53a51e29efbe7049ffc19687dfbe2b656",
+      "size": 3024
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C2760089/PDFN-8_L5.6-W5.2-P1.27-LS6.1-BL.step",
+      "sha256": "729eeed7ca05d88471b93de3fcdf8f3c5b4e965f970681e7bea3e929d8826795",
+      "size": 1530053
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C2939728/SW-TH_SS12D07VG4.kicad_mod",
+      "sha256": "da19b177ae6090281827e572dfb8fee70d18114602f41bb46a7c5a9949cc1a7b",
+      "size": 3263
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C2939728/SW-TH_SS12D07VG4.step",
+      "sha256": "e6711b67698be2771b712dbb6dc1f5191600ab870bc0b45d4f4c9a5ed8070c43",
+      "size": 1648974
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C404363/DFN-8_L5.2-W6.1-H1.0-P1.27-BL-EP.step",
+      "sha256": "e94dd23646a5de18977d6e9ded6f7809383edec92cc7dbfe11c54c264d18765b",
+      "size": 1584657
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C404363/DFN-8_L5.2-W6.1-P1.27-BL-EP.kicad_mod",
+      "sha256": "b4100c0bc70b82df1ef9e22196ca241f34259a9877bcca7fd3381bf3ecccc529",
+      "size": 3179
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C503996/USB-A-TH_USB-A-F-90.kicad_mod",
+      "sha256": "67df7b1fb4b8d82a200a7ce5dbbcf368812163e7ea61ce1a31a6914ad339bf9e",
+      "size": 3941
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C503996/USB-A-TH_USB-A-F-90.step",
+      "sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "size": 3102252
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C5337088/USB-C-SMD_TYPE-C-31-M-12A.kicad_mod",
+      "sha256": "f1a7b4bfb29a5668e52abde0e91f35703726d3c3e194b8589fb21045e5ba26a8",
+      "size": 3325
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C5337088/USB-C-SMD_TYPE-C-31-M-12A.step",
+      "sha256": "fca24d969713ecd0d1eeea5920e0345d09585f96ee261a99c750bbdd0ec0a27a",
+      "size": 2777952
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C6165170/F2920-1.step",
+      "sha256": "071004dc1bb9780fe246fa6900f817f2d83b526947a1f20847d41c9a16cb67b6",
+      "size": 953729
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C6165170/F2920.kicad_mod",
+      "sha256": "21498d140927b55d8c251ca20a5857fdbbf8f248210ac48c473aadfd2887c95a",
+      "size": 1807
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C98732/CONN-TH_XT60PW-M.kicad_mod",
+      "sha256": "f5dd33a9caf67dde1d44bf77bb8004e3951d60a9b1ac1958259bcd68c1f069fc",
+      "size": 3265
+    },
+    {
+      "path": "03_src/mechanical/reference/obstruction_models/C98732/CONN-TH_XT60PW-M.step",
+      "sha256": "3b036d033f3037f3bb025b765d33774d9f1a53459046d49200378027d424d01a",
+      "size": 2005370
+    }
+  ],
+  "authority_manifest": {
+    "path": "obstruction-models.json",
+    "sha256": "7fe9ed0a7589921a211f2ce195152fd1d40184ce758e2b6db5a33b5c43168d7f",
+    "size": 6933
+  },
+  "export": {
+    "command": [
+      "/usr/bin/kicad-cli",
+      "pcb",
+      "export",
+      "step",
+      "--force",
+      "--subst-models",
+      "--no-board-body",
+      "--component-filter",
+      "F2,J1,J2,J3,J4,J5,Q1,Q2,Q3,Q4,Q5,Q6,SW1,U3,U4,U5",
+      "--output",
+      "/home/mouse9911/gits/circuits-worktrees/usb-hub-v3-insert-fit-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/supplemental-obstructions.step",
+      "/home/mouse9911/gits/circuits-worktrees/usb-hub-v3-insert-fit-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/supplemental-obstructions.kicad_pcb"
+    ],
+    "returncode": 0,
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout_sha256": "d8ebe454cf1daa432d145533c57dbccaab5b1520ec08d4a5570a032300fefc96"
+  },
+  "installed_refs": [
+    "F2",
+    "J1",
+    "J2",
+    "J3",
+    "J4",
+    "J5",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Q5",
+    "Q6",
+    "SW1",
+    "U3",
+    "U4",
+    "U5"
+  ],
+  "kind": "usb-hub-v1.12-obstruction-augmentation-receipt-v1",
+  "limitations": "Catalog CAD is authoritative for obstruction and connector placement review, not for received-part tolerance or physical fit. Physical enclosure tests remain required.",
+  "outputs": {
+    "board": {
+      "path": "supplemental-obstructions.kicad_pcb",
+      "sha256": "93ae1917593e7168320f58cc39bc0222522fbe4c5bd94788d3a76912006a6fac",
+      "size": 2007528
+    },
+    "step": {
+      "path": "supplemental-obstructions.step",
+      "sha256": "8ef4addba3826d8e5e45be8577000bd77d12c486fe4b0fdf55042e3b23ccfb3c",
+      "size": 8483265
+    }
+  },
+  "parent": {
+    "pcb": {
+      "path": "07_releases/v1.12-2026-07-28/source/usb_hub_3s_v2.kicad_pcb",
+      "sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+      "size": 2007690
+    },
+    "release": "v1.12-2026-07-28",
+    "step": {
+      "path": "07_releases/v1.12-2026-07-28/3d/usb_hub_3s_v2.step",
+      "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+      "size": 2239061
+    }
+  },
+  "schema": 1,
+  "scope": "supplemental_obstruction_solids",
+  "status": "COMPLETE"
+}

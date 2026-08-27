@@ -1,0 +1,189 @@
+schema: 2
+kind: pcb-enclosure-config-v2
+name: usb-hub-3s-v1.12-wall-lid-case
+mode: derived
+subject:
+  release: v1.12-2026-07-28
+  release_manifest:
+    path: authorities/pcb-release/MANIFEST.txt
+    sha256: 2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4
+    size: 41456
+  pcb:
+    path: authorities/pcb-release/source/usb_hub_3s_v2.kicad_pcb
+    sha256: 2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf
+    size: 2007690
+  step:
+    path: authorities/pcb-release/3d/usb_hub_3s_v2.step
+    sha256: e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11
+    size: 2239061
+  interface:
+    path: verification/board-interface.json
+    sha256: 36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b
+    size: 61228
+  mechanical_intent:
+    path: source/mechanical-intent-v2.yaml
+    sha256: eef3c02b07b540305f5f334b60df79229ce4f3e37397bf6cece7eb0bce30b393
+    size: 4383
+  cad_design:
+    path: source/enclosure-cad-design-v2.yaml
+    sha256: 348e490183ee1d55aa732d39a9291dfec464d4d975a7651108c1e90d13d32b54
+    size: 6212
+external_subjects:
+  - id: supplemental_obstruction_decision
+    role: supplemental_obstruction_authority_decision
+    source:
+      path: source/reference/supplemental-obstruction-decision.yaml
+      sha256: 5342a1282213745cdbe34e82bc471193814b422cadf69be3d7143228714050d6
+      size: 2974
+    authority:
+      grade: conservative_candidate
+      basis: The decision binds a project-specific exact parent-plus-supplement composition while retaining INCOMPLETE ceilings for mixed authority and physical fit.
+      excluded_claims: [exact_geometry, physical_fit, cad_ready, production_readiness]
+  - id: supplemental_obstruction_models
+    role: supplemental_obstruction_model_and_transform_authority
+    source:
+      path: source/reference/obstruction-models.json
+      sha256: 594d6ca32e6455f91364c08f0b3a6b2edacd3f77662cc4deae62da8958a5695b
+      size: 6571
+    authority:
+      grade: vendor_authoritative
+      basis: Hash-bound JLC/EasyEDA STEP bodies, registration footprints, transforms, reference census, and immutable v1.12 parent identities.
+      excluded_claims: [received_part_tolerance, physical_fit, production_readiness]
+verification_scopes:
+  - id: shell
+    description: Floor-down foundation, isolated PCB bosses, four independent closure posts, and one roof-down lid with four post-clearing side skirts.
+    required: true
+    depends_on: []
+  - id: board_retention
+    description: PCB seats only on H1-H4 bosses and remains fastened to the base while the complete wall lid and all case screws are removed.
+    required: true
+    depends_on: [shell]
+  - id: connector_access
+    description: Full 40 mm vertical lid install/removal over the populated PCB through five bottom-open connector notches, plus simultaneous connector and top-service access.
+    required: true
+    depends_on: [shell, board_retention]
+  - id: thermal
+    description: Closed PETG enclosure behavior at the declared combined output load and ambient.
+    required: true
+    depends_on: [shell, connector_access]
+installed_parts:
+  - id: pcb
+    role: pcb
+    source: {kind: subject, id: pcb}
+    scopes: [shell, board_retention, connector_access, thermal]
+  - id: base
+    role: base
+    source: {kind: generated, id: base}
+    scopes: [shell, board_retention, connector_access, thermal]
+  - id: lid
+    role: lid
+    source: {kind: generated, id: lid}
+    scopes: [shell, connector_access, thermal]
+fastener_policy:
+  axis_disjoint_tolerance_mm: 0.1
+  pcb_retained_with_lid_removed: true
+fastener_groups:
+  - id: pcb_screws
+    role: board_retention
+    axes:
+      - {id: h1, origin_mm: [-59.0, 40.0, 0.0], direction: [0, 0, 1]}
+      - {id: h2, origin_mm: [-59.0, -40.0, 0.0], direction: [0, 0, 1]}
+      - {id: h3, origin_mm: [21.0, 42.0, 0.0], direction: [0, 0, 1]}
+      - {id: h4, origin_mm: [59.0, -26.0, 0.0], direction: [0, 0, 1]}
+    retained_parts: [pcb, base]
+    hardware:
+      thread: M3-0.5
+      screw_length_mm: 6.0
+      minimum_engagement_mm: 3.5
+      minimum_tip_clearance_mm: 0.1
+  - id: case_screws
+    role: case_closure
+    axes:
+      - {id: c1, origin_mm: [-70.0, -51.0, 0.0], direction: [0, 0, 1]}
+      - {id: c2, origin_mm: [-70.0, 51.0, 0.0], direction: [0, 0, 1]}
+      - {id: c3, origin_mm: [70.0, -51.0, 0.0], direction: [0, 0, 1]}
+      - {id: c4, origin_mm: [70.0, 51.0, 0.0], direction: [0, 0, 1]}
+    retained_parts: [base, lid]
+    hardware:
+      thread: M3-0.5
+      screw_length_mm: 6.0
+      minimum_engagement_mm: 3.5
+      minimum_tip_clearance_mm: 0.1
+clearance_cases:
+  - id: pcb_drop_in
+    scope: board_retention
+    operation: insert_complete_pcb
+    opening_id: open_foundation
+    moving_parts: [pcb]
+    obstacles: [base]
+    envelope_basis: full_part
+    method: linear_sweep_envelope
+    minimum_clearance_mm: 0.0
+  - id: lid_installation
+    scope: connector_access
+    operation: install_complete_lid
+    opening_id: five_bottom_open_notches_and_case_posts
+    moving_parts: [lid]
+    obstacles: [base, pcb]
+    envelope_basis: full_part
+    method: linear_sweep_envelope
+    minimum_clearance_mm: 0.0
+  - id: lid_removal
+    scope: connector_access
+    operation: remove_complete_lid
+    opening_id: five_bottom_open_notches_and_case_posts
+    moving_parts: [lid]
+    obstacles: [base, pcb]
+    envelope_basis: full_part
+    method: linear_sweep_envelope
+    minimum_clearance_mm: 0.0
+  - id: pcb_removal
+    scope: board_retention
+    operation: remove_complete_pcb
+    opening_id: open_foundation
+    moving_parts: [pcb]
+    obstacles: [base]
+    envelope_basis: full_part
+    method: linear_sweep_envelope
+    minimum_clearance_mm: 0.0
+physical_tests:
+  - id: insert_coupon
+    type: insert_coupon
+    scope: shell
+    required_for: PRINT_VERIFIED
+    subject_parts: [base]
+  - id: board_drop_in
+    type: board_drop_in
+    scope: board_retention
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, pcb]
+  - id: board_support_clearance
+    type: board_support_clearance
+    scope: board_retention
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, pcb]
+  - id: all_interfaces_mated
+    type: all_interfaces_mated
+    scope: connector_access
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid, pcb]
+  - id: lid_off_retention
+    type: lid_off_pcb_retention
+    scope: board_retention
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, pcb]
+  - id: closure_independence
+    type: case_closure_independence
+    scope: board_retention
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid, pcb]
+  - id: wall_lid_service_cycle
+    type: custom.usb-hub.wall-lid-service-cycle
+    scope: connector_access
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid, pcb]
+  - id: thermal_soak
+    type: thermal_soak
+    scope: thermal
+    required_for: THERMALLY_VERIFIED
+    subject_parts: [base, lid, pcb]

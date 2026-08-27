@@ -54,14 +54,17 @@ stays visible. A failed coupon is useful evidence and should not be deleted.
 
 ## Current comparison
 
-The USB Hub 3S v3 and Pluto RX2 eight-way v5 enclosures do **not** use the same
-press-fit size or tolerance.
+The original USB Hub v0.1.0 candidate and Pluto RX2 eight-way v5 enclosure did
+**not** use the same insert-pilot size. USB Hub v0.2.0 now uses the same D4.25
+modeled pilot as its coupon centre, but it does not inherit Pluto's physical
+qualification claim.
 
-| Feature | USB Hub 3S v3 enclosure v0.1.0 | Pluto enclosure lineage/current v0.6.0 | Same? |
+| Feature | USB Hub 3S v3 enclosure v0.2.0 | Pluto enclosure lineage/current v0.6.0 | Same? |
 |---|---:|---:|---|
 | E-Z LOK 260-M3 nominal insert body | 4.216 mm | 4.216 mm | Yes—same hardware family |
-| Modeled insert pilot | 3.95 mm, datasheet basis | 4.25 mm, coupon-selected basis | **No; Pluto is 0.30 mm larger** |
-| Nominal pilot allowance against body | -0.266 mm diameter (-0.133 mm/side) | +0.034 mm diameter (+0.017 mm/side) | No—and this arithmetic does not predict printed grip |
+| Modeled insert pilot | 4.25 mm, transferred `coupon_prior` basis; v0.1.0 used 3.95 mm | 4.25 mm, coupon-selected basis | Same nominal CAD size; different evidence |
+| Nominal pilot allowance against body | +0.034 mm diameter (+0.017 mm/side) | +0.034 mm diameter (+0.017 mm/side) | Same arithmetic; it does not predict printed grip |
+| Physical insert result | Not run for this enclosure | Operator-selected result reported by immutable release | **No; USB must print its own coupon** |
 | Closure locating fit | 0.30 mm skirt/base and skirt/post clearances | Current pillar-only base has no perimeter press-fit lip | No comparable active fit |
 | Board-edge connector opening | XT60 +2.0 mm/side; USB-A and USB-C +1.0 mm/side | SMA throat +0.10 mm radius, outer access +1.0 mm radius against a D10 envelope | Different connector and purpose |
 | Top antenna retention | Not applicable | Intentional compliant interference; see antenna records below | Not comparable |
@@ -177,6 +180,26 @@ slot width, print orientation, and real antenna.
 Do not use D8.50 or D9.55 as a future antenna default. They are deliberately
 aggressive candidate values awaiting the existing fit-gauge and real-antenna
 test.
+
+### FIT-007 — E-Z LOK 260-M3 pilot, USB Hub transferred prior
+
+| Field | Record |
+|---|---|
+| Feature class | Press fit / insert pilot |
+| Evidence grade | `CAD_ONLY`; `coupon_prior` design basis |
+| Target | E-Z LOK 260-M3-BR or 260-M3-CR; nominal body D4.216 mm |
+| Predecessor production pilot | D3.95 mm in enclosure v0.1.0 |
+| New modeled production pilot | **D4.25 mm** |
+| Requalification ladder | D4.05, 4.15, 4.25, 4.35, 4.45 mm |
+| Nominal process | PETG, 0.4 mm nozzle, 0.2 mm layer; production boss orientation required |
+| Automated result | Schema-v1/v2 valid, 3/3 printable parts generated, complete 121/121+SW1 obstruction collision empty at 0 mm³ |
+| Physical result | Not run; D4.25 remains a transferred prior rather than a qualified USB Hub fit |
+| Authority | [USB enclosure v0.2.0 README](../projects/usb-hub-3s-v3/07_enclosure_releases/v0.2.0-2026-08-27/README.md), [authored config](../projects/usb-hub-3s-v3/03_src/mechanical/enclosure.yaml), and [authored SCAD](../projects/usb-hub-3s-v3/03_src/mechanical/usb_hub_3s_v3_case.scad) |
+
+This record demonstrates the distinction between choosing a better coupon
+centre and claiming a tolerance. The nominal USB Hub pocket is now D4.25, but
+only a printed USB Hub coupon can advance this observation to
+`MEASURED_COUPON`.
 
 ## Choosing a future starting tolerance
 

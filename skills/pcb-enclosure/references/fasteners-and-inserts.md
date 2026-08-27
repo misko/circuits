@@ -76,6 +76,12 @@ relabel a cold-press insert as heat-set merely to satisfy nominal interference
 arithmetic. Coupon qualification records why the CAD value is credible; it
 does not replace the physical-evidence receipt required for status promotion.
 
+When a comparable observation from the repository-wide fit registry is used
+only to centre a new design's coupon, declare `pilot_basis: coupon_prior`
+instead. Preserve the source observation, keep `insert_coupon_required: true`,
+and do not call the transferred value qualified until this design's production
+geometry and process have been tested.
+
 ## Assembly checks
 
 - Deburr without enlarging the pocket unpredictably.

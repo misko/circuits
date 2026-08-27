@@ -539,6 +539,21 @@ def t_coupon_qualified_pilot_clean():
        "nominal hardware body remains truthful")
 
 
+@test("registry coupon prior may centre a required requalification ladder")
+def t_coupon_prior_pilot_clean():
+    fixture = _fresh_fixture()
+    config = yaml.safe_load(fixture["config"].read_text())
+    insert = config["fasteners"]["insert"]
+    insert["hole_d_mm"] = 4.25
+    insert["pilot_basis"] = "coupon_prior"
+    _write_yaml(fixture["config"], config)
+    loaded, _ = load_bound_config(fixture["config"], fixture["root"])
+    eq(loaded["fasteners"]["insert"]["pilot_basis"], "coupon_prior",
+       "transferred result remains a prior rather than qualified evidence")
+    check(loaded["physical_validation"]["insert_coupon_required"],
+          "coupon prior keeps physical requalification mandatory")
+
+
 @test("oversize nominal cold-press pilot needs explicit coupon basis",
       kind="known_bad", gate="generate_enclosure.py")
 def t_unqualified_oversize_pilot_bites():
