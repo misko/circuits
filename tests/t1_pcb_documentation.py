@@ -263,13 +263,18 @@ def t_documented_commissioning_commands():
            "documented ordinary signal-integrity profile")
 
 
-@test("root quick start installs and invokes pcb-design with a brief-only prompt")
+@test("root quick start begins with an installed pcb-design brief")
 def t_root_brief_only_skill_quick_start():
     section = markdown_section(README.read_text(), "## Quick start")
-    contains(section, "$skill-installer Install skills/pcb-design",
-             "skill installation prompt")
-    contains(section, "/skills", "Codex slash selector")
-    contains(section, "$pcb-design 3S LiPo input", "direct skill invocation")
+    check("$skill-installer" not in section,
+          "quick start should not teach skill installation")
+    check("Install the skills" not in section,
+          "quick start should assume the skill is available")
+    check("/skills" not in section,
+          "quick start should not teach skill discovery")
+    check("$pcb-design" not in section,
+          "quick start should use the requested slash invocation")
+    contains(section, "/pcb-design 3S LiPo input", "direct skill invocation")
     contains(section, "4× USB-A outputs at 5 V / 1.5 A each",
              "brief-only USB-A requirement")
     contains(section, "1× USB-C output at 5 V / 5 A",

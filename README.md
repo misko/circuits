@@ -6,30 +6,10 @@ artifacts needed to manufacture the device—not merely a plausible CAD image.
 
 ## Quick start
 
-### 1. Install the skills
-
-In Codex, invoke the built-in skill installer once:
+### 1. Give the PCB skill a brief
 
 ```text
-$skill-installer Install skills/pcb-design, skills/kicad-pcb, skills/jlcpcb-fab, skills/pcb-enclosure, and skills/shopping-list from https://github.com/misko/circuits.
-```
-
-The installed skills are available on your next turn. See
-[OpenAI's Skills guide](https://learn.chatgpt.com/docs/build-skills) for
-discovery and installation details.
-
-### 2. Run the installed PCB skill
-
-Type `/skills`, select `pcb-design`, and paste only the brief:
-
-```text
-3S LiPo input → 4× USB-A outputs at 5 V / 1.5 A each + 1× USB-C output at 5 V / 5 A.
-```
-
-The equivalent one-line direct invocation is:
-
-```text
-$pcb-design 3S LiPo input → 4× USB-A outputs at 5 V / 1.5 A each + 1× USB-C output at 5 V / 5 A.
+/pcb-design 3S LiPo input → 4× USB-A outputs at 5 V / 1.5 A each + 1× USB-C output at 5 V / 5 A.
 ```
 
 That is the entire prompt: the skill preserves it as the source brief, starts
@@ -39,7 +19,7 @@ from committed status and evidence rather than restarting or restating the
 brief. Prompt to device is an iterative development loop, not a one-shot
 generator.
 
-### 3. Follow the prompt-to-device loop
+### 2. Follow the prompt-to-device loop
 
 ```text
 plain-language brief
@@ -64,7 +44,7 @@ twin are forward work, tracked by
 [IMP-234](improvements.md#imp-234--firmware-release-stream) and
 [IMP-236](improvements.md#imp-236--prompt-to-device-product-composition-and-digital-twin).
 
-### 4. See fabricated examples
+### 3. See fabricated examples
 
 These are physical boards produced through this workflow. The photographs are
 bench evidence, not production-qualification claims; their exact source hashes,
