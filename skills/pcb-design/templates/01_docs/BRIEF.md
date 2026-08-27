@@ -54,7 +54,7 @@ E-TOPO/E-MARGIN/E-OFF.
 ## Mating fact-lock (D-MATE — fill at commission when this board mates to hardware this repo did not design)
 
 Every dimension the floorplan will consume from foreign hardware, with its
-**M-IMPORT grade**. The facts live ONCE, in `spf/<device>/`; this table names
+**M-IMPORT grade**. The facts live ONCE, in `external_hardware/<device>/`; this table names
 them for a reader and `03_src/rules/mates.yaml` is the machine copy — exactly
 the relationship the Commission fact-lock has with `power_tree.yaml`.
 
@@ -64,7 +64,7 @@ source) · **CITED** (a vendor document, with figure/page/section) ·
 bar before it may be spent on a dimension) · **OWED** (nobody has this number;
 say how to get it, and do not design against it).
 
-| Fact (`spf/<device>` id) | Grade | Error bar | Where it is spent | Mating budget it is spent against |
+| Fact (`external_hardware/<device>` id) | Grade | Error bar | Where it is spent | Mating budget it is spent against |
 |---|---|---|---|---|
 | ... | MEASURED | — | floorplan anchor X coords | ±0.25 mm SMP float |
 

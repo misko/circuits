@@ -1,4 +1,4 @@
-# photos/ — MISSING, and the exact files needed
+# PlutoPlus photos — MISSING, and the exact files needed
 
 **I could not add the photographs.** They were pasted into a chat session, not
 written to disk, and nothing matching was on the filesystem. This directory is

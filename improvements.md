@@ -3536,7 +3536,7 @@ Recommended execution order for future boards:
   boundary, but `03_src/rules/mates.yaml` was absent. `import_provenance_check`
   correctly failed D-MATE only after routing and stitch work had completed.
   The repaired machine copy references SMA gender, port order and RX absolute
-  maximum from their single `spf/plutoplus_hardware` home and passes 3/3; it
+  maximum from their single `external_hardware/plutoplus_hardware` home and passes 3/3; it
   consumes no Pluto dimension and changes no copper.
 - general rule: when the brief declares a foreign-hardware mating boundary,
   D-MATE/M-IMPORT is source governance and must run before schematic freeze or

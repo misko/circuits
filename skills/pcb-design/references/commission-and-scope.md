@@ -98,8 +98,8 @@ in prose.
 If the board plugs into, bolts to, or aligns with hardware this repository did
 not design:
 
-1. Put each external fact once under `spf/<device>/facts.yaml`, with a human
-   method record in `spf/<device>/README.md`.
+1. Put each external fact once under `external_hardware/<device>/facts.yaml`,
+   with a human method record in `external_hardware/<device>/README.md`.
 2. Grade each fact `MEASURED`, `CITED`, `ESTIMATED`, or `OWED`.
 3. Give every estimated dimension an error bar. Do not spend an owed fact.
 4. Reference fact IDs from `03_src/rules/mates.yaml`; never restate values in

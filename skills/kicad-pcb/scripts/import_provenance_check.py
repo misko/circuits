@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""import_provenance_check — canon M-IMPORT made mechanical (ADR-0005 phase 3).
+"""import_provenance_check — M-IMPORT made mechanical (ADR-0005/0009).
 
-    import_provenance_check.py PROJECT_DIR [--spf-root DIR]
+    import_provenance_check.py PROJECT_DIR [--external-hardware-root DIR]
     import_provenance_check.py --root REPO_ROOT          # every board
 
 WHY THIS EXISTS (incident, 2026-07-27). Every gate in this repo compares OUR
@@ -20,8 +20,9 @@ unexamined, and one nearly reached copper:
 
 Precision about a proxy is not accuracy about the object.
 
-THE MECHANISM. `spf/<device>/` is the SINGLE HOME for facts about hardware this
-repo did not design: `README.md` is the human record (method stated per number),
+THE MECHANISM. `external_hardware/<device>/` is the SINGLE HOME for facts about
+hardware this repo did not design: `README.md` is the human record (method
+stated per number),
 `facts.yaml` is its machine index. A board declares `03_src/rules/mates.yaml`
 naming the device and the facts it CONSUMES — ids and where they are spent,
 never the values. Boards REFERENCE; they never restate. That is the same shape,
@@ -54,7 +55,8 @@ CHECKS (findings are named for the canon row they enforce)
              the PlutoPlus RF-axis height above its PCB is unestablished, and
              it sets the daughter board's entire Z relationship.
   M-RESTATE  a `consumes:` entry may not carry value/grade/method/units/bar —
-             that is the board restating a fact whose home is `spf/`.
+             that is the board restating a fact whose home is
+             `external_hardware/`.
   D-MATE     every consumed fact says WHERE it is spent; and a BRIEF declaring
              a Mating fact-lock must have the mates.yaml to match it.
 
@@ -82,8 +84,8 @@ BRIEF_REL = "01_docs/BRIEF.md"
 GRADES = ("MEASURED", "CITED", "ESTIMATED", "OWED")
 USES = ("dimensional", "informational", "owed")
 
-#: keys whose HOME is spf/<device>/facts.yaml. A board that writes one has
-#: made a second home for the fact, which is how two files drift.
+#: keys whose HOME is external_hardware/<device>/facts.yaml. A board that
+#: writes one has made a second home for the fact, which is how two files drift.
 RESTATED_KEYS = ("value", "grade", "method", "units", "error_bar", "quote",
                  "measured", "source_value")
 
@@ -124,9 +126,9 @@ def proxy_words(method):
     return sorted({w for w in PROXY_WORDS if w in str(method or "").lower()})
 
 
-def grade_device(spf_root, device, fails):
-    """Load spf/<device>/facts.yaml + its human record. -> (facts, record_text)."""
-    ddir = Path(spf_root) / str(device)
+def grade_device(external_hardware_root, device, fails):
+    """Load external_hardware/<device>/facts.yaml and its human record."""
+    ddir = Path(external_hardware_root) / str(device)
     if not ddir.is_dir():
         fails.append(f"M-EXIST device {device!r}: no such folder {ddir} — the "
                      f"facts have no home, so nothing can be graded")
@@ -181,7 +183,8 @@ def grade_fact(device, ref, fact, record_text, fails, oks):
     restated = [k for k in RESTATED_KEYS if k in ref]
     if restated:
         fails.append(f"M-RESTATE {tag}: the board restates {restated} — those "
-                     f"live in spf/{device}/facts.yaml. Two homes for one fact "
+                     f"live in external_hardware/{device}/facts.yaml. Two "
+                     f"homes for one fact "
                      f"is how cooksense v1.1's CPL and MANIFEST drifted")
 
     # ---- M-GRADE
@@ -217,7 +220,7 @@ def grade_fact(device, ref, fact, record_text, fails, oks):
     if grade != "OWED" and not str(fact.get("method") or "").strip():
         fails.append(f"M-PROXY {tag}: no `method:` — a number that cannot say "
                      f"how it was obtained is worse than a gap, because a gap "
-                     f"is visible (spf/contracts.md)")
+                     f"is visible (external_hardware/contracts.md)")
 
     # ---- M-OWED: a fact nobody has may not be spent as if they did
     if grade == "OWED":
@@ -256,7 +259,7 @@ def grade_fact(device, ref, fact, record_text, fails, oks):
     return True
 
 
-def grade_project(pdir, spf_root, fails, oks):
+def grade_project(pdir, external_hardware_root, fails, oks):
     """-> (referenced, graded) fact counts for this board (0,0 = declares none)."""
     pdir = Path(pdir)
     mates = pdir / MATES_REL
@@ -286,7 +289,8 @@ def grade_project(pdir, spf_root, fails, oks):
     device = doc.get("device")
     if not device:
         fails.append(f"M-EXIST {pdir.name}: {MATES_REL} names no `device:` — "
-                     f"it must point at the spf/<device>/ folder that holds "
+                     f"it must point at the external_hardware/<device>/ "
+                     f"folder that holds "
                      f"the facts")
         return 0, 0
 
@@ -297,7 +301,7 @@ def grade_project(pdir, spf_root, fails, oks):
                      f"the facts this board spends")
         return 0, 0
 
-    facts, record_text = grade_device(spf_root, device, fails)
+    facts, record_text = grade_device(external_hardware_root, device, fails)
     seen = graded = 0
     for ref in refs:
         if not isinstance(ref, dict) or not ref.get("fact"):
@@ -309,7 +313,8 @@ def grade_project(pdir, spf_root, fails, oks):
         fact = facts.get(fid)
         if fact is None:
             fails.append(f"M-EXIST {pdir.name}/{fid}: not in "
-                         f"spf/{device}/facts.yaml — a board may only consume "
+                         f"external_hardware/{device}/facts.yaml — a board "
+                         f"may only consume "
                          f"facts the device record actually holds")
             continue
         graded += bool(grade_fact(device, ref, fact, record_text, fails, oks))
@@ -322,8 +327,9 @@ def main(argv=None):
                     help="a project dir (with 03_src/rules/mates.yaml)")
     ap.add_argument("--root", default=None,
                     help="repo root: grade every projects/<board>")
-    ap.add_argument("--spf-root", default=None,
-                    help="the spf/ directory (default: <root>/spf)")
+    ap.add_argument("--external-hardware-root", default=None,
+                    help="the external_hardware/ directory "
+                         "(default: <root>/external_hardware)")
     a = ap.parse_args(argv)
 
     if not a.project and not a.root:
@@ -335,20 +341,24 @@ def main(argv=None):
     else:
         projects = [Path(a.project)]
         root = Path(a.project).resolve().parents[1]
-    spf_root = Path(a.spf_root) if a.spf_root else root / "spf"
+    external_hardware_root = (
+        Path(a.external_hardware_root) if a.external_hardware_root
+        else root / "external_hardware"
+    )
 
     fails, oks = [], []
     seen_facts = graded_facts = 0
     boards = []
     for p in projects:
-        seen, graded = grade_project(p, spf_root, fails, oks)
+        seen, graded = grade_project(p, external_hardware_root, fails, oks)
         seen_facts += seen
         graded_facts += graded
         if seen:
             boards.append(f"{p.name}({graded}/{seen})")
 
     print(f"  input: {len(projects)} project(s) under "
-          f"{projects[0].parent if projects else '?'}; facts from {spf_root}")
+          f"{projects[0].parent if projects else '?'}; facts from "
+          f"{external_hardware_root}")
     for o in oks:
         print("  ok   ", o)
     for f in fails:

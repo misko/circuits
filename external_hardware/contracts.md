@@ -1,4 +1,4 @@
-# contract: spf/
+# contract: external_hardware/
 
 **Purpose** — MEASURED reference data about hardware **we did not design** and
 must mate to: connector geometry, port maps, enclosure constraints, board
@@ -20,6 +20,7 @@ part selections.
 
 | Pattern | What |
 |---|---|
+| `README.md` | registry purpose, authority boundary, and consumer entry point |
 | `plutoplus_hardware/**` | ADALM-PlutoPlus SDR — SMA port geometry, port map, enclosure, two physical units measured |
 | `contracts.md` | this file |
 

@@ -27,7 +27,7 @@ one that is unrecoverable if lost.
 | `STATUS*.md` | the live STATUS beacon — the coordinator's between-gates progress signal, OVERWRITTEN at every transition | `STATUS.md` (single-board) or `STATUS-<board>.md` (multi-board, mirroring `journal/<stage>_<board>.md`); schema + audit below; read by `skills/kicad-pcb/scripts/pcb_status.py` |
 | `journal/` | per-stage diary: append an entry at every stage start/iteration/finish | see `journal/contracts.md`; enforced by policy_audit M-JRNL |
 | `learnings/` | per-stage harvest source, written at stage completion | see `learnings/contracts.md`; enforced by policy_audit M-LEARN at release |
-| `<target>-mechanical.md` | **the board's ANALYSIS of a device it must mate with**: the tolerance stack, the mating strategy, what the geometry means for THIS board. One file per mating target. NOT a design doc and NOT a decision — it is where external evidence is reasoned about, and it belongs beside `BRIEF.md` because, like the brief, it is something the board must be true to | **the NUMBERS live in `spf/<device>/`, not here** (canon M-IMPORT, ADR-0005): the device record is the single home, `facts.yaml` its machine index, and `03_src/rules/mates.yaml` the board's reference. This file may quote them WITH their grade while it reasons; it may not be the only place one exists. Every number it does state must say how it was obtained — a bare dimension with no method is a defect |
+| `<target>-mechanical.md` | **the board's ANALYSIS of a device it must mate with**: the tolerance stack, the mating strategy, what the geometry means for THIS board. One file per mating target. NOT a design doc and NOT a decision — it is where external evidence is reasoned about, and it belongs beside `BRIEF.md` because, like the brief, it is something the board must be true to | **the NUMBERS live in `external_hardware/<device>/`, not here** (canon M-IMPORT, ADR-0005/0009): the device record is the single home, `facts.yaml` its machine index, and `03_src/rules/mates.yaml` the board's reference. This file may quote them WITH their grade while it reasons; it may not be the only place one exists. Every number it does state must say how it was obtained — a bare dimension with no method is a defect |
 | `sourcing/` | what to BUY for the self-supplied parts, and the evidence behind each number — dated, append-only, produced by `/shopping-list` | see `sourcing/contracts.md`; governed by canon M-QUOTE |
 | `contracts.md` | this file | |
 
@@ -146,7 +146,7 @@ downgraded. Machine-readable rail envelopes go to `03_src/rules/power_tree.yaml`
 Present when the board mates to hardware this repo did not design. Every
 dimension the floorplan consumes from outside appears here with its **M-IMPORT
 grade** (MEASURED / CITED / ESTIMATED+bar / OWED), where it is spent, and the
-mating budget it is spent against. The facts live ONCE in `spf/<device>/`;
+mating budget it is spent against. The facts live ONCE in `external_hardware/<device>/`;
 this table is the user-facing lock and `03_src/rules/mates.yaml` is the machine
 copy — the same relationship the Commission fact-lock has with
 `power_tree.yaml`, and the reason neither table may restate a number that has a

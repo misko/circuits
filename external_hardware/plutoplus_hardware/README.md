@@ -1,4 +1,4 @@
-# PlutoPlus hardware — two physical boards, measured
+# PlutoPlus hardware — two physical boards, measured external-device facts
 
 Reference data for building anything that mates to a PlutoPlus SMA panel.
 Collected 2026-07-27 for `archived_projects/pluto-cal-switch`, but kept here because it

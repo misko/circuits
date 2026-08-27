@@ -217,7 +217,7 @@ BACKEND GAP to report, not a bespoke script to write here.
   `import_provenance_check.py PROJECT_DIR` (or `--root REPO` for every board)
   grades the PROVENANCE of every fact a board consumes from hardware this repo
   did not design. Input: the board's `03_src/rules/mates.yaml` and the device
-  record `spf/<device>/{README.md,facts.yaml}`. Findings: **M-EXIST** (the id
+  record `external_hardware/<device>/{README.md,facts.yaml}`. Findings: **M-EXIST** (the id
   exists AND its `quote:` appears verbatim in the human record, with the value
   inside it — a machine index drifted from its record is not evidence),
   **M-GRADE** (MEASURED/CITED/ESTIMATED/OWED; absent or unknown is a FAIL,

@@ -229,7 +229,7 @@ work and rationale but never overrides an executable gate or accepted ADR.
 | [`archived_projects/`](archived_projects/) | Retired scaffolds and frozen regression/history units. |
 | [`docs/`](docs/) | Documentation index, accepted ADRs, measured proof, and historical context. |
 | [`tests/`](tests/) | Clean and known-bad fixtures proving gates can both pass and fail. |
-| [`spf/`](spf/) | Measured/cited facts about external hardware this repo must mate with. |
+| [`external_hardware/`](external_hardware/) | Measured/cited facts about foreign devices this repo must mate with. |
 | [`improvements.md`](improvements.md) | Forward work registry and retained improvement history. |
 
 See [`docs/README.md`](docs/README.md) for the documentation authority map.

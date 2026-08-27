@@ -7,7 +7,7 @@
 #   /usr/bin/python3 skills/kicad-pcb/scripts/import_provenance_check.py .
 #
 # THE ONE RULE: THIS FILE HOLDS NO NUMBERS. The facts live once, in
-# `spf/<device>/` — `README.md` is the human record (method stated per number,
+# `external_hardware/<device>/` — `README.md` is the human record (method stated per number,
 # MEASURED / ESTIMATED / NOT ESTABLISHED separated), `facts.yaml` is its machine
 # index. This file names the ids this board consumes and says WHERE each is
 # spent. Boards reference; they never restate. `value`, `grade`, `method`,
@@ -15,7 +15,7 @@
 # two homes for one fact is how cooksense v1.1 shipped 13 CPL rows contradicting
 # its own MANIFEST.
 #
-# GRADES, assigned in spf/<device>/facts.yaml, enforced here at the point of USE:
+# GRADES, assigned in external_hardware/<device>/facts.yaml, enforced here at the point of USE:
 #   MEASURED   someone touched the object, or read a machine-readable source
 #   CITED      a vendor document, WITH figure / page / section
 #   ESTIMATED  derived, photogrammetric, inferred — and it MUST carry an error
@@ -28,7 +28,7 @@
 # `where:` is REQUIRED on every entry: a fact spent nowhere in particular
 # cannot be reviewed at the point of use, which is where M-IMPORT grades it.
 
-device: <device_folder>        # -> spf/<device_folder>/
+device: <device_folder>        # -> external_hardware/<device_folder>/
 
 why: >-
   One paragraph: what this board plugs into, why the facts come from outside,
@@ -36,7 +36,7 @@ why: >-
 
 consumes:
 
-  - fact: <id in spf/<device>/facts.yaml>
+  - fact: <id in external_hardware/<device>/facts.yaml>
     use: dimensional
     where: >-
       the exact site — "floorplan.yaml connector anchor X coordinates (D6 /

@@ -30,7 +30,7 @@ checker, and here are the runs:
   * M-PROXY's `if grade in ("MEASURED", "CITED") and words` block disabled
     -> 19 passed, 1 FAILED — `t_pre_caliper_graded_as_measured`, same message.
 
-Restored byte-identical, 20 passed / 15 known-bad. Every other known-bad here
+Restored byte-identical, 22 passed / 16 known-bad. Every other known-bad here
 is the clean synthetic tree broken in exactly ONE way, and each asserts the
 checker failed for the RIGHT reason by naming its check ID.
 """
@@ -45,7 +45,8 @@ import yaml                                                      # noqa: E402
 
 IMPORTC = SCRIPTS / "import_provenance_check.py"
 
-# The device record, in miniature — the same shape as spf/plutoplus_hardware:
+# The device record, in miniature — the same shape as
+# external_hardware/plutoplus_hardware:
 # a human document that states, per number, how it was obtained.
 RECORD = """# Widget hardware — measured
 
@@ -100,18 +101,18 @@ GOOD_MATES = {
 
 # --------------------------------------------------------------- fixtures
 def tree(facts=None, mates=None, record=None, brief=None, board="cal-switch"):
-    """A scratch repo: spf/widget_hardware/ + projects/<board>/.
+    """A scratch repo: external_hardware/widget_hardware/ + projects/<board>/.
 
     Known-bad fixtures are built by passing a MUTATED copy of GOOD_* — one
     change each, so a failure proves the checker reacts to that defect and
     not to some unrelated malformation (tests/README).
     """
     d = tmpdir("imp_")
-    spf = d / "spf" / "widget_hardware"
-    spf.mkdir(parents=True)
-    (spf / "README.md").write_text(RECORD if record is None else record)
+    registry = d / "external_hardware" / "widget_hardware"
+    registry.mkdir(parents=True)
+    (registry / "README.md").write_text(RECORD if record is None else record)
     if facts is not False:
-        (spf / "facts.yaml").write_text(
+        (registry / "facts.yaml").write_text(
             yaml.safe_dump(GOOD_FACTS if facts is None else facts,
                            allow_unicode=True))
     rules = d / "projects" / board / "03_src" / "rules"
@@ -141,11 +142,11 @@ def gate(pdir, *extra):
 
 
 # ------------------------------------------------------------------ clean
-@test("import_provenance passes the REAL pluto-cal-switch against the REAL spf record")
+@test("import_provenance passes the real Pluto board against external facts")
 def t_real_board():
     """Not a fixture: the shipped `03_src/rules/mates.yaml` graded against the
-    shipped `spf/plutoplus_hardware/`. This is the artifact the gate exists
-    for, and it must also print a denominator (canon M-COVER / G-COVER)."""
+    shipped `external_hardware/plutoplus_hardware/`. This is the artifact the
+    gate exists for, and it must also print a denominator (M-COVER/G-COVER)."""
     r = must_pass(gate(ROOT / "archived_projects" / "pluto-cal-switch"),
                   "import_provenance on pluto-cal-switch")
     contains(r.out, "IMPORT PROVENANCE: PASS", "verdict")
@@ -165,6 +166,19 @@ def t_clean():
     r = must_pass(gate(tree()), "clean tree")
     contains(r.out, "IMPORT PROVENANCE: PASS", "verdict")
     contains(r.out, "3/3", "3 of 3 facts graded")
+
+
+@test("the explicit external-hardware-root override grades the named registry")
+def t_explicit_registry_root():
+    pdir = tree()
+    repo = pdir.parents[1]
+    custom = repo / "vendor-facts"
+    (repo / "external_hardware").rename(custom)
+    r = must_pass(
+        gate(pdir, "--external-hardware-root", str(custom)),
+        "explicit external hardware root",
+    )
+    contains(r.out, str(custom), "reports exact authority root")
 
 
 @test("a board that mates to nothing says NOTHING TO GRADE out loud")
@@ -284,6 +298,19 @@ def t_no_device():
     mates["device"] = "widget_hardware_v2"
     must_fail(gate(tree(mates=mates)), "M-EXIST on a missing device folder",
               "M-EXIST")
+
+
+@test("M-EXIST rejects the retired spf path as authority", kind="known_bad")
+def t_retired_spf_root():
+    """The default must not silently fall back to the ambiguous old name."""
+    pdir = tree()
+    repo = pdir.parents[1]
+    registry = repo / "external_hardware"
+    retired = repo / "spf"
+    registry.rename(retired)
+    r = must_fail(gate(pdir), "M-EXIST with only retired spf tree", "M-EXIST")
+    contains(r.out, "external_hardware/widget_hardware",
+             "names forward authority")
 
 
 @test("M-EXIST FAILS a mates.yaml that does not parse", kind="known_bad")

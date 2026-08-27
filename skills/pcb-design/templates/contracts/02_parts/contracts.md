@@ -507,7 +507,7 @@ photogrammetric, inferred — and it MUST carry an error bar). A dimension used 
 COPPER is MEASURED or CITED, never ESTIMATED without its bar; a published number
 whose DATUM is unstated is ESTIMATED, not CITED; and where the grades disagree
 **the object beats its drawing**. The wider rule gained its machine half on
-2026-07-27 (ADR-0005 phases 2-4): `03_src/rules/mates.yaml` + `spf/<device>/`,
+2026-07-27 (ADR-0005 phases 2-4; path superseded by ADR-0009): `03_src/rules/mates.yaml` + `external_hardware/<device>/`,
 graded by `import_provenance_check.py` for M-EXIST/M-GRADE/M-BAR/M-PROXY/
 M-OWED/M-RESTATE/D-MATE. **It reaches MATING geometry, not this folder**: a
 `part.yaml` imports its facts from a datasheet and is still graded by S-VER
@@ -634,11 +634,11 @@ collision. Pinned by `tests/t1_schema_reader.py`
 
 The honest home is M-IMPORT's machine half. `import_provenance_check.py` already
 grades exactly this class — a foreign device's geometry, with a provenance grade
-per fact — and is scoped to `03_src/rules/mates.yaml` against `spf/<device>/`,
+per fact — and is scoped to `03_src/rules/mates.yaml` against `external_hardware/<device>/`,
 which this contract's own M-IMPORT section says in as many words does not reach
 this folder. A purchased module IS foreign hardware the board mates to, so the
 debt has two admissible settlements and both are cheap to state: either the
-envelope moves to `spf/<device>/` with a `mates.yaml` reference (canon
+envelope moves to `external_hardware/<device>/` with a `mates.yaml` reference (canon
 M-RESTATE — one home per fact, boards reference and never restate), or
 `import_provenance_check.py` grows a `02_parts` reach. Until one of them lands,
 these five rows are OWED, and the two self-consistency sums named in the table

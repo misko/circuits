@@ -48,6 +48,7 @@ do not silently rewrite its decision.
 | [`0006`](decisions/0006-fab-artifacts-are-graded-as-the-recipient-parses-them.md) | Grade fabrication artifacts as the recipient parses them |
 | [`0007`](decisions/0007-claims-become-checks.md) | Claims become executable checks |
 | [`0008`](decisions/0008-declarative-pipeline-stage-contract.md) | Declarative stage contract |
+| [`0009`](decisions/0009-external-hardware-registry-path.md) | Clear path for foreign-device fact authority |
 
 ## Measured evidence
 
