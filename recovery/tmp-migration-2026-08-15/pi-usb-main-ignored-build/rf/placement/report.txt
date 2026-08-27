@@ -1,6 +1,0 @@
-input: /tmp/circuits-pi-usb-release/projects/pi-usb-port-switch/03_src/route.yaml
-mode: source
-geometry_policy: advisory
-coverage: 1/1 RF nets graded
-bend_findings: 0
-VERDICT: PASS

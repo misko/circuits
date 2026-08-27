@@ -1,9 +1,0 @@
-input: /tmp/circuits-pi-usb-release/projects/pi-usb-port-switch/03_src/rules/rf.yaml
-status: N-A
-policy: clean_room
-features: none
-sources: 0
-coverage: 0/0 required topics
-network: disabled
-review_wait: none
-VERDICT: PASS

@@ -34,8 +34,8 @@ Default root is the repo this script lives in. THREE scopes, and the suite
 reads the RAW EXIT CODE of all three (tests/t1_contracts.py). Never pipe
 them — `| tail` reports tail's status.
 
-  (default)    git-tracked current workflow; projects/**, archived_projects/**,
-               and read-only recovery/** snapshots excluded.
+  (default)    git-tracked current workflow; projects/** and
+               archived_projects/** excluded.
                STRICT: any violation exits 1.
   --projects   all git-tracked files. Ratcheted by DEBT_CEILING, per unit.
   --present    tracked UNION untracked-not-ignored — the filesystem walk
@@ -136,11 +136,9 @@ ISO_RE = re.compile(rb"projects/(?!<name>)(?=[A-Za-z0-9])[A-Za-z0-9_.-]+")
 #
 # 2026-08-26 cleanup reconciliation: four manufactured/active projects became
 # visible to the wide census and therefore needed their own measured rows
-# (11/27/61/93). The tracked migration snapshot is deliberately read-only: the
-# strict current-workflow scope excludes `recovery/**`, while the wide scope
-# retains its 56 historical contract mismatches as one explicit debt row.
-# Script-local JLC tests and the recovery top-level classification were fixed
-# structurally instead of being added as unexplained debt.
+# (11/27/61/93). Script-local JLC tests were fixed structurally instead of
+# being added as unexplained debt. The obsolete temporary-migration snapshot
+# and its recovery debt row were removed once Git history became its archive.
 DEBT_CEILING = {
     "archived_projects/ble-bus-bar": 287,
     "archived_projects/cook-hub": 336,
@@ -168,7 +166,6 @@ DEBT_CEILING = {
     "archived_projects/usb-controlled-debug-hub-v1": 61,
     "archived_projects/usb-controlled-debug-hub-v2": 93,
     "projects/usb-hub-3s-v3": 16,
-    "recovery": 56,
 }
 
 # ---- the UNTRACKED-NOT-IGNORED half (`--present` only) ---------------------
@@ -440,8 +437,7 @@ def main():
                  if (not f.startswith("projects/")
                      or f == "projects/contracts.md")
                  and (not f.startswith("archived_projects/")
-                      or f == "archived_projects/contracts.md")
-                 and not f.startswith("recovery/")]
+                      or f == "archived_projects/contracts.md")]
     excluded = total - len(files)
 
     # contract cache: dir posix path -> list[regex] or None
@@ -542,9 +538,8 @@ def main():
     # is why every other gate in this pipeline prints N/M.
     scope = f"{len(files)} files"
     if excluded:
-        scope += (f" ({len(files)}/{total} tracked; {excluded} in projects/**, "
-                  f"archived_projects/**, and recovery/** NOT GRADED — rerun with "
-                  f"--projects)")
+        scope += (f" ({len(files)}/{total} tracked; {excluded} in projects/** "
+                  f"and archived_projects/** NOT GRADED — rerun with --projects)")
     print(f"contracts_audit: {scope}, {len(viol)} violations")
 
     if args.projects and not args.walk and root == default_root:

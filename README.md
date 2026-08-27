@@ -227,7 +227,6 @@ work and rationale but never overrides an executable gate or accepted ADR.
 | [`skills/`](skills/) | Reusable workflow, references, tools, and project templates. |
 | [`projects/`](projects/) | Active boards, including manufactured and still-evolving designs. |
 | [`archived_projects/`](archived_projects/) | Retired scaffolds and frozen regression/history units. |
-| [`recovery/`](recovery/) | Read-only migration/recovery snapshots; never current project authority. |
 | [`docs/`](docs/) | Documentation index, accepted ADRs, measured proof, and historical context. |
 | [`tests/`](tests/) | Clean and known-bad fixtures proving gates can both pass and fail. |
 | [`spf/`](spf/) | Measured/cited facts about external hardware this repo must mate with. |

@@ -47,7 +47,6 @@ via an explicit pattern (see the coverage rule below).
 | `tests/` | the test suite (own contract) |
 | `projects/` | ACTIVE boards, one folder each (own contract) |
 | `archived_projects/` | completed/retired boards + frozen e2e regression fixtures (own contract) |
-| `recovery/**` | read-only migration/recovery snapshots retained wholesale; never a live project or source authority |
 | `tscircuit_modules/` | shared tscircuit module library (own contract) |
 | `spf/` | measured reference data about THIRD-PARTY hardware we must mate to, one folder per device (own contract) |
 
