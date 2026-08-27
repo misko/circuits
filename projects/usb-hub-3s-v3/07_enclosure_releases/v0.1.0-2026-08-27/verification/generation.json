@@ -1,0 +1,175 @@
+{
+  "assembly_contract": {
+    "board_fastener_axes_mm": [
+      [
+        -59.0,
+        40.0
+      ],
+      [
+        -59.0,
+        -40.0
+      ],
+      [
+        21.0,
+        42.0
+      ],
+      [
+        59.0,
+        -26.0
+      ]
+    ],
+    "case_fastener_axes_mm": [
+      [
+        -70.0,
+        -51.0
+      ],
+      [
+        -70.0,
+        51.0
+      ],
+      [
+        70.0,
+        -51.0
+      ],
+      [
+        70.0,
+        51.0
+      ]
+    ],
+    "fastener_strategy": "separate_perimeter",
+    "kind": "pcb-enclosure-assembly-contract-v1",
+    "pcb_retained_with_lid_removed": true,
+    "shared_board_shell_axes": false,
+    "shell_closure_axes_mm": [
+      [
+        -70.0,
+        -51.0
+      ],
+      [
+        -70.0,
+        51.0
+      ],
+      [
+        70.0,
+        -51.0
+      ],
+      [
+        70.0,
+        51.0
+      ]
+    ]
+  },
+  "authority": {
+    "binding": {
+      "path": "03_src/mechanical/usb_hub_3s_v3_case.scad",
+      "sha256": "75403330822f4b45ad56aded9abdab834e6e78a0e8ff26e45cbf899b22782c9b",
+      "size": 16658
+    },
+    "kind": "authored_scad"
+  },
+  "config": {
+    "path": "projects/usb-hub-3s-v3/03_src/mechanical/enclosure.yaml",
+    "raw_sha256": "b175f606b1b20c9312039a37742fa0283af3d3e5fd3d65c238e1153f4c748251",
+    "semantic_sha256": "6634d25787dee5ae832d9e295e30994274da91160d7a937850594de3bec6a906"
+  },
+  "engine": {
+    "executable": "/usr/bin/openscad",
+    "minimum_version": "2021.01",
+    "version": "OpenSCAD version 2021.01"
+  },
+  "installed_case": {
+    "command": [
+      "/usr/bin/openscad",
+      "-o",
+      "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/assembled-case.stl",
+      "-D",
+      "part=\"installed_case\"",
+      "-D",
+      "show_reference_board=false",
+      "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/enclosure.scad"
+    ],
+    "execution": {
+      "kind": "atomic-same-directory-output-v1"
+    },
+    "path": "assembled-case.stl",
+    "selector": "installed_case",
+    "sha256": "1b111e79bf0ed92abc70b1903e4ec2b9cc14039721c8d88ea476d7f287252ec2",
+    "size": 1980191
+  },
+  "interface": {
+    "raw_sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+    "semantic_sha256": "91ba96b687a4ceb100d246e0b9254357e31b684ffa5299973c2eec96107b6518"
+  },
+  "kind": "pcb-enclosure-generation-v1",
+  "mode": "derived",
+  "name": "usb-hub-3s-v1.12-wall-lid-case",
+  "parts": [
+    {
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/base.stl",
+        "-D",
+        "part=\"base\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "base",
+      "path": "base.stl",
+      "selector": "base",
+      "sha256": "b328c8e5ee11c6ccd85e5f13acfb01ef63c3c8e7ba65d18474799b6973c6dfbc",
+      "size": 804175
+    },
+    {
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/lid.stl",
+        "-D",
+        "part=\"lid\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "lid",
+      "path": "lid.stl",
+      "selector": "lid",
+      "sha256": "47eda59271c6b3b0d6906aec0576eafc6adfdd06c258370e1313bf527634ff28",
+      "size": 1234374
+    },
+    {
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/insert_coupon.stl",
+        "-D",
+        "part=\"insert_coupon\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "insert_coupon",
+      "path": "insert_coupon.stl",
+      "selector": "insert_coupon",
+      "sha256": "8a8316b6d9f01d11ce407c0397ff085ec63b5774571211002bbb71f67282f371",
+      "size": 1449463
+    }
+  ],
+  "schema": 1,
+  "selector_contract": null,
+  "source": {
+    "path": "enclosure.scad",
+    "sha256": "75403330822f4b45ad56aded9abdab834e6e78a0e8ff26e45cbf899b22782c9b",
+    "size": 16658
+  }
+}

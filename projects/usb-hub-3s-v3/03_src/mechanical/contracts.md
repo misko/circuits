@@ -19,8 +19,13 @@ README and both configs bind it.
 | `enclosure-v2.yaml` | Commissioned authority, scope, installed-part, fastener-role, assembly-motion and physical-test composition |
 | `mechanical-intent-v2.yaml` | Installed/service states, insertion/removal operations, unknowns and excluded claims |
 | `*.scad` | Optional board-coupled parametric OpenSCAD source or an explicitly retained co-design prototype |
+| `prepare_obstruction_step.py` | Strict producer for the supplemental JLC-catalog obstruction STEP; never edits the sealed PCB release |
+| `compose_obstruction_step.py` | Exact CadQuery/OCP compositor for the sealed STEP plus the bound supplemental obstruction STEP |
 | `reference/board-interface*.json` | Reviewed deterministic extraction of an exact immutable parent PCB; never hand-edited |
 | `reference/*decision*.yaml` | Reviewed authority decision that preserves blockers and excluded claims; not installed geometry |
+| `reference/obstruction-models.json` | Exact model, footprint, transform, reference-census, and parent-release bindings for supplemental obstruction geometry |
+| `reference/obstruction_models/*/*.step` | Hash-bound JLC/EasyEDA catalog bodies; obstruction authority only, not received-part fit proof |
+| `reference/obstruction_models/*/*.kicad_mod` | Hash-bound JLC/EasyEDA registration footprints for those bodies; not a replacement PCB land-pattern authority |
 | `README.md` | Board-specific dimensions, assumptions, export, print and assembly instructions |
 | `contracts.md` | This file |
 
@@ -34,6 +39,9 @@ README and both configs bind it.
   byte identity with the committed `reference/` copy.
 - Regenerate under `06_build/mechanical/`; `rm -rf 06_build/` must never remove
   the only copy of a design decision or physical-test observation.
+- Rebuild and compose the supplemental obstruction STEP. The union must cover
+  every modeled PCB reference plus every declared unmodeled access body before
+  its exact collision result may govern a candidate.
 - A render can establish CAD review only. Promote to `PRINT_VERIFIED` or
   `THERMALLY_VERIFIED` solely from a dated physical witness in `08_reviews/`.
 

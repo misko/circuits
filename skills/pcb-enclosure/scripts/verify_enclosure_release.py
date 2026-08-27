@@ -383,9 +383,14 @@ def _declared_subject_hashes(manifest_path: Path) -> dict[str, str]:
             for line in stable_file_bytes(
                     manifest_path, "PCB release manifest").decode(
                         "utf-8").splitlines():
-                match = re.match(r"^\s*(\S+)\s+([0-9a-f]{64})\s*$", line)
-                if match:
-                    add(match.group(1), match.group(2))
+                path_first = re.match(
+                    r"^\s*(\S+)\s+([0-9a-f]{64})\s*$", line)
+                hash_first = re.match(
+                    r"^\s*([0-9a-f]{64})\s+[ *]?(.+?)\s*$", line)
+                if path_first:
+                    add(path_first.group(1), path_first.group(2))
+                elif hash_first:
+                    add(hash_first.group(2), hash_first.group(1))
     except (OSError, UnicodeError) as exc:
         raise ReleaseError(f"cannot inspect PCB manifest {manifest_path}: {exc}") from exc
     return pairs

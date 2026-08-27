@@ -9,11 +9,13 @@ bound exactly to immutable PCB release `v1.12-2026-07-28`:
   already-fastened complete PCB; and
 - one insert-fit coupon.
 
-This is a mutable derived-enclosure candidate, not an enclosure release. The sealed PCB
-STEP is missing F2, J1-J5, Q1-Q6, and U3-U5, and SW1 has no modeled body. Exact
-solid clearance therefore remains `FAIL`; physical and thermal tests remain
-`NOT_RUN`. Do not claim `CAD_READY`, `PRINT_VERIFIED`, production readiness, or
-order readiness, and do not publish under `07_enclosure_releases/` yet.
+The sealed PCB STEP is missing F2, J1-J5, Q1-Q6, and U3-U5, and SW1 has no
+modeled body. The committed augmentation binds exact JLC/EasyEDA catalog bodies
+and registration transforms for those 16 refs without changing the PCB release.
+Their exact composition with the sealed STEP covers all 121 modeled refs plus
+SW1, and the exact installed-case intersection is empty. Physical fit and
+thermal tests remain `NOT_RUN`, so the immutable enclosure candidate is
+truthfully `INCOMPLETE`, never `CAD_READY`, `PRINT_VERIFIED`, or order-ready.
 
 ## Topology and load paths
 
@@ -49,11 +51,10 @@ vocabulary. Exact skirt reach, assembly motion, and clearance authority live in
 the authored SCAD and schema-v2 intent rather than the generic v1 seam engine.
 
 Connector openings, plug envelopes, vents, and service openings remain
-provisional conservative gauges until received-part measurements and the
-missing exact obstruction authority exist. The supplemental-authority decision
-is explicit: immutable footprints and reviewed bounds can seed this candidate,
-but current schema/tooling cannot compose them with the incomplete sealed STEP
-as exact collision authority.
+provisional conservative gauges until received-part measurements exist. The
+project-specific compositor closes the CAD obstruction census while preserving
+each input's authority; the generic schema still cannot express that mixed
+subject, so all readiness scopes retain an `INCOMPLETE` ceiling.
 
 ## Committed source
 
@@ -66,7 +67,12 @@ as exact collision authority.
 - `reference/board-interface-v1.12.json` — deterministic exact interface
   extraction committed for clean-clone validation; and
 - `reference/supplemental-obstruction-decision.yaml` — reviewed authority
-  boundary and forward composite-authority limitation.
+  boundary and mixed-authority status ceiling;
+- `reference/obstruction-models.json` and `reference/obstruction_models/` —
+  exact parent/model/footprint/transform bindings for the 16 supplemented refs;
+- `prepare_obstruction_step.py` — deterministic supplemental STEP producer; and
+- `compose_obstruction_step.py` — exact sealed-plus-supplement compositor and
+  complete occurrence/solid inspection producer.
 
 The immutable PCB release is an input only. Nothing under `07_releases/` is
 edited by this candidate.
@@ -96,7 +102,8 @@ Key files are:
 | `verification.json` | expected governing `FAIL` report |
 
 Generated files are intentionally ignored and reproducible; they are not
-hidden under `08_reviews/` and are not immutable release artifacts.
+hidden under `08_reviews/`. Printable copies and their governing evidence are
+published under `07_enclosure_releases/v0.1.0-2026-08-27/`.
 
 ## Exact replay
 
@@ -149,7 +156,8 @@ cmp "$build_path/board-interface.replayed.json" \
   "$project_path/03_src/mechanical/reference/board-interface-v1.12.json"
 ```
 
-The governing audit deliberately exits nonzero:
+The parent audit deliberately exits nonzero, then the bound augmentation closes
+the obstruction census and produces the governing composite inspection:
 
 ```sh
 uv run --offline --with cadquery python \
@@ -164,10 +172,38 @@ uv run --offline --with cadquery python \
   --build-dir "$build_path" --target cad \
   --step-inspection "$build_path/step-inspection.json" \
   --report "$build_path/verification.json"
+
+/usr/bin/python3 "$project_path/03_src/mechanical/prepare_obstruction_step.py" \
+  --project-root "$project_path" \
+  --manifest "$project_path/03_src/mechanical/reference/obstruction-models.json" \
+  --output-dir "$build_path"
+
+uv run --offline --with cadquery python \
+  "$project_path/03_src/mechanical/compose_obstruction_step.py" \
+  --parent-step "$project_path/07_releases/v1.12-2026-07-28/3d/usb_hub_3s_v2.step" \
+  --supplement-step "$build_path/supplemental-obstructions.step" \
+  --interface "$project_path/03_src/mechanical/reference/board-interface-v1.12.json" \
+  --augmentation-receipt "$build_path/obstruction-augmentation.json" \
+  --output-step "$build_path/composite-obstructions.step" \
+  --component-mesh "$build_path/composite-components.stl" \
+  --report "$build_path/composite-step-inspection.json"
+
+uv run --offline --with cadquery python \
+  skills/pcb-enclosure/scripts/build_collision.py \
+  --step "$build_path/composite-obstructions.step" \
+  --step-inspection "$build_path/composite-step-inspection.json" \
+  --component-mesh "$build_path/composite-components.stl" \
+  --generation "$build_path/generation.json" \
+  --assembled-case-mesh "$build_path/assembled-case.stl" \
+  --board-bottom-z-mm 9.5 \
+  --output "$build_path/composite-clearance-intersection.stl" \
+  --report "$build_path/composite-collision.json"
 ```
 
-Expected result from both commands: exit 1 / `FAIL`. Do not package or stage an
-enclosure release around that result.
+Expected parent result: exit 1 / `FAIL` at 106/121. Expected composite result:
+121/121 modeled refs plus SW1, then exact collision `EMPTY`, 0 mm^3. These CAD
+results permit an immutable `INCOMPLETE` candidate only; physical tests below
+still gate every higher readiness claim.
 
 ## Assembly and physical plan
 

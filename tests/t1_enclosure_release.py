@@ -175,6 +175,22 @@ def _parent_snapshot(fixture: dict[str, Path]) -> dict[str, str]:
     }
 
 
+@test("release publisher parses standard sha256sum parent manifests")
+def t_sha256sum_parent_manifest_clean():
+    module = _load_stage_module()
+    root = tmpdir("enclosure_sha256sum_manifest_")
+    manifest = root / "MANIFEST.txt"
+    pcb_hash = "1" * 64
+    step_hash = "2" * 64
+    manifest.write_text(
+        f"{pcb_hash}  source/array.kicad_pcb\n"
+        f"{step_hash} *3d/array.step\n", encoding="utf-8")
+    eq(module.release_verify._declared_subject_hashes(manifest), {
+        "source/array.kicad_pcb": pcb_hash,
+        "3d/array.step": step_hash,
+    }, "sha256sum parent-manifest path/hash census")
+
+
 @test("release publisher atomically publishes a self-contained INCOMPLETE candidate")
 def t_publish_incomplete_candidate_clean():
     fixture = _fixture()

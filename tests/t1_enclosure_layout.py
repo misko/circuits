@@ -41,7 +41,7 @@ def t_real_fleet():
     result = run(ROOT)
     check(result.returncode == 0, result.stdout)
     contains(result.stdout, "designed_projects=2", "real design census")
-    contains(result.stdout, "tracked_stls=57", "real STL census")
+    contains(result.stdout, "tracked_stls=63", "real STL census")
 
 
 @test("minimal authored enclosure source passes without generated payloads")

@@ -1,0 +1,56 @@
+{
+  "bindings": {
+    "cad_design": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/03_src/mechanical/enclosure.yaml",
+      "sha256": "b175f606b1b20c9312039a37742fa0283af3d3e5fd3d65c238e1153f4c748251",
+      "size": 6259
+    },
+    "external_subjects": {
+      "supplemental_obstruction_decision": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/03_src/mechanical/reference/supplemental-obstruction-decision.yaml",
+        "sha256": "5342a1282213745cdbe34e82bc471193814b422cadf69be3d7143228714050d6",
+        "size": 2974
+      },
+      "supplemental_obstruction_models": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/03_src/mechanical/reference/obstruction-models.json",
+        "sha256": "7fe9ed0a7589921a211f2ce195152fd1d40184ce758e2b6db5a33b5c43168d7f",
+        "size": 6933
+      }
+    },
+    "interface": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/03_src/mechanical/reference/board-interface-v1.12.json",
+      "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+      "size": 61228
+    },
+    "mechanical_intent": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/03_src/mechanical/mechanical-intent-v2.yaml",
+      "sha256": "eef3c02b07b540305f5f334b60df79229ce4f3e37397bf6cece7eb0bce30b393",
+      "size": 4383
+    },
+    "pcb": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/source/usb_hub_3s_v2.kicad_pcb",
+      "sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+      "size": 2007690
+    },
+    "release_manifest": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/MANIFEST.txt",
+      "sha256": "2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4",
+      "size": 41456
+    },
+    "step": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/usb-hub-v112-enclosure-release-20260827/projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/3d/usb_hub_3s_v2.step",
+      "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+      "size": 2239061
+    }
+  },
+  "config_semantic_sha256": "d9a1269fa5d4ced6567b0e3a6156a335f2246018936b9c6be39bef1492a3ba04",
+  "kind": "pcb-enclosure-v2-validation",
+  "schema": 2,
+  "scope_readiness_ceilings": {
+    "board_retention": "CAD_READY",
+    "connector_access": "INCOMPLETE",
+    "shell": "INCOMPLETE",
+    "thermal": "PRINT_VERIFIED"
+  },
+  "status": "VALID"
+}

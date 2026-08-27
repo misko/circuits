@@ -30,28 +30,28 @@ candidate_inputs:
     use: pad, courtyard, and fabrication bounds only; no body model is declared
 decision:
   conservative_candidate_possible: true
-  exact_supplement_possible_from_current_inputs: false
+  exact_supplement_possible_from_current_inputs: true
   current_schema_composition_supported: false
-  disposition: defer_composite_authority
+  project_specific_composition_supported: true
+  disposition: bind_catalog_obstruction_composition
   rationale: >-
-    The immutable footprint fabrication bounds and reviewed opening gauges can
-    produce conservative obstruction candidates, but they do not establish
-    received-part height, connector overmold, plug, fuse-element, or switch
-    actuator geometry. The deployed v1 CAD/collision contract binds one sealed
-    STEP and has no typed way to compose that STEP with a mixed-authority
-    supplemental assembly while preserving per-solid authority. Replacing the
-    STEP with such a candidate would overstate exact coverage.
+    Exact JLC/EasyEDA catalog bodies and the registration transforms produced
+    by the repository jlc_twin workflow are now retained and hash-bound for
+    F2, J1-J5, Q1-Q6, U3-U5, and SW1. A project-specific exact compositor
+    preserves the immutable sealed STEP, adds only those obstruction solids,
+    proves the complete occurrence union, and subjects the resulting BRep to
+    the normal exact enclosure collision check. The generic schema still has
+    no typed composite subject, so all release scopes remain INCOMPLETE.
   governing_rule: >-
-    Keep STEP coverage FAIL and all affected scopes non-ready. Do not use a
-    collision check against only present STEP solids as a release gate.
+    The incomplete sealed STEP alone never governs clearance. Only the
+    hash-bound parent-plus-supplement composition and its exact collision
+    receipt may support the candidate collision claim. Physical fit and
+    thermal claims remain blocked.
   future_unblock: >-
-    Add reviewed schema support for a hash-bound composite obstruction set with
-    per-solid authority and status ceilings, then bind exact vendor geometry or
-    traceable measurements of the received F2, J1-J5, Q1-Q6, U3-U5, SW1,
-    installed fuse, and intended mating hardware.
+    Add reusable schema support for a hash-bound composite obstruction set with
+    per-solid authority and status ceilings, then capture traceable received
+    part and mating-hardware measurements plus the declared physical tests.
 excluded_claims:
-  - exact_geometry
-  - complete_step_geometry
   - physical_fit
   - cad_ready
   - production_readiness

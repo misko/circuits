@@ -33,12 +33,22 @@ external_subjects:
     role: supplemental_obstruction_authority_decision
     source:
       path: 03_src/mechanical/reference/supplemental-obstruction-decision.yaml
-      sha256: 91718f3344dc0f16f4e04e6e17a706ac5d105d830e82e0ac82a797b37e595e8a
-      size: 2901
+      sha256: 5342a1282213745cdbe34e82bc471193814b422cadf69be3d7143228714050d6
+      size: 2974
     authority:
       grade: conservative_candidate
-      basis: Immutable footprint fabrication bounds and provisional opening gauges can seed a conservative candidate, but cannot complete or replace the sealed STEP; the decision explicitly defers composite authority.
-      excluded_claims: [exact_geometry, physical_fit]
+      basis: The decision binds a project-specific exact parent-plus-supplement composition while retaining INCOMPLETE ceilings for mixed authority and physical fit.
+      excluded_claims: [exact_geometry, physical_fit, cad_ready, production_readiness]
+  - id: supplemental_obstruction_models
+    role: supplemental_obstruction_model_and_transform_authority
+    source:
+      path: 03_src/mechanical/reference/obstruction-models.json
+      sha256: 7fe9ed0a7589921a211f2ce195152fd1d40184ce758e2b6db5a33b5c43168d7f
+      size: 6933
+    authority:
+      grade: vendor_authoritative
+      basis: Hash-bound JLC/EasyEDA STEP bodies, registration footprints, transforms, reference census, and immutable v1.12 parent identities.
+      excluded_claims: [received_part_tolerance, physical_fit, production_readiness]
 verification_scopes:
   - id: shell
     description: Floor-down foundation, isolated PCB bosses, four independent closure posts, and one roof-down lid with four post-clearing side skirts.
