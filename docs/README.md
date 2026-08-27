@@ -64,6 +64,7 @@ support decisions but do not replace the owning skill procedure.
 | [`pipeline-reliability.md`](pipeline-reliability.md) | Runtime and reliability measurements |
 | [`pipeline-shadow-canaries.md`](pipeline-shadow-canaries.md) | Dated rollout/canary evidence; not current authority |
 | [`fabricated-examples.md`](fabricated-examples.md) | Prompt, photograph, and rendering provenance plus claim limits for the README showcase |
+| [`enclosure-fit-registry.md`](enclosure-fit-registry.md) | Cross-project enclosure fit observations, evidence grades, and reusable coupon priors |
 
 ## Historical plans and snapshots
 

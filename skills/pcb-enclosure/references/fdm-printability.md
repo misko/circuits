@@ -27,7 +27,11 @@ Treat minimum wall, nozzle multiple, hole compensation, elephant foot, panel cle
 - Add bottom-edge relief where elephant foot would block board drop-in or panel insertion.
 - Use fillets or generous roots at posts and tall walls to reduce layer-splitting stress.
 
-Do not rely on nominal CAD size for press fits. Qualify inserts and critical sliding fits with coupons.
+Do not rely on nominal CAD size for press fits. Qualify inserts and critical
+sliding fits with coupons. Consult the repository-wide
+[fit and tolerance registry](../../../docs/enclosure-fit-registry.md) to centre
+the first coupon on comparable evidence, while preserving feature class,
+process, and evidence-grade distinctions.
 
 ## Vents and thermal features
 

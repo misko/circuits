@@ -78,7 +78,11 @@ changes in `co_design`; reject stale subject bindings in `derived`.
    [enclosure-topologies.md](references/enclosure-topologies.md), author every
    interface disposition with [connector-access.md](references/connector-access.md),
    and dimension hardware using exact datasheets and coupons with
-   [fasteners-and-inserts.md](references/fasteners-and-inserts.md). Schema v2
+   [fasteners-and-inserts.md](references/fasteners-and-inserts.md). Before
+   choosing a process-sensitive pilot, sliding gap, connector opening, or
+   compliant grip, consult the repository-wide
+   [fit and tolerance registry](../../docs/enclosure-fit-registry.md). Its
+   observations are coupon priors, never universal defaults. Schema v2
    requires distinct board-retention and case-closure groups: removing the lid
    must not loosen the PCB. With the current built-in CAD adapter, select
    `fasteners.strategy: separate_perimeter` and confirm the generation
@@ -230,6 +234,10 @@ verifiers; it does not manufacture motion, fit, or thermal evidence.
   states, whole-body sweeps, and prewired parts.
 - Read [first-article-iteration.md](references/first-article-iteration.md) when
   incorporating physical fit feedback or revising a printed enclosure.
+- Consult the repository-wide
+  [fit and tolerance registry](../../docs/enclosure-fit-registry.md) before
+  selecting a process-sensitive fit, and add a new evidence-graded observation
+  after a traceable coupon or assembly test.
 - Read [verification-and-release.md](references/verification-and-release.md)
   for evidence and status, then [release-stream.md](references/release-stream.md)
   for independent immutable publication.

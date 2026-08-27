@@ -25,6 +25,9 @@ as procedure.
   (supersede with a new ADR instead).
 - Proof docs claim only MEASURED results and name the boards/commits that
   produced them.
+- The enclosure fit registry distinguishes press, clearance, compliant, and
+  bearing features; records signed total and per-side allowance; and never
+  promotes CAD-only or reference geometry to a physical-fit result.
 - Fabricated-example media have a proof document that binds source and display
   hashes, records conversion or generation provenance, and separates visible
   observations or CAD views from release identity and qualification claims.

@@ -54,6 +54,14 @@ or flexure with a lead-in and a hard motion stop. Print a gap or fit coupon
 covering the production clearance. Avoid making the whole enclosure wall the
 spring, because global flex changes connector alignment and closure fit.
 
+Use the repository-wide
+[fit and tolerance registry](../../../docs/enclosure-fit-registry.md) as a
+record of priors, not as a default table. After a traceable coupon or assembly
+test, preserve the project-local raw evidence first, then add an evidence-graded
+registry observation with total and per-side allowance, process, result, and
+limits. Never promote a CAD-only candidate or inspiration-holder measurement
+to a production tolerance.
+
 ## Harden reproducibility before promotion
 
 - Reject unknown CAD selectors; export collision geometry only through the
