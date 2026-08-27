@@ -15,9 +15,8 @@ meshes, renders, reports and packages belong under `06_build/mechanical/`.
 | `enclosure.yaml` | Declarative enclosure identity, subject, process, CAD backend, geometry, fastener, access-interface, thermal and physical-validation contract |
 | `mechanical-intent-v2.yaml` | Commissioned assembly states, prewired insertion/removal operations, independent fastener roles and physical evidence obligations |
 | `enclosure-v2.yaml` | Optional schema-v2 composition wrapper binding intent, exact v1 CAD design, installed parts, fastener groups, clearance cases and readiness scopes |
-| `physical-evidence-v2.yaml` | Optional mutable physical-test evidence source; generated/aggregated receipts remain under `06_build/mechanical/` |
 | `*.scad` | Optional board-coupled parametric OpenSCAD source or an explicitly retained co-design prototype |
-| `*.stl` | Exact externally supplied or project-authored mechanical reference only when hash-bound by schema-v2 authority; generated printable meshes remain under `06_build/` |
+| `reference/**` | Exact externally supplied or project-authored mechanical inputs only when path/size/SHA-256-bound by schema-v2 authority; generated printable meshes remain under `06_build/` |
 | `*.json` | Project-specific machine-readable accessory/measurement authority or verifier input named by schema-v2 bindings; never an unbound result receipt |
 | `verify_*.py` | Project-specific verifier only when generic enclosure checks cannot express an installed accessory; must be bound as tooling evidence and tested with known-bad fixtures |
 | `README.md` | Board-specific dimensions, assumptions, export, print and assembly instructions |
@@ -48,6 +47,9 @@ meshes, renders, reports and packages belong under `06_build/mechanical/`.
   the only copy of a design decision or physical-test observation.
 - A render can establish CAD review only. Promote to `PRINT_VERIFIED` or
   `THERMALLY_VERIFIED` solely from a dated physical witness in `08_reviews/`.
+- Keep the authored v2 physical witness under a dated `08_reviews/` path;
+  validation and aggregation receipts remain disposable under
+  `06_build/mechanical/` until immutable enclosure publication.
 
 ## Repair
 

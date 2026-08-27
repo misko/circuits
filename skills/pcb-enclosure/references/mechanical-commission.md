@@ -74,7 +74,8 @@ Run:
 
 ```bash
 /usr/bin/python3 skills/pcb-enclosure/scripts/enclosure_v2.py \
-  validate-intent 06_build/mechanical/mechanical-intent.yaml
+  validate-intent "$PROJECT/03_src/mechanical/mechanical-intent-v2.yaml" \
+  --output "$PROJECT/06_build/mechanical/intent-validation-v2.json"
 ```
 
 Then validate the bound configuration with `validate-config`. Run the existing

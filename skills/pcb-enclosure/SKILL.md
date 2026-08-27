@@ -9,6 +9,38 @@ Commission the complete assembly before drawing it. Build reproducible geometry
 from exact subjects, keep each claim within its evidence, and release enclosure
 revisions without modifying their parent PCB release.
 
+## Use the canonical project layout
+
+```text
+projects/<project>/
+├── 03_src/mechanical/                 authored mutable authority
+│   ├── enclosure.yaml                 schema-v1 CAD design
+│   ├── enclosure-v2.yaml              schema-v2 composition
+│   ├── mechanical-intent-v2.yaml      states, motion, and unknowns
+│   ├── *.scad                         optional authored CAD entrypoint
+│   └── reference/                     exact hash-bound input references only
+├── 06_build/mechanical/<candidate>/   generated disposable outputs
+│   ├── *.stl                          printable and verification meshes
+│   ├── *.png                          renders
+│   └── *.json|*.yaml                  generation and verification receipts
+├── 07_enclosure_releases/
+│   └── <version>-<date>/              immutable independently versioned release
+│       ├── cad/                        exact authored CAD authority
+│       ├── source/                     release-local configurations
+│       ├── meshes/                     printable STL payload
+│       ├── renders/                    visual-review evidence
+│       └── verification/               receipts and non-printable evidence meshes
+└── 08_reviews/                        dated physical observations only
+```
+
+Do not commit routine generated CAD, printable meshes, renders, receipts, or
+packages beneath `08_reviews/`. A supplied or project-authored STL may remain
+under `03_src/mechanical/reference/` only when a schema-v2 binding records its
+exact path, byte size, and SHA-256 as input authority. Generated build STLs are
+disposable and gitignored; a printable STL becomes tracked only inside an
+immutable `07_enclosure_releases/<version>-<date>/meshes/` payload. Run
+`enclosure_layout_audit.py` before publication or project handoff.
+
 ## Choose the mode
 
 - Use `co_design` while PCB placement, outline, mounting, or connector choices
@@ -147,6 +179,9 @@ SKILL_DIR=skills/pcb-enclosure
 /usr/bin/python3 "$SKILL_DIR/scripts/package_enclosure.py" \
   "$CAD_CONFIG" --root "$SUBJECT_ROOT" --build-dir "$BUILD" \
   --output "$BUILD/enclosure-candidate.zip"
+
+/usr/bin/python3 "$SKILL_DIR/scripts/enclosure_layout_audit.py" \
+  --root "$(git rev-parse --show-toplevel)"
 ```
 
 `generate_enclosure.py` exports `assembled-case.stl` only through the fixed

@@ -28,6 +28,7 @@ board project.
 | `scripts/enclosure_v2.py` | mechanical-intent/config/evidence validation and conservative scoped aggregation |
 | `scripts/stage_enclosure_release.py` | atomic no-replace publication below `07_enclosure_releases/` |
 | `scripts/verify_enclosure_release.py` | immutable enclosure-release census, authority, status, and replay-path verification |
+| `scripts/enclosure_layout_audit.py` | fleet audit for canonical authored, generated, review, and immutable-release paths |
 | `references/**` | commission, schemas, topology, access, motion, fastener, FDM, evidence, and independent-release guidance |
 | `assets/enclosure-engine.scad` | reusable OpenSCAD engine with closed part selectors and independent-fastener geometry |
 | `assets/*.template.yaml` | mechanical-intent and physical-evidence authoring templates |
@@ -54,6 +55,9 @@ an independent `subprocess.run` or `Popen` path.
 - `tests/t1_enclosure_release.py` covers independent immutable publication,
   release-root authority/replay resolution, conservative status, and hostile
   workspace/release fixtures.
+- `tests/t1_enclosure_layout.py` proves project enclosure sources, reference
+  STLs, generated artifacts, physical reviews, and releases cannot cross their
+  canonical filesystem boundaries.
 - `scripts/contracts_audit.py` enforces coverage and project-isolation rules.
 - `skill-creator/scripts/quick_validate.py` validates skill metadata and
   structure.

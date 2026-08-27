@@ -160,15 +160,21 @@ omitting rows from the authored test census.
 
 ```bash
 /usr/bin/python3 skills/pcb-enclosure/scripts/enclosure_v2.py \
-  validate-config 06_build/mechanical/enclosure-v2.yaml --root "$PROJECT"
+  validate-config "$PROJECT/03_src/mechanical/enclosure-v2.yaml" \
+  --root "$PROJECT" \
+  --output "$PROJECT/06_build/mechanical/v2-validation.json"
 
 /usr/bin/python3 skills/pcb-enclosure/scripts/enclosure_v2.py \
-  validate-evidence 06_build/mechanical/physical-evidence-v2.yaml \
-  --config 06_build/mechanical/enclosure-v2.yaml --root "$PROJECT"
+  validate-evidence "$PROJECT/08_reviews/<physical-witness>.yaml" \
+  --config "$PROJECT/03_src/mechanical/enclosure-v2.yaml" \
+  --root "$PROJECT" \
+  --output "$PROJECT/06_build/mechanical/physical-validation-v2.json"
 
 /usr/bin/python3 skills/pcb-enclosure/scripts/enclosure_v2.py \
-  aggregate-config 06_build/mechanical/scope-statuses.json \
-  --config 06_build/mechanical/enclosure-v2.yaml --root "$PROJECT"
+  aggregate-config "$PROJECT/06_build/mechanical/scope-statuses.json" \
+  --config "$PROJECT/03_src/mechanical/enclosure-v2.yaml" \
+  --root "$PROJECT" \
+  --output "$PROJECT/06_build/mechanical/scoped-verdict.json"
 ```
 
 The Python helper `aggregate_status(scope_statuses, required_scopes,

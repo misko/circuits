@@ -30,6 +30,8 @@ completion evidence.
 | IMP-237 | Make enclosure first-article load-path feedback explicit and reusable | completed | `pcb-enclosure` first-article reference, typed support-clearance evidence, v2 test |
 | IMP-238 | Compose mixed-authority supplemental obstruction solids without overstating STEP coverage | accepted | pcb-enclosure composite subject schema, per-solid authority ceilings, collision receipts |
 | IMP-239 | Distinguish intended endpoint bearing contacts from motion collisions | accepted | pcb-enclosure v2 contact-region schema, endpoint/contact verifier, known-bad motion fixtures |
+| IMP-240 | Enforce one canonical enclosure source/build/release/review layout | completed | pcb-enclosure layout contract, fleet auditor, known-bad path fixtures |
+| IMP-241 | Rebuild the USB debug-hub 2A enclosure against its current sealed PCB | accepted | current assembly STEP/interface, independent fasteners, exact collision and physical qualification |
 
 ## IMP-229 — executable PCB documentation and graph
 
@@ -202,6 +204,48 @@ completion evidence.
   early-contact, wrong-face, excessive-gap, penetration, missing-contact, and
   non-bearing-clearance known-bads; exact collision receipts must retain both
   the allowed-contact census and the independently graded swept free space.
+
+## IMP-240 — canonical enclosure filesystem layout
+
+- status: completed
+- problem: authored CAD, generated STLs, candidate packages, immutable release
+  payloads, and physical observations previously relied on distributed prose.
+  One unmerged prototype placed its CAD-ready package under `08_reviews/`,
+  making a review folder look like the source and release authority.
+- landing point: `pcb-enclosure/SKILL.md` now defines `03_src/mechanical/` as
+  authored source, ignored `06_build/mechanical/<candidate>/` as generated
+  output, `07_enclosure_releases/<version>-<date>/` as immutable publication,
+  and `08_reviews/` as physical witnesses only. Commands in the v2 references
+  and project template use those same paths.
+- completion evidence: `enclosure_layout_audit.py` grades the complete tracked
+  project/archive census; `tests/t1_enclosure_layout.py` proves clean fleet,
+  bound source-reference STL, tracked build STL, review-folder CAD, and
+  misplaced authoring-config behavior. The audit reports every current tracked
+  STL by role and fails on an unbound or uncategorized mesh.
+- authority boundary: Git history can retain old experiments, but an obsolete
+  branch or review bundle is not migrated merely to make it discoverable.
+  Source/reference authority and immutable release authority remain distinct.
+
+## IMP-241 — current USB debug-hub 2A enclosure
+
+- status: accepted
+- problem: the prior unmerged USB debug-hub enclosure was bound to a live-board
+  snapshot, used the same screw axes for PCB retention and case closure, and
+  carried its generated package under `08_reviews/`. The current immutable PCB
+  parent is v0.1.2 and has no complete whole-board assembly STEP.
+- intended landing point: resume from
+  `projects/usb-controlled-debug-hub-2a-v1/03_src/mechanical/`, generate a
+  complete exact current STEP/interface, and design a close-in shell or
+  wall-lid topology with independent PCB and case fasteners. Keep all generated
+  trials under the canonical build path and publish only through the independent
+  enclosure release stream.
+- completion evidence required: complete fitted-reference STEP coverage;
+  distinct fastener axes and lid-off PCB retention; full PCB/lid motion sweeps;
+  exact installed collision; simultaneous two-USB-C plus four-USB-A mating;
+  board-support/load-path witness; insert coupon; closed full-load thermal soak;
+  release-root replay and conservative scoped status.
+- recommendation: do not import or print the old prototype. Resolve exact STEP
+  authority and independent post geometry before authoring the replacement CAD.
 
 ## Index
 
