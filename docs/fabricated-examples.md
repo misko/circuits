@@ -8,16 +8,14 @@ generated CAD display copy, not a photograph or physical-fit result.
 
 ## Original prompt provenance
 
-The README uses one compact, verbatim product sentence from each earliest
-authenticated lineage prompt. It does not substitute later extended briefs:
+The README uses compact original wording rather than later extended briefs:
 
-- Pluto: `we want a high speed switching 8 pole on RX2.` is the first sentence
-  of the prompt preserved in
-  [`archived_projects/pluto-rx2-8way/01_docs/BRIEF.md`](../archived_projects/pluto-rx2-8way/01_docs/BRIEF.md).
-  Git first records it in `4caf0d6471b43ce8e80b141555f55197cd22129b`;
-  the complete prompt is hash-bound there. This is the authenticated lineage
-  prompt, not a claim that v5's unavailable initiating prompt used identical
-  wording.
+- Pluto: `we want a high speed 8 antenna switching board that can be
+  programmed by the rpi4 and run with a pluto+` was supplied by the user as
+  the original prompt wording on 2026-08-26. The linked
+  [`archived_projects/pluto-rx2-8way/01_docs/BRIEF.md`](../archived_projects/pluto-rx2-8way/01_docs/BRIEF.md)
+  is the earliest authenticated lineage record; it preserves the detailed
+  technical follow-ups, not this user-supplied compact sentence verbatim.
 - USB: `Please from scratch start a new project, and lets design a board that
   takes 3S lipo XT60 power as input , and outputs 3 x USB A ports (2.5A max)
   and 1 x USB C port (6A max).` is an exact sentence from

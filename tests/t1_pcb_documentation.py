@@ -283,11 +283,13 @@ def t_root_brief_only_skill_quick_start():
              "brief-only USB-A requirement")
     contains(section, "1× USB-C output at 5 V / 5 A",
              "brief-only USB-C requirement")
-    for row in ("Original prompt", "PCB rendering", "Enclosure rendering",
+    for row in ("Prompt", "PCB rendering", "Enclosure rendering",
                 "Fabricated board", "Board in enclosure"):
         contains(section, row, f"showcase row {row}")
-    contains(section, "we want a high speed switching 8 pole on RX2.",
-             "authenticated Pluto lineage prompt")
+    contains(section,
+             "we want a high speed 8 antenna switching board that can be "
+             "programmed by the rpi4 and run with a pluto+",
+             "user-supplied original Pluto prompt")
     contains(section,
              "takes 3S lipo XT60 power as input , and outputs 3 x USB A",
              "authenticated USB lineage prompt")
