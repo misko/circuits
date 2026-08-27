@@ -1,0 +1,117 @@
+schema: 2
+kind: pcb-enclosure-mechanical-intent-v2
+name: usb-hub-3s-v1.12-wall-lid-case
+desired_release:
+  lifecycle: draft
+  readiness: CAD_READY
+requirements:
+  pcb_retained_with_lid_removed: true
+  cabled_parts: []
+states:
+  - id: empty_base
+    purpose: initial
+    present_parts: [base]
+    secured_fastener_groups: []
+    enclosure_closed: false
+    pcb_retained: false
+  - id: lid_removed_service
+    purpose: lid_removed
+    present_parts: [base, pcb]
+    secured_fastener_groups: [pcb_screws]
+    enclosure_closed: false
+    pcb_retained: true
+  - id: installed
+    purpose: installed
+    present_parts: [base, pcb, lid]
+    secured_fastener_groups: [pcb_screws, case_screws]
+    enclosure_closed: true
+    pcb_retained: true
+operations:
+  - id: insert_complete_pcb
+    kind: linear_insert
+    from_state: empty_base
+    to_state: lid_removed_service
+    moving_parts: [pcb]
+    direction: [0, 0, -1]
+    travel_mm: 40.0
+    cable_condition: not_applicable
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: pcb_drop_in
+  - id: install_complete_lid
+    kind: linear_insert
+    from_state: lid_removed_service
+    to_state: installed
+    moving_parts: [lid]
+    direction: [0, 0, -1]
+    travel_mm: 40.0
+    cable_condition: not_applicable
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: lid_installation
+  - id: remove_complete_lid
+    kind: linear_remove
+    from_state: installed
+    to_state: lid_removed_service
+    moving_parts: [lid]
+    direction: [0, 0, 1]
+    travel_mm: 40.0
+    cable_condition: not_applicable
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: lid_removal
+  - id: remove_complete_pcb
+    kind: linear_remove
+    from_state: lid_removed_service
+    to_state: empty_base
+    moving_parts: [pcb]
+    direction: [0, 0, 1]
+    travel_mm: 40.0
+    cable_condition: not_applicable
+    threading_permitted: false
+    bending_permitted: false
+    disconnecting_permitted: false
+    clearance_case: pcb_removal
+unknowns:
+  - id: incomplete_sealed_step
+    scope: shell
+    question: Replace or supplement the sealed STEP only through reviewed exact authority for F2, J1-J5, Q1-Q6, U3-U5, and SW1; the immutable PCB release remains unchanged.
+    blocks_readiness: CAD_READY
+  - id: switch_body_and_actuator
+    scope: connector_access
+    question: Bind the exact received SW1 body, actuator travel, and finger/tool envelope; its sealed footprint has no 3D model.
+    blocks_readiness: CAD_READY
+  - id: installed_mini_fuse_envelope
+    scope: connector_access
+    question: Measure the installed MINI blade fuse height and extraction-tool envelope; the sealed STEP contains the holder but not the fuse element.
+    blocks_readiness: CAD_READY
+  - id: actual_mating_hardware
+    scope: connector_access
+    question: Measure the intended XT60, three simultaneous USB-A, and USB-C plug overmolds, straight exits, and bend radii; present opening envelopes are conservative gauges.
+    blocks_readiness: CAD_READY
+  - id: first_article_board_support
+    scope: board_retention
+    question: Prove the assembled PCB reaches nonpenetrating terminal contact on all four H1-H4 bearing faces and bears on no connector, solder tail, component, lid skirt, or case post.
+    blocks_readiness: PRINT_VERIFIED
+  - id: wall_lid_drop_fit
+    scope: connector_access
+    question: Print and exercise the complete 40 mm vertical lid install/removal path over the populated PCB; prove all five bottom-open notches clear full connector bodies without forced deflection and the roof reaches nonpenetrating terminal bearing contact on all four case posts.
+    blocks_readiness: PRINT_VERIFIED
+  - id: insert_process_fit
+    scope: shell
+    question: Qualify the insert pilot with the exact printer, PETG, slicer, and E-Z LOK insert lot before using the production pocket.
+    blocks_readiness: PRINT_VERIFIED
+  - id: closed_case_thermal
+    scope: thermal
+    question: Run the defined closed-case load soak and record converter, switch, fuse, connector, air, and enclosure temperatures.
+    blocks_readiness: THERMALLY_VERIFIED
+excluded_claims:
+  - exact_component_clearance
+  - physical_fit
+  - print_verified
+  - thermal_performance
+  - production_readiness
+  - order_readiness

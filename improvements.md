@@ -27,6 +27,9 @@ completion evidence.
 | IMP-234 | Add an independent firmware release stream bound to exact PCB releases | accepted | firmware release contract, staging/reopen tooling, product-lock composition |
 | IMP-235 | Add an executable commission-admission compositor | accepted | commission receipt, fact-lock/architecture/sourcing gates, hold removal check |
 | IMP-236 | Compose prompt-to-device releases and a product-level digital twin | accepted | exact product manifest, cross-stream replay, device bundle and system twin |
+| IMP-237 | Make enclosure first-article load-path feedback explicit and reusable | completed | `pcb-enclosure` first-article reference, typed support-clearance evidence, v2 test |
+| IMP-238 | Compose mixed-authority supplemental obstruction solids without overstating STEP coverage | accepted | pcb-enclosure composite subject schema, per-solid authority ceilings, collision receipts |
+| IMP-239 | Distinguish intended endpoint bearing contacts from motion collisions | accepted | pcb-enclosure v2 contact-region schema, endpoint/contact verifier, known-bad motion fixtures |
 
 ## IMP-229 — executable PCB documentation and graph
 
@@ -149,6 +152,56 @@ completion evidence.
   bundle; wrong-parent and mutated-stream fixtures fail; omitted optional
   firmware/twin scopes remain visibly `INCOMPLETE`; and no component scope can
   inflate the composed device's physical or production readiness.
+
+## IMP-237 — enclosure first-article load-path feedback
+
+- status: completed
+- observed: final-pose collision and board drop-in checks did not state whether
+  a printed PCB actually bears on every intended boss or instead rests on an
+  edge connector, solder tail, wall, panel, or case-closure post.
+- landing point: `skills/pcb-enclosure/references/first-article-iteration.md`,
+  the built-in `board_support_clearance` physical-test type, template guidance,
+  and the v2 acceptance test.
+- completion evidence: `tests/t1_pcb_enclosure_v2.py` accepts the typed test
+  while the existing unknown-type canary still rejects misspellings; the
+  reference also preserves independent fasteners, whole-body motion,
+  authority, fit coupon, selector, scoped-status, and replay lessons.
+- authority boundary: this is physical load-path evidence, not a substitute
+  for exact collision, dimensional authority, or thermal qualification.
+
+## IMP-238 — mixed-authority supplemental obstruction composition
+
+- status: accepted
+- problem: schema v1 binds one sealed STEP for collision, while some immutable
+  releases contain useful exact solids plus missing bodies for which only
+  conservative footprint-, dossier-, or measured bounds exist. Replacing the
+  STEP with a mixed candidate launders partial authority; checking only present
+  STEP solids is non-authoritative.
+- intended landing point: a schema-v2 composite obstruction subject whose
+  solids each bind exact provenance, transform, authority grade, excluded
+  claims, and affected scope ceiling; collision receipts must preserve that
+  census and reject omission.
+- completion evidence required: exact+candidate mixed fixtures, missing-solid
+  and transform mutations, per-scope ceiling tests, release-root replay, and a
+  known-bad proving a partial sealed-STEP collision cannot produce CAD-ready
+  status.
+
+## IMP-239 — contact-aware enclosure motion verification
+
+- status: accepted
+- problem: a whole-part linear sweep treats the complete destination assembly
+  as one obstacle census. A strictly positive minimum clearance is impossible
+  when the intended endpoint contains legitimate PCB-to-boss or lid-to-post
+  bearing contact, while reducing the whole operation to zero does not express
+  the required positive clearance from every non-bearing feature.
+- intended landing point: extend schema v2 clearance cases with exact,
+  feature-bound contact regions that name the moving and obstacle faces,
+  permit contact only at the terminal pose, bind a tolerance/load-path role,
+  and retain a separate positive minimum for every other obstacle feature.
+- completion evidence required: PCB seating and lid-post bearing clean fixtures;
+  early-contact, wrong-face, excessive-gap, penetration, missing-contact, and
+  non-bearing-clearance known-bads; exact collision receipts must retain both
+  the allowed-contact census and the independently graded swept free space.
 
 ## Index
 

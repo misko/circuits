@@ -69,7 +69,11 @@ changes in `co_design`; reject stale subject bindings in `derived`.
     with [physical-evidence.template.yaml](assets/physical-evidence.template.yaml)
     and v2 scoped evidence with
     [physical-evidence-v2.template.yaml](assets/physical-evidence-v2.template.yaml).
-    Validate the exact v2 census with `validate-evidence`.
+    Validate the exact v2 census with `validate-evidence`. For a first article
+    or enclosure redesign, apply
+    [first-article-iteration.md](references/first-article-iteration.md),
+    including an explicit board-support/load-path check where case features
+    can approach PCB components or edges.
 11. Produce one evidence-backed status per required scope and run
     `aggregate-config`; it derives applicability and authority/unknown ceilings
     from the validated v2 config. Never use diagnostic `aggregate` for a
@@ -189,6 +193,8 @@ verifiers; it does not manufacture motion, fit, or thermal evidence.
   [fdm-printability.md](references/fdm-printability.md) while designing.
 - Read [assembly-and-motion.md](references/assembly-and-motion.md) for service
   states, whole-body sweeps, and prewired parts.
+- Read [first-article-iteration.md](references/first-article-iteration.md) when
+  incorporating physical fit feedback or revising a printed enclosure.
 - Read [verification-and-release.md](references/verification-and-release.md)
   for evidence and status, then [release-stream.md](references/release-stream.md)
   for independent immutable publication.

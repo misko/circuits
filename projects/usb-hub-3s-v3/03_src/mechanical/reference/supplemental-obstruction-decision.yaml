@@ -1,0 +1,57 @@
+schema: 1
+kind: pcb-enclosure-supplemental-obstruction-decision
+subject:
+  release: v1.12-2026-07-28
+  pcb_sha256: 2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf
+  sealed_step_sha256: e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11
+  interface_sha256: 36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b
+sealed_step_coverage:
+  status: FAIL
+  component_refs_expected: 121
+  component_refs_present: 106
+  missing_refs: [F2, J1, J2, J3, J4, J5, Q1, Q2, Q3, Q4, Q5, Q6, U3, U4, U5]
+  unmodeled_refs: [SW1]
+candidate_inputs:
+  - path: 07_releases/v1.12-2026-07-28/source/usb_hub_3s.pretty/XT60PW-M_EdgeTrim.kicad_mod
+    sha256: f4e2f40f3f169033ae880a684f82a162bce4d10ae47529c36edb3ca517a80103
+    size: 4939
+    use: lateral footprint and fabrication bounds only
+  - path: 07_releases/v1.12-2026-07-28/source/usb_hub_3s.pretty/KH-AF90DIP-112_Horizontal.kicad_mod
+    sha256: 9ec04bfc9cb3a6bd46b4a83fcb755df367c87c5a45c229f10228b0290742cf0e
+    size: 7697
+    use: lateral footprint and fabrication bounds only
+  - path: 07_releases/v1.12-2026-07-28/source/usb_hub_3s.pretty/TYPE-C-31-M-12_EdgeTrim.kicad_mod
+    sha256: a2ada20f73c6e317264b3023e011c934bb43dbc82d8485be17de87d3ab1ef3da
+    size: 10723
+    use: lateral footprint and fabrication bounds only
+  - path: 07_releases/v1.12-2026-07-28/source/Button_Switch_THT.pretty/SW_Slide_1P2T_CK-12D07.kicad_mod
+    sha256: 4fb72085bfef7740b599059cbb2d03d44e8c9bf26688150809c6f3965db52d0b
+    size: 2218
+    use: pad, courtyard, and fabrication bounds only; no body model is declared
+decision:
+  conservative_candidate_possible: true
+  exact_supplement_possible_from_current_inputs: false
+  current_schema_composition_supported: false
+  disposition: defer_composite_authority
+  rationale: >-
+    The immutable footprint fabrication bounds and reviewed opening gauges can
+    produce conservative obstruction candidates, but they do not establish
+    received-part height, connector overmold, plug, fuse-element, or switch
+    actuator geometry. The deployed v1 CAD/collision contract binds one sealed
+    STEP and has no typed way to compose that STEP with a mixed-authority
+    supplemental assembly while preserving per-solid authority. Replacing the
+    STEP with such a candidate would overstate exact coverage.
+  governing_rule: >-
+    Keep STEP coverage FAIL and all affected scopes non-ready. Do not use a
+    collision check against only present STEP solids as a release gate.
+  future_unblock: >-
+    Add reviewed schema support for a hash-bound composite obstruction set with
+    per-solid authority and status ceilings, then bind exact vendor geometry or
+    traceable measurements of the received F2, J1-J5, Q1-Q6, U3-U5, SW1,
+    installed fuse, and intended mating hardware.
+excluded_claims:
+  - exact_geometry
+  - complete_step_geometry
+  - physical_fit
+  - cad_ready
+  - production_readiness

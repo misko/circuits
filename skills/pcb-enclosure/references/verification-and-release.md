@@ -127,11 +127,17 @@ and populate every test required by `physical_validation`:
 
 For v2 composition, copy `assets/physical-evidence-v2.template.yaml` and make
 its ID/type/scope census exactly match `physical_tests`. The schema adds
-lid-off retention, closure independence, accessory insertion/removal,
-retention/rattle, cable strain/clearance, and namespaced custom tests. Every
-required test needs `PASS` plus nonempty inspectable evidence. Keep failures
-and genuine `NOT_RUN` results; any semantic config edit makes old v2 evidence
-stale.
+board-support/load-path clearance, lid-off retention, closure independence,
+accessory insertion/removal, retention/rattle, cable strain/clearance, and
+namespaced custom tests. Every required test needs `PASS` plus nonempty
+inspectable evidence. Keep failures and genuine `NOT_RUN` results; any
+semantic config edit makes old v2 evidence stale.
+
+`board_drop_in` proves the insertion/removal operation. It does not prove the
+assembled load path. Where enclosure features approach a board edge or the
+underside, add `board_support_clearance` and witness that all intended supports
+are simultaneously seated while no connector, component, lead, panel, wall,
+or case-closure post carries the PCB.
 
 ## Scoped status
 

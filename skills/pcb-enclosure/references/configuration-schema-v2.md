@@ -132,10 +132,18 @@ cable-only opening is a schema error, even if the final installed pose is clear.
 
 `physical_tests` is an authored list, not a fixed global census. Each row has
 `id`, `type`, scope, `required_for`, and subject parts. Built-in types cover
-coupons, board drop-in, interface mating, thermal soak, lid-off retention,
-closure independence, accessory insertion/removal, retention/rattle, and cable
-strain/clearance. Extensions use `custom.<owner>.<test>` so misspelled built-ins
-do not silently become new types.
+coupons, board drop-in, board-support/load-path clearance, interface mating,
+thermal soak, lid-off retention, closure independence, accessory
+insertion/removal, retention/rattle, and cable strain/clearance. Extensions
+use `custom.<owner>.<test>` so misspelled built-ins do not silently become new
+types.
+
+Add `board_support_clearance` whenever bosses, rails, walls, panels, connector
+openings, or closure posts could form an alternate PCB bearing path. The test
+must show that the assembled board seats simultaneously on every intended
+support and bears on no component body, solder tail, edge connector, wall,
+panel, or closure post. A zero-volume CAD intersection does not establish this
+load-path fact.
 
 `required_for` is `PRINT_VERIFIED` or `THERMALLY_VERIFIED`. The evidence file
 must repeat the exact configured ID/type/scope census and bind the semantic

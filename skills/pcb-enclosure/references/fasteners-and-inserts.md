@@ -49,6 +49,13 @@ and all case-closure groups released. Require the typed physical tests
 `lid_off_pcb_retention` and `case_closure_independence` before claiming
 `PRINT_VERIFIED`.
 
+Declare the PCB's intended bearing surfaces separately from its fasteners.
+Perimeter walls, panel rails, and closure posts must not become accidental
+standoffs through an edge connector, component body, lead, or solder tail.
+CAD collision can catch penetration but cannot prove simultaneous seating or
+load sharing. Add a `board_support_clearance` physical test whenever an
+alternate bearing path is plausible.
+
 ## Print and qualify a coupon
 
 Include `insert_coupon` in printable parts when insert validation is required. Print it with the same:

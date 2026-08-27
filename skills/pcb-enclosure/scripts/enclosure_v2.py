@@ -82,6 +82,7 @@ AUTHORITY_REQUIRED_EXCLUSIONS = {
 BUILTIN_PHYSICAL_TYPES = {
     "insert_coupon",
     "board_drop_in",
+    "board_support_clearance",
     "all_interfaces_mated",
     "thermal_soak",
     "lid_off_pcb_retention",
@@ -848,9 +849,17 @@ def _manifest_subjects(path: Path) -> dict[str, str]:
         found[normalized] = raw_hash
 
     for line in text.splitlines():
-        match = re.match(r"^\s*(\S+)\s+([0-9a-f]{64})\s*$", line)
-        if match:
-            add(match.group(1), match.group(2))
+        # Historical release streams use both a path-first census and the
+        # standard ``sha256sum`` hash-first form.  Accept only the two exact,
+        # whitespace-delimited shapes; in either case authority remains bound
+        # to the selected relative path as well as the digest.
+        path_first = re.match(r"^\s*(\S+)\s+([0-9a-f]{64})\s*$", line)
+        if path_first:
+            add(path_first.group(1), path_first.group(2))
+            continue
+        hash_first = re.match(r"^\s*([0-9a-f]{64})\s{2}(\S+)\s*$", line)
+        if hash_first:
+            add(hash_first.group(2), hash_first.group(1))
     try:
         structured = yaml.load(text, Loader=StrictLoader)
     except yaml.YAMLError:

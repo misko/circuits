@@ -480,6 +480,53 @@ def t_v2_manifest_wrong_path_bites():
               "subject paths and hashes for ['step']")
 
 
+@test("derived release manifest accepts exact sha256sum path bindings")
+def t_v2_sha256sum_manifest():
+    fixture = _fresh_fixture()
+    rows = []
+    for line in fixture["manifest"].read_text().splitlines():
+        fields = line.split()
+        if len(fields) == 2 and len(fields[1]) == 64:
+            line = f"{fields[1]}  {fields[0]}"
+        rows.append(line)
+    fixture["manifest"].write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    config = _config(fixture)
+    config["subject"]["release_manifest"] = _binding(
+        fixture["root"], fixture["manifest"])
+    _write_yaml(fixture["config"], config)
+    cad_design = yaml.safe_load(fixture["cad_design"].read_text())
+    cad_design["subject"]["release_manifest"] = config["subject"][
+        "release_manifest"]
+    _rewrite_cad_design(fixture, cad_design)
+    must_pass(run(_validate_args(fixture)), "v2 sha256sum manifest")
+
+
+@test("sha256sum manifests remain bound to the selected subject path",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_sha256sum_manifest_wrong_path_bites():
+    fixture = _fresh_fixture()
+    rows = []
+    for line in fixture["manifest"].read_text().splitlines():
+        fields = line.split()
+        if len(fields) == 2 and len(fields[1]) == 64:
+            path = "unrelated.step" if fields[0] == "board.step" else fields[0]
+            line = f"{fields[1]}  {path}"
+        rows.append(line)
+    fixture["manifest"].write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+    config = _config(fixture)
+    config["subject"]["release_manifest"] = _binding(
+        fixture["root"], fixture["manifest"])
+    _write_yaml(fixture["config"], config)
+    cad_design = yaml.safe_load(fixture["cad_design"].read_text())
+    cad_design["subject"]["release_manifest"] = config["subject"][
+        "release_manifest"]
+    _rewrite_cad_design(fixture, cad_design)
+    must_fail(run(_validate_args(fixture)), "v2 sha256sum wrong path",
+              "subject paths and hashes for ['step']")
+
+
 @test("mechanical intent is exactly hash-bound",
       kind="known_bad", gate="enclosure_v2.py")
 def t_v2_intent_binding_bites():
@@ -667,6 +714,22 @@ def t_v2_custom_physical_type():
     })
     _write_yaml(fixture["config"], config)
     must_pass(run(_validate_args(fixture)), "v2 custom physical type")
+
+
+@test("board support clearance is a typed first-article physical test")
+def t_v2_board_support_clearance_type():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    config["physical_tests"].append({
+        "id": "board_support_clearance",
+        "type": "board_support_clearance",
+        "scope": "board_retention",
+        "required_for": "PRINT_VERIFIED",
+        "subject_parts": ["base", "pcb"],
+    })
+    _write_yaml(fixture["config"], config)
+    must_pass(run(_validate_args(fixture)),
+              "v2 board support clearance type")
 
 
 @test("misspelled physical-test types cannot silently extend the schema",

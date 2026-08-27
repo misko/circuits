@@ -14,6 +14,11 @@ tests:
     scope: board_retention
     status: NOT_RUN
     evidence: Not run; replace with an inspectable record.
+  - id: board_support_clearance
+    type: board_support_clearance
+    scope: board_retention
+    status: NOT_RUN
+    evidence: Not run; prove the PCB bears only on every intended support and on no component, solder tail, wall, panel, or closure post.
   - id: all_interfaces_mated
     type: all_interfaces_mated
     scope: shell
