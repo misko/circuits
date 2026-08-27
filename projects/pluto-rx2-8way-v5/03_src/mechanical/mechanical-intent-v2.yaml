@@ -99,8 +99,12 @@ unknowns:
     blocks_readiness: PRINT_VERIFIED
   - id: physical_accessory_retention
     scope: antenna_accessory
-    question: Use the 9.50/9.75/10.00/10.25 mm channel coupon, then confirm the localized open-bottom key snugly constrains the actual elbow/tongue while preserving full-body insertion, removal, cable strain clearance, and no-rattle retention of the complete prewired antenna.
+    question: Use the 8.25/8.50/8.75/9.00 mm channel coupon, then confirm the user-requested D8.50 key and D9.55 upright aperture flex without damage, snugly constrain the actual antenna, and preserve full-body insertion, removal, cable strain clearance, and no-rattle retention of the complete prewired assembly.
     blocks_readiness: PRINT_VERIFIED
+  - id: elastic_fit_motion
+    scope: antenna_accessory
+    question: The D8.50 key and D9.55 upright aperture intentionally overlap the conservative D10 witness; qualify the required elastic deformation, insertion force, antenna finish safety, and repeated-cycle durability because rigid-body motion verification cannot prove this fit.
+    blocks_readiness: CAD_READY
   - id: installed_thermal_behavior
     scope: thermal
     question: Record enclosure temperatures during the representative RF-switching and USB-powered load case.

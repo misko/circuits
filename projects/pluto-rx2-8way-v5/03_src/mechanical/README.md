@@ -32,14 +32,13 @@ stacks. There is no antenna/cable lid pass-through, hidden throat, internal
 cable run, S-bend, or snap geometry.
 
 Two M3 × 8 socket-head screws attach the adapter to two E-Z LOK inserts in
-reinforced lid bosses. The upright aperture fixes translation, two roof-hung
-rails key the horizontal D10 candidate branch, and the south full-body U-arch
-fixes its exit axis. A short open-bottom compliant key narrows only a 4 mm
-section near the antenna elbow/tongue from the rigid 10.8 mm rail gap to
-9.75 mm. Its 11.75 mm mouth and 1.0 mm lead-in preserve slide-in loading. The
-lid becomes the cavity floor only after the adapter seats. This topology
-captures the candidate against lift and gross rotation without loading a
-Pluto+ SMA connector.
+reinforced lid bosses. Two roof-hung rails key the horizontal D10 candidate
+branch, and the south full-body U-arch fixes its exit axis. This fit revision
+moves each compliant gripping face inward 0.625 mm: the four-millimetre key is
+now D8.50 with a D10.50 open mouth, and the upright antenna hole is D9.55.
+Those are total 1.25 mm reductions from the predecessor's D9.75/D11.75 key and
+D10.80 hole—not 1.25 mm per side. The lid becomes the cavity floor only after
+the adapter seats.
 
 ## Honest status
 
@@ -61,8 +60,8 @@ a dimensioned vendor drawing:
 - attached cable OD, termination/ferrule envelope, and exit direction;
 - any external bend-radius and strain-relief requirement after the U-channel.
 
-`rx2_antenna_fit_gauge.stl` provides actual open-bottom channel gaps of 9.50,
-9.75, 10.00, and 10.25 mm with the same 11.75 mm mouth and 1.0 mm lead-in.
+`rx2_antenna_fit_gauge.stl` provides actual open-bottom channel gaps of 8.25,
+8.50, 8.75, and 9.00 mm with a matching two-millimetre wider mouth and 1.0 mm lead-in.
 It can select a printer/material-specific snug gap only; it cannot qualify the
 complete L profile, key length, elbow placement, or attached cable.
 
@@ -84,12 +83,13 @@ D9.75 U-path, a D9.75 lower vertical grip, a D9.75→D8.75 taper, a D8.75 top
 throat, and a D19.75 four-petal split collar. The 0.40 mm diagonal slots prove
 that those voids rely on flex. They must not be copied as rigid D10 cavities.
 
-The rigid loading path therefore keeps 0.40 mm radial clearance around the
-conservative D10 lower L envelope. Only the short roof-hung key copies the
-holder-evidenced D9.75 grip gap, D11.75 mouth, and R1 lead-in. That key is
-deliberately compliant and has 0.125 mm nominal radial overlap with the D10
-candidate witness. D9.75/D8.75 remain holder-void evidence, not claimed
-antenna measurements; the rigid design does not copy the D8.75 top throat.
+The non-fit loading path keeps 0.40 mm radial clearance around the conservative
+D10 lower L envelope. The holder's D9.75 grip, D11.75 mouth, and R1 lead-in
+remain evidence for a compliant topology only. The user-requested candidate
+reduces the first two dimensions to D8.50 and D10.50 while retaining the R1
+lead. The D8.50 key overlaps the D10 witness by 0.75 mm radially, and the D9.55
+upright hole overlaps it by 0.225 mm radially. These intended interference
+fits cannot be promoted without print and insertion testing.
 
 ## Adapter geometry and loading path
 
@@ -100,11 +100,12 @@ antenna measurements; the rigid design does not copy the D8.75 top throat.
 | Underside relief | 58.0 × 31.0 mm, R1.5; x ±29, y -10…21 |
 | Candidate horizontal/lower-upright OD | 10.0 / 10.0 mm |
 | Candidate taper / upper upright | D10→D8.75 at z20…30 / D8.75 |
-| Rigid radial clearance | 0.40 mm; D10.8 rail gap/aperture |
+| Non-fit rigid radial clearance | 0.40 mm; D10.8 rail gap and south U-arch |
 | Roof-hung locator rails | 2.0 mm thick; z1.2…10.6; y -2…18 |
-| Localized compliant key | 9.75 mm gap; 11.75 mm open mouth; R1 lead; 4.0 mm candidate length |
-| Key candidate overlap | 0.125 mm radial against the conservative D10 witness; physical test required |
-| Fit coupon actual gaps | 9.50 / 9.75 / 10.00 / 10.25 mm |
+| Localized compliant key | 8.50 mm gap; 10.50 mm open mouth; R1 lead; 4.0 mm candidate length |
+| Key candidate overlap | 0.750 mm radial against the conservative D10 witness; physical test required |
+| Upright antenna hole | D9.55; 0.225 mm radial overlap against the D10 lower upright |
+| Fit coupon actual gaps | 8.25 / 8.50 / 8.75 / 9.00 mm |
 | Body-to-lid / body-to-roof gaps | 0.20 / 0.40 mm |
 | Upright aperture north extent / wall | y21.9 / 2.1 mm |
 | Cable witness | D2.50, straight south, center z5.20 above lid |
@@ -117,18 +118,18 @@ antenna measurements; the rigid design does not copy the D8.75 top throat.
 | U-arch to service opening | 4.30 mm in Y |
 | Mount-to-north-label nominal gap | 1.10 mm |
 
-The rectangular relief and D10.8 upright aperture overlap: the relief reaches
-y=21.0, while the aperture continues to y=21.9 from z=0 through the roof.
-Thus the full D10 upright footprint reaches the underside with no hidden
-undercut. Roof-hung rails leave the D10.8 vertical path open below them.
+The rectangular relief reaches y=21.0. The D9.55 upright hole reaches y=21.275
+from z=0 through the roof, so the candidate has no hidden undercut. It is an
+intentional interference fit against the D10 witness, not rigid clearance.
 
 The deterministic `part="insertion_sweep_vs_rigid_mount"` selector sweeps each
 convex antenna/cable primitive through the full 45 mm straight-Z insertion
 path and intersects that swept volume with the rigid adapter geometry. An
-empty export is required. The separate `part="antenna_vs_compliant_key"`
-selector must be solid: it proves the declared localized grip overlap without
-mislabeling that interference as rigid clearance. Printed insertion and
-retention still remain required.
+empty export is required after the two intentional fit zones are excluded.
+The separate `part="antenna_vs_compliant_key"` and
+`part="antenna_vs_compliant_aperture"` selectors must be solid: they quantify
+the declared grip/aperture overlap without mislabeling it as rigid clearance.
+Printed insertion, retention, finish-safety, and cycle testing remain required.
 
 Access-zone checks use conservative configured plug envelopes:
 
@@ -221,7 +222,7 @@ Assembly sequence:
 
 1. Reconfirm the 4.25 mm insert coupon on the production printer/material.
    Starting with the loosest antenna channel coupon, select a snug gap without
-   forcing or marring the real antenna; do not assume 9.75 mm will be correct
+   forcing or marring the real antenna; do not assume 8.50 mm will be correct
    for every printer/material.
 2. Press four board inserts into the short base standoffs and four case inserts
    into the tall external base posts, all from above. Press the two antenna
@@ -237,13 +238,15 @@ Assembly sequence:
 5. Place the complete pre-wired L antenna on the closed lid exterior: upright
    at `(0,16.5)`, horizontal branch toward south, attached cable continuing
    straight south. Nothing passes through the lid.
-6. Hold the adapter above the assembly. Align the upright with the D10.8 top
+6. Hold the adapter above the assembly. Align the upright with the D9.55 top
    aperture and the complete D10 lower antenna body with the bottom-open
    D10.8 south U-arch.
 7. Lower the adapter straight down. The entire L assembly enters the one
    rectangular underside opening; the antenna body and attached cable rise
    through the full-body U-arch from below.
    **Do not thread the cable through any bore.**
+   Stop immediately if the D8.50 key or D9.55 aperture requires damaging force;
+   both locations are intentionally tighter than the conservative D10 witness.
 8. Confirm the adapter seats flat, antenna and cable are free in the U-arch, service bay
    remains usable, and antenna/cable are not pinched. Install the two M3 × 8
    screws alternately and only snug them enough to prevent adapter motion.
@@ -260,7 +263,7 @@ From the repository root:
 
 ```sh
 /usr/bin/python3 skills/pcb-enclosure/scripts/generate_enclosure.py \
-  projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml \
+  projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml \
   --root projects/pluto-rx2-8way-v5 \
   --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell
 
@@ -283,7 +286,7 @@ uv run --offline --with cadquery python \
   --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/collision.json
 
 /usr/bin/python3 skills/pcb-enclosure/scripts/verify_enclosure.py \
-  projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml \
+  projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml \
   --root projects/pluto-rx2-8way-v5 \
   --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell \
   --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
@@ -294,7 +297,7 @@ uv run --offline --with cadquery python \
 
 uv run --offline --with cadquery python \
   projects/pluto-rx2-8way-v5/03_src/mechanical/verify_antenna_clearance.py \
-  --config projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure.yaml \
+  --config projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml \
   --generation projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/generation.json \
   --scad projects/pluto-rx2-8way-v5/03_src/mechanical/pluto_rx2_8way_case.scad \
   --step projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
@@ -302,6 +305,7 @@ uv run --offline --with cadquery python \
   --holder-stl projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-antenna-holder-reference.stl \
   --holder-png projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-clearance-reference.png \
   --holder-measurement projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-holder-measurement.json \
+  --fit-adjustment projects/pluto-rx2-8way-v5/03_src/mechanical/reference/fit-adjustment-2026-08-27.json \
   --candidate-contract projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-adapter-candidate-contract.json \
   --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell \
   --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/antenna-clearance.json

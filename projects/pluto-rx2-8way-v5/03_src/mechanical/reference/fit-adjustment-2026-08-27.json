@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "kind": "pluto-rx2-antenna-fit-adjustment-v1",
+  "recorded_date": "2026-08-27",
+  "status": "INCOMPLETE_PHYSICAL_FIT_REQUIRED",
+  "authority": "User-requested nominal CAD fit adjustment. The 1.25 mm values are total diameter/gap reductions, not per-side or radius changes.",
+  "predecessor_release": "v0.5.0-2026-08-26",
+  "requested_total_reduction_mm": 1.25,
+  "predecessor_dimensions_mm": {
+    "compliant_key_gap": 9.75,
+    "compliant_key_open_mouth": 11.75,
+    "antenna_upright_hole_diameter": 10.8
+  },
+  "candidate_dimensions_mm": {
+    "compliant_key_gap": 8.5,
+    "compliant_key_open_mouth": 10.5,
+    "antenna_upright_hole_diameter": 9.55
+  },
+  "interpretation": "Move the two compliant gripping faces 0.625 mm inward per side and reduce the circular upright aperture radius by 0.625 mm per side.",
+  "excluded_claims": [
+    "The requested reductions do not measure the production antenna.",
+    "The D8.50 key and D9.55 aperture intentionally overlap the conservative D10 antenna witness.",
+    "The resulting elastic insertion, retention force, print durability, and antenna finish safety require physical testing."
+  ]
+}

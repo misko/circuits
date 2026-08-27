@@ -1,0 +1,374 @@
+{
+  "artifact_id": "pluto-rx2-8way-v5-enclosure",
+  "based_on": {
+    "manifest": {
+      "release_path": "authorities/pcb-release/MANIFEST.txt",
+      "sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+      "size": 17338,
+      "source_path": "MANIFEST.txt"
+    },
+    "pcb": {
+      "release_path": "authorities/pcb-release/source/pluto_rx2_8way_v5.kicad_pcb",
+      "sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+      "size": 538805,
+      "source_path": "source/pluto_rx2_8way_v5.kicad_pcb"
+    },
+    "pcb_release": {
+      "project_path": "07_releases/v0.2.1-2026-08-14",
+      "release_id": "v0.2.1-2026-08-14"
+    },
+    "step": {
+      "release_path": "authorities/pcb-release/3d/pluto_rx2_8way_v5.step",
+      "sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f",
+      "size": 23398573,
+      "source_path": "3d/pluto_rx2_8way_v5.step"
+    }
+  },
+  "date": "2026-08-27",
+  "kind": "pcb-enclosure-release-v2",
+  "lifecycle": "immutable_candidate",
+  "payload_count": 49,
+  "payloads": [
+    {
+      "path": "README.md",
+      "sha256": "d6f0475586009f50a7f1e0458f3c0c9a7f4bfc20b8ff2c81ea7f5e4c25eb3938",
+      "size": 2602
+    },
+    {
+      "path": "authorities/enclosure-predecessor/MANIFEST.json",
+      "sha256": "25a5d6d27959ac61a6b7f0cadf9a4684b12e2e70d4bbfb07a432cac06b7360b2",
+      "size": 12078
+    },
+    {
+      "path": "authorities/pcb-release/3d/pluto_rx2_8way_v5.step",
+      "sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f",
+      "size": 23398573
+    },
+    {
+      "path": "authorities/pcb-release/MANIFEST.txt",
+      "sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+      "size": 17338
+    },
+    {
+      "path": "authorities/pcb-release/source/pluto_rx2_8way_v5.kicad_pcb",
+      "sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+      "size": 538805
+    },
+    {
+      "path": "cad/pluto_rx2_8way_case.scad",
+      "sha256": "87552e9639a67f32623c19e9fc4fdd055a847a9756a58ecdac2763d3a2544342",
+      "size": 66687
+    },
+    {
+      "path": "meshes/base.stl",
+      "sha256": "2c119f624d9aeea2df62d6100fbd02954348142d8a7ce5b98718f102e9dac619",
+      "size": 1191901
+    },
+    {
+      "path": "meshes/insert_coupon.stl",
+      "sha256": "d81727855a0aa2ace7bdb2cf98e2eed7f2eac0e12dd9b86b2ab6ed8ddc946429",
+      "size": 1162772
+    },
+    {
+      "path": "meshes/lid.stl",
+      "sha256": "a5eda485c0f35a32d0405717c287b3d2a699ba292dbe0cb7745d371b1130072a",
+      "size": 3601207
+    },
+    {
+      "path": "meshes/rx2_antenna_fit_gauge.stl",
+      "sha256": "d32f0125d56dd256915008d8c77fd78526506d589a96a342ef37f955cede6bc8",
+      "size": 1489170
+    },
+    {
+      "path": "meshes/rx2_antenna_mount.stl",
+      "sha256": "665dd923586cb9e85e9a884c8b0e5a9e3c5b870fbeca8996da11fed5665c6bf2",
+      "size": 834677
+    },
+    {
+      "path": "renders/assembly.png",
+      "sha256": "7c9cf80f5b104f6a1e1245bb3793483c471da695e236bc384d93372088660566",
+      "size": 78334
+    },
+    {
+      "path": "renders/compliant-fit-cutaway.png",
+      "sha256": "33455d112e4ce26c75420be9ed73d7cb69fd94b5f92f1e374857a97c47f3a6dc",
+      "size": 30988
+    },
+    {
+      "path": "renders/fit-gauge.png",
+      "sha256": "356dd6e760733909b7bb8d032ebc8b79742d7c56c3e0a02b7c5924bd61941159",
+      "size": 31490
+    },
+    {
+      "path": "source/enclosure-cad-design-v2.yaml",
+      "sha256": "e7e56e9d60d416e9c04874da5ad2f72b4381fb06e8c16ee2de544c865148d7e5",
+      "size": 5668
+    },
+    {
+      "path": "source/enclosure-v2.yaml",
+      "sha256": "96ed0b37b27708fbfb7658382d7cbe3c018b063aaa965a6fcc260eb79c2504cb",
+      "size": 8536
+    },
+    {
+      "path": "source/mechanical-intent-v2.yaml",
+      "sha256": "47dce83a5cbb5027cbb7dd9f980d7e786b9a4a464746a880915b11bbee580237",
+      "size": 4410
+    },
+    {
+      "path": "source/reference/antenna-adapter-candidate-contract.json",
+      "sha256": "32f8cfe99cd84ded83db0867c66ca6bfdcf98da25294d5ce1e8d7aad16954552",
+      "size": 4923
+    },
+    {
+      "path": "source/reference/antenna-holder-measurement.json",
+      "sha256": "7c096deaa74e1234206329f3040c67124715363128a0dd763aa832a369139194",
+      "size": 8172
+    },
+    {
+      "path": "source/reference/fit-adjustment-2026-08-27.json",
+      "sha256": "a862d5d7eaf339b9589780eb9d3f39cfc15eeb077b8483f37ce8b2eba5d1f315",
+      "size": 1158
+    },
+    {
+      "path": "source/reference/physical-fit-observation-2026-08-26.md",
+      "sha256": "84a156b662428ff482250b0486a7b539f3b4ffa54f7528e2a2a88ecd1114026e",
+      "size": 2754
+    },
+    {
+      "path": "source/reference/user-antenna-holder-reference.stl",
+      "sha256": "a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f",
+      "size": 14303684
+    },
+    {
+      "path": "source/reference/user-clearance-reference.png",
+      "sha256": "fa11c8a1376bdc0d80fc2e80a17872a27423fed0575a5d7faea16b94124b4486",
+      "size": 53857
+    },
+    {
+      "path": "tooling/build_collision.py",
+      "sha256": "ea2d4bad98106d647541dc4ded58e6b6826ba885fa3315101d38dcb4991e32e7",
+      "size": 17928
+    },
+    {
+      "path": "tooling/enclosure_common.py",
+      "sha256": "bc23e4ac7c0dc0a3d1ecb92a4dc7fac17c2db32bd2f0e3067b592b1ffc93f440",
+      "size": 55228
+    },
+    {
+      "path": "tooling/enclosure_v2.py",
+      "sha256": "d51d8aa2454bf04b7e13ae3226af814bf7232529b261b51ff537d0034e32d6a7",
+      "size": 66266
+    },
+    {
+      "path": "tooling/generate_enclosure.py",
+      "sha256": "170eabe7e4745a517ba549a68c38be62f4c34559cdecdab670e4153384991642",
+      "size": 19909
+    },
+    {
+      "path": "tooling/inspect_step.py",
+      "sha256": "049e1d95f628dc942b7567f9a8a30a3c968098ba41421d578ec8f97623bfdefc",
+      "size": 12272
+    },
+    {
+      "path": "tooling/pipeline_runtime.py",
+      "sha256": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+      "size": 49746
+    },
+    {
+      "path": "tooling/process_runner.py",
+      "sha256": "1314cb382fc9bab8bbae960c818712a01acbf9517cd9a98840ba58580b861670",
+      "size": 8702
+    },
+    {
+      "path": "tooling/verify_antenna_clearance.py",
+      "sha256": "9cdf0faceb9f820016024ac576630878a70857f26c533a2be4d7fc5428fda951",
+      "size": 89828
+    },
+    {
+      "path": "tooling/verify_enclosure.py",
+      "sha256": "edb5b583bf7d30b013a269298811fed0a9e5f13484a442e97b8fd0b8ef5980d9",
+      "size": 40603
+    },
+    {
+      "path": "tooling/verify_enclosure_release.py",
+      "sha256": "1c351151f9cb8c4821fd693987f6c2386badac7dafbcc89b5f3481e9b10ae648",
+      "size": 35683
+    },
+    {
+      "path": "verification/antenna-clearance.json",
+      "sha256": "d1f83947e6eb95955338758af0b78e7cd946384cde67d48498e58850459abc04",
+      "size": 22970
+    },
+    {
+      "path": "verification/assembled-case.stl",
+      "sha256": "36e3213a3fbdcddfb2c744e2337cbda3956bc2569c332d7f255d9490d3f3e2b1",
+      "size": 5395459
+    },
+    {
+      "path": "verification/board-interface.json",
+      "sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+      "size": 31058
+    },
+    {
+      "path": "verification/clearance-intersection.stl",
+      "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445",
+      "size": 181
+    },
+    {
+      "path": "verification/collision.json",
+      "sha256": "7538031d70a9d8e5e2fb3767b625a2a04af87265b3fe6f43c21ed4de287abffa",
+      "size": 3218
+    },
+    {
+      "path": "verification/enclosure-config-validation-v2.json",
+      "sha256": "a322298e825299971d33119c8ef41a7d6418cbc8716743835e39940de3115747",
+      "size": 3524
+    },
+    {
+      "path": "verification/enclosure.scad",
+      "sha256": "87552e9639a67f32623c19e9fc4fdd055a847a9756a58ecdac2763d3a2544342",
+      "size": 66687
+    },
+    {
+      "path": "verification/generation.json",
+      "sha256": "6de1524fb1e9c3dfd6a2166e9882ff929993c8b537a4f1b988c182c4297ec7d0",
+      "size": 7544
+    },
+    {
+      "path": "verification/mechanical-intent-validation-v2.json",
+      "sha256": "36679d03ec1326fd377436647219e900bbfd8cd37ce33c1a49950c3b58eafd67",
+      "size": 176
+    },
+    {
+      "path": "verification/reference-meshes/rx2_antenna_reference.stl",
+      "sha256": "f238fc61516203aa373154a97bc36745add161ffe08ee6c170359c4854344a74",
+      "size": 118584
+    },
+    {
+      "path": "verification/reference-meshes/rx2_cable_reference.stl",
+      "sha256": "525b0a627f321225f3cce2ea8f3fe1d0ce588d7d6eb43f179a48978636fb1e60",
+      "size": 41486
+    },
+    {
+      "path": "verification/scope-statuses.json",
+      "sha256": "c705b70c3d3da30f265bc1c3b2c871262f03e520dce6895cbd0425035a7db24d",
+      "size": 161
+    },
+    {
+      "path": "verification/scoped-verdict.json",
+      "sha256": "63aa53840baa2dd97723e4ffc6b2d2885a863700163cd3aa19b0250783af3bf5",
+      "size": 358
+    },
+    {
+      "path": "verification/step-components.stl",
+      "sha256": "853ab6711b8bd62efac00bc65ca5b2926cf3dff681cef260e0e5279340b2faf7",
+      "size": 39947084
+    },
+    {
+      "path": "verification/step-inspection.json",
+      "sha256": "821e264587f5715d0984c7189de63e5e8c07a6504087c3eb28902f4e18b6d893",
+      "size": 13561
+    },
+    {
+      "path": "verification/verification.json",
+      "sha256": "f5f5100fd81b31cd7943fd5296ef6fa773651b965d5a1a793aec429ab7fd6312",
+      "size": 51999
+    }
+  ],
+  "predecessor": {
+    "manifest": {
+      "release_path": "authorities/enclosure-predecessor/MANIFEST.json",
+      "sha256": "25a5d6d27959ac61a6b7f0cadf9a4684b12e2e70d4bbfb07a432cac06b7360b2",
+      "size": 12078,
+      "source_path": "MANIFEST.json"
+    },
+    "project_path": "07_enclosure_releases/v0.5.0-2026-08-26",
+    "release_id": "v0.5.0-2026-08-26"
+  },
+  "publication": {
+    "immutable_candidate": true,
+    "order_ready": false,
+    "release": true
+  },
+  "release_id": "v0.6.0-2026-08-27",
+  "replay": {
+    "config": {
+      "path": "source/enclosure-v2.yaml",
+      "sha256": "96ed0b37b27708fbfb7658382d7cbe3c018b063aaa965a6fcc260eb79c2504cb",
+      "size": 8536
+    },
+    "root": ".",
+    "tools": [
+      {
+        "path": "tooling/build_collision.py",
+        "role": "collision_builder",
+        "sha256": "ea2d4bad98106d647541dc4ded58e6b6826ba885fa3315101d38dcb4991e32e7",
+        "size": 17928
+      },
+      {
+        "path": "tooling/enclosure_v2.py",
+        "role": "composition_validator",
+        "sha256": "d51d8aa2454bf04b7e13ae3226af814bf7232529b261b51ff537d0034e32d6a7",
+        "size": 66266
+      },
+      {
+        "path": "tooling/enclosure_common.py",
+        "role": "enclosure_common",
+        "sha256": "bc23e4ac7c0dc0a3d1ecb92a4dc7fac17c2db32bd2f0e3067b592b1ffc93f440",
+        "size": 55228
+      },
+      {
+        "path": "tooling/generate_enclosure.py",
+        "role": "enclosure_generator",
+        "sha256": "170eabe7e4745a517ba549a68c38be62f4c34559cdecdab670e4153384991642",
+        "size": 19909
+      },
+      {
+        "path": "tooling/verify_enclosure.py",
+        "role": "generic_verifier",
+        "sha256": "edb5b583bf7d30b013a269298811fed0a9e5f13484a442e97b8fd0b8ef5980d9",
+        "size": 40603
+      },
+      {
+        "path": "tooling/pipeline_runtime.py",
+        "role": "pipeline_runtime",
+        "sha256": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+        "size": 49746
+      },
+      {
+        "path": "tooling/verify_antenna_clearance.py",
+        "role": "pluto_fit_verifier",
+        "sha256": "9cdf0faceb9f820016024ac576630878a70857f26c533a2be4d7fc5428fda951",
+        "size": 89828
+      },
+      {
+        "path": "tooling/process_runner.py",
+        "role": "process_runner",
+        "sha256": "1314cb382fc9bab8bbae960c818712a01acbf9517cd9a98840ba58580b861670",
+        "size": 8702
+      },
+      {
+        "path": "tooling/verify_enclosure_release.py",
+        "role": "release_verifier",
+        "sha256": "1c351151f9cb8c4821fd693987f6c2386badac7dafbcc89b5f3481e9b10ae648",
+        "size": 35683
+      },
+      {
+        "path": "tooling/inspect_step.py",
+        "role": "step_inspector",
+        "sha256": "049e1d95f628dc942b7567f9a8a30a3c968098ba41421d578ec8f97623bfdefc",
+        "size": 12272
+      }
+    ]
+  },
+  "schema": 2,
+  "scopes": {
+    "antenna_accessory": "INCOMPLETE",
+    "board_retention": "INCOMPLETE",
+    "shell": "INCOMPLETE",
+    "thermal": "INCOMPLETE"
+  },
+  "status": "INCOMPLETE",
+  "status_reason": "User-requested 1.25 mm total key and aperture tightening is generated and collision-audited; elastic insertion, retention, durability, and physical fit remain unverified.",
+  "version": "v0.6.0"
+}

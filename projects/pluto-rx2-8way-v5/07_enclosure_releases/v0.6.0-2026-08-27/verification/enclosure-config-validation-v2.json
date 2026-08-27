@@ -1,0 +1,66 @@
+{
+  "bindings": {
+    "cad_design": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml",
+      "sha256": "29d5c1af11c69ede9dca89170671bf50966d21ba83475194e7df5b42d9d0d82b",
+      "size": 5740
+    },
+    "external_subjects": {
+      "antenna_candidate_contract": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-adapter-candidate-contract.json",
+        "sha256": "32f8cfe99cd84ded83db0867c66ca6bfdcf98da25294d5ce1e8d7aad16954552",
+        "size": 4923
+      },
+      "fit_adjustment_request": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/fit-adjustment-2026-08-27.json",
+        "sha256": "a862d5d7eaf339b9589780eb9d3f39cfc15eeb077b8483f37ce8b2eba5d1f315",
+        "size": 1158
+      },
+      "holder_measurement": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-holder-measurement.json",
+        "sha256": "7c096deaa74e1234206329f3040c67124715363128a0dd763aa832a369139194",
+        "size": 8172
+      },
+      "holder_reference_stl": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-antenna-holder-reference.stl",
+        "sha256": "a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f",
+        "size": 14303684
+      }
+    },
+    "interface": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.4.0-2026-08-25/verification/board-interface.json",
+      "sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+      "size": 31058
+    },
+    "mechanical_intent": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/mechanical-intent-v2.yaml",
+      "sha256": "47dce83a5cbb5027cbb7dd9f980d7e786b9a4a464746a880915b11bbee580237",
+      "size": 4410
+    },
+    "pcb": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/source/pluto_rx2_8way_v5.kicad_pcb",
+      "sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+      "size": 538805
+    },
+    "release_manifest": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/MANIFEST.txt",
+      "sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+      "size": 17338
+    },
+    "step": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/pluto-v5-clip-tighten-20260827/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step",
+      "sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f",
+      "size": 23398573
+    }
+  },
+  "config_semantic_sha256": "64c99fae05d3a3e19f3e20b6181b141c942943f4c788d7de6a81036484f24d97",
+  "kind": "pcb-enclosure-v2-validation",
+  "schema": 2,
+  "scope_readiness_ceilings": {
+    "antenna_accessory": "INCOMPLETE",
+    "board_retention": "CAD_READY",
+    "shell": "CAD_READY",
+    "thermal": "PRINT_VERIFIED"
+  },
+  "status": "VALID"
+}

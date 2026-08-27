@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "kind": "pluto-rx2-antenna-adapter-candidate-contract-v1",
+  "status": "INCOMPLETE",
+  "status_reason": "The non-fit rigid loading path is collision-free, but the user-requested D8.50 key and D9.55 upright aperture intentionally interfere with the conservative D10 witness; actual elastic insertion, retention/rattle, durability, and print fit remain unmeasured.",
+  "authority": "Reviewed machine contract for the pillar-only base and bottom-loaded, already-wired RX2 reference-antenna adapter. The 1.25 mm total fit reductions are user-requested CAD dimensions, not production antenna measurements.",
+  "subjects": {
+    "holder_measurement": {
+      "path": "antenna-holder-measurement.json",
+      "sha256": "7c096deaa74e1234206329f3040c67124715363128a0dd763aa832a369139194",
+      "size": 8172
+    },
+    "fit_adjustment": {
+      "path": "fit-adjustment-2026-08-27.json",
+      "sha256": "a862d5d7eaf339b9589780eb9d3f39cfc15eeb077b8483f37ce8b2eba5d1f315",
+      "size": 1158
+    }
+  },
+  "facts": {
+    "board_bottom_z": 7.8,
+    "base_sidewall_h": 0.0,
+    "base_floor_h": 2.4,
+    "base_board_support_count": 4,
+    "base_case_post_count": 4,
+    "case_post_board_corner_clearance": 1.15685,
+    "case_top_z": 27.1,
+    "mount_h": 13.6,
+    "mount_roof": 3.0,
+    "mount_wall": 3.0,
+    "mount_half_x": 32.0,
+    "mount_center_y": 5.5,
+    "body_d": 10.0,
+    "lower_upright_d": 10.0,
+    "upper_upright_d": 8.75,
+    "body_axis_z": 5.2,
+    "body_south_y": 0.0,
+    "stalk_y": 16.5,
+    "transition_start_z": 20.0,
+    "transition_end_z": 30.0,
+    "stalk_top_z": 39.2,
+    "body_radial_clearance": 0.4,
+    "stalk_radial_clearance": 0.4,
+    "relief_x": 58.0,
+    "relief_y": 31.0,
+    "rail_gap": 10.8,
+    "rail_t": 2.0,
+    "key_gap": 8.5,
+    "key_open_mouth_w": 10.5,
+    "key_lead_h": 1.0,
+    "key_length": 4.0,
+    "key_inset_each_side": 1.15,
+    "key_candidate_radial_interference": 0.75,
+    "coupon_gap_min": 8.25,
+    "coupon_gap_max": 9.0,
+    "fit_tightening_total": 1.25,
+    "antenna_hole_d": 9.55,
+    "antenna_hole_candidate_radial_interference": 0.225,
+    "cable_d": 2.5,
+    "cable_core_d": 10.8,
+    "flare_length": 1.0,
+    "flare_d": 10.8,
+    "insertion_sweep": 45.0,
+    "cable_tail_length": 45.0,
+    "mount_south_y": -13.0,
+    "mount_north_y": 24.0,
+    "service_right_x": -4.0,
+    "service_north_y": -17.3,
+    "north_label_y": 27.2,
+    "antenna_label_size": 4.2,
+    "outer_half_y": 35.9
+  },
+  "reference_meshes": {
+    "antenna": {
+      "selector": "rx2_antenna_reference",
+      "bbox_min_mm": [-5.0, 0.0, 0.2],
+      "bbox_max_mm": [5.0, 21.5, 39.2],
+      "absolute_volume_mm3": 3530.612015,
+      "bbox_tolerance_mm": 0.001,
+      "volume_tolerance_mm3": 0.05
+    },
+    "cable": {
+      "selector": "rx2_cable_reference",
+      "bbox_min_mm": [-1.25, -45.0, 3.95],
+      "bbox_max_mm": [1.25, 0.0, 6.45],
+      "absolute_volume_mm3": 220.538574,
+      "bbox_tolerance_mm": 0.001,
+      "volume_tolerance_mm3": 0.05
+    }
+  },
+  "derived_assertions": [
+    "board_bottom_z equals enclosure.geometry.board_bottom_z_mm",
+    "base_sidewall_h is zero and the lower perimeter is absent",
+    "the base contains four PCB supports and four geometrically independent case posts",
+    "each case post clears its nearest PCB corner by at least 1.00 mm",
+    "case_top_z equals enclosure.geometry.inside_top_z_mm plus roof_mm",
+    "body_axis_z equals body_d/2 plus the 0.20 mm closed-lid floor gap",
+    "rail_gap equals body_d plus twice body_radial_clearance",
+    "the localized compliant key gap and mouth are each 1.25 mm tighter in total than the bound holder's D9.75/D11.75 void, while retaining its R1 lead evidence",
+    "the localized key overlaps the D10 candidate envelope by 0.75 mm radially and therefore remains a physical-fit candidate, not rigid clearance",
+    "the upright antenna hole is reduced 1.25 mm in total from D10.80 to D9.55 and overlaps the D10 candidate lower upright by 0.225 mm radially",
+    "the fit coupon exposes actual channel gaps 8.25, 8.50, 8.75, and 9.00 mm",
+    "south U-arch diameter equals body_d plus twice body_radial_clearance and therefore clears the complete lower antenna radius",
+    "reference mesh bounds and volumes match fresh SCAD selector exports",
+    "all access margins in the receipt are recomputed from these facts and the bound enclosure interfaces"
+  ],
+  "excluded_claims": [
+    "This contract does not convert the supplied flexible-holder voids into an authoritative antenna drawing.",
+    "It does not prove physical lock, rattle resistance, cable termination clearance, printer fit, PCB seating, or PRINT_VERIFIED status.",
+    "The four-millimeter compliant-key length and tightened aperture are candidates and require coupon/assembly testing.",
+    "The current rigid-body model cannot prove passage through the two intended interference fits; elastic insertion remains INCOMPLETE."
+  ]
+}

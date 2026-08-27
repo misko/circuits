@@ -22,22 +22,32 @@ subject:
     size: 31058
   mechanical_intent:
     path: 03_src/mechanical/mechanical-intent-v2.yaml
-    sha256: 1e88ee66852316dc78b42d28d86c95f2b9b92b9af885d37d7f25e144c80092d8
-    size: 4004
+    sha256: 47dce83a5cbb5027cbb7dd9f980d7e786b9a4a464746a880915b11bbee580237
+    size: 4410
   cad_design:
     path: 03_src/mechanical/enclosure-cad-design-v2.yaml
-    sha256: 06277e1d813951a4aa6f3a56b88034c9c01f10a21595d644f7b4feb7762305b5
+    sha256: 29d5c1af11c69ede9dca89170671bf50966d21ba83475194e7df5b42d9d0d82b
     size: 5740
 external_subjects:
   - id: antenna_candidate_contract
     role: antenna_envelope_candidate
     source:
       path: 03_src/mechanical/reference/antenna-adapter-candidate-contract.json
-      sha256: c4a97cae3d835472bfd3e7151cf6ab55bed633949b966214c3f30c19b43c7f48
-      size: 4213
+      sha256: 32f8cfe99cd84ded83db0867c66ca6bfdcf98da25294d5ce1e8d7aad16954552
+      size: 4923
     authority:
       grade: conservative_candidate
-      basis: Reviewed machine contract for the pillar-only base, conservative L-shaped antenna envelope, rigid loading path, and localized compliant-key candidate; none measures the production antenna.
+      basis: Reviewed machine contract for the pillar-only base, conservative L-shaped antenna envelope, and user-requested D8.50 key/D9.55 aperture fit candidate; none measures the production antenna.
+      excluded_claims: [exact_geometry, physical_fit]
+  - id: fit_adjustment_request
+    role: antenna_fit_adjustment
+    source:
+      path: 03_src/mechanical/reference/fit-adjustment-2026-08-27.json
+      sha256: a862d5d7eaf339b9589780eb9d3f39cfc15eeb077b8483f37ce8b2eba5d1f315
+      size: 1158
+    authority:
+      grade: conservative_candidate
+      basis: User-requested 1.25 mm total reductions from the predecessor key gap, mouth, and upright-hole diameter; elastic insertion and physical fit are not established.
       excluded_claims: [exact_geometry, physical_fit]
   - id: holder_reference_stl
     role: holder_design_inspiration
@@ -73,7 +83,7 @@ verification_scopes:
     required: true
     depends_on: [shell]
   - id: antenna_accessory
-    description: Separately printed top adapter accepts the full prewired right-angle antenna through its rectangular underside and uses a short open-bottom compliant key to constrain the elbow/tongue before two-screw mounting.
+    description: Separately printed top adapter accepts the full prewired right-angle antenna through its rectangular underside and uses the tightened D8.50 key plus D9.55 upright aperture as intentional physical-fit candidates before two-screw mounting.
     required: true
     depends_on: [shell]
   - id: thermal

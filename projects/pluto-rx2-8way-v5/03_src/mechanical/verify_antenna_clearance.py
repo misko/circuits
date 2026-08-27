@@ -58,7 +58,10 @@ EMPTY_SELECTORS = (
     "insertion_sweep_vs_rigid_mount",
     "interference",
 )
-COMPLIANT_SELECTORS = ("antenna_vs_compliant_key",)
+COMPLIANT_SELECTORS = (
+    "antenna_vs_compliant_key",
+    "antenna_vs_compliant_aperture",
+)
 SOLID_SELECTORS = ("rx2_antenna_reference", "rx2_cable_reference")
 EVALUATED_SELECTORS = EMPTY_SELECTORS + COMPLIANT_SELECTORS + SOLID_SELECTORS
 FACT_KEYS = (
@@ -73,7 +76,9 @@ FACT_KEYS = (
     "rail_t", "key_gap", "key_open_mouth_w", "key_lead_h",
     "key_length", "key_inset_each_side",
     "key_candidate_radial_interference", "coupon_gap_min",
-    "coupon_gap_max", "cable_d", "cable_core_d", "flare_length", "flare_d",
+    "coupon_gap_max", "fit_tightening_total", "antenna_hole_d",
+    "antenna_hole_candidate_radial_interference",
+    "cable_d", "cable_core_d", "flare_length", "flare_d",
     "insertion_sweep", "cable_tail_length", "mount_south_y",
     "mount_north_y", "service_right_x", "service_north_y",
     "north_label_y", "antenna_label_size", "outer_half_y",
@@ -591,7 +596,46 @@ def validate_holder_measurement(path: Path, holder_stl: Path,
     return doc
 
 
-def validate_candidate_contract(path: Path, measurement_path: Path) -> tuple[
+def validate_fit_adjustment(path: Path) -> Mapping[str, Any]:
+    doc = strict_json(path)
+    exact_keys(doc, (
+        "schema", "kind", "recorded_date", "status", "authority",
+        "predecessor_release", "requested_total_reduction_mm",
+        "predecessor_dimensions_mm", "candidate_dimensions_mm",
+        "interpretation", "excluded_claims"), "fit adjustment")
+    if doc["schema"] != 1 or \
+            doc["kind"] != "pluto-rx2-antenna-fit-adjustment-v1" or \
+            doc["status"] != "INCOMPLETE_PHYSICAL_FIT_REQUIRED":
+        raise RuntimeError("fit adjustment has wrong schema/kind/status")
+    reduction = finite_number(
+        doc["requested_total_reduction_mm"], "fit adjustment reduction")
+    if reduction <= 0:
+        raise RuntimeError("fit adjustment reduction must be positive")
+    keys = (
+        "compliant_key_gap", "compliant_key_open_mouth",
+        "antenna_upright_hole_diameter")
+    predecessor = exact_keys(
+        doc["predecessor_dimensions_mm"], keys,
+        "fit adjustment predecessor dimensions")
+    candidate = exact_keys(
+        doc["candidate_dimensions_mm"], keys,
+        "fit adjustment candidate dimensions")
+    for key in keys:
+        before = finite_number(predecessor[key], f"predecessor {key}")
+        after = finite_number(candidate[key], f"candidate {key}")
+        if after <= 0:
+            raise RuntimeError(f"candidate {key} must be positive")
+        require_close(before - after, reduction,
+                      f"fit adjustment total reduction for {key}")
+    if not isinstance(doc["excluded_claims"], list) or not all(
+            isinstance(item, str) and item.strip()
+            for item in doc["excluded_claims"]):
+        raise RuntimeError("fit adjustment excluded claims must be text")
+    return doc
+
+
+def validate_candidate_contract(path: Path, measurement_path: Path,
+                                adjustment_path: Path) -> tuple[
         Mapping[str, Any], dict[str, float], Mapping[str, Any]]:
     doc = strict_json(path)
     exact_keys(doc, (
@@ -602,12 +646,17 @@ def validate_candidate_contract(path: Path, measurement_path: Path) -> tuple[
             doc["kind"] != "pluto-rx2-antenna-adapter-candidate-contract-v1" or \
             doc["status"] != "INCOMPLETE":
         raise RuntimeError("candidate contract has wrong schema/kind/status")
-    subjects = exact_keys(doc["subjects"], ("holder_measurement",),
+    subjects = exact_keys(doc["subjects"],
+                          ("holder_measurement", "fit_adjustment"),
                           "candidate contract.subjects")
     subject = exact_keys(subjects["holder_measurement"],
                          ("path", "sha256", "size"),
                          "candidate contract holder measurement")
     local_subject(subject, path.parent, measurement_path, "holder_measurement")
+    adjustment = exact_keys(subjects["fit_adjustment"],
+                            ("path", "sha256", "size"),
+                            "candidate contract fit adjustment")
+    local_subject(adjustment, path.parent, adjustment_path, "fit_adjustment")
     facts_doc = exact_keys(doc["facts"], FACT_KEYS, "candidate contract.facts")
     facts = {key: finite_number(facts_doc[key], f"contract fact {key}")
              for key in FACT_KEYS}
@@ -889,7 +938,8 @@ def mesh_known_bad_probes(name: str, metrics: Mapping[str, Any],
 
 def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
                    config: Mapping[str, Any],
-                   measurement: Mapping[str, Any]) -> None:
+                   measurement: Mapping[str, Any],
+                   adjustment: Mapping[str, Any]) -> None:
     exact_keys(actual, FACT_KEYS, "SCAD machine facts")
     exact_keys(expected, FACT_KEYS, "candidate-contract facts")
     for key in FACT_KEYS:
@@ -954,12 +1004,14 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
                   "candidate transition/fact end diameter")
     require_close(production["candidate_lower_diameter_mm"], actual["body_d"],
                   "production candidate lower diameter")
-    cavity_d = actual["lower_upright_d"] \
+    rigid_loading_aperture_d = actual["lower_upright_d"] \
         + 2 * actual["stalk_radial_clearance"]
-    require_close(production["modeled_lower_cavity_diameter_mm"], cavity_d,
+    require_close(production["modeled_lower_cavity_diameter_mm"],
+                  rigid_loading_aperture_d,
                   "production lower cavity derivation")
-    require_close(production["upright_through_aperture_diameter_mm"], cavity_d,
-                  "production upright aperture derivation")
+    require_close(production["upright_through_aperture_diameter_mm"],
+                  rigid_loading_aperture_d,
+                  "predecessor rigid aperture derivation")
     expected_relief_extents = [
         [-actual["relief_x"] / 2, actual["relief_x"] / 2],
         [actual["mount_center_y"] - actual["relief_y"] / 2,
@@ -972,27 +1024,47 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
                           expected_relief_extents[axis][endpoint],
                           f"production relief extent {axis}/{endpoint}")
     require_close(production["upright_aperture_north_extent_mm"],
-                  actual["stalk_y"] + cavity_d / 2,
-                  "production upright north extent")
+                  actual["stalk_y"] + rigid_loading_aperture_d / 2,
+                  "predecessor upright north extent")
     require_close(production["closed_lid_body_floor_clearance_mm"],
                   actual["body_axis_z"] - actual["body_d"] / 2,
                   "production body floor clearance")
     key_comparisons = {
-        "key_gap": compliant_key["target_gap_mm"],
-        "key_open_mouth_w": compliant_key["open_mouth_mm"],
         "key_lead_h": compliant_key["entry_blend_mm"],
         "key_length": compliant_key["axial_length_mm"],
-        "key_candidate_radial_interference":
-            compliant_key["nominal_d10_radial_interference_mm"],
-        "coupon_gap_min": min(compliant_key["coupon_gap_ladder_mm"]),
-        "coupon_gap_max": max(compliant_key["coupon_gap_ladder_mm"]),
     }
     for key, value in key_comparisons.items():
         require_close(actual[key], value, f"compliant-key/fact {key}")
-    require_close(actual["key_gap"], tunnel["diameter_mm"],
-                  "compliant key/holder grip gap")
-    require_close(actual["key_open_mouth_w"], tunnel["entry_width_at_z0_mm"],
-                  "compliant key/holder open mouth")
+    requested = finite_number(adjustment["requested_total_reduction_mm"],
+                              "requested fit reduction")
+    predecessor_dims = adjustment["predecessor_dimensions_mm"]
+    candidate_dims = adjustment["candidate_dimensions_mm"]
+    require_close(predecessor_dims["compliant_key_gap"],
+                  compliant_key["target_gap_mm"],
+                  "fit adjustment/predecessor key gap")
+    require_close(predecessor_dims["compliant_key_open_mouth"],
+                  compliant_key["open_mouth_mm"],
+                  "fit adjustment/predecessor key mouth")
+    require_close(predecessor_dims["antenna_upright_hole_diameter"],
+                  production["upright_through_aperture_diameter_mm"],
+                  "fit adjustment/predecessor antenna hole")
+    require_close(actual["fit_tightening_total"], requested,
+                  "fit adjustment/fact total reduction")
+    require_close(actual["key_gap"], candidate_dims["compliant_key_gap"],
+                  "fit adjustment/key gap")
+    require_close(actual["key_open_mouth_w"],
+                  candidate_dims["compliant_key_open_mouth"],
+                  "fit adjustment/key open mouth")
+    require_close(actual["antenna_hole_d"],
+                  candidate_dims["antenna_upright_hole_diameter"],
+                  "fit adjustment/antenna hole")
+    require_close(tunnel["diameter_mm"] - actual["key_gap"], requested,
+                  "holder grip to candidate key reduction")
+    require_close(tunnel["entry_width_at_z0_mm"]
+                  - actual["key_open_mouth_w"], requested,
+                  "holder mouth to candidate mouth reduction")
+    require_close(rigid_loading_aperture_d - actual["antenna_hole_d"],
+                  requested, "rigid aperture to candidate hole reduction")
     require_close(actual["key_lead_h"], tunnel["entry_blend_radius_mm"],
                   "compliant key/holder entry blend")
     require_close(channel["centerline_z_above_lid_mm"], actual["body_axis_z"],
@@ -1046,6 +1118,9 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
     require_close(actual["key_candidate_radial_interference"],
                   (actual["body_d"] - actual["key_gap"]) / 2,
                   "compliant key nominal-interference derivation")
+    require_close(actual["antenna_hole_candidate_radial_interference"],
+                  (actual["lower_upright_d"] - actual["antenna_hole_d"]) / 2,
+                  "compliant aperture nominal-interference derivation")
     require_close(actual["cable_core_d"],
                   actual["body_d"] + 2 * actual["body_radial_clearance"],
                   "full-antenna arch derivation")
@@ -1159,7 +1234,7 @@ def derive_candidate_evidence(facts: Mapping[str, float],
                               config: Mapping[str, Any]) -> tuple[
                                   dict[str, Any], dict[str, float],
                                   dict[str, float]]:
-    aperture_d = facts["lower_upright_d"] + 2 * facts["stalk_radial_clearance"]
+    aperture_d = facts["antenna_hole_d"]
     relief_extents = [
         [-facts["relief_x"] / 2, facts["relief_x"] / 2],
         [facts["mount_center_y"] - facts["relief_y"] / 2,
@@ -1183,6 +1258,13 @@ def derive_candidate_evidence(facts: Mapping[str, float],
             "axial_length_mm": facts["key_length"],
             "nominal_candidate_radial_interference_mm":
                 facts["key_candidate_radial_interference"],
+            "selector_result": "SOLID_EXPECTED_COMPLIANT_INTERFERENCE",
+            "physical_fit_status": "INCOMPLETE",
+        },
+        "localized_compliant_aperture": {
+            "diameter_mm": facts["antenna_hole_d"],
+            "nominal_candidate_radial_interference_mm":
+                facts["antenna_hole_candidate_radial_interference"],
             "selector_result": "SOLID_EXPECTED_COMPLIANT_INTERFERENCE",
             "physical_fit_status": "INCOMPLETE",
         },
@@ -1317,6 +1399,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--holder-stl", type=Path, required=True)
     parser.add_argument("--holder-png", type=Path, required=True)
     parser.add_argument("--holder-measurement", type=Path, required=True)
+    parser.add_argument("--fit-adjustment", type=Path, required=True)
     parser.add_argument("--candidate-contract", type=Path, required=True)
     parser.add_argument("--build-dir", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
@@ -1336,6 +1419,7 @@ def main() -> int:
         "holder_stl": require_input(args.holder_stl),
         "holder_png": require_input(args.holder_png),
         "holder_measurement": require_input(args.holder_measurement),
+        "fit_adjustment": require_input(args.fit_adjustment),
         "candidate_contract": require_input(args.candidate_contract),
         "verification_script": require_input(Path(__file__)),
         "step_inspection_script": require_input(COMMON / "inspect_step.py"),
@@ -1386,9 +1470,11 @@ def main() -> int:
     measurement = validate_holder_measurement(
         work_inputs["holder_measurement"], work_inputs["holder_stl"],
         work_inputs["holder_png"])
+    adjustment = validate_fit_adjustment(work_inputs["fit_adjustment"])
     candidate_contract, contract_facts, mesh_contracts = \
         validate_candidate_contract(
-            work_inputs["candidate_contract"], work_inputs["holder_measurement"])
+            work_inputs["candidate_contract"], work_inputs["holder_measurement"],
+            work_inputs["fit_adjustment"])
 
     inspection = strict_json(work_inputs["step_inspection"])
 
@@ -1414,7 +1500,7 @@ def main() -> int:
                 str(work_inputs["openscad_binary"]), work_inputs["scad"],
                 name, True, tmp)
             require_unchanged_inputs(work_inputs, work_input_snapshot)
-            validate_facts(facts, contract_facts, config, measurement)
+            validate_facts(facts, contract_facts, config, measurement, adjustment)
             selector_rows.append(row)
             observed_facts.append(facts)
         for name in COMPLIANT_SELECTORS:
@@ -1422,14 +1508,14 @@ def main() -> int:
                 str(work_inputs["openscad_binary"]), work_inputs["scad"],
                 name, False, tmp)
             require_unchanged_inputs(work_inputs, work_input_snapshot)
-            validate_facts(facts, contract_facts, config, measurement)
+            validate_facts(facts, contract_facts, config, measurement, adjustment)
             metrics = stl_metrics(tmp / f"{name}.stl")
             if metrics["absolute_volume_mm3"] <= 0 or metrics["components"] <= 0:
                 raise RuntimeError(
                     f"{name} did not prove the declared compliant overlap")
             row["interpretation"] = (
-                "intentional localized overlap; requires a printed coupon and "
-                "assembly test, never a rigid-clearance PASS")
+                "intentional localized fit overlap; requires printed insertion, "
+                "retention, and durability tests, never a rigid-clearance PASS")
             row["mesh_metrics"] = metrics
             selector_rows.append(row)
             observed_facts.append(facts)
@@ -1439,7 +1525,7 @@ def main() -> int:
                 str(work_inputs["openscad_binary"]), work_inputs["scad"],
                 name, False, tmp)
             require_unchanged_inputs(work_inputs, work_input_snapshot)
-            validate_facts(facts, contract_facts, config, measurement)
+            validate_facts(facts, contract_facts, config, measurement, adjustment)
             selector_rows.append(row)
             observed_facts.append(facts)
             mesh = tmp / f"{name}.stl"
@@ -1591,12 +1677,13 @@ def main() -> int:
         "kind": KIND,
         "status": "INCOMPLETE",
         "run_status": "COMPLETE",
-        "candidate_collision": "PASS",
+        "candidate_collision": "INTENTIONAL_FIT_INTERFERENCE_ONLY",
         "status_reason": (
-            "the open-deck base and rigid antenna loading path are collision-free; "
-            "the localized compliant key intentionally overlaps the conservative "
-            "candidate envelope, while PCB seating and actual antenna retention/"
-            "rattle/print fit remain physically untested"),
+            "the open-deck base and non-fit rigid antenna loading path are "
+            "collision-free; the tightened key and upright aperture intentionally "
+            "overlap the conservative candidate envelope, while elastic insertion, "
+            "PCB seating, retention/rattle, durability, and print fit remain "
+            "physically untested"),
         "backend": {
             "openscad": version.stdout.strip(),
             "cadquery": getattr(cq, "__version__", "unknown"),

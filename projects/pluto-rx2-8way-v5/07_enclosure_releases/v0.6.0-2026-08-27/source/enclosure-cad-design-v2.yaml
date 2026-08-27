@@ -1,0 +1,230 @@
+schema: 1
+kind: pcb-enclosure-config-v1
+name: pluto-rx2-8way-v5-split-shell
+mode: derived
+subject:
+  release: v0.2.1-2026-08-14
+  release_manifest:
+    path: authorities/pcb-release/MANIFEST.txt
+    sha256: 084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc
+    size: 17338
+  pcb:
+    path: authorities/pcb-release/source/pluto_rx2_8way_v5.kicad_pcb
+    sha256: e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5
+    size: 538805
+  step:
+    path: authorities/pcb-release/3d/pluto_rx2_8way_v5.step
+    sha256: 650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f
+    size: 23398573
+  interface:
+    path: verification/board-interface.json
+    sha256: 3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3
+    size: 31058
+process:
+  method: fdm
+  material: PETG
+  nozzle_mm: 0.4
+  layer_mm: 0.2
+  support_policy: forbid_when_practical
+  minimum_wall_mm: 1.2
+cad:
+  engine: openscad
+  minimum_version: "2021.01"
+  printable_parts:
+    - base
+    - lid
+    - insert_coupon
+    - rx2_antenna_mount
+    - rx2_antenna_fit_gauge
+  source:
+    kind: authored_scad
+    path: cad/pluto_rx2_8way_case.scad
+    sha256: 87552e9639a67f32623c19e9fc4fdd055a847a9756a58ecdac2763d3a2544342
+    size: 66687
+geometry:
+  topology: split_shell
+  xy_clearance_mm: 1.0
+  wall_mm: 2.4
+  floor_mm: 2.4
+  roof_mm: 2.4
+  corner_radius_mm: 4.4
+  board_bottom_z_mm: 7.8
+  inside_top_z_mm: 24.7
+  seam_z_mm: 19.7
+  panel_thickness_mm: 2.4
+  panel_capture_mm: 1.2
+  panel_clearance_mm: 0.25
+  corner_post_mm: 8.0
+  lid_column_board_gap_mm: 0.15
+fasteners:
+  strategy: separate_perimeter
+  thread: M3-0.5
+  board_holes: [H1, H2, H3, H4]
+  case_holes_mm:
+    - [-49.0, -36.5]
+    - [49.0, -36.5]
+    - [-49.0, 36.5]
+    - [49.0, 36.5]
+  boss_d_mm: 8.0
+  case_post_d_mm: 9.0
+  minimum_radial_wall_mm: 0.9
+  insert:
+    family: E-Z-LOK-260-M3-BR-or-CR
+    installation: cold_press
+    pilot_basis: coupon_qualified
+    hole_d_mm: 4.25
+    body_d_mm: 4.216
+    flange_d_mm: 5.537
+    flange_recess_d_mm: 6.10
+    flange_recess_depth_mm: 0.80
+    length_mm: 4.775
+    bottom_clearance_mm: 0.30
+  screw:
+    clearance_d_mm: 3.5
+    head_d_mm: 6.3
+    head_recess_depth_mm: 0.8
+    board_length_mm: 6.0
+    lid_length_mm: 6.0
+    minimum_engagement_mm: 4.0
+    minimum_tip_clearance_mm: 0.2
+interfaces:
+  - id: usb-c-power
+    ref: J1
+    role: power-input
+    side: south
+    disposition: opening
+    center_mm: [0.0, -32.5, 12.0]
+    shape: arch
+    opening_mm: [14.0, 10.0]
+    plug_envelope_mm: [12.0, 8.0, 18.0]
+    clearance_mm: 1.0
+  - id: rx-sma
+    ref: J2
+    role: rf-coax
+    side: north
+    disposition: opening
+    center_mm: [0.0, 32.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: ant1-sma
+    ref: J3
+    role: rf-coax
+    side: north
+    disposition: opening
+    center_mm: [-15.0, 32.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: ant2-sma
+    ref: J4
+    role: rf-coax
+    side: north
+    disposition: opening
+    center_mm: [-30.0, 32.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: ant3-sma
+    ref: J5
+    role: rf-coax
+    side: west
+    disposition: opening
+    center_mm: [-45.0, 4.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: ant4-sma
+    ref: J6
+    role: rf-coax
+    side: west
+    disposition: opening
+    center_mm: [-45.0, -13.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: ant5-sma
+    ref: J7
+    role: rf-coax
+    side: east
+    disposition: opening
+    center_mm: [45.0, -13.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: ant6-sma
+    ref: J8
+    role: rf-coax
+    side: east
+    disposition: opening
+    center_mm: [45.0, 4.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: ant7-sma
+    ref: J9
+    role: rf-coax
+    side: north
+    disposition: opening
+    center_mm: [30.0, 32.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: ant8-sma
+    ref: J10
+    role: rf-coax
+    side: north
+    disposition: opening
+    center_mm: [15.0, 32.5, 19.7]
+    shape: round
+    opening_mm: [12.0, 12.0]
+    plug_envelope_mm: [10.0, 10.0, 30.0]
+    clearance_mm: 1.0
+  - id: swd-service
+    ref: J11
+    role: programming-service
+    side: top
+    disposition: service_opening
+    center_mm: [-21.0, -23.5, 24.7]
+    shape: arch
+    opening_mm: [13.0, 11.0]
+    plug_envelope_mm: [11.0, 9.0, 20.0]
+    clearance_mm: 1.0
+  - id: bench-power-service
+    ref: J12
+    role: bench-power-service
+    side: top
+    disposition: service_opening
+    center_mm: [-11.0, -24.5, 24.7]
+    shape: arch
+    opening_mm: [8.0, 10.0]
+    plug_envelope_mm: [6.0, 8.0, 20.0]
+    clearance_mm: 1.0
+  - id: input-fuse
+    ref: F1
+    role: internal-protection
+    side: top
+    disposition: internal
+    center_mm: [7.0, -22.0, 10.0]
+    shape: none
+    opening_mm: [0.0, 0.0]
+    plug_envelope_mm: [0.0, 0.0, 0.0]
+    clearance_mm: 0.0
+thermal:
+  risk: low
+  physical_soak_required: false
+  load_case: RF switching and USB-powered bench operation at room ambient
+  vents: []
+physical_validation:
+  insert_coupon_required: true
+  board_drop_in_required: true
+  all_interfaces_mated_required: true
+  thermal_soak_required: false

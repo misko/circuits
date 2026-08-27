@@ -178,20 +178,24 @@ reference_holder_grip_radial_interference =
 reference_holder_lip_radial_interference =
     (mount_candidate_body_d - reference_holder_retention_lip_d) / 2;
 
-// Localized compliant throat inspired by the bound holder's D9.75 split
-// grip.  The 10.8 mm rigid rail channel and all full-body loading openings
-// remain unchanged.  Only a short, roof-hung key near the antenna elbow
-// narrows to D9.75; its one-millimetre open-bottom lead starts at the holder's
-// 11.75 mm mouth.  The key requires a printed fit test because its axial
-// placement and the production hinge/tongue width are not authoritative.
-mount_key_gap = reference_holder_grip_bore_d;
-mount_key_open_mouth_w = reference_holder_open_mouth_w;
+// User-requested fit revision.  Every delta is a total gap/diameter change,
+// so the paired faces/radii move inward by half this value on each side.
+// The resulting D8.50 key and D9.55 upright aperture intentionally interfere
+// with the conservative D10 witness and remain physical-fit gated.
+mount_fit_tightening_total = 1.25;
+mount_key_gap = reference_holder_grip_bore_d - mount_fit_tightening_total;
+mount_key_open_mouth_w =
+    reference_holder_open_mouth_w - mount_fit_tightening_total;
 mount_key_lead_h = reference_holder_entry_blend;
 mount_key_y = [11.5, 15.5];
 mount_key_inset_each_side = (
     mount_candidate_body_d + 2 * mount_body_radial_clearance - mount_key_gap
 ) / 2;
-mount_fit_channel_gaps = [9.50, 9.75, 10.00, 10.25];
+mount_fit_channel_gaps = [8.25, 8.50, 8.75, 9.00];
+mount_rigid_loading_aperture_d =
+    mount_candidate_lower_upright_d + 2 * mount_stalk_radial_clearance;
+mount_antenna_hole_d =
+    mount_rigid_loading_aperture_d - mount_fit_tightening_total;
 
 // Reference-only straight exterior cable.  The PCB lid remains completely
 // closed beneath the mount.  The already-attached cable enters with the
@@ -625,7 +629,7 @@ module mount_locator_rail_right(include_key = true) {
     rail_y_len = mount_locator_rail_y[1] - mount_locator_rail_y[0];
 
     union() {
-        // Open-bottom D11.75 mouth blends over one millimetre into the
+        // Open-bottom D10.50 mouth blends over one millimetre into the
         // unchanged D10.8 rigid channel.  The smallest wall at the free edge
         // remains 1.525 mm, above the configured 1.2 mm process minimum.
         hull() {
@@ -659,9 +663,9 @@ module mount_locator_rail_right(include_key = true) {
         ]);
 
         if (include_key) {
-            // Short roof-hung key.  Its 0.125 mm/side nominal D10 witness
-            // interference deliberately mirrors the compliant D9.75 holder
-            // grip and therefore remains physical-test gated.
+            // Short roof-hung key.  Its 0.75 mm/side nominal D10 witness
+            // interference implements the requested 1.25 mm total tightening
+            // and therefore remains physical-test gated.
             hull() {
                 translate([
                     mouth_inner_x - eps,
@@ -693,17 +697,17 @@ module mount_locator_rail_right(include_key = true) {
 
 module mount_locator_rails(include_key = true) {
     // The broad channel remains D10.8 for rigid full-body loading.  Only the
-    // localized D9.75 key is compliant; both rails stay open from below.
+    // localized D8.50 key is compliant; both rails stay open from below.
     mount_locator_rail_right(include_key);
     mirror([1, 0, 0]) mount_locator_rail_right(include_key);
 }
 
-module mount_upright_aperture() {
-    stalk_cavity_d = mount_candidate_lower_upright_d
-                   + 2 * mount_stalk_radial_clearance;
+module mount_upright_aperture(
+    aperture_d = mount_antenna_hole_d
+) {
     // This is the only opening through the closed roof/top.
     translate([0, mount_stalk_y, -eps])
-        cylinder(h = mount_h + 2 * eps, d = stalk_cavity_d);
+        cylinder(h = mount_h + 2 * eps, d = aperture_d);
 }
 
 module coax_exit_u_channel_cut() {
@@ -773,7 +777,10 @@ module mount_labels() {
                     );
 }
 
-module rx2_antenna_mount_installed(include_key = true) {
+module rx2_antenna_mount_installed(
+    include_key = true,
+    aperture_d = mount_antenna_hole_d
+) {
     difference() {
         union() {
             // Perimeter hood and closed roof.  Its relief, key walls, and
@@ -791,7 +798,7 @@ module rx2_antenna_mount_installed(include_key = true) {
                     cylinder(h = mount_h, d = mount_screw_column_d);
         }
 
-        mount_upright_aperture();
+        mount_upright_aperture(aperture_d);
         coax_exit_u_channel_cut();
 
         // Deep access wells retain the already-qualified M3x8 stack: the
@@ -822,8 +829,8 @@ module rx2_antenna_mount() {
 
 module fit_gauge_cell_cuts(channel_gap, center_x) {
     gauge_h = max(mount_fit_channel_gaps) + 3.0;
-    // Labels are the actual channel gaps.  At the holder-evidenced 9.75 mm
-    // station the open-bottom mouth is exactly 11.75 mm.
+    // Labels are the actual candidate channel gaps.  The production target is
+    // D8.50 after the user-requested 1.25 mm total tightening.
     cavity_d = channel_gap;
     entry_w = channel_gap
             + (reference_holder_open_mouth_w - reference_holder_grip_bore_d);
@@ -1187,9 +1194,16 @@ module mount_fastener_references_installed() {
 module antenna_vs_mount_lid_interference() {
     intersection() {
         rx2_reference_antenna_installed();
-        // Rigid geometry must clear.  The localized compliant key is audited
-        // separately as intentional nominal interference.
-        mount_lid_plastic_installed(false);
+        // Exclude both intentional fit regions.  Their overlap is audited by
+        // dedicated selectors below; every other rigid surface must clear.
+        union() {
+            lid_final();
+            translate([0, 0, overall_z - eps])
+                rx2_antenna_mount_installed(
+                    false,
+                    mount_rigid_loading_aperture_d
+                );
+        }
     }
 }
 
@@ -1228,7 +1242,10 @@ module cable_vs_mount_lid_interference() {
 module insertion_sweep_vs_rigid_mount_interference() {
     intersection() {
         rx2_reference_insertion_sweep_solid();
-        rx2_antenna_mount_installed(false);
+        rx2_antenna_mount_installed(
+            false,
+            mount_rigid_loading_aperture_d
+        );
     }
 }
 
@@ -1238,6 +1255,19 @@ module antenna_vs_compliant_key_interference() {
         difference() {
             rx2_antenna_mount_installed(true);
             rx2_antenna_mount_installed(false);
+        }
+    }
+}
+
+module antenna_vs_compliant_aperture_interference() {
+    intersection() {
+        rx2_reference_insertion_sweep_solid();
+        difference() {
+            rx2_antenna_mount_installed(false, mount_antenna_hole_d);
+            rx2_antenna_mount_installed(
+                false,
+                mount_rigid_loading_aperture_d
+            );
         }
     }
 }
@@ -1583,10 +1613,12 @@ assert(
     mount_locator_rail_t >= 2.00,
     "RX2 roof-hung locator rail is thinner than 2.00 mm"
 );
-assert(abs(mount_key_gap - reference_holder_grip_bore_d) <= 0.001,
-       "RX2 compliant key drifted from the bound D9.75 holder grip");
-assert(abs(mount_key_open_mouth_w - reference_holder_open_mouth_w) <= 0.001,
-       "RX2 compliant key mouth drifted from the bound D11.75 opening");
+assert(abs(mount_key_gap
+        - (reference_holder_grip_bore_d - mount_fit_tightening_total)) <= 0.001,
+       "RX2 compliant key drifted from the requested total tightening");
+assert(abs(mount_key_open_mouth_w
+        - (reference_holder_open_mouth_w - mount_fit_tightening_total)) <= 0.001,
+       "RX2 compliant key mouth drifted from the requested total tightening");
 assert(mount_key_lead_h >= 1.00,
        "RX2 compliant key has less than a one-millimetre entry lead");
 assert(mount_key_inset_each_side >= 0.50,
@@ -1594,8 +1626,14 @@ assert(mount_key_inset_each_side >= 0.50,
 assert(mount_key_y[0] >= mount_body_south_y
         && mount_key_y[1] <= mount_stalk_y,
        "RX2 compliant key is not localized on the straight hinge branch");
-assert(mount_fit_channel_gaps == [9.50, 9.75, 10.00, 10.25],
-       "RX2 channel coupon ladder no longer brackets the D9.75 target");
+assert(mount_fit_channel_gaps == [8.25, 8.50, 8.75, 9.00],
+       "RX2 channel coupon ladder no longer brackets the D8.50 target");
+assert(abs(mount_antenna_hole_d
+        - (mount_rigid_loading_aperture_d - mount_fit_tightening_total))
+        <= 0.001,
+       "RX2 upright hole drifted from the requested total reduction");
+assert(mount_antenna_hole_d > 0,
+       "RX2 upright antenna hole must remain positive");
 assert(
     mount_locator_rail_bottom_z >= 1.00
         && mount_locator_rail_bottom_z < mount_body_axis_z,
@@ -1693,6 +1731,10 @@ echo(str(
     ";key_inset_each_side=", mount_key_inset_each_side,
     ";key_candidate_radial_interference=",
         (mount_candidate_body_d - mount_key_gap) / 2,
+    ";fit_tightening_total=", mount_fit_tightening_total,
+    ";antenna_hole_d=", mount_antenna_hole_d,
+    ";antenna_hole_candidate_radial_interference=",
+        (mount_candidate_lower_upright_d - mount_antenna_hole_d) / 2,
     ";coupon_gap_min=", min(mount_fit_channel_gaps),
     ";coupon_gap_max=", max(mount_fit_channel_gaps),
     ";cable_d=", coax_candidate_d,
@@ -1727,6 +1769,7 @@ selector_known =
     || part == "cable_vs_mount_lid"
     || part == "insertion_sweep_vs_rigid_mount"
     || part == "antenna_vs_compliant_key"
+    || part == "antenna_vs_compliant_aperture"
     || part == "antenna_mount_cutaway"
     || part == "antenna_mount_insertion"
     || part == "antenna_mount_insertion_entry"
@@ -1773,6 +1816,8 @@ if (part == "base") {
     insertion_sweep_vs_rigid_mount_interference();
 } else if (part == "antenna_vs_compliant_key") {
     antenna_vs_compliant_key_interference();
+} else if (part == "antenna_vs_compliant_aperture") {
+    antenna_vs_compliant_aperture_interference();
 } else if (part == "antenna_mount_cutaway") {
     antenna_mount_cutaway_view();
 } else if (part == "antenna_mount_insertion") {
