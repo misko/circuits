@@ -12,13 +12,6 @@ artifacts needed to manufacture the device—not merely a plausible CAD image.
 /pcb-design 3S LiPo input → 4× USB-A outputs at 5 V / 1.5 A each + 1× USB-C output at 5 V / 5 A.
 ```
 
-That is the entire prompt: the skill preserves it as the source brief, starts
-the governed workflow, and stops when a real decision or evidence checkpoint
-needs attention. The project persists in the repository, so later tasks resume
-from committed status and evidence rather than restarting or restating the
-brief. Prompt to device is an iterative development loop, not a one-shot
-generator.
-
 ### 2. See fabricated examples
 
 These two projects show the path from a plain-English request to electrical

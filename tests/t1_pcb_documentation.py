@@ -358,8 +358,6 @@ def t_prompt_to_device_scope_is_truthful():
     contains(skill.split("---", 2)[1], "prompt-to-device",
              "skill trigger description")
     contains(skill, "only a natural-language brief", "brief-only agent input")
-    contains(readme, "iterative development loop, not a one-shot",
-             "multi-turn development boundary")
     check(re.search(
         r"integrated product-level\s+digital twin remain tracked work",
         readme,
