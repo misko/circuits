@@ -144,8 +144,10 @@ findings:
     state: open
     blocks_at_or_above: FIRST_ARTICLE_TESTED
     owner: lab
-    finding: No v5 hardware, RF measurement, timing capture, power measurement or thermal evidence exists.
-    closes_when: A first article completes the approved test plan with retained calibration, Touchstone, oscilloscope, voltage/current and thermal evidence.
+    finding: Fabricated v5 hardware and cited Smateway conducted calibration evidence now exist, but this project still lacks a locally reopenable first-article bundle with board-only VNA, timing, power, protection and thermal measurements.
+    closes_when: A first article completes the approved test plan with locally retained calibration, Touchstone, oscilloscope, voltage/current and thermal evidence.
+    evidence:
+      - 01_docs/reports/2026-08-27-closed-loop-permutation-pcb-findings.md
 
   - id: V5-F6-observation-channel-limits
     state: open
@@ -164,3 +166,12 @@ findings:
       - 01_docs/BRIEF.md
       - 01_docs/decisions/0001-one-of-eight-absorptive-sp8t.md
       - 03_src/rules/rf.yaml
+
+  - id: V5-F8-closed-loop-isolation-and-path-response
+    state: open
+    blocks_at_or_above: FIRST_ARTICLE_TESTED
+    owner: lab
+    finding: Cited closed-loop evidence qualifies stable board-path calibration from 2.400 through 2.480 GHz but shows a 29.32-32.23 dB raw-isolation floor, a 6.22-7.73 dB middle-path correction near 2.480 GHz, and a -8.76 dB worst raw selected-to-ALL_OFF contrast at 5.8 GHz. The conducted fixture does not uniquely attribute those effects to the PCB.
+    closes_when: A calibrated board-only nine-port VNA matrix and staged Pluto/cable/board boundary ladder localize the 2.480 GHz path loss and 5.8 GHz bypass, retain raw evidence, and either demonstrate the existing first-article isolation criteria or drive an accepted v6 ADR.
+    evidence:
+      - 01_docs/reports/2026-08-27-closed-loop-permutation-pcb-findings.md
