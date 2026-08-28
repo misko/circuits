@@ -46,6 +46,20 @@ def _load_stage_module():
     return module
 
 
+def _load_verify_module():
+    spec = importlib.util.spec_from_file_location(
+        "_enclosure_release_verify_for_test", VERIFY)
+    check(spec is not None and spec.loader is not None,
+          "could not load release-verifier module")
+    module = importlib.util.module_from_spec(spec)
+    sys.path.insert(0, str(SCRIPTS))
+    try:
+        spec.loader.exec_module(module)
+    finally:
+        sys.path.pop(0)
+    return module
+
+
 def _parsed_stage_args(module, fixture: dict[str, Path], **kwargs):
     return module._parse_args([str(item) for item in _args(fixture, **kwargs)[2:]])
 
@@ -217,6 +231,78 @@ def t_publish_incomplete_candidate_clean():
     must_pass(run([KPY, VERIFY, release]), "release-local reopen")
     must_pass(run([KPY, VERIFY, release, "--project-root", fixture["project"]]),
               "release reopen against external parent")
+
+
+@test("publisher refuses shared connector configs until replay closure is bundled",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_requires_replay_closure():
+    fixture = _fixture()
+    config_path = fixture["workspace"] / "source" / "enclosure-v2.yaml"
+    config = yaml.safe_load(config_path.read_text())
+    # The explicit release boundary must bite before trusting any receipt or
+    # mapping content; those authorities are not yet package-replayable.
+    config["interface_assemblies"] = {}
+    config_path.write_text(yaml.safe_dump(config, sort_keys=False))
+    must_fail(run(_args(fixture)), "publish shared connector config",
+              "not yet eligible for immutable enclosure publication")
+    check(not _release(fixture).exists(), "unsupported release was published")
+
+
+@test("release verifier independently refuses unsealed shared connector replay",
+      kind="known_bad", gate="verify_enclosure_release.py")
+def t_shared_connector_release_reopen_requires_replay_closure():
+    fixture = _fixture()
+    must_pass(run(_args(fixture)), "publish clean predecessor fixture")
+    release = _release(fixture)
+    manifest_path = release / "MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text())
+    config_record = manifest["replay"]["config"]
+    config_path = release / config_record["path"]
+    config = yaml.safe_load(config_path.read_text())
+    config["interface_assemblies"] = {}
+    config_path.write_text(yaml.safe_dump(config, sort_keys=False),
+                           encoding="utf-8")
+    replacement = {
+        "sha256": _sha(config_path), "size": config_path.stat().st_size,
+    }
+    config_record.update(replacement)
+    for row in manifest["payloads"]:
+        if row["path"] == config_record["path"]:
+            row.update(replacement)
+            break
+    else:
+        raise AssertionError("replay config absent from payload census")
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8")
+    must_fail(run([KPY, VERIFY, release]), "reopen shared connector config",
+              "not yet eligible for immutable enclosure publication")
+
+
+@test("release verifier controls a non-mapping replay before membership",
+      kind="known_bad", gate="verify_enclosure_release.py")
+def t_non_mapping_replay_membership_bites():
+    fixture = _fixture()
+    must_pass(run(_args(fixture)), "publish clean non-mapping fixture")
+    module = _load_verify_module()
+    original = module.composition.load_yaml
+    module.composition.load_yaml = lambda _path: []
+    try:
+        try:
+            module.verify_release(_release(fixture))
+        except module.ReleaseError as exc:
+            contains(str(exc),
+                     "must contain a YAML/JSON object before shared connector "
+                     "membership is inspected",
+                     "controlled non-mapping replay error")
+        except TypeError as exc:
+            raise AssertionError(
+                "non-mapping replay escaped as an uncontrolled TypeError"
+            ) from exc
+        else:
+            raise AssertionError("non-mapping replay unexpectedly verified")
+    finally:
+        module.composition.load_yaml = original
 
 
 @test("release publisher binds an exact optional predecessor and remains locally replayable")

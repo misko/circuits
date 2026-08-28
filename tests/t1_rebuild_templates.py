@@ -127,6 +127,21 @@ def early_boundaries_ok(txt):
     return all(value in txt for value in required)
 
 
+def connector_contract_wiring_ok(txt):
+    invocation = txt.find('$PY "$CS/connector_assembly_contract.py"')
+    spends = [position for position in (
+        txt.find("run_stage tscircuit_build"),
+        txt.find('$PY "$S/generate_board_generic.py"'),
+    ) if position >= 0]
+    if invocation < 0 or not spends or invocation >= min(spends):
+        return False
+    window = txt[invocation:min(spends)]
+    return all(token in window for token in (
+        "--contract 03_src/rules/connector_assemblies.yaml",
+        "--output 06_build/verification/connector_assembly_contract.json",
+    ))
+
+
 @test("TSX-DIAG reports its coverage and FAILS an embedded producer error",
       kind="known_bad")
 def t_kb_tsx_diag_embedded_error_is_loud():
@@ -1449,6 +1464,26 @@ def t_source_schema_precedes_tsci():
           "part layout/precedent source gate must precede tscircuit")
     check(source_prec < txt.index('pre_route_review_check.py'),
           "part layout/precedent source gate must precede hash-bound reviews")
+
+
+@test("both rebuild drivers compile connector assembly facts before producer or placement spend")
+def t_connector_contract_stage_order():
+    for path in (ALL, REUSE):
+        txt = path.read_text()
+        check(connector_contract_wiring_ok(txt),
+              f"{path.name}: connector fact lock must select the canonical "
+              "contract/output before producer or placement spend")
+
+
+@test("connector fact-lock wiring check rejects a dropped compiler",
+      kind="known_bad")
+def t_connector_contract_stage_order_has_teeth():
+    for path in (ALL, REUSE):
+        txt = path.read_text().replace(
+            '$PY "$CS/connector_assembly_contract.py"',
+            '$PY "$CS/removed_connector_compiler.py"', 1)
+        check(not connector_contract_wiring_ok(txt),
+              f"{path.name}: dropped connector compiler still passed wiring check")
 
 
 @test("both rebuild drivers keep the conditional RF module bounded inside "

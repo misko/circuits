@@ -721,8 +721,20 @@ def verify_release(release_dir: Path, project_root: Path | None = None,
         release_dir, replay_config, authority, payload_by_path)
     try:
         replay_value = composition.load_yaml(release_dir / replay_config["path"])
+        if not isinstance(replay_value, Mapping):
+            raise ReleaseError(
+                "release-local replay config must contain a YAML/JSON object "
+                "before shared connector membership is inspected")
+        if "interface_assemblies" in replay_value:
+            raise ReleaseError(
+                "shared connector interface_assemblies are not yet eligible "
+                "for immutable enclosure publication; the release format does "
+                "not bundle and select their exact compiler/receipt replay "
+                "closure")
         composition_loaded = composition.validate_config_v2(
             replay_value, release_dir)
+    except ReleaseError:
+        raise
     except (composition.V2Error, OSError) as exc:
         raise ReleaseError(
             f"release-local schema-v2 config is invalid: {exc}") from exc

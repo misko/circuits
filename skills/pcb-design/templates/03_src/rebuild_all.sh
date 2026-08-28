@@ -30,8 +30,11 @@ else
 fi
 SKROOT="$REPO_ROOT/skills"
 S="$SKROOT/kicad-pcb/scripts"
+CS="$SKROOT/pcb-design/scripts"
 [ -f "$S/generate_board_generic.py" ] \
     || { echo "GATE FAILED [PCB-TOOLCHAIN]: resolved circuits checkout '$REPO_ROOT' does not contain skills/kicad-pcb; export CIRCUITS_ROOT=/absolute/path/to/circuits" >&2; exit 2; }
+[ -f "$CS/connector_assembly_contract.py" ] \
+    || { echo "GATE FAILED [PCB-TOOLCHAIN]: resolved circuits checkout '$REPO_ROOT' does not contain the pcb-design connector compiler" >&2; exit 2; }
 FS="$SKROOT/jlcpcb-fab/scripts"                # fab-skill checkers (bom_source_check)
 export PATH="$HOME/.nvm/versions/node/v22.12.0/bin:$HOME/.bun/bin:$PATH"
 
@@ -50,6 +53,15 @@ CJ=03_tscircuit/build/circuit.json
 SCHPDF=03_tscircuit/build/schematic.pdf
 PIPELINE_EVIDENCE=06_build/verification/pipeline
 mkdir -p "$PIPELINE_EVIDENCE/bundles"
+
+# [0g] Connector facts are a pre-placement lock, not a render inference.
+# Unknown mate/tool/cable/torque/tolerance/operation evidence stops here before
+# schematic or layout spend. The receipt does not yet claim realized-board
+# service geometry; that consumer remains an explicit IMP-242 obligation.
+$PY "$CS/connector_assembly_contract.py" --project . \
+    --contract 03_src/rules/connector_assemblies.yaml \
+    --output 06_build/verification/connector_assembly_contract.json \
+    || { rc=$?; if [ "$rc" -eq 2 ]; then echo "GATE INCOMPLETE [0g] CONNECTOR-CONTRACT: select exact mates, tools, cables, operations, and tolerance sources" >&2; else echo "GATE FAILED [0g] CONNECTOR-CONTRACT: repair the canonical connector assembly contract and its evidence bindings" >&2; fi; exit "$rc"; }
 
 if [ "$RESUME_AFTER_SCHEMATIC_REVIEW" = false ]; then
 

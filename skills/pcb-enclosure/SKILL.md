@@ -82,9 +82,20 @@ changes in `co_design`; reject stale subject bindings in `derived`.
    choosing a process-sensitive pilot, sliding gap, connector opening, or
    compliant grip, consult the repository-wide
    [fit and tolerance registry](../../docs/enclosure-fit-registry.md). Its
-   observations are coupon priors, never universal defaults. Schema v2
-   requires distinct board-retention and case-closure groups: removing the lid
-   must not loosen the PCB. With the current built-in CAD adapter, select
+   observations are coupon priors, never universal defaults. New schema-v2
+   work binds every service opening through `interface_assemblies` to the exact
+   PCB-design connector-assembly receipt; do not restate plug, tool, cable,
+   torque, or tolerance dimensions in the v2 mapping. Account for every receipt
+   instance: map it to an enclosure interface, or explicitly disposition it in
+   dimensionless `non_enclosure_refs` with a human reason. A simultaneous group
+   touched by one mapping must map every member; dispositions cannot hide its
+   populated obstacles. Schema-v1 opening
+   dimensions and legacy inline service envelopes remain `INCOMPLETE`
+   migration inputs. Consult the repository-wide
+   [connector assembly registry](../../docs/connector-assembly-registry.md) for
+   qualified combinations and failed observations, never universal defaults.
+   Schema v2 requires distinct board-retention and case-closure groups: removing
+   the lid must not loosen the PCB. With the current built-in CAD adapter, select
    `fasteners.strategy: separate_perimeter` and confirm the generation
    assembly contract; the v2 validator does not infer CAD axes from declarations.
 7. Apply [fdm-printability.md](references/fdm-printability.md). Use the built-in

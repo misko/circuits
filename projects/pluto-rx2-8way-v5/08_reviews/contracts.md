@@ -32,6 +32,7 @@ mutable index.
 | `<date>_pre-D*.md` | immutable decision-delta review retained when a later directive supersedes the canonical witness |
 | `<date>_<subject>_<source>_<lens>.md` | one review, verbatim (e.g. `2026-07-21_v1.0_redteam_topology.md`, `2026-07-21_v1.0_external-llm_full.md`) |
 | `<date>_jlc-twin-render-review*.md` | bounded manufacturing-twin/render witness and exact-subject delta rechecks; each still carries the dated-review header and immutable artifact hashes |
+| `<date>_connector-service_first-article.md` | qualitative received-article connector mating/fastening/service observation; identifies exact bound subjects and unknowns, may reject an access claim, and never supplies an inferred replacement dimension |
 
 ## Early first-picture checkpoint
 

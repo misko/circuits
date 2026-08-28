@@ -72,6 +72,7 @@ SUITES=(
   t1_pipeline_contract.py
   t1_pipeline_execution.py
   t1_pcb_commission.py
+  t1_connector_assembly_contract.py
   t1_pcb_documentation.py
   t1_project_reports.py
   t1_skill_progressive_disclosure.py

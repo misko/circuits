@@ -19,6 +19,12 @@
       "policy_ids": ["D-ADJ", "D-ESC", "D-LAYOUT", "D-MATE", "D-MOD", "D-SPEC", "D-TIER", "Q-2SOURCE"]
     },
     {
+      "id": "connector_assembly",
+      "owner": "pcb-design",
+      "references": ["skills/pcb-design/references/connector-assembly-contract.md"],
+      "policy_ids": []
+    },
+    {
       "id": "lifecycle",
       "owner": "pcb-design",
       "references": ["skills/pcb-design/references/lifecycle-and-backtrack.md"],
@@ -190,7 +196,7 @@
   "stages": [
     {
       "spec": {"schema": 1, "id": "PCB-COMMISSION", "owner": "pcb-design", "lifecycle": "commission", "cost": "cheap", "work_class": "local", "timeout_s": 30, "requires": [], "produces": ["commissioned_brief"], "blocks": ["architecture"], "invalidated_by": ["brief_semantic"]},
-      "domains": ["commission", "execution_graph", "lifecycle", "pipeline_execution"],
+      "domains": ["commission", "connector_assembly", "execution_graph", "lifecycle", "pipeline_execution"],
       "selects": {"always": true}
     },
     {
@@ -200,7 +206,7 @@
     },
     {
       "spec": {"schema": 1, "id": "PCB-SOURCING", "owner": "pcb-design", "lifecycle": "sourcing", "cost": "external", "work_class": "network", "timeout_s": 3600, "requires": ["architecture_locked"], "produces": ["parts_locked"], "blocks": ["schematic"], "invalidated_by": ["architecture_semantic", "parts_semantic"]},
-      "domains": ["commission", "early_boundaries", "execution_graph", "kicad_layout_precedents", "kicad_policy", "lifecycle", "pipeline_execution"],
+      "domains": ["commission", "connector_assembly", "early_boundaries", "execution_graph", "kicad_layout_precedents", "kicad_policy", "lifecycle", "pipeline_execution"],
       "selects": {"always": true}
     },
     {
@@ -223,7 +229,7 @@
     },
     {
       "spec": {"schema": 1, "id": "KICAD-PLACEMENT", "owner": "kicad-pcb", "lifecycle": "placement", "cost": "bounded", "work_class": "local", "timeout_s": 1800, "requires": ["schematic_reviewed"], "produces": ["placement_reviewed"], "blocks": ["routing"], "invalidated_by": ["placement_semantic", "schematic_semantic"]},
-      "domains": ["early_boundaries", "execution_graph", "jlc_connector_orientation", "kicad_placement", "kicad_policy", "kicad_source_authority", "lifecycle", "pipeline_execution", "review_publication"],
+      "domains": ["connector_assembly", "early_boundaries", "execution_graph", "jlc_connector_orientation", "kicad_placement", "kicad_policy", "kicad_source_authority", "lifecycle", "pipeline_execution", "review_publication"],
       "selects": {"always": true},
       "conditional_domains": [
         {"domain": "kicad_signal_integrity", "selects": {"signal_integrity": ["high_speed_digital"]}}

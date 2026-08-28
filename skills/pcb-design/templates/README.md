@@ -38,13 +38,20 @@ The normal commission creates:
   either rebuild conductor from consuming schema examples as adopted design;
 - sourcing policy and decision/journal/learning skeletons;
 - `03_src/floorplan.yaml`, `route.yaml`, both canonical rebuild drivers, and
-  the complete current rule-schema set;
+  the complete current rule-schema set, including the held
+  `rules/connector_assemblies.yaml` connector/mate/tool/cable contract;
 - empty governed homes for parts, TSX source, generated KiCad, firmware, build,
   PCB releases, and independent reviews.
 
 The YAML values are explicit examples/placeholders. Their keys document the
 schema; they do not become adopted design facts until commission replaces them
 and the owning gate accepts them.
+
+Both rebuild conductors compile `rules/connector_assemblies.yaml` before
+producer or placement spend. Represented unknown mate/tool/cable/operation or
+tolerance evidence exits `INCOMPLETE`; exact typed no-operated-connectors
+evidence exits `N-A`. Neither fact-lock result is a realized-board
+service-geometry pass; IMP-242 tracks the independent placement consumer.
 
 ## Conditional seed
 

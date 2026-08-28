@@ -201,6 +201,22 @@ centre and claiming a tolerance. The nominal USB Hub pocket is now D4.25, but
 only a printed USB Hub coupon can advance this observation to
 `MEASURED_COUPON`.
 
+### FIT-008 — USB Hub XT60 mated-cable interference observation
+
+| Field | Record |
+|---|---|
+| Feature class | Clearance/service envelope; not a numeric tolerance |
+| Evidence grade | `FIRST_ARTICLE_OBSERVATION` — failed received assembly |
+| Witness identity | User-supplied HEIC, SHA-256 `60346e0a0b5dfca8912083a3b36a3c1198d7ab43f3ed18264d032dd38730e233` |
+| Subject identity | Fabricated USB Hub board and printed wall-lid lineage; exact printed STL, release, printer, material, and process were not independently identified |
+| Previous CAD assumption | XT60 22 × 15 mm opening around an 18 × 11 × 35 mm conservative plug envelope, +2.0 mm/side on the two graded opening axes |
+| Physical observation | The plug body reaches the nominal notch, while the soldered lead/heat-shrink and thick cable rise and flare into the skirt boundary. The wall is an interference/chafe constraint. |
+| Missing authority | Separate receptacle body, mate, rear termination, cable OD/bend/straight run/exit, simultaneous state, operation sweep, print allowance, and assembly allowance |
+| Numeric result | **None.** The photograph supplies no defensible dimension or allowance and does not prove that +2.0 mm/side itself is too small. |
+| Disposition | Reject the opening-only assumption. A roof-only candidate may remove the witnessed skirt constraint, but still requires cable-strain/exit, simultaneous-mating, lid-motion, stiffness, and physical-fit tests. |
+| Authority | [Dated user feedback review](../projects/usb-hub-3s-v3/08_reviews/2026-08-27_wall-lid_external-user_xt60-fit.md) |
+| Limits | Open sides do not prove roof-edge, post, screw, bend, chafe, ingress, touch, thermal, or production fit. No numeric value from this row may seed a future tolerance. |
+
 ## Choosing a future starting tolerance
 
 1. Classify the feature as press, clearance, compliant, or bearing/contact.

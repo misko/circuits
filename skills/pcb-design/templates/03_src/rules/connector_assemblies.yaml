@@ -1,0 +1,162 @@
+# SCHEMA EXAMPLE (skill-owned, project-independent). Replace this held row with
+# actual project connector facts. Null values are explicit unknowns; the
+# compiler returns INCOMPLETE until every required operation is evidenced.
+# No value in this example is a reusable connector tolerance.
+# This non-empty held profile means operated=true. A project with no connector
+# that is mated, fastened, cabled, or serviced may instead add the exact
+# evidence-backed applicability block documented by connector-assembly-contract.md
+# and set both assemblies and simultaneous_groups to []. Empty lists alone fail.
+schema: 1
+contract_id: replace-with-project-connector-assemblies
+
+# Every cited file is project-relative, ordinary, and bound into the compiled
+# receipt by SHA-256 and byte size. Declare a file only when a section cites it.
+# model_source_id accepts only manufacturer-3d-model, native-3d-model,
+# measured-3d-model, or qualified-tool-3d-model evidence kinds.
+# orientation_source_id accepts only placement-contract,
+# connector-orientation-receipt, or realized-orientation-measurement.
+evidence_sources: []
+
+assemblies:
+  - id: replace-with-connector-profile
+    instances:
+      - ref: J1
+        # Board-coordinate unit vector pointing out through the mating mouth.
+        mating_axis_board: [0.0, -1.0, 0.0]
+        simultaneous_group_ids: [replace-with-service-group]
+
+    receptacle:
+      manufacturer: null
+      mpn: null
+      mounting_method: null
+      model_source_id: null
+      # Connector-local x=axial, y=lateral, z=PCB-normal/vertical.
+      body_envelope_mm: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Exact fitted receptacle and installed body geometry are not selected.
+
+    mate:
+      manufacturer: null
+      mpn: null
+      part_kind: null
+      model_source_id: null
+      body_envelope_mm: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Exact supported mating plug, adapter, antenna, or cable is not selected.
+
+    interface:
+      # Offset is from the footprint origin along mating_axis_board. Exposure
+      # is outside the final PCB edge; setback allowance is a one-sided stack.
+      # A known interface must bind a typed realized orientation source. With
+      # unknown evidence this instance vector is only a planning candidate.
+      mating_plane_offset_mm: null
+      minimum_exposure_mm: null
+      exposure_setback_allowance_mm: null
+      minimum_service_clearance_mm: null
+      orientation_source_id: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Mating datum, exposure, process setback, and service clearance are owed.
+
+    grip:
+      kind: null
+      across_flats_mm: null
+      outer_diameter_mm: null
+      axial_length_mm: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Coupling, latch, finger-grip, or release geometry is not selected.
+
+    fastening:
+      method: null
+      thread_designation: null
+      final_tightening: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Mating and final-fastening method are not selected.
+
+    tool:
+      kind: null
+      identifier: null
+      model_source_id: null
+      head_envelope_mm: null
+      approach: null
+      effective_sweep_radius_mm: null
+      counter_tool_required: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Final tool, approach, sweep, and counter-tool need are not selected.
+
+    torque:
+      required: null
+      minimum_nm: null
+      maximum_nm: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Manufacturer or qualified assembly torque authority is not selected.
+
+    reaction:
+      method: null
+      load_path: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Insertion, extraction, and fastening reaction load paths are not proven.
+
+    cable:
+      kind: null
+      manufacturer: null
+      mpn: null
+      outer_diameter_mm: null
+      straight_run_mm: null
+      minimum_bend_radius_mm: null
+      exit: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Termination, boot, cable body, straight run, exit, and bend are not selected.
+
+    operations:
+      # Schema 1 is a contiguous linear graph from sequence 1. Every end_state
+      # must equal the next start_state. A known graph needs a required row;
+      # all_connected/all_mated service needs a required row with populated
+      # neighbors for every serviceable member's profile.
+      - id: replace-with-required-operation
+        sequence: 1
+        kind: service
+        required: null
+        with_neighbors_populated: null
+        start_state: replace-with-start-state
+        end_state: replace-with-end-state
+        evidence:
+          grade: unknown
+          source_ids: []
+          rationale: Required mate, fasten, service, and removal sequence is not defined.
+
+    tolerances:
+      - id: replace-with-tolerance-source
+        applies_to: replace-with-exact-feature-or-process
+        # exposure_setback | service_radial_growth |
+        # service_axial_growth | other
+        effect: exposure_setback
+        minus_mm: null
+        plus_mm: null
+        evidence:
+          grade: unknown
+          source_ids: []
+          rationale: Drawing, PCB, seating, enclosure, print, and tool stack is not closed.
+
+simultaneous_groups:
+  - id: replace-with-service-group
+    members: [J1]
+    required_state: service
+    serviceable_member_refs: [J1]

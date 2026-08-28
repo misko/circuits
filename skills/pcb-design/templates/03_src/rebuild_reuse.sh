@@ -55,8 +55,11 @@ else
         || { echo "GATE FAILED [PCB-TOOLCHAIN]: project is outside the circuits checkout; export CIRCUITS_ROOT=/absolute/path/to/circuits" >&2; exit 2; }
 fi
 S="$REPO_ROOT/skills/kicad-pcb/scripts"
+CS="$REPO_ROOT/skills/pcb-design/scripts"
 [ -f "$S/generate_board_generic.py" ] \
     || { echo "GATE FAILED [PCB-TOOLCHAIN]: resolved circuits checkout '$REPO_ROOT' does not contain skills/kicad-pcb; export CIRCUITS_ROOT=/absolute/path/to/circuits" >&2; exit 2; }
+[ -f "$CS/connector_assembly_contract.py" ] \
+    || { echo "GATE FAILED [PCB-TOOLCHAIN]: resolved circuits checkout '$REPO_ROOT' does not contain the pcb-design connector compiler" >&2; exit 2; }
 FS="$(dirname "$(dirname "$S")")/jlcpcb-fab/scripts"
 export PATH="$HOME/.bun/bin:$PATH"
 
@@ -67,6 +70,14 @@ run_stage() {
 
 PIPELINE_EVIDENCE=06_build/verification/pipeline
 mkdir -p "$PIPELINE_EVIDENCE/bundles"
+
+# Connector assembly facts remain load-bearing on deterministic replay. This
+# compiles the canonical evidence contract and stops on represented unknowns;
+# it does not manufacture a realized-board service-geometry PASS.
+$PY "$CS/connector_assembly_contract.py" --project . \
+    --contract 03_src/rules/connector_assemblies.yaml \
+    --output 06_build/verification/connector_assembly_contract.json \
+    || { rc=$?; if [ "$rc" -eq 2 ]; then echo "GATE INCOMPLETE CONNECTOR-CONTRACT: select exact mates, tools, cables, operations, and tolerance sources" >&2; else echo "GATE FAILED CONNECTOR-CONTRACT: repair the canonical connector assembly contract and its evidence bindings" >&2; fi; exit "$rc"; }
 
 # P-MOD is source-only and cheap; the deterministic path must not bypass the
 # architecture decision merely because it reuses a pinned schematic.

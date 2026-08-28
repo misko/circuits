@@ -1,0 +1,490 @@
+schema: 1
+contract_id: pluto-rx2-8way-v5-connector-service
+
+evidence_sources:
+  - id: amphenol-part-dossier
+    kind: part-dossier
+    path: 02_parts/901-143-6RFX/part.yaml
+  - id: amphenol-rev-c-drawing
+    kind: manufacturer-drawing
+    path: 02_parts/901-143-6RFX/SMA6252A2-3GT50G-50-RevC.pdf
+  - id: realized-floorplan
+    kind: placement-contract
+    path: 03_src/floorplan.yaml
+  - id: v5-service-observation
+    kind: first-article-observation
+    path: 08_reviews/2026-08-27_connector-service_first-article.md
+  - id: usb-c-part-dossier
+    kind: part-dossier
+    path: 02_parts/USB4105-GF-A-120/part.yaml
+  - id: swd-part-dossier
+    kind: part-dossier
+    path: 02_parts/FTSH-105-01-L-DV-K-P-TR/part.yaml
+  - id: bench-power-part-dossier
+    kind: part-dossier
+    path: 02_parts/A2541WV-2P/part.yaml
+
+assemblies:
+  - id: amphenol-901-143-6rfx-v5-bank
+    instances:
+      - {ref: J2, mating_axis_board: [0.0, -1.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+      - {ref: J3, mating_axis_board: [0.0, -1.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+      - {ref: J4, mating_axis_board: [0.0, -1.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+      - {ref: J5, mating_axis_board: [-1.0, 0.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+      - {ref: J6, mating_axis_board: [-1.0, 0.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+      - {ref: J7, mating_axis_board: [1.0, 0.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+      - {ref: J8, mating_axis_board: [1.0, 0.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+      - {ref: J9, mating_axis_board: [0.0, -1.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+      - {ref: J10, mating_axis_board: [0.0, -1.0, 0.0], simultaneous_group_ids: [all-sma-service]}
+
+    receptacle:
+      manufacturer: Amphenol RF
+      mpn: 901-143-6RFX
+      mounting_method: five-pin through-hole soldered jack
+      model_source_id: null
+      # Connector-local: axial x lateral x PCB-normal/vertical.
+      body_envelope_mm: {x: 15.1, y: 7.0, z: 13.8}
+      evidence:
+        grade: exact
+        source_ids: [amphenol-part-dossier, amphenol-rev-c-drawing]
+        rationale: The selected part dossier and exact Rev C drawing bind the fixed receptacle identity and nominal envelope.
+
+    mate:
+      manufacturer: null
+      mpn: null
+      part_kind: null
+      model_source_id: null
+      body_envelope_mm: null
+      evidence:
+        grade: unknown
+        source_ids: [v5-service-observation]
+        rationale: The fabricated-board feedback does not identify the exact antenna, cable plug, adapter, or overmold used at each port.
+
+    interface:
+      mating_plane_offset_mm: 11.6
+      minimum_exposure_mm: null
+      exposure_setback_allowance_mm: null
+      minimum_service_clearance_mm: null
+      orientation_source_id: realized-floorplan
+      evidence:
+        grade: unknown
+        source_ids: [amphenol-part-dossier, realized-floorplan, v5-service-observation]
+        rationale: The selected receptacle datum and realized axes are known, but the required positive edge exposure, tolerance loss, and complete service clearance are not yet qualified.
+
+    grip:
+      kind: null
+      across_flats_mm: null
+      outer_diameter_mm: null
+      axial_length_mm: null
+      evidence:
+        grade: unknown
+        source_ids: [v5-service-observation]
+        rationale: Coupling-nut or antenna grip geometry was not bound; the first article reports inadequate hand access with neighboring ports populated.
+
+    fastening:
+      method: null
+      thread_designation: null
+      final_tightening: null
+      evidence:
+        grade: unknown
+        source_ids: [v5-service-observation]
+        rationale: The supported hand-start and final-tightening method is not selected or evidenced for the actual mating hardware.
+
+    tool:
+      kind: null
+      identifier: null
+      model_source_id: null
+      head_envelope_mm: null
+      approach: null
+      effective_sweep_radius_mm: null
+      counter_tool_required: null
+      evidence:
+        grade: unknown
+        source_ids: [v5-service-observation]
+        rationale: No finger envelope, wrench identity, tool-head envelope, approach, repositioning sweep, or counter-tool requirement is bound.
+
+    torque:
+      required: null
+      minimum_nm: null
+      maximum_nm: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: Final coupling torque must come from the selected mating assembly or an approved assembly process, not a generic SMA value.
+
+    reaction:
+      method: null
+      load_path: null
+      evidence:
+        grade: unknown
+        source_ids: [v5-service-observation]
+        rationale: The board, enclosure, hand, and optional counter-tool reaction load path has not been demonstrated during mating or tightening.
+
+    cable:
+      kind: null
+      manufacturer: null
+      mpn: null
+      outer_diameter_mm: null
+      straight_run_mm: null
+      minimum_bend_radius_mm: null
+      exit: null
+      evidence:
+        grade: unknown
+        source_ids: [v5-service-observation]
+        rationale: Exact cables or antennas, boots, straight runs, exit directions, and bend radii differ by use and remain unselected.
+
+    operations:
+      - id: mate
+        sequence: 1
+        kind: mate
+        required: null
+        with_neighbors_populated: null
+        start_state: all-sma-unmated
+        end_state: all-sma-mated
+        evidence:
+          grade: unknown
+          source_ids: [v5-service-observation]
+          rationale: Full insertion with all neighboring supported mates present has not been demonstrated.
+      - id: hand-start
+        sequence: 2
+        kind: hand_start
+        required: null
+        with_neighbors_populated: null
+        start_state: all-sma-mated
+        end_state: all-sma-hand-started
+        evidence:
+          grade: unknown
+          source_ids: [v5-service-observation]
+          rationale: The observation specifically reports poor finger purchase; the required hand-start cell remains unmeasured.
+      - id: tighten
+        sequence: 3
+        kind: tighten
+        required: null
+        with_neighbors_populated: null
+        start_state: all-sma-hand-started
+        end_state: all-sma-tightened
+        evidence:
+          grade: unknown
+          source_ids: [v5-service-observation]
+          rationale: Final tightening with all neighbors populated has not been demonstrated with a selected tool and reaction path.
+      - id: loosen
+        sequence: 4
+        kind: loosen
+        required: null
+        with_neighbors_populated: null
+        start_state: all-sma-tightened
+        end_state: all-sma-hand-started
+        evidence:
+          grade: unknown
+          source_ids: [v5-service-observation]
+          rationale: Loosening and service access with all neighbors populated has not been demonstrated.
+      - id: unmate
+        sequence: 5
+        kind: unmate
+        required: null
+        with_neighbors_populated: null
+        start_state: all-sma-hand-started
+        end_state: all-sma-unmated
+        evidence:
+          grade: unknown
+          source_ids: [v5-service-observation]
+          rationale: Removal with the complete supported mate and cable envelope remains unverified.
+
+    tolerances:
+      - id: receptacle-drawing-default-6-to-30-mm
+        applies_to: Nominal 6-30 mm receptacle dimensions on SMA6252A2-3GT50G-50 Rev C
+        effect: exposure_setback
+        minus_mm: 0.2
+        plus_mm: 0.2
+        evidence:
+          grade: exact
+          source_ids: [amphenol-rev-c-drawing]
+          rationale: The exact manufacturer drawing supplies its default dimensional tolerance for this range.
+      - id: pcb-edge-and-placement-stack
+        applies_to: Realized connector mating-plane exposure after PCB outline and placement variation
+        effect: exposure_setback
+        minus_mm: null
+        plus_mm: null
+        evidence:
+          grade: unknown
+          source_ids: [realized-floorplan, v5-service-observation]
+          rationale: Nominal placement is recorded, but the fab, drill, solder seating, and assembly stack has not been closed.
+      - id: enclosure-registration-and-process-stack
+        applies_to: Connector service clearance after board-to-case registration and printed enclosure variation
+        effect: exposure_setback
+        minus_mm: null
+        plus_mm: null
+        evidence:
+          grade: unknown
+          source_ids: [v5-service-observation]
+          rationale: No exact printed article, registration measurement, or enclosure-process distribution is bound to this feedback.
+
+  - id: gct-usb4105-power-service
+    instances:
+      - {ref: J1, mating_axis_board: [0.0, 1.0, 0.0], simultaneous_group_ids: [usb-c-service]}
+
+    receptacle:
+      manufacturer: GCT
+      mpn: USB4105-GF-A-120
+      mounting_method: right-angle top-mount receptacle
+      model_source_id: null
+      body_envelope_mm: null
+      evidence:
+        grade: unknown
+        source_ids: [usb-c-part-dossier]
+        rationale: The selected receptacle is bound, but this connector-service contract has not yet qualified one exact installed body model and seating stack.
+
+    mate:
+      manufacturer: null
+      mpn: null
+      part_kind: null
+      model_source_id: null
+      body_envelope_mm: null
+      evidence:
+        grade: unknown
+        source_ids: []
+        rationale: The supported USB-C plug, overmold, termination, and cable assembly are not selected.
+
+    interface:
+      mating_plane_offset_mm: null
+      minimum_exposure_mm: null
+      exposure_setback_allowance_mm: null
+      minimum_service_clearance_mm: null
+      orientation_source_id: realized-floorplan
+      evidence:
+        grade: unknown
+        source_ids: [usb-c-part-dossier, realized-floorplan]
+        rationale: The south-facing placement is recorded, but realized mouth exposure and the complete service cell are not qualified.
+
+    grip:
+      kind: null
+      across_flats_mm: null
+      outer_diameter_mm: null
+      axial_length_mm: null
+      evidence: {grade: unknown, source_ids: [], rationale: "Plug grip and release geometry depend on the selected cable assembly."}
+    fastening:
+      method: friction latch
+      thread_designation: null
+      final_tightening: not required
+      evidence: {grade: unknown, source_ids: [usb-c-part-dossier], rationale: "Receptacle type is known, but the supported mate retention and extraction process are not qualified."}
+    tool:
+      kind: none
+      identifier: null
+      model_source_id: null
+      head_envelope_mm: null
+      approach: none
+      effective_sweep_radius_mm: null
+      counter_tool_required: false
+      evidence: {grade: unknown, source_ids: [], rationale: "Hand grip and release access remain unmeasured for the selected cable."}
+    torque:
+      required: false
+      minimum_nm: null
+      maximum_nm: null
+      evidence: {grade: unknown, source_ids: [usb-c-part-dossier], rationale: "This is not a threaded mate, but insertion and extraction forces remain unqualified."}
+    reaction:
+      method: null
+      load_path: null
+      evidence: {grade: unknown, source_ids: [], rationale: "Board and enclosure reaction paths during cable insertion and extraction are not proven."}
+    cable:
+      kind: null
+      manufacturer: null
+      mpn: null
+      outer_diameter_mm: null
+      straight_run_mm: null
+      minimum_bend_radius_mm: null
+      exit: null
+      evidence: {grade: unknown, source_ids: [], rationale: "Exact USB-C overmold, cable diameter, straight run, exit, and bend radius are unselected."}
+    operations:
+      - id: usb-c-mate-service
+        sequence: 1
+        kind: service
+        required: null
+        with_neighbors_populated: null
+        start_state: usb-c-disconnected
+        end_state: usb-c-connected
+        evidence: {grade: unknown, source_ids: [], rationale: "Cable mating and removal in the supported assembled state have not been demonstrated."}
+    tolerances:
+      - id: usb-c-complete-service-stack
+        applies_to: Receptacle seating, PCB edge, plug overmold, enclosure registration, and cable service cell
+        effect: exposure_setback
+        minus_mm: null
+        plus_mm: null
+        evidence: {grade: unknown, source_ids: [usb-c-part-dossier, realized-floorplan], rationale: "The full one-sided setback and service stack is not closed."}
+
+  - id: samtec-swd-service
+    instances:
+      - {ref: J11, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [swd-service]}
+
+    receptacle:
+      manufacturer: Samtec
+      mpn: FTSH-105-01-L-DV-K-P-TR
+      mounting_method: vertical surface-mount keyed header
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [swd-part-dossier], rationale: "The header identity is bound, but the installed model and seating stack are not yet service-qualified."}
+    mate:
+      manufacturer: null
+      mpn: null
+      part_kind: keyed SWD cable receptacle
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [swd-part-dossier], rationale: "The exact debug cable receptacle, strain relief, and cable are not selected."}
+    interface:
+      mating_plane_offset_mm: null
+      minimum_exposure_mm: null
+      exposure_setback_allowance_mm: null
+      minimum_service_clearance_mm: null
+      orientation_source_id: realized-floorplan
+      evidence: {grade: unknown, source_ids: [swd-part-dossier, realized-floorplan], rationale: "The top-facing placement is recorded, but the complete keyed service cell is not qualified."}
+    grip:
+      kind: null
+      across_flats_mm: null
+      outer_diameter_mm: null
+      axial_length_mm: null
+      evidence: {grade: unknown, source_ids: [], rationale: "Cable-body grip and release access are unknown."}
+    fastening:
+      method: friction latch
+      thread_designation: null
+      final_tightening: not required
+      evidence: {grade: unknown, source_ids: [swd-part-dossier], rationale: "No threaded tightening is expected, but the exact mating retention remains unqualified."}
+    tool:
+      kind: none
+      identifier: null
+      model_source_id: null
+      head_envelope_mm: null
+      approach: none
+      effective_sweep_radius_mm: null
+      counter_tool_required: false
+      evidence: {grade: unknown, source_ids: [], rationale: "Finger access for the exact keyed cable and release remains unmeasured."}
+    torque:
+      required: false
+      minimum_nm: null
+      maximum_nm: null
+      evidence: {grade: unknown, source_ids: [swd-part-dossier], rationale: "The interface is not threaded; insertion and extraction forces are still unqualified."}
+    reaction:
+      method: null
+      load_path: null
+      evidence: {grade: unknown, source_ids: [], rationale: "Board and enclosure reaction paths during service are not proven."}
+    cable:
+      kind: null
+      manufacturer: null
+      mpn: null
+      outer_diameter_mm: null
+      straight_run_mm: null
+      minimum_bend_radius_mm: null
+      exit: null
+      evidence: {grade: unknown, source_ids: [], rationale: "Exact SWD cable geometry and routing are unselected."}
+    operations:
+      - id: swd-mate-service
+        sequence: 1
+        kind: service
+        required: null
+        with_neighbors_populated: null
+        start_state: swd-disconnected
+        end_state: swd-connected
+        evidence: {grade: unknown, source_ids: [], rationale: "Keyed cable mating and removal in the assembled enclosure have not been demonstrated."}
+    tolerances:
+      - id: swd-complete-service-stack
+        applies_to: Header seating, keyed mate, enclosure opening, hand grip, and cable bend service cell
+        effect: exposure_setback
+        minus_mm: null
+        plus_mm: null
+        evidence: {grade: unknown, source_ids: [swd-part-dossier, realized-floorplan], rationale: "The complete radial service and process stack is not closed."}
+
+  - id: cjt-bench-power-service
+    instances:
+      - {ref: J12, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [bench-power-service]}
+
+    receptacle:
+      manufacturer: CJT
+      mpn: A2541WV-2P
+      mounting_method: vertical through-hole male header
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [bench-power-part-dossier], rationale: "The header identity is bound, but the assembled seating and body model are not service-qualified."}
+    mate:
+      manufacturer: null
+      mpn: null
+      part_kind: female bench lead
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [bench-power-part-dossier], rationale: "The exact polarized or loose female lead, housing, and termination are unselected."}
+    interface:
+      mating_plane_offset_mm: null
+      minimum_exposure_mm: null
+      exposure_setback_allowance_mm: null
+      minimum_service_clearance_mm: null
+      orientation_source_id: realized-floorplan
+      evidence: {grade: unknown, source_ids: [bench-power-part-dossier, realized-floorplan], rationale: "The top-facing placement is recorded, but the full service cell and polarity-safe access are unqualified."}
+    grip:
+      kind: null
+      across_flats_mm: null
+      outer_diameter_mm: null
+      axial_length_mm: null
+      evidence: {grade: unknown, source_ids: [], rationale: "The selected female housing or loose-lead grip geometry is unknown."}
+    fastening:
+      method: friction fit
+      thread_designation: null
+      final_tightening: not required
+      evidence: {grade: unknown, source_ids: [bench-power-part-dossier], rationale: "No threaded tightening is expected, but the selected mate retention is unknown."}
+    tool:
+      kind: none
+      identifier: null
+      model_source_id: null
+      head_envelope_mm: null
+      approach: none
+      effective_sweep_radius_mm: null
+      counter_tool_required: false
+      evidence: {grade: unknown, source_ids: [], rationale: "Finger access for the selected lead remains unmeasured."}
+    torque:
+      required: false
+      minimum_nm: null
+      maximum_nm: null
+      evidence: {grade: unknown, source_ids: [bench-power-part-dossier], rationale: "The header is not threaded; insertion and extraction forces are unqualified."}
+    reaction:
+      method: null
+      load_path: null
+      evidence: {grade: unknown, source_ids: [], rationale: "Header solder-joint, board, and enclosure reaction paths during service are not proven."}
+    cable:
+      kind: null
+      manufacturer: null
+      mpn: null
+      outer_diameter_mm: null
+      straight_run_mm: null
+      minimum_bend_radius_mm: null
+      exit: null
+      evidence: {grade: unknown, source_ids: [], rationale: "Exact lead housing, wire gauge, exit, strain relief, and bend radius are unselected."}
+    operations:
+      - id: bench-power-mate-service
+        sequence: 1
+        kind: service
+        required: null
+        with_neighbors_populated: null
+        start_state: bench-power-disconnected
+        end_state: bench-power-connected
+        evidence: {grade: unknown, source_ids: [], rationale: "Polarity-safe lead mating and removal in the assembled enclosure have not been demonstrated."}
+    tolerances:
+      - id: bench-power-complete-service-stack
+        applies_to: Header seating, selected mate, enclosure opening, hand grip, and wire service cell
+        effect: exposure_setback
+        minus_mm: null
+        plus_mm: null
+        evidence: {grade: unknown, source_ids: [bench-power-part-dossier, realized-floorplan], rationale: "The complete radial service and process stack is not closed."}
+
+simultaneous_groups:
+  - id: all-sma-service
+    members: [J2, J3, J4, J5, J6, J7, J8, J9, J10]
+    required_state: all_connected
+    serviceable_member_refs: [J2, J3, J4, J5, J6, J7, J8, J9, J10]
+  - id: usb-c-service
+    members: [J1]
+    required_state: service
+    serviceable_member_refs: [J1]
+  - id: swd-service
+    members: [J11]
+    required_state: service
+    serviceable_member_refs: [J11]
+  - id: bench-power-service
+    members: [J12]
+    required_state: service
+    serviceable_member_refs: [J12]

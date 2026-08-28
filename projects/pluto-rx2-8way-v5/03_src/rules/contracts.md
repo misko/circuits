@@ -29,6 +29,7 @@ belongs here.
 | `policy_audit.json` | OPTIONAL `policy_audit.py` config (`--config 03_src/rules/policy_audit.json`, its default path): thresholds + HUMAN-item verdict pointers (S5/S6/S7) |
 | `critical_parts.yaml` | selective accepted facts for catastrophic part/footprint identities and geometry; graded by `critical_part_facts.py` before routing |
 | `model_registration.yaml` | optional schema-1 native 3D-model physical-registration contract; groups bind exact refs/model SHA and numeric registration tolerances for `model_registration_gate.py` and connector orientation review |
+| `connector_assemblies.yaml` | go-forward shared connector service contract; binds each receptacle, supported mate, grip/fastening/tool/torque/reaction/cable cell, simultaneous population, operation sequence, and tolerance provenance for the PCB and enclosure consumers. Unknown facts are explicit and compile `INCOMPLETE`, never default dimensions. |
 | `contracts.md` | this file |
 
 `power_tree.yaml` also owns **E-CAP**. `effective_capacitance_banks[]`

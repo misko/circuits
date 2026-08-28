@@ -2,7 +2,9 @@
 """Schema-v2 enclosure contracts: authority, service, motion, and evidence."""
 from __future__ import annotations
 
+import copy
 import hashlib
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -14,6 +16,12 @@ from harness import check, contains, eq, main, must_fail, must_pass, run, test, 
 
 ROOT = Path(__file__).resolve().parent.parent
 V2 = ROOT / "skills" / "pcb-enclosure" / "scripts" / "enclosure_v2.py"
+CONNECTOR_COMPILER = (
+    ROOT / "skills" / "pcb-design" / "scripts" /
+    "connector_assembly_contract.py")
+CONNECTOR_TEMPLATE = (
+    ROOT / "skills" / "pcb-design" / "templates" / "03_src" / "rules" /
+    "connector_assemblies.yaml")
 KPY = "/usr/bin/python3"
 
 
@@ -155,7 +163,7 @@ def _fresh_fixture() -> dict[str, Path]:
                 "from_state": "lid_removed_antenna_installed",
                 "to_state": "installed", "moving_parts": ["lid"],
                 "direction": [0, 0, -1], "travel_mm": 12.0,
-                "cable_condition": "not_applicable",
+                "cable_condition": "pre_attached",
                 "threading_permitted": False, "bending_permitted": False,
                 "disconnecting_permitted": False,
                 "clearance_case": "lid_installation",
@@ -221,7 +229,7 @@ def _fresh_fixture() -> dict[str, Path]:
         },
         "interfaces": [{
             "id": "usb", "ref": "J1", "role": "data-and-power",
-            "side": "south", "disposition": "opening",
+            "side": "north", "disposition": "opening",
             "center_mm": [0.0, -20.0, 10.0], "shape": "rect",
             "opening_mm": [12.0, 8.0],
             "plug_envelope_mm": [10.0, 6.0, 15.0], "clearance_mm": 1.0,
@@ -340,6 +348,47 @@ def _fresh_fixture() -> dict[str, Path]:
                 "method": "linear_sweep_exact", "minimum_clearance_mm": 0.2,
             },
         ],
+        "service_envelopes": [{
+            "id": "usb_service", "interface_id": "usb",
+            "scope": "antenna_accessory",
+            "simultaneous_group": "installed_rf_service",
+            "mated_in_states": [
+                "lid_removed_antenna_installed", "installed",
+            ],
+            "mated_during_operations": ["install_lid"],
+            "observation_subject": None,
+            "connector_body": {
+                "basis": "conservative_candidate",
+                "envelope_mm": [12.0, 8.0, 8.0],
+            },
+            "mated_plug": {
+                "basis": "conservative_candidate",
+                "envelope_mm": [10.0, 6.0, 15.0],
+            },
+            "strain_relief": {
+                "basis": "conservative_candidate",
+                "envelope_mm": [10.0, 6.0, 8.0],
+            },
+            "cable": {
+                "basis": "conservative_candidate", "diameter_mm": 4.0,
+                "straight_run_mm": 8.0, "exit_direction": [0, -1, 0],
+            },
+            "bend": {
+                "basis": "conservative_candidate",
+                "minimum_radius_mm": 12.0,
+                "swept_envelope_mm": [24.0, 24.0, 20.0],
+            },
+            "installation_sweep": {
+                "basis": "conservative_candidate",
+                "method": "linear_sweep_envelope",
+                "operation": "insert_antenna",
+            },
+            "allowances": {
+                "basis": "conservative_candidate",
+                "process_per_side_mm": [0.2, 0.2, 0.2],
+                "assembly_per_side_mm": [0.5, 0.5, 0.5],
+            },
+        }],
         "physical_tests": [
             {"id": "lid_off_retention", "type": "lid_off_pcb_retention",
              "scope": "board_retention", "required_for": "PRINT_VERIFIED",
@@ -360,6 +409,10 @@ def _fresh_fixture() -> dict[str, Path]:
              "type": "cable_strain_clearance", "scope": "antenna_accessory",
              "required_for": "PRINT_VERIFIED",
              "subject_parts": ["base", "lid", "antenna"]},
+            {"id": "all_interfaces_mated",
+             "type": "all_interfaces_mated", "scope": "antenna_accessory",
+             "required_for": "PRINT_VERIFIED",
+             "subject_parts": ["base", "lid", "pcb", "antenna"]},
             {"id": "thermal_soak", "type": "thermal_soak", "scope": "thermal",
              "required_for": "THERMALLY_VERIFIED",
              "subject_parts": ["base", "lid", "pcb"]},
@@ -367,7 +420,8 @@ def _fresh_fixture() -> dict[str, Path]:
     }
     _write_yaml(config_path, config)
     return {"root": root, "config": config_path, "intent": intent_path,
-            "manifest": manifest_path, "antenna": antenna,
+            "interface": interface, "manifest": manifest_path,
+            "antenna": antenna,
             "cad_design": cad_design_path}
 
 
@@ -393,6 +447,151 @@ def _rewrite_cad_design(fixture: dict[str, Path], value: dict) -> None:
     config["subject"]["cad_design"] = _binding(
         fixture["root"], fixture["cad_design"])
     _write_yaml(fixture["config"], config)
+
+
+def _add_second_service_interface(fixture: dict[str, Path]) -> None:
+    interface = json.loads(fixture["interface"].read_text())
+    interface["board"]["footprints"].append({
+        "ref": "J2", "value": "J2", "footprint": "Synthetic_J2",
+        "position_mm": [10.0, -18.0], "rotation_deg": 0.0,
+        "side": "front", "bbox_mm": [8.0, -20.0, 12.0, -16.0],
+        "model_declared": True,
+    })
+    interface["board"]["access_candidates"].append({
+        "ref": "J2", "position_mm": [10.0, -18.0], "value": "J2",
+        "footprint": "Synthetic_J2", "selection": "required",
+    })
+    interface["coverage"]["footprints"] += 1
+    interface["coverage"]["access_candidates"] += 1
+    fixture["interface"].write_text(
+        json.dumps(interface, indent=2) + "\n", encoding="utf-8")
+
+    config = _config(fixture)
+    interface_binding = _binding(fixture["root"], fixture["interface"])
+    cad = yaml.safe_load(fixture["cad_design"].read_text())
+    cad["subject"]["interface"] = interface_binding
+    second_interface = copy.deepcopy(cad["interfaces"][0])
+    second_interface.update({
+        "id": "usb2", "ref": "J2", "center_mm": [10.0, -20.0, 10.0],
+    })
+    cad["interfaces"].append(second_interface)
+    _write_yaml(fixture["cad_design"], cad)
+    config["subject"]["interface"] = interface_binding
+    config["subject"]["cad_design"] = _binding(
+        fixture["root"], fixture["cad_design"])
+    second_service = copy.deepcopy(config["service_envelopes"][0])
+    second_service.update({"id": "usb2_service", "interface_id": "usb2"})
+    config["service_envelopes"].append(second_service)
+    _write_yaml(fixture["config"], config)
+
+
+def _add_shared_connector_contract(fixture: dict[str, Path]) -> None:
+    """Replace the inline migration row with one fresh shared receipt."""
+    contract = fixture["root"] / "03_src" / "rules" / \
+        "connector_assemblies.yaml"
+    contract.parent.mkdir(parents=True, exist_ok=True)
+    evidence = fixture["root"] / "02_parts" / "synthetic-connector" / \
+        "part.yaml"
+    evidence.parent.mkdir(parents=True, exist_ok=True)
+    evidence.write_text(
+        "mpn: SYNTHETIC-CONNECTOR\nmanufacturer: Test Fixture\n",
+        encoding="utf-8")
+    contract_value = yaml.safe_load(CONNECTOR_TEMPLATE.read_text())
+    contract_value["evidence_sources"] = [{
+        "id": "synthetic-part-dossier", "kind": "part-dossier",
+        "path": "02_parts/synthetic-connector/part.yaml",
+    }]
+    contract_value["assemblies"][0]["receptacle"]["evidence"] \
+        ["source_ids"] = ["synthetic-part-dossier"]
+    _write_yaml(contract, contract_value)
+    compiled = run([
+        KPY, CONNECTOR_COMPILER, "--project", fixture["root"],
+    ])
+    eq(compiled.rc, 2, "unknown shared connector contract exit")
+    receipt = (fixture["root"] / "06_build" / "verification" /
+               "connector_assembly_contract.json")
+    check(receipt.is_file(), "shared connector receipt exists")
+
+    config = _config(fixture)
+    del config["service_envelopes"]
+    config["interface_assemblies"] = {
+        "receipt": _binding(fixture["root"], receipt),
+        "non_enclosure_refs": [],
+        "group_state_bindings": [{
+            "group_id": "replace-with-service-group",
+            "enclosure_state_ids": ["installed"],
+        }],
+        "mappings": [{
+            "id": "usb_service",
+            "assembly_id": "replace-with-connector-profile",
+            "interface_ids": ["usb"],
+            "scope": "antenna_accessory",
+            "mated_in_states": [
+                "lid_removed_antenna_installed", "installed",
+            ],
+            "mated_during_operations": ["install_lid"],
+        }],
+    }
+    _write_yaml(fixture["config"], config)
+    fixture["connector_contract"] = contract
+    fixture["connector_evidence"] = evidence
+    fixture["connector_receipt"] = receipt
+
+
+def _add_wholly_non_enclosure_group(fixture: dict[str, Path]) -> None:
+    """Add a two-member receipt group with no case opening or service map."""
+    contract = yaml.safe_load(fixture["connector_contract"].read_text())
+    profile = contract["assemblies"][0]
+    prototype = profile["instances"][0]
+    for ref in ("J2", "J3"):
+        instance = copy.deepcopy(prototype)
+        instance["ref"] = ref
+        instance["simultaneous_group_ids"] = ["internal-service-group"]
+        profile["instances"].append(instance)
+    group = copy.deepcopy(contract["simultaneous_groups"][0])
+    group.update({
+        "id": "internal-service-group",
+        "members": ["J2", "J3"],
+        "serviceable_member_refs": ["J2", "J3"],
+    })
+    contract["simultaneous_groups"].append(group)
+    _write_yaml(fixture["connector_contract"], contract)
+    _recompile_shared_connector(fixture)
+
+
+def _non_enclosure_row(ref: str) -> dict[str, str]:
+    return {
+        "ref": ref,
+        "disposition": "no_enclosure_interface",
+        "reason": "Internal service connector is intentionally inaccessible "
+                  "in this enclosure configuration.",
+    }
+
+
+def _recompile_shared_connector(fixture: dict[str, Path]) -> None:
+    result = run([
+        KPY, CONNECTOR_COMPILER, "--project", fixture["root"],
+    ])
+    check(result.rc in {0, 2}, "shared connector recompile succeeds")
+    config = _config(fixture)
+    config["interface_assemblies"]["receipt"] = _binding(
+        fixture["root"], fixture["connector_receipt"])
+    _write_yaml(fixture["config"], config)
+
+
+def _load_v2_module():
+    scripts = V2.parent
+    sys.path.insert(0, str(scripts))
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "pcb_enclosure_v2_test_module", V2)
+        check(spec is not None and spec.loader is not None,
+              "schema-v2 module spec")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    finally:
+        sys.path.remove(str(scripts))
 
 
 def _validate_args(fixture: dict[str, Path]) -> list:
@@ -424,8 +623,577 @@ def t_v2_clean_contract():
     result = must_pass(run(_validate_args(fixture)), "v2 clean config")
     report = json.loads(result.out)
     eq(report["status"], "VALID")
-    eq(report["scope_readiness_ceilings"]["antenna_accessory"],
-       "THERMALLY_VERIFIED")
+    eq(report["service_envelope_coverage"], {
+        "legacy_omitted": False,
+        "legacy_readiness_capped": False,
+        "declared": 1,
+        "shared_mappings": 0,
+        "shared_non_enclosure_refs": 0,
+        "shared_receipt_status": None,
+        "required_edge_openings": 1,
+        "candidate_dimension_census_complete": 1,
+    })
+    eq(report["scope_readiness_ceilings"]["antenna_accessory"], "INCOMPLETE")
+
+
+@test("enclosure schema consumes the fresh shared connector receipt")
+def t_v2_shared_connector_receipt():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    result = must_pass(run(_validate_args(fixture)),
+                       "v2 shared connector config")
+    report = json.loads(result.out)
+    eq(report["service_envelope_coverage"]["legacy_omitted"], False)
+    eq(report["service_envelope_coverage"]["declared"], 0)
+    eq(report["service_envelope_coverage"]["shared_mappings"], 1)
+    eq(report["service_envelope_coverage"]["shared_non_enclosure_refs"], 0)
+    eq(report["service_envelope_coverage"]["shared_receipt_status"],
+       "INCOMPLETE")
+    eq(report["scope_readiness_ceilings"]["antenna_accessory"], "INCOMPLETE")
+
+
+@test("wholly irrelevant connector groups require explicit dispositions")
+def t_v2_shared_non_enclosure_group_clean():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    _add_wholly_non_enclosure_group(fixture)
+    config = _config(fixture)
+    config["interface_assemblies"]["non_enclosure_refs"] = [
+        _non_enclosure_row("J2"), _non_enclosure_row("J3"),
+    ]
+    _write_yaml(fixture["config"], config)
+    report = json.loads(must_pass(
+        run(_validate_args(fixture)), "v2 explicit non-enclosure group").out)
+    eq(report["service_envelope_coverage"]["shared_non_enclosure_refs"], 2)
+    eq(report["scope_readiness_ceilings"]["antenna_accessory"], "INCOMPLETE")
+
+
+@test("a wholly irrelevant connector group cannot disappear from the census",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_whole_group_omission():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    _add_wholly_non_enclosure_group(fixture)
+    must_fail(run(_validate_args(fixture)), "v2 omitted whole connector group",
+              "missing=['J2', 'J3']")
+
+
+@test("non-enclosure connector dispositions use a closed literal",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_bad_non_enclosure_disposition():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    _add_wholly_non_enclosure_group(fixture)
+    config = _config(fixture)
+    bad = _non_enclosure_row("J2")
+    bad["disposition"] = "ignore_connector"
+    config["interface_assemblies"]["non_enclosure_refs"] = [
+        bad, _non_enclosure_row("J3"),
+    ]
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 bad connector disposition",
+              "expected one of ['no_enclosure_interface']")
+
+
+@test("non-enclosure connector dispositions require a human reason",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_non_enclosure_reason_required():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    _add_wholly_non_enclosure_group(fixture)
+    config = _config(fixture)
+    blank = _non_enclosure_row("J2")
+    blank["reason"] = "  "
+    config["interface_assemblies"]["non_enclosure_refs"] = [
+        blank, _non_enclosure_row("J3"),
+    ]
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 blank connector reason",
+              "reason: expected non-empty string")
+
+
+@test("non-enclosure connector dispositions cannot duplicate a ref",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_duplicate_non_enclosure_disposition():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    _add_wholly_non_enclosure_group(fixture)
+    config = _config(fixture)
+    config["interface_assemblies"]["non_enclosure_refs"] = [
+        _non_enclosure_row("J2"), _non_enclosure_row("J2"),
+        _non_enclosure_row("J3"),
+    ]
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 duplicate connector disposition",
+              "duplicate connector ref J2")
+
+
+@test("non-enclosure connector dispositions must cover the complete group",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_partial_non_enclosure_disposition():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    _add_wholly_non_enclosure_group(fixture)
+    config = _config(fixture)
+    config["interface_assemblies"]["non_enclosure_refs"] = [
+        _non_enclosure_row("J2"),
+    ]
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 partial connector disposition",
+              "missing=['J3']")
+
+
+@test("top-side service openings require the same shared connector authority")
+def t_v2_shared_connector_service_opening():
+    fixture = _fresh_fixture()
+    cad = yaml.safe_load(fixture["cad_design"].read_text())
+    cad["interfaces"][0]["disposition"] = "service_opening"
+    _rewrite_cad_design(fixture, cad)
+    _add_shared_connector_contract(fixture)
+    report = json.loads(must_pass(
+        run(_validate_args(fixture)), "v2 shared top service connector").out)
+    eq(report["service_envelope_coverage"]["required_edge_openings"], 1)
+    eq(report["service_envelope_coverage"]["shared_mappings"], 1)
+
+
+@test("shared connector receipt is recompiled, not trusted as JSON",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_connector_receipt_stale():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    with fixture["connector_contract"].open("a", encoding="utf-8") as stream:
+        stream.write("\n# stale source mutation\n")
+    receipt = json.loads(fixture["connector_receipt"].read_text())
+    receipt["inputs"]["contract"] = _binding(
+        fixture["root"], fixture["connector_contract"])
+    fixture["connector_receipt"].write_text(
+        json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8")
+    config = _config(fixture)
+    config["interface_assemblies"]["receipt"] = _binding(
+        fixture["root"], fixture["connector_receipt"])
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 stale connector receipt",
+              "shared connector regrade failed")
+
+
+@test("shared regrade reopens contract and evidence after compiler execution",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_connector_mid_regrade_input_drift():
+    for field, phrase in (
+            ("connector_contract", "connector contract changed during regrade"),
+            ("connector_evidence",
+             "connector evidence file 0 changed during regrade")):
+        fixture = _fresh_fixture()
+        _add_shared_connector_contract(fixture)
+        module = _load_v2_module()
+        original_loader = module._connector_compiler_module
+        target = fixture[field]
+
+        def injected_loader(expected, *, _target=target):
+            compiler, binding = original_loader(expected)
+            original_validate = compiler.validate_receipt
+
+            def injected_validate(receipt, root):
+                result = original_validate(receipt, root)
+                with _target.open("a", encoding="utf-8") as stream:
+                    stream.write("\n# injected mid-regrade drift\n")
+                return result
+
+            compiler.validate_receipt = injected_validate
+            return compiler, binding
+
+        module._connector_compiler_module = injected_loader
+        try:
+            raw = module.load_yaml(fixture["config"])
+            try:
+                module.validate_config_v2(raw, fixture["root"])
+            except module.V2Error as exc:
+                contains(str(exc), phrase, f"{field} post-regrade drift")
+            else:
+                raise AssertionError(
+                    f"{field} mid-regrade mutation unexpectedly validated")
+        finally:
+            module._connector_compiler_module = original_loader
+
+
+@test("shared connector mappings cannot restate dimensions",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_connector_mapping_no_dimensions():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    config = _config(fixture)
+    config["interface_assemblies"]["mappings"][0]["tool_clearance_mm"] = 8.0
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 restated connector dimension",
+              "unknown=['tool_clearance_mm']")
+
+
+@test("shared connector mappings must cover every serviced opening",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_connector_opening_coverage():
+    fixture = _fresh_fixture()
+    _add_second_service_interface(fixture)
+    _add_shared_connector_contract(fixture)
+    must_fail(run(_validate_args(fixture)), "v2 omitted shared opening",
+              "coverage must equal every connector/service opening")
+
+
+@test("inline and shared connector contracts are mutually exclusive",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_connector_single_authority():
+    fixture = _fresh_fixture()
+    legacy = copy.deepcopy(_config(fixture)["service_envelopes"])
+    _add_shared_connector_contract(fixture)
+    config = _config(fixture)
+    config["service_envelopes"] = legacy
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 duplicate service authority",
+              "are mutually exclusive")
+
+
+@test("shared connector receipt binding and parse consume one byte subject")
+def t_v2_shared_receipt_single_read_subject():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    module = _load_v2_module()
+    receipt = fixture["connector_receipt"]
+    binding = _binding(fixture["root"], receipt)
+    original = module.read_stable_bytes
+    receipt_reads = 0
+
+    def counted(path, where):
+        nonlocal receipt_reads
+        if Path(path) == receipt:
+            receipt_reads += 1
+        return original(path, where)
+
+    module.read_stable_bytes = counted
+    parsed, reopened = module._load_bound_json_bytes(
+        binding, fixture["root"], "test receipt")
+    eq(receipt_reads, 1, "receipt path read count")
+    eq(parsed["subject_sha256"],
+       json.loads(receipt.read_text())["subject_sha256"],
+       "parsed receipt identity")
+    eq(reopened["sha256"], binding["sha256"], "same-byte binding")
+
+
+@test("receipt-bound compiler bytes are checked before execution",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_compiler_byte_subject():
+    module = _load_v2_module()
+    compiler = CONNECTOR_COMPILER
+    expected = {
+        "path": compiler.relative_to(ROOT).as_posix(),
+        "sha256": _sha(compiler), "size": compiler.stat().st_size,
+    }
+    original = module.read_stable_bytes
+
+    def substituted(path, where):
+        payload = original(path, where)
+        if Path(path) == compiler:
+            return payload + b"\n# transient alternate compiler\n"
+        return payload
+
+    module.read_stable_bytes = substituted
+    try:
+        module._connector_compiler_module(expected)
+    except module.V2Error as exc:
+        contains(str(exc), "identity differs", "compiler substitution failure")
+    else:
+        raise AssertionError("alternate compiler bytes executed")
+
+
+@test("shared connector populated neighbors require enclosure association",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_group_populated_member_coverage():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    contract = yaml.safe_load(fixture["connector_contract"].read_text())
+    second = copy.deepcopy(contract["assemblies"][0]["instances"][0])
+    second["ref"] = "J2"
+    contract["assemblies"][0]["instances"].append(second)
+    contract["simultaneous_groups"][0]["members"].append("J2")
+    _write_yaml(fixture["connector_contract"], contract)
+    _recompile_shared_connector(fixture)
+    config = _config(fixture)
+    config["interface_assemblies"]["non_enclosure_refs"] = [
+        _non_enclosure_row("J2"),
+    ]
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 omitted populated neighbor",
+              "omits a populated member from enclosure association")
+
+
+@test("shared connector groups bind their required population to enclosure states",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_group_state_binding():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    config = _config(fixture)
+    config["interface_assemblies"]["group_state_bindings"] = []
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 omitted group state binding",
+              "coverage must equal every mapped simultaneous group")
+
+
+@test("shared connector axes must point through the declared enclosure side",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_axis_side_crosscheck():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    contract = yaml.safe_load(fixture["connector_contract"].read_text())
+    contract["assemblies"][0]["instances"][0]["mating_axis_board"] = \
+        [0.0, 1.0, 0.0]
+    _write_yaml(fixture["connector_contract"], contract)
+    _recompile_shared_connector(fixture)
+    must_fail(run(_validate_args(fixture)), "v2 flipped connector axis",
+              "mating axis contradicts enclosure side north")
+
+
+@test("schema-v2 report cannot replace shared connector contract",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_input_output_alias():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    before = fixture["connector_contract"].read_bytes()
+    must_fail(run([
+        *_validate_args(fixture), "--output", fixture["connector_contract"],
+    ]), "v2 report aliases connector contract", "destination aliases input file")
+    eq(fixture["connector_contract"].read_bytes(), before,
+       "connector contract preserved")
+
+
+@test("schema-v2 report cannot replace shared connector evidence",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_evidence_output_alias():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    before = fixture["connector_evidence"].read_bytes()
+    must_fail(run([
+        *_validate_args(fixture), "--output", fixture["connector_evidence"],
+    ]), "v2 report aliases connector evidence", "destination aliases input file")
+    eq(fixture["connector_evidence"].read_bytes(), before,
+       "connector evidence preserved")
+
+
+@test("schema-v2 report cannot replace the shared connector compiler",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_shared_compiler_output_alias():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    before = CONNECTOR_COMPILER.read_bytes()
+    must_fail(run([
+        *_validate_args(fixture), "--output", CONNECTOR_COMPILER,
+    ]), "v2 report aliases connector compiler", "destination aliases input file")
+    eq(CONNECTOR_COMPILER.read_bytes(), before, "connector compiler preserved")
+
+
+@test("schema-v2 output protection includes the exact shared compiler")
+def t_v2_shared_compiler_is_protected_input():
+    fixture = _fresh_fixture()
+    _add_shared_connector_contract(fixture)
+    module = _load_v2_module()
+    loaded = module.validate_config_v2(
+        module.load_yaml(fixture["config"]), fixture["root"])
+    protected = set(module._bound_input_paths(loaded))
+    check(CONNECTOR_COMPILER.resolve() in protected,
+          "shared compiler must be a protected validation input")
+
+
+@test("published schema-v2 configs may omit the additive service checklist")
+def t_v2_legacy_service_envelope_omission():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    del config["service_envelopes"]
+    _write_yaml(fixture["config"], config)
+    result = must_pass(run(_validate_args(fixture)), "v2 legacy service omission")
+    report = json.loads(result.out)
+    eq(report["service_envelope_coverage"]["legacy_omitted"], True)
+    eq(report["service_envelope_coverage"]["legacy_readiness_capped"], True)
+    eq(report["service_envelope_coverage"]["declared"], 0)
+    eq(report["service_envelope_coverage"]["required_edge_openings"], 1)
+    for scope in ("shell", "board_retention", "antenna_accessory", "thermal"):
+        eq(report["scope_readiness_ceilings"][scope], "INCOMPLETE")
+
+
+@test("legacy serviced openings cannot aggregate above INCOMPLETE")
+def t_v2_legacy_service_aggregate_ceiling():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    del config["service_envelopes"]
+    _write_yaml(fixture["config"], config)
+    payload = fixture["root"] / "legacy-aggregate.json"
+    payload.write_text(json.dumps({"scope_statuses": {
+        "shell": "CAD_READY", "board_retention": "CAD_READY",
+        "antenna_accessory": "CAD_READY", "thermal": "CAD_READY",
+    }}) + "\n")
+    result = run([
+        KPY, V2, "aggregate-config", payload, "--config", fixture["config"],
+        "--root", fixture["root"],
+    ])
+    eq(result.rc, 2, "legacy service aggregate exit")
+    eq(json.loads(result.out)["status"], "INCOMPLETE")
+
+
+@test("service envelope separates plug, strain relief, cable, bend, sweep, and allowances",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_envelope_closed_census():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    del config["service_envelopes"][0]["strain_relief"]
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 partial service envelope",
+              "missing=['strain_relief']")
+
+
+@test("relational physical observations cannot masquerade as dimensions",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_observation_rejects_numeric_envelope():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    config["service_envelopes"][0]["mated_plug"] = {
+        "basis": "physical_observation", "envelope_mm": [10.0, 6.0, 15.0],
+    }
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 invented photo dimensions",
+              "physical_observation/unknown require a null envelope")
+
+
+@test("service rows cannot self-assert unbound vendor authority",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_rejects_forged_vendor_basis():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    config["service_envelopes"][0]["connector_body"]["basis"] = \
+        "vendor_authoritative"
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 forged service authority",
+              "expected one of ['conservative_candidate', "
+              "'physical_observation', 'unknown']")
+
+
+@test("physical service observations require an exact bound witness",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_observation_requires_bound_subject():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    config["service_envelopes"][0]["mated_plug"] = {
+        "basis": "physical_observation", "envelope_mm": None,
+    }
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 unbound fit observation",
+              "require a bound first_article_observation external subject")
+
+
+@test("a dimensionless received-assembly observation caps connector readiness")
+def t_v2_service_observation_caps_scope():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    config["external_subjects"][0]["authority"] = {
+        "grade": "first_article_observation",
+        "basis": "Synthetic hash-bound physical fit observation.",
+        "excluded_claims": [
+            "exact_geometry", "clearance", "physical_fit",
+            "manufacturing_dimensions",
+        ],
+    }
+    config["service_envelopes"][0]["mated_plug"] = {
+        "basis": "physical_observation", "envelope_mm": None,
+    }
+    config["service_envelopes"][0]["observation_subject"] = \
+        "reference_antenna"
+    _write_yaml(fixture["config"], config)
+    result = must_pass(run(_validate_args(fixture)), "v2 honest fit observation")
+    report = json.loads(result.out)
+    eq(report["service_envelope_coverage"]
+       ["candidate_dimension_census_complete"], 0)
+    eq(report["scope_readiness_ceilings"]["antenna_accessory"], "INCOMPLETE")
+
+
+@test("mated-during operations require both endpoint service states",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_state_linkage():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    config["service_envelopes"][0]["mated_in_states"] = ["installed"]
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 disconnected lid-service cable",
+              "does not remain mated in both endpoint states")
+
+
+@test("mated-during operations require an explicit pre-attached cable",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_operation_cable_condition():
+    fixture = _fresh_fixture()
+    intent = _intent(fixture)
+    intent["operations"][1]["cable_condition"] = "not_applicable"
+    _rewrite_intent(fixture, intent)
+    must_fail(run(_validate_args(fixture)), "v2 implicit lid-service cable",
+              "must declare cable_condition pre_attached")
+
+
+@test("mated-during operations cannot thread or disconnect the cable",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_operation_forbidden_actions():
+    for field, phrase in (
+            ("threading_permitted", "cannot thread a cable"),
+            ("disconnecting_permitted", "cannot permit disconnecting")):
+        fixture = _fresh_fixture()
+        intent = _intent(fixture)
+        intent["operations"][1][field] = True
+        _rewrite_intent(fixture, intent)
+        must_fail(run(_validate_args(fixture)),
+                  f"v2 mated operation with {field}", phrase)
+
+
+@test("simultaneous groups share one scope, state census, and operation census",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_simultaneous_group_census():
+    mutations = (
+        ("scope", "shell", "must share identical scope"),
+        ("mated_in_states", [
+            "lid_removed_before_antenna",
+            "lid_removed_antenna_installed", "installed",
+        ], "must share identical mated_in_states"),
+        ("mated_during_operations", [],
+         "must share identical mated_during_operations"),
+    )
+    for field, value, phrase in mutations:
+        fixture = _fresh_fixture()
+        _add_second_service_interface(fixture)
+        config = _config(fixture)
+        config["service_envelopes"][1][field] = value
+        _write_yaml(fixture["config"], config)
+        must_fail(run(_validate_args(fixture)),
+                  f"v2 split simultaneous group {field}", phrase)
+
+
+@test("service envelopes cannot hide in an optional scope",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_optional_scope():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    for scope in config["verification_scopes"]:
+        if scope["id"] == "antenna_accessory":
+            scope["required"] = False
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 optional service scope",
+              "service-envelope scopes must be required")
+
+
+@test("service-envelope configs require mating and cable physical tests",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_v2_service_envelope_physical_obligations():
+    fixture = _fresh_fixture()
+    config = _config(fixture)
+    config["physical_tests"] = [
+        row for row in config["physical_tests"]
+        if row["type"] != "all_interfaces_mated"
+    ]
+    _write_yaml(fixture["config"], config)
+    must_fail(run(_validate_args(fixture)), "v2 service without mating test",
+              "requires PRINT_VERIFIED test all_interfaces_mated")
 
 
 @test("standalone schema-v2 mechanical intent validates")
@@ -837,7 +1605,7 @@ def t_v2_aggregate_authority_ceiling():
     eq(json.loads(result.out)["status"], "CAD_READY")
 
 
-@test("config-authoritative aggregation derives applicability and ceilings")
+@test("config-authoritative aggregation derives service-envelope ceilings")
 def t_v2_authoritative_aggregate():
     fixture = _fresh_fixture()
     payload = fixture["root"] / "aggregate-config.json"
@@ -845,12 +1613,15 @@ def t_v2_authoritative_aggregate():
         "shell": "CAD_READY", "board_retention": "CAD_READY",
         "antenna_accessory": "CAD_READY", "thermal": "CAD_READY",
     }}) + "\n")
-    result = must_pass(run([
+    result = run([
         KPY, V2, "aggregate-config", payload, "--config", fixture["config"],
         "--root", fixture["root"],
-    ]), "v2 authoritative aggregate")
+    ])
+    eq(result.rc, 2, "service-envelope aggregate exit")
     report = json.loads(result.out)
-    eq(report["status"], "CAD_READY")
+    eq(report["status"], "INCOMPLETE")
+    eq(report["scope_readiness_ceilings"]["antenna_accessory"],
+       "INCOMPLETE")
     eq(set(report["required_scopes"]),
        {"shell", "board_retention", "antenna_accessory", "thermal"})
 

@@ -32,6 +32,7 @@ completion evidence.
 | IMP-239 | Distinguish intended endpoint bearing contacts from motion collisions | accepted | pcb-enclosure v2 contact-region schema, endpoint/contact verifier, known-bad motion fixtures |
 | IMP-240 | Enforce one canonical enclosure source/build/release/review layout | completed | pcb-enclosure layout contract, fleet auditor, known-bad path fixtures |
 | IMP-241 | Rebuild the USB debug-hub 2A enclosure against its current sealed PCB | accepted | current assembly STEP/interface, independent fasteners, exact collision and physical qualification |
+| IMP-242 | Make connector placement and enclosure access one executable assembly/service contract | implementing | shared compiler/rebuild hold, enclosure census/cap, evidence registries; PCB geometry and enclosure operation-solid consumers owed |
 
 ## IMP-229 — executable PCB documentation and graph
 
@@ -246,6 +247,54 @@ completion evidence.
   release-root replay and conservative scoped status.
 - recommendation: do not import or print the old prototype. Resolve exact STEP
   authority and independent post geometry before authoring the replacement CAD.
+
+## IMP-242 — shared connector assembly and service authority
+
+- status: implementing
+- observed: the fabricated Pluto RX2 eight-way v5 board is difficult to hand
+  tighten: adjacent SMA coupling regions are too close for a good grip and the
+  nominally flush mating faces provide no useful outboard exposure. The prior
+  render review called the 15/18 mm banks accessible after checking bare jack
+  bodies and outward axes, but did not bind a mating plug, hand/tool envelope,
+  torque, reaction path, cable, enclosure, or populated-neighbor operation.
+- general rule: a connector is not accessible until each exact supported mate
+  can be started, finally fastened by its specified method, serviced, and
+  removed in every required populated/enclosed state. PCB and enclosure work
+  consume one receptacle/mate/grip/tool/cable/operation contract; neither may
+  turn a visual gap or copied nominal dimension into service authority.
+- landing point: schema-1 `03_src/rules/connector_assemblies.yaml`, fail-closed
+  `connector_assembly_contract.py`, a hash-bound normalized receipt compiled by
+  canonical rebuilds and consumed by enclosure verification, exact authored
+  operation/simultaneous-group checks, and
+  `docs/connector-assembly-registry.md` for qualified combinations.
+- implemented slice: the pcb-design compiler rejects duplicate/unknown schema,
+  symlink or missing evidence, stale file/compiler identities, group mismatch,
+  alternate governing contract paths, untyped model/orientation authority,
+  discontinuous or vacuous operation graphs, unproved all-neighbor service,
+  and invalid tool/reaction/tolerance cross-sections. It publishes through a
+  held no-follow directory without allowing output to alias any input. It
+  distinguishes exact, conservative, and represented-unknown evidence;
+  unknowns return exit 2 and no universal connector dimension is supplied. An
+  exact typed project record can produce applicability-only `N-A` for a true
+  no-operated-connectors design; empty populations cannot self-assert it.
+- completion evidence required: a realized-board PCB consumer must safely bind
+  the actual footprint/model, placement, orientation, outline, Z datum, all
+  board obstacles, operation states, tool/cable sweeps, and tolerance growth;
+  the enclosure consumer must execute the same operation solids. Known-bads
+  must cover flush-minus-tolerance exposure, clear bare bodies with a colliding
+  tool sweep, missing reaction path, boot/cable collision, and one-at-a-time
+  success with all-neighbor failure. The next dense connector board must pass a
+  coupon with exact mates/tools/cables before routing, and Pluto/XT60
+  observations stay qualitative until measurements close replacement values.
+- current limit: canonical rebuilds enforce the authored fact lock, and the
+  enclosure adapter binds the receipt/census and prevents mapped connector
+  scopes from overstating readiness. No PCB placement-geometry PASS is
+  implemented. Schema-v1 enclosure CAD still carries duplicate inline
+  plug/clearance candidates and does not execute the shared plug/tool/cable
+  operation solids. IMP-242 remains `implementing`.
+- recommendation: P0 before placement freeze or routing on the planned RF
+  switch respin; do not choose a new SMA pitch or overhang from the failed v5
+  report alone.
 
 ## Index
 

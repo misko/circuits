@@ -17,6 +17,7 @@ import json
 import math
 import re
 import sys
+import types
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -52,6 +53,8 @@ CONFIG_KIND = "pcb-enclosure-config-v2"
 INTENT_KIND = "pcb-enclosure-mechanical-intent-v2"
 PHYSICAL_KIND = "pcb-enclosure-physical-evidence-v2"
 VALIDATION_KIND = "pcb-enclosure-v2-validation"
+CONNECTOR_RECEIPT_KIND = "connector-assembly-contract-receipt"
+SERVICE_INTERFACE_DISPOSITIONS = frozenset({"opening", "service_opening"})
 
 READINESS = ("INCOMPLETE", "CAD_READY", "PRINT_VERIFIED",
              "THERMALLY_VERIFIED")
@@ -67,6 +70,7 @@ AUTHORITY_GRADES = {
     "measured_unit",
     "derived_measurement",
     "conservative_candidate",
+    "first_article_observation",
     "inspiration_only",
 }
 AUTHORITY_REQUIRED_EXCLUSIONS = {
@@ -74,6 +78,10 @@ AUTHORITY_REQUIRED_EXCLUSIONS = {
     "measured_unit": {"physical_fit"},
     "derived_measurement": {"physical_fit"},
     "conservative_candidate": {"exact_geometry", "physical_fit"},
+    "first_article_observation": {
+        "exact_geometry", "clearance", "physical_fit",
+        "manufacturing_dimensions",
+    },
     "inspiration_only": {
         "exact_geometry", "clearance", "physical_fit",
         "manufacturing_dimensions",
@@ -91,6 +99,71 @@ BUILTIN_PHYSICAL_TYPES = {
     "accessory_retention_rattle",
     "cable_strain_clearance",
 }
+SERVICE_DIMENSION_BASES = {
+    "conservative_candidate",
+    "physical_observation",
+    "unknown",
+}
+SERVICE_NONNUMERIC_BASES = {"physical_observation", "unknown"}
+INTERFACE_SIDE_AXES = {
+    # KiCad board coordinates are x-right/y-down.  Keep the semantic edge
+    # convention aligned with connector_orientation_gate.py: north is the
+    # minimum-Y edge and south is the maximum-Y edge.
+    "north": [0.0, -1.0, 0.0],
+    "south": [0.0, 1.0, 0.0],
+    "east": [1.0, 0.0, 0.0],
+    "west": [-1.0, 0.0, 0.0],
+    "top": [0.0, 0.0, 1.0],
+    "bottom": [0.0, 0.0, -1.0],
+}
+
+
+def _connector_compiler_module(expected_binding: Any):
+    """Load the exact receipt-bound compiler bytes as the sole schema authority.
+
+    Import machinery reopens a path after a caller inspects it.  That permits a
+    transient file replacement to execute bytes other than the compiler named
+    by the receipt.  Capture one stable byte subject, compare it to the receipt
+    first, execute those same bytes, and make the imported compiler report that
+    captured identity during its deterministic recompile.
+    """
+    path = (Path(__file__).resolve().parents[2] / "pcb-design" / "scripts" /
+            "connector_assembly_contract.py")
+    expected = _exact(expected_binding, {"path", "sha256", "size"},
+                      "connector receipt compiler binding")
+    repo_root = Path(__file__).resolve().parents[3]
+    relative = path.relative_to(repo_root).as_posix()
+    if expected["path"] != relative:
+        raise V2Error(
+            "connector receipt compiler binding does not name the canonical "
+            f"compiler {relative}")
+    try:
+        payload = read_stable_bytes(path, "connector assembly compiler")
+    except V1EnclosureError as exc:
+        raise V2Error(f"cannot load connector assembly compiler: {exc}") from exc
+    loaded_binding = {
+        "path": relative,
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "size": len(payload),
+    }
+    if dict(expected) != loaded_binding:
+        raise V2Error(
+            "connector receipt compiler identity differs from the exact "
+            "compiler bytes loaded for regrade")
+    module = types.ModuleType("pcb_design_connector_assembly_contract")
+    module.__file__ = str(path)
+    module.__package__ = None
+    try:
+        code = compile(payload, str(path), "exec", dont_inherit=True)
+        exec(code, module.__dict__)
+    except Exception as exc:  # pragma: no cover - trusted runtime boundary
+        raise V2Error(f"cannot load connector assembly compiler: {exc}") from exc
+    if not hasattr(module, "load_and_compile"):
+        raise V2Error("connector assembly compiler lacks load_and_compile API")
+    # The compiler normally reopens __file__ to bind its own identity.  Use the
+    # exact bytes already loaded, so a second path read cannot mix authorities.
+    module._compiler_binding = lambda: dict(loaded_binding)
+    return module, loaded_binding
 
 
 class V2Error(ValueError):
@@ -165,6 +238,22 @@ def _exact(value: Any, fields: Iterable[str], where: str) -> Mapping[str, Any]:
     return item
 
 
+def _exact_optional(value: Any, required: Iterable[str], optional: Iterable[str],
+                    where: str) -> Mapping[str, Any]:
+    """Require a closed field set while permitting additive compatibility rows."""
+    item = _mapping(value, where)
+    required_set = set(required)
+    optional_set = set(optional)
+    actual = set(item)
+    missing = required_set - actual
+    unknown = actual - required_set - optional_set
+    if missing or unknown:
+        raise V2Error(
+            f"{where}: fields differ; missing={sorted(missing)}, "
+            f"unknown={sorted(unknown)}")
+    return item
+
+
 def _string(value: Any, where: str, *, nonempty: bool = True) -> str:
     if not isinstance(value, str) or (nonempty and not value.strip()):
         raise V2Error(f"{where}: expected {'non-empty ' if nonempty else ''}string")
@@ -229,6 +318,19 @@ def _unique_ids(rows: Any, where: str, *, allow_empty: bool = False) -> list[str
     return result
 
 
+def _unique_strings(rows: Any, where: str, *, allow_empty: bool = False) -> list[str]:
+    if not isinstance(rows, list) or (not rows and not allow_empty):
+        qualifier = "possibly empty" if allow_empty else "non-empty"
+        raise V2Error(f"{where}: expected {qualifier} list")
+    result: list[str] = []
+    for index, value in enumerate(rows):
+        text = _string(value, f"{where}[{index}]")
+        if text in result:
+            raise V2Error(f"{where}: duplicate value {text}")
+        result.append(text)
+    return result
+
+
 def _row_ids(rows: Any, where: str, *, allow_empty: bool = False) -> set[str]:
     if not isinstance(rows, list) or (not rows and not allow_empty):
         qualifier = "possibly empty" if allow_empty else "non-empty"
@@ -279,6 +381,43 @@ def validate_file_binding(value: Any, root: Path, where: str) -> dict[str, Any]:
     if actual_size != size or actual_hash != digest:
         raise V2Error(f"{where}: bound size/hash differs from actual file")
     return {"path": path, "sha256": digest, "size": size}
+
+
+def _load_bound_json_bytes(value: Any, root: Path,
+                           where: str) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Parse and bind one stable JSON byte subject without a second path read."""
+    item = _exact(value, {"path", "sha256", "size"}, where)
+    path = _safe_relative_path(item["path"], root, f"{where}.path")
+    digest = _string(item["sha256"], f"{where}.sha256")
+    if not HEX64_RE.fullmatch(digest):
+        raise V2Error(f"{where}.sha256: expected lowercase 64-hex")
+    size = item["size"]
+    if isinstance(size, bool) or not isinstance(size, int) or size <= 0:
+        raise V2Error(f"{where}.size: expected positive integer")
+    try:
+        payload = read_stable_bytes(path, where)
+    except V1EnclosureError as exc:
+        raise V2Error(str(exc)) from exc
+    if len(payload) != size or hashlib.sha256(payload).hexdigest() != digest:
+        raise V2Error(f"{where}: bound size/hash differs from actual file")
+
+    def reject_duplicate_keys(
+            pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, child in pairs:
+            if key in result:
+                raise V2Error(f"{where}: duplicate JSON key {key!r}")
+            result[key] = child
+        return result
+
+    try:
+        parsed = json.loads(payload.decode("utf-8"),
+                            object_pairs_hook=reject_duplicate_keys)
+    except (UnicodeError, json.JSONDecodeError) as exc:
+        raise V2Error(f"{where}: cannot parse JSON: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise V2Error(f"{where}: expected a JSON object")
+    return parsed, {"path": path, "sha256": digest, "size": size}
 
 
 def _validate_cabled_parts(rows: Any) -> list[dict[str, Any]]:
@@ -742,6 +881,694 @@ def _validate_clearance_cases(rows: Any, scopes: Mapping[str, Any],
     return result
 
 
+def _positive_vec_or_none(value: Any, count: int, where: str) -> list[float] | None:
+    if value is None:
+        return None
+    if not isinstance(value, list) or len(value) != count:
+        raise V2Error(f"{where}: expected null or {count}-element list")
+    return [_number(axis, f"{where}[{index}]", positive=True)
+            for index, axis in enumerate(value)]
+
+
+def _nonnegative_vec_or_none(value: Any, count: int,
+                             where: str) -> list[float] | None:
+    if value is None:
+        return None
+    if not isinstance(value, list) or len(value) != count:
+        raise V2Error(f"{where}: expected null or {count}-element list")
+    return [_number(axis, f"{where}[{index}]", nonnegative=True)
+            for index, axis in enumerate(value)]
+
+
+def _validate_service_solid(value: Any, where: str) -> dict[str, Any]:
+    row = _exact(value, {"basis", "envelope_mm"}, where)
+    basis = _enum(row["basis"], SERVICE_DIMENSION_BASES, f"{where}.basis")
+    envelope = _positive_vec_or_none(row["envelope_mm"], 3,
+                                     f"{where}.envelope_mm")
+    if (envelope is None) != (basis in SERVICE_NONNUMERIC_BASES):
+        raise V2Error(
+            f"{where}: physical_observation/unknown require a null envelope; "
+            "dimension-bearing bases require a positive 3-D envelope")
+    return dict(row)
+
+
+def _validate_service_cable(value: Any, where: str) -> dict[str, Any]:
+    row = _exact(value, {
+        "basis", "diameter_mm", "straight_run_mm", "exit_direction",
+    }, where)
+    basis = _enum(row["basis"], SERVICE_DIMENSION_BASES, f"{where}.basis")
+    diameter = row["diameter_mm"]
+    if diameter is not None:
+        _number(diameter, f"{where}.diameter_mm", positive=True)
+    straight_run = row["straight_run_mm"]
+    if straight_run is not None:
+        _number(straight_run, f"{where}.straight_run_mm", nonnegative=True)
+    direction = row["exit_direction"]
+    if direction is not None:
+        _vec(direction, 3, f"{where}.exit_direction", nonzero=True)
+    numeric = diameter is not None and straight_run is not None and \
+        direction is not None
+    if numeric != (basis not in SERVICE_NONNUMERIC_BASES):
+        raise V2Error(
+            f"{where}: physical_observation/unknown require null cable values; "
+            "dimension-bearing bases require diameter, straight run, and a "
+            "nonzero exit direction")
+    return dict(row)
+
+
+def _validate_service_bend(value: Any, where: str) -> dict[str, Any]:
+    row = _exact(value, {"basis", "minimum_radius_mm", "swept_envelope_mm"},
+                 where)
+    basis = _enum(row["basis"], SERVICE_DIMENSION_BASES, f"{where}.basis")
+    radius = row["minimum_radius_mm"]
+    if radius is not None:
+        _number(radius, f"{where}.minimum_radius_mm", positive=True)
+    swept = _positive_vec_or_none(row["swept_envelope_mm"], 3,
+                                  f"{where}.swept_envelope_mm")
+    numeric = radius is not None and swept is not None
+    if numeric != (basis not in SERVICE_NONNUMERIC_BASES):
+        raise V2Error(
+            f"{where}: physical_observation/unknown require null bend values; "
+            "dimension-bearing bases require radius and swept envelope")
+    return dict(row)
+
+
+def _validate_service_sweep(value: Any, operations: Mapping[str, Any],
+                            where: str) -> dict[str, Any]:
+    row = _exact(value, {"basis", "method", "operation"}, where)
+    basis = _enum(row["basis"], {
+        "conservative_candidate", "physical_observation", "unknown",
+    }, f"{where}.basis")
+    method = _enum(row["method"], {
+        "linear_sweep_envelope", "physical_test", "not_modeled",
+    }, f"{where}.method")
+    operation = row["operation"]
+    if operation is not None:
+        operation = _identifier(operation, f"{where}.operation")
+        if operation not in operations:
+            raise V2Error(f"{where}.operation: unknown operation {operation}")
+    expected_basis = {
+        "linear_sweep_envelope": "conservative_candidate",
+        "physical_test": "physical_observation",
+    }
+    if method == "not_modeled":
+        if operation is not None or basis not in {
+                "physical_observation", "unknown"}:
+            raise V2Error(
+                f"{where}: not_modeled requires null operation and an "
+                "observation/unknown basis")
+    else:
+        if operation is None or basis != expected_basis[method]:
+            raise V2Error(
+                f"{where}: {method} requires a declared operation and "
+                f"basis {expected_basis[method]}")
+    return dict(row)
+
+
+def _validate_service_allowances(value: Any, where: str) -> dict[str, Any]:
+    row = _exact(value, {
+        "basis", "process_per_side_mm", "assembly_per_side_mm",
+    }, where)
+    basis = _enum(row["basis"], {
+        "conservative_candidate", "physical_observation", "unknown",
+    }, f"{where}.basis")
+    process = _nonnegative_vec_or_none(
+        row["process_per_side_mm"], 3, f"{where}.process_per_side_mm")
+    assembly = _nonnegative_vec_or_none(
+        row["assembly_per_side_mm"], 3, f"{where}.assembly_per_side_mm")
+    numeric = process is not None and assembly is not None
+    if numeric != (basis not in SERVICE_NONNUMERIC_BASES):
+        raise V2Error(
+            f"{where}: physical_observation/unknown require null allowances; "
+            "candidate bases require process and assembly vectors")
+    return dict(row)
+
+
+def _validate_service_envelopes(rows: Any, scopes: Mapping[str, Any],
+                                interfaces: Sequence[Mapping[str, Any]],
+                                operations: Mapping[str, Any],
+                                states: Mapping[str, Any],
+                                external: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate the full connector-to-cable service-envelope checklist.
+
+    The top-level field is additive for compatibility with already-published
+    schema-v2 documents. Once present, however, it must cover every edge or
+    top-side service interface whose v1 disposition is ``opening`` or
+    ``service_opening`` exactly once.
+    """
+    if rows is None:
+        return {}
+    _row_ids(rows, "config.service_envelopes")
+    interface_map = {row["id"]: row for row in interfaces}
+    required = {ident for ident, row in interface_map.items()
+                if row["disposition"] in SERVICE_INTERFACE_DISPOSITIONS}
+    result: dict[str, Any] = {}
+    covered: set[str] = set()
+    simultaneous_groups: dict[str, dict[str, Any]] = {}
+    for index, raw in enumerate(rows):
+        where = f"config.service_envelopes[{index}]"
+        row = _exact(raw, {
+            "id", "interface_id", "scope", "simultaneous_group",
+            "mated_in_states", "mated_during_operations",
+            "observation_subject", "connector_body", "mated_plug",
+            "strain_relief", "cable", "bend",
+            "installation_sweep", "allowances",
+        }, where)
+        ident = _identifier(row["id"], f"{where}.id")
+        interface_id = _identifier(row["interface_id"],
+                                   f"{where}.interface_id")
+        if interface_id not in required:
+            raise V2Error(
+                f"{where}.interface_id: {interface_id} is not a declared "
+                "connector/service opening")
+        if interface_id in covered:
+            raise V2Error(
+                f"config.service_envelopes: duplicate interface {interface_id}")
+        covered.add(interface_id)
+        scope = _identifier(row["scope"], f"{where}.scope")
+        if scope not in scopes:
+            raise V2Error(f"{where}.scope: unknown scope {scope}")
+        if not scopes[scope]["required"]:
+            raise V2Error(
+                f"{where}.scope: service-envelope scopes must be required")
+        simultaneous_group = _identifier(
+            row["simultaneous_group"], f"{where}.simultaneous_group")
+        mated_states = set(_unique_ids(
+            row["mated_in_states"], f"{where}.mated_in_states"))
+        if not mated_states:
+            raise V2Error(f"{where}.mated_in_states: expected non-empty list")
+        unknown_states = mated_states - set(states)
+        if unknown_states:
+            raise V2Error(
+                f"{where}.mated_in_states: unknown states "
+                f"{sorted(unknown_states)}")
+        mated_operations = set(_unique_ids(
+            row["mated_during_operations"],
+            f"{where}.mated_during_operations", allow_empty=True))
+        unknown_operations = mated_operations - set(operations)
+        if unknown_operations:
+            raise V2Error(
+                f"{where}.mated_during_operations: unknown operations "
+                f"{sorted(unknown_operations)}")
+        for operation_id in mated_operations:
+            operation = operations[operation_id]
+            endpoints = {operation["from_state"], operation["to_state"]}
+            if not endpoints.issubset(mated_states):
+                raise V2Error(
+                    f"{where}.mated_during_operations: {operation_id} does not "
+                    "remain mated in both endpoint states")
+            if operation["cable_condition"] != "pre_attached":
+                raise V2Error(
+                    f"{where}.mated_during_operations: {operation_id} must "
+                    "declare cable_condition pre_attached")
+            if operation["threading_permitted"]:
+                raise V2Error(
+                    f"{where}.mated_during_operations: {operation_id} cannot "
+                    "thread a cable that remains mated")
+            if operation["disconnecting_permitted"]:
+                raise V2Error(
+                    f"{where}.mated_during_operations: {operation_id} cannot "
+                    "permit disconnecting while the interface remains mated")
+        signature = {
+            "scope": scope,
+            "mated_in_states": frozenset(mated_states),
+            "mated_during_operations": frozenset(mated_operations),
+        }
+        previous = simultaneous_groups.get(simultaneous_group)
+        if previous is None:
+            simultaneous_groups[simultaneous_group] = signature
+        else:
+            for field in (
+                    "scope", "mated_in_states", "mated_during_operations"):
+                if signature[field] != previous[field]:
+                    raise V2Error(
+                        f"{where}.simultaneous_group: members of "
+                        f"{simultaneous_group} must share identical {field}")
+        observation_subject = row["observation_subject"]
+        if observation_subject is not None:
+            observation_subject = _identifier(
+                observation_subject, f"{where}.observation_subject")
+            if observation_subject not in external:
+                raise V2Error(
+                    f"{where}.observation_subject: unknown external subject "
+                    f"{observation_subject}")
+        _validate_service_solid(row["connector_body"],
+                                f"{where}.connector_body")
+        _validate_service_solid(row["mated_plug"], f"{where}.mated_plug")
+        _validate_service_solid(row["strain_relief"],
+                                f"{where}.strain_relief")
+        _validate_service_cable(row["cable"], f"{where}.cable")
+        _validate_service_bend(row["bend"], f"{where}.bend")
+        _validate_service_sweep(row["installation_sweep"], operations,
+                                f"{where}.installation_sweep")
+        _validate_service_allowances(row["allowances"],
+                                     f"{where}.allowances")
+        bases = {
+            row["connector_body"]["basis"], row["mated_plug"]["basis"],
+            row["strain_relief"]["basis"], row["cable"]["basis"],
+            row["bend"]["basis"], row["installation_sweep"]["basis"],
+            row["allowances"]["basis"],
+        }
+        has_observation = "physical_observation" in bases
+        if has_observation:
+            if observation_subject is None or external[observation_subject][
+                    "authority"]["grade"] != "first_article_observation":
+                raise V2Error(
+                    f"{where}.observation_subject: physical_observation rows "
+                    "require a bound first_article_observation external subject")
+        elif observation_subject is not None:
+            raise V2Error(
+                f"{where}.observation_subject: no physical_observation basis "
+                "uses this subject")
+        result[ident] = dict(row)
+    if covered != required:
+        raise V2Error(
+            "config.service_envelopes: once declared, coverage must equal every "
+            f"connector/service opening; missing={sorted(required - covered)}, "
+            f"extra={sorted(covered - required)}")
+    return result
+
+
+def _service_envelope_candidate_dimensions_complete(
+        row: Mapping[str, Any]) -> bool:
+    solids = (row["connector_body"], row["mated_plug"], row["strain_relief"])
+    if any(solid["envelope_mm"] is None for solid in solids):
+        return False
+    if row["cable"]["diameter_mm"] is None:
+        return False
+    if row["cable"]["straight_run_mm"] is None or \
+            row["cable"]["exit_direction"] is None:
+        return False
+    if row["bend"]["minimum_radius_mm"] is None or \
+            row["bend"]["swept_envelope_mm"] is None:
+        return False
+    if row["installation_sweep"]["method"] not in {
+            "linear_sweep_exact", "linear_sweep_envelope"}:
+        return False
+    allowances = row["allowances"]
+    return allowances["process_per_side_mm"] is not None and \
+        allowances["assembly_per_side_mm"] is not None
+
+
+def _load_shared_connector_receipt(value: Any, root: Path,
+                                   where: str) -> tuple[dict[str, Any],
+                                                        dict[str, Any],
+                                                        dict[str, Any]]:
+    """Reopen and independently recompile the pcb-design connector receipt."""
+    receipt, binding = _load_bound_json_bytes(value, root, where)
+    top = _exact(receipt, {
+        "schema", "kind", "status", "inputs", "semantic_sha256",
+        "subject_sha256", "assemblies", "simultaneous_groups", "unknowns",
+        "summary",
+    }, f"{where}.receipt")
+    if top["schema"] != 1 or isinstance(top["schema"], bool):
+        raise V2Error(f"{where}.receipt.schema: expected 1")
+    if top["kind"] != CONNECTOR_RECEIPT_KIND:
+        raise V2Error(
+            f"{where}.receipt.kind: expected {CONNECTOR_RECEIPT_KIND!r}")
+    _enum(top["status"], {"PASS", "INCOMPLETE"},
+          f"{where}.receipt.status")
+    for field in ("semantic_sha256", "subject_sha256"):
+        digest = _string(top[field], f"{where}.receipt.{field}")
+        if not HEX64_RE.fullmatch(digest):
+            raise V2Error(
+                f"{where}.receipt.{field}: expected lowercase 64-hex")
+    inputs = _exact(top["inputs"], {
+        "contract", "compiler", "evidence_files",
+    }, f"{where}.receipt.inputs")
+    contract_binding = validate_file_binding(
+        inputs["contract"], root, f"{where}.receipt.inputs.contract")
+    evidence_bindings = []
+    if not isinstance(inputs["evidence_files"], list):
+        raise V2Error(f"{where}.receipt.inputs.evidence_files: expected list")
+    for index, raw_evidence in enumerate(inputs["evidence_files"]):
+        evidence_where = \
+            f"{where}.receipt.inputs.evidence_files[{index}]"
+        evidence = _exact(raw_evidence, {
+            "id", "kind", "path", "sha256", "size",
+        }, evidence_where)
+        # The connector compiler owns id/kind semantics.  The enclosure
+        # consumer independently reopens the exact file identity without
+        # pretending those two receipt fields are part of a generic binding.
+        evidence_bindings.append(validate_file_binding({
+            "path": evidence["path"],
+            "sha256": evidence["sha256"],
+            "size": evidence["size"],
+        }, root, evidence_where))
+    if not isinstance(top["assemblies"], list) or not top["assemblies"]:
+        raise V2Error(f"{where}.receipt.assemblies: expected non-empty list")
+    if not isinstance(top["simultaneous_groups"], list):
+        raise V2Error(
+            f"{where}.receipt.simultaneous_groups: expected list")
+    if not isinstance(top["unknowns"], list):
+        raise V2Error(f"{where}.receipt.unknowns: expected list")
+
+    # The shared compiler is the only schema authority. Recompiling here closes
+    # the fake/stale-receipt seam without cloning its many connector fields into
+    # the enclosure skill.
+    compiler, loaded_compiler = _connector_compiler_module(inputs["compiler"])
+    try:
+        valid, findings = compiler.validate_receipt(receipt, root)
+    except Exception as exc:
+        raise V2Error(
+            f"{where}.receipt: shared connector regrade failed: {exc}") from exc
+    if not valid:
+        raise V2Error(
+            f"{where}.receipt: shared connector regrade failed: "
+            f"{'; '.join(findings)}")
+
+    def require_unchanged(binding_row: Mapping[str, Any], label: str) -> None:
+        """Reopen an input after regrade so a mid-grade edit cannot pass."""
+        try:
+            current = read_stable_bytes(
+                binding_row["path"], f"{label} post-regrade")
+        except V1EnclosureError as exc:
+            raise V2Error(
+                f"{where}.receipt: {label} changed during regrade: {exc}") \
+                from exc
+        if (len(current) != binding_row["size"] or
+                hashlib.sha256(current).hexdigest() !=
+                binding_row["sha256"]):
+            raise V2Error(
+                f"{where}.receipt: {label} changed during regrade")
+
+    # A checkout edit after the first binding check must not leave a successful
+    # report for contract, evidence, or compiler bytes that are no longer the
+    # named live authorities.
+    require_unchanged(contract_binding, "connector contract")
+    for index, evidence_binding in enumerate(evidence_bindings):
+        require_unchanged(
+            evidence_binding, f"connector evidence file {index}")
+    compiler_path = (Path(__file__).resolve().parents[3] /
+                     loaded_compiler["path"])
+    require_unchanged({
+        "path": compiler_path,
+        "sha256": loaded_compiler["sha256"],
+        "size": loaded_compiler["size"],
+    }, "connector compiler")
+    protected_inputs = {
+        "contract": contract_binding,
+        "evidence_files": evidence_bindings,
+        "compiler": {
+            "path": compiler_path,
+            "sha256": loaded_compiler["sha256"],
+            "size": loaded_compiler["size"],
+        },
+    }
+    return dict(receipt), binding, protected_inputs
+
+
+def _validate_interface_assemblies(value: Any, root: Path,
+                                   scopes: Mapping[str, Any],
+                                   interfaces: Sequence[Mapping[str, Any]],
+                                   operations: Mapping[str, Any],
+                                   states: Mapping[str, Any]) -> dict[str, Any]:
+    """Bind serviced openings to shared profiles without restating dimensions."""
+    if value is None:
+        return {}
+    top = _exact(value, {
+        "receipt", "mappings", "non_enclosure_refs", "group_state_bindings",
+    }, "config.interface_assemblies")
+    receipt, binding, input_bindings = _load_shared_connector_receipt(
+        top["receipt"], root, "config.interface_assemblies.receipt")
+
+    assemblies: dict[str, Mapping[str, Any]] = {}
+    ref_to_assembly: dict[str, str] = {}
+    ref_groups: dict[str, set[str]] = {}
+    ref_axes: dict[str, list[float]] = {}
+    for index, raw in enumerate(receipt["assemblies"]):
+        where = f"connector_receipt.assemblies[{index}]"
+        assembly = _mapping(raw, where)
+        ident = _identifier(assembly.get("id"), f"{where}.id")
+        if ident in assemblies:
+            raise V2Error(f"connector receipt has duplicate assembly {ident}")
+        instances = assembly.get("instances")
+        if not isinstance(instances, list) or not instances:
+            raise V2Error(f"{where}.instances: expected non-empty list")
+        for ii, raw_instance in enumerate(instances):
+            iw = f"{where}.instances[{ii}]"
+            instance = _exact(raw_instance, {
+                "ref", "mating_axis_board", "simultaneous_group_ids",
+            }, iw)
+            ref = _string(instance["ref"], f"{iw}.ref")
+            if ref in ref_to_assembly:
+                raise V2Error(
+                    f"connector receipt ref {ref} appears in multiple assemblies")
+            axis = _vec(instance["mating_axis_board"], 3,
+                        f"{iw}.mating_axis_board", nonzero=True)
+            groups = set(_unique_ids(
+                instance["simultaneous_group_ids"],
+                f"{iw}.simultaneous_group_ids", allow_empty=True))
+            ref_to_assembly[ref] = ident
+            ref_groups[ref] = groups
+            ref_axes[ref] = axis
+        assemblies[ident] = assembly
+
+    group_members: dict[str, set[str]] = {}
+    group_serviceable: dict[str, set[str]] = {}
+    group_required_states: dict[str, str] = {}
+    for index, raw in enumerate(receipt["simultaneous_groups"]):
+        where = f"connector_receipt.simultaneous_groups[{index}]"
+        group = _exact(raw, {
+            "id", "members", "required_state", "serviceable_member_refs",
+        }, where)
+        ident = _identifier(group["id"], f"{where}.id")
+        if ident in group_members:
+            raise V2Error(f"connector receipt has duplicate group {ident}")
+        members = set(_unique_strings(group["members"], f"{where}.members"))
+        serviceable = set(_unique_strings(
+            group["serviceable_member_refs"],
+            f"{where}.serviceable_member_refs"))
+        required_state = _identifier(
+            group["required_state"], f"{where}.required_state")
+        if not serviceable.issubset(members):
+            raise V2Error(
+                f"{where}.serviceable_member_refs: must be group members")
+        group_members[ident] = members
+        group_serviceable[ident] = serviceable
+        group_required_states[ident] = required_state
+
+    non_enclosure_refs: dict[str, dict[str, str]] = {}
+    if not isinstance(top["non_enclosure_refs"], list):
+        raise V2Error(
+            "config.interface_assemblies.non_enclosure_refs: expected list")
+    for index, raw in enumerate(top["non_enclosure_refs"]):
+        where = f"config.interface_assemblies.non_enclosure_refs[{index}]"
+        row = _exact(raw, {"ref", "disposition", "reason"}, where)
+        ref = _string(row["ref"], f"{where}.ref")
+        if ref not in ref_to_assembly:
+            raise V2Error(f"{where}.ref: unknown connector receipt ref {ref}")
+        if ref in non_enclosure_refs:
+            raise V2Error(
+                "config.interface_assemblies.non_enclosure_refs: duplicate "
+                f"connector ref {ref}")
+        disposition = _enum(
+            row["disposition"], {"no_enclosure_interface"},
+            f"{where}.disposition")
+        reason = _string(row["reason"], f"{where}.reason")
+        non_enclosure_refs[ref] = {
+            "ref": ref, "disposition": disposition, "reason": reason,
+        }
+
+    group_state_bindings: dict[str, dict[str, Any]] = {}
+    if not isinstance(top["group_state_bindings"], list):
+        raise V2Error(
+            "config.interface_assemblies.group_state_bindings: expected list")
+    for index, raw in enumerate(top["group_state_bindings"]):
+        where = f"config.interface_assemblies.group_state_bindings[{index}]"
+        row = _exact(raw, {"group_id", "enclosure_state_ids"}, where)
+        group_id = _identifier(row["group_id"], f"{where}.group_id")
+        if group_id in group_state_bindings:
+            raise V2Error(
+                "config.interface_assemblies.group_state_bindings: duplicate "
+                f"group {group_id}")
+        if group_id not in group_members:
+            raise V2Error(f"{where}.group_id: unknown connector group {group_id}")
+        enclosure_states = set(_unique_ids(
+            row["enclosure_state_ids"], f"{where}.enclosure_state_ids"))
+        unknown_states = enclosure_states - set(states)
+        if unknown_states:
+            raise V2Error(
+                f"{where}.enclosure_state_ids: unknown states "
+                f"{sorted(unknown_states)}")
+        group_state_bindings[group_id] = {
+            "group_id": group_id,
+            "connector_required_state": group_required_states[group_id],
+            "enclosure_state_ids": sorted(enclosure_states),
+        }
+
+    interface_map = {row["id"]: row for row in interfaces}
+    required = {ident for ident, row in interface_map.items()
+                if row["disposition"] in SERVICE_INTERFACE_DISPOSITIONS}
+    _row_ids(top["mappings"], "config.interface_assemblies.mappings",
+             allow_empty=True)
+    result: dict[str, Any] = {}
+    covered: set[str] = set()
+    group_signatures: dict[str, dict[str, Any]] = {}
+    covered_refs: set[str] = set()
+    for index, raw in enumerate(top["mappings"]):
+        where = f"config.interface_assemblies.mappings[{index}]"
+        row = _exact(raw, {
+            "id", "assembly_id", "interface_ids", "scope",
+            "mated_in_states", "mated_during_operations",
+        }, where)
+        ident = _identifier(row["id"], f"{where}.id")
+        assembly_id = _identifier(row["assembly_id"],
+                                  f"{where}.assembly_id")
+        if assembly_id not in assemblies:
+            raise V2Error(
+                f"{where}.assembly_id: unknown shared assembly {assembly_id}")
+        interface_ids = set(_unique_ids(
+            row["interface_ids"], f"{where}.interface_ids"))
+        unknown_interfaces = interface_ids - required
+        if unknown_interfaces:
+            raise V2Error(
+                f"{where}.interface_ids: not connector/service openings "
+                f"{sorted(unknown_interfaces)}")
+        duplicates = covered & interface_ids
+        if duplicates:
+            raise V2Error(
+                "config.interface_assemblies.mappings: duplicate opening "
+                f"coverage {sorted(duplicates)}")
+        scope = _identifier(row["scope"], f"{where}.scope")
+        if scope not in scopes:
+            raise V2Error(f"{where}.scope: unknown scope {scope}")
+        if not scopes[scope]["required"]:
+            raise V2Error(
+                f"{where}.scope: connector assembly scopes must be required")
+        mated_states = set(_unique_ids(
+            row["mated_in_states"], f"{where}.mated_in_states"))
+        unknown_states = mated_states - set(states)
+        if unknown_states:
+            raise V2Error(
+                f"{where}.mated_in_states: unknown states "
+                f"{sorted(unknown_states)}")
+        mated_operations = set(_unique_ids(
+            row["mated_during_operations"],
+            f"{where}.mated_during_operations", allow_empty=True))
+        unknown_operations = mated_operations - set(operations)
+        if unknown_operations:
+            raise V2Error(
+                f"{where}.mated_during_operations: unknown operations "
+                f"{sorted(unknown_operations)}")
+        for operation_id in mated_operations:
+            operation = operations[operation_id]
+            endpoints = {operation["from_state"], operation["to_state"]}
+            if not endpoints.issubset(mated_states):
+                raise V2Error(
+                    f"{where}.mated_during_operations: {operation_id} must "
+                    "remain mated in both endpoint states")
+            if operation["cable_condition"] != "pre_attached" or \
+                    operation["threading_permitted"] or \
+                    operation["disconnecting_permitted"]:
+                raise V2Error(
+                    f"{where}.mated_during_operations: {operation_id} requires "
+                    "pre_attached, no-threading, no-disconnect service")
+
+        mapping_refs: set[str] = set()
+        mapping_groups: set[str] = set()
+        for interface_id in interface_ids:
+            interface = interface_map[interface_id]
+            ref = _string(interface["ref"],
+                          f"config cad interface {interface_id}.ref")
+            if ref_to_assembly.get(ref) != assembly_id:
+                raise V2Error(
+                    f"{where}: interface {interface_id} ref {ref} is not an "
+                    f"instance of shared assembly {assembly_id}")
+            side = _string(interface["side"],
+                           f"config cad interface {interface_id}.side")
+            expected_axis = INTERFACE_SIDE_AXES.get(side)
+            if expected_axis is None:
+                raise V2Error(
+                    f"{where}: interface {interface_id} has unsupported service "
+                    f"side {side!r}")
+            axis_error = math.sqrt(sum(
+                (actual - expected) ** 2
+                for actual, expected in zip(ref_axes[ref], expected_axis)))
+            if axis_error > 1e-6:
+                raise V2Error(
+                    f"{where}: interface {interface_id} ref {ref} mating axis "
+                    f"contradicts enclosure side {side}")
+            mapping_refs.add(ref)
+            mapping_groups.update(ref_groups[ref])
+        covered_refs.update(mapping_refs)
+        signature = {
+            "scope": scope,
+            "mated_in_states": frozenset(mated_states),
+            "mated_during_operations": frozenset(mated_operations),
+        }
+        for group_id in mapping_groups:
+            if group_id not in group_members:
+                raise V2Error(
+                    f"{where}: instance names undeclared simultaneous group "
+                    f"{group_id}")
+            previous = group_signatures.get(group_id)
+            if previous is None:
+                group_signatures[group_id] = signature
+            elif previous != signature:
+                raise V2Error(
+                    f"{where}: simultaneous group {group_id} members must "
+                    "share scope, states, and operations")
+        covered.update(interface_ids)
+        result[ident] = dict(row)
+
+    if covered != required:
+        raise V2Error(
+            "config.interface_assemblies.mappings: coverage must equal every "
+            f"connector/service opening; missing={sorted(required - covered)}, "
+            f"extra={sorted(covered - required)}")
+    duplicate_accounting = covered_refs & set(non_enclosure_refs)
+    if duplicate_accounting:
+        raise V2Error(
+            "config.interface_assemblies: connector refs cannot be both "
+            "mapped and dispositioned as having no enclosure interface; "
+            f"duplicates={sorted(duplicate_accounting)}")
+    touched_groups: set[str] = set()
+    for group_id, serviceable in group_serviceable.items():
+        touched = group_members[group_id] & covered_refs
+        if not touched:
+            continue
+        touched_groups.add(group_id)
+        if not group_members[group_id].issubset(covered_refs):
+            raise V2Error(
+                f"config.interface_assemblies: simultaneous group {group_id} "
+                "omits a populated member from enclosure association")
+        if not serviceable.issubset(covered_refs):  # defensive subset detail
+            raise V2Error(
+                f"config.interface_assemblies: simultaneous group {group_id} "
+                "omits a required serviceable member")
+    accounted_refs = covered_refs | set(non_enclosure_refs)
+    receipt_refs = set(ref_to_assembly)
+    if accounted_refs != receipt_refs:
+        raise V2Error(
+            "config.interface_assemblies: mapped refs plus explicit "
+            "non_enclosure_refs must equal every connector receipt instance; "
+            f"missing={sorted(receipt_refs - accounted_refs)}, "
+            f"extra={sorted(accounted_refs - receipt_refs)}")
+    if set(group_state_bindings) != touched_groups:
+        raise V2Error(
+            "config.interface_assemblies.group_state_bindings: coverage must "
+            f"equal every mapped simultaneous group; missing="
+            f"{sorted(touched_groups - set(group_state_bindings))}, extra="
+            f"{sorted(set(group_state_bindings) - touched_groups)}")
+    for group_id, binding_row in group_state_bindings.items():
+        signature_states = group_signatures[group_id]["mated_in_states"]
+        bound_states = set(binding_row["enclosure_state_ids"])
+        if not bound_states.issubset(signature_states):
+            raise V2Error(
+                "config.interface_assemblies.group_state_bindings: group "
+                f"{group_id} binds an enclosure state in which its mappings "
+                "are not all declared mated")
+    return {
+        "receipt": receipt,
+        "receipt_binding": binding,
+        "input_bindings": input_bindings,
+        "mappings": result,
+        "non_enclosure_refs": non_enclosure_refs,
+        "group_state_bindings": group_state_bindings,
+    }
+
+
 def _physical_type(value: Any, where: str) -> str:
     result = _string(value, where)
     if result not in BUILTIN_PHYSICAL_TYPES and not CUSTOM_TEST_RE.fullmatch(result):
@@ -777,7 +1604,9 @@ def _validate_physical_specs(rows: Any, scopes: Mapping[str, Any],
 def _enforce_physical_obligations(specs: Mapping[str, Mapping[str, Any]],
                                   policy: Mapping[str, Any],
                                   parts: Mapping[str, Any],
-                                  cabled: Mapping[str, Any]) -> None:
+                                  cabled: Mapping[str, Any],
+                                  service_envelopes: Mapping[str, Any],
+                                  interface_assemblies: Mapping[str, Any]) -> None:
     """Ensure service and prewired claims acquire physical acceptance tests."""
     by_type: dict[str, list[Mapping[str, Any]]] = {}
     for row in specs.values():
@@ -793,6 +1622,15 @@ def _enforce_physical_obligations(specs: Mapping[str, Mapping[str, Any]],
                 f"requires PRINT_VERIFIED test {test_type} covering "
                 f"{sorted(subject_parts)}")
 
+    def require_scope(test_type: str, scope: str) -> None:
+        candidates = [row for row in by_type.get(test_type, [])
+                      if row["required_for"] == "PRINT_VERIFIED" and
+                      row["scope"] == scope]
+        if not candidates:
+            raise V2Error(
+                "config.physical_tests: connector service-envelope intent "
+                f"requires PRINT_VERIFIED test {test_type} in scope {scope}")
+
     pcb = next(ident for ident, row in parts.items() if row["role"] == "pcb")
     base = next(ident for ident, row in parts.items() if row["role"] == "base")
     lid = next(ident for ident, row in parts.items() if row["role"] == "lid")
@@ -804,6 +1642,12 @@ def _enforce_physical_obligations(specs: Mapping[str, Mapping[str, Any]],
             require("accessory_insertion_removal", {part})
             require("accessory_retention_rattle", {part})
             require("cable_strain_clearance", {part})
+    for row in service_envelopes.values():
+        require_scope("all_interfaces_mated", row["scope"])
+        require_scope("cable_strain_clearance", row["scope"])
+    for row in interface_assemblies.get("mappings", {}).values():
+        require_scope("all_interfaces_mated", row["scope"])
+        require_scope("cable_strain_clearance", row["scope"])
 
 
 def _collect_hex64(value: Any) -> set[str]:
@@ -1036,11 +1880,11 @@ def _state_and_motion_cross_checks(intent: Mapping[str, Any],
 
 def validate_config_v2(value: Mapping[str, Any], root: Path) -> dict[str, Any]:
     """Validate and cross-bind one complete schema-v2 configuration."""
-    top = _exact(value, {
+    top = _exact_optional(value, {
         "schema", "kind", "name", "mode", "subject", "external_subjects",
         "verification_scopes", "installed_parts", "fastener_policy",
         "fastener_groups", "clearance_cases", "physical_tests",
-    }, "config")
+    }, {"service_envelopes", "interface_assemblies"}, "config")
     if top["schema"] != 2 or isinstance(top["schema"], bool):
         raise V2Error("config.schema: expected 2")
     if top["kind"] != CONFIG_KIND:
@@ -1143,8 +1987,25 @@ def validate_config_v2(value: Mapping[str, Any], root: Path) -> dict[str, Any]:
               for row in intent["requirements"]["cabled_parts"]}
     clearances = _validate_clearance_cases(
         top["clearance_cases"], scopes, parts, operation_map, cabled, state_map)
+    service_envelopes = _validate_service_envelopes(
+        top.get("service_envelopes"), scopes, cad_design["interfaces"],
+        operation_map, state_map, external)
+    interface_assemblies = _validate_interface_assemblies(
+        top.get("interface_assemblies"), root, scopes,
+        cad_design["interfaces"], operation_map, state_map)
+    if service_envelopes and interface_assemblies:
+        raise V2Error(
+            "config: service_envelopes and interface_assemblies are mutually "
+            "exclusive; shared profiles may not be restated inline")
+    if interface_assemblies:
+        bindings["connector_assembly_receipt"] = \
+            interface_assemblies["receipt_binding"]
+        bindings["connector_assembly_inputs"] = \
+            interface_assemblies["input_bindings"]
     physical = _validate_physical_specs(top["physical_tests"], scopes, parts)
-    _enforce_physical_obligations(physical, policy, parts, cabled)
+    _enforce_physical_obligations(
+        physical, policy, parts, cabled, service_envelopes,
+        interface_assemblies)
     _state_and_motion_cross_checks(intent, parts, fasteners, policy)
 
     for unknown in intent["unknowns"]:
@@ -1156,8 +2017,16 @@ def validate_config_v2(value: Mapping[str, Any], root: Path) -> dict[str, Any]:
             raise V2Error(
                 f"intent cabled part {cabled_part}: absent from installed parts")
 
+    service_declared = "service_envelopes" in top or \
+        "interface_assemblies" in top
+    has_edge_openings = any(
+        row["disposition"] in SERVICE_INTERFACE_DISPOSITIONS
+        for row in cad_design["interfaces"])
     ceilings = scope_readiness_ceilings(
-        scopes, parts, external, intent["unknowns"])
+        scopes, parts, external, intent["unknowns"], service_envelopes,
+        interface_assemblies=interface_assemblies,
+        service_envelopes_declared=service_declared,
+        edge_openings_present=has_edge_openings)
     return {
         "config": dict(value),
         "intent": intent,
@@ -1168,6 +2037,8 @@ def validate_config_v2(value: Mapping[str, Any], root: Path) -> dict[str, Any]:
         "parts": parts,
         "fastener_groups": fasteners,
         "clearance_cases": clearances,
+        "service_envelopes": service_envelopes,
+        "interface_assemblies": interface_assemblies,
         "physical_tests": physical,
         "scope_readiness_ceilings": ceilings,
     }
@@ -1176,7 +2047,12 @@ def validate_config_v2(value: Mapping[str, Any], root: Path) -> dict[str, Any]:
 def scope_readiness_ceilings(scopes: Mapping[str, Any],
                              parts: Mapping[str, Any],
                              external: Mapping[str, Any],
-                             unknowns: Sequence[Mapping[str, Any]]) -> dict[str, str]:
+                             unknowns: Sequence[Mapping[str, Any]],
+                             service_envelopes: Mapping[str, Any] | None = None,
+                             interface_assemblies: Mapping[str, Any] | None = None,
+                             *, service_envelopes_declared: bool = True,
+                             edge_openings_present: bool = False,
+                             ) -> dict[str, str]:
     """Return conservative per-scope ceilings imposed by authority/unknowns."""
     ceilings = {ident: "THERMALLY_VERIFIED" for ident in scopes}
 
@@ -1197,6 +2073,7 @@ def scope_readiness_ceilings(scopes: Mapping[str, Any],
             "measured_unit": "THERMALLY_VERIFIED",
             "derived_measurement": "CAD_READY",
             "conservative_candidate": "CAD_READY",
+            "first_article_observation": "INCOMPLETE",
             "inspiration_only": "INCOMPLETE",
         }[grade]
         for scope in part["scopes"]:
@@ -1209,6 +2086,24 @@ def scope_readiness_ceilings(scopes: Mapping[str, Any],
             "THERMALLY_VERIFIED": "PRINT_VERIFIED",
         }[blocker]
         lower(unknown["scope"], ceiling)
+    # The additive service checklist intentionally has no external-geometry or
+    # sweep-receipt binding yet.  Even a numerically complete conservative row
+    # therefore remains an INCOMPLETE scope until IMP-242 lands that authority.
+    for service in (service_envelopes or {}).values():
+        lower(service["scope"], "INCOMPLETE")
+    # Shared connector receipts close the duplicated-dimension and PCB-service
+    # contract gaps. The current enclosure v2 tool still does not execute their
+    # full plug/tool/cable solids against generated enclosure geometry, so each
+    # mapped scope remains INCOMPLETE until a governing service verifier lands.
+    for mapping in (interface_assemblies or {}).get("mappings", {}).values():
+        lower(mapping["scope"], "INCOMPLETE")
+    # Structural backward compatibility keeps older v2 configs valid, but an
+    # omitted checklist may not preserve readiness for a serviced opening.
+    # Every scope in the authoritative required closure is capped until the
+    # service census is authored explicitly.
+    if not service_envelopes_declared and edge_openings_present:
+        for scope in required_scope_closure(scopes):
+            lower(scope, "INCOMPLETE")
     return ceilings
 
 
@@ -1339,6 +2234,8 @@ def validate_physical_evidence_v2(value: Mapping[str, Any],
 def _binding_for_report(binding: Any) -> Any:
     if isinstance(binding, Mapping):
         return {key: _binding_for_report(value) for key, value in binding.items()}
+    if isinstance(binding, (list, tuple)):
+        return [_binding_for_report(value) for value in binding]
     if isinstance(binding, Path):
         return str(binding)
     return binding
@@ -1379,6 +2276,9 @@ def _bound_input_paths(loaded: Mapping[str, Any]) -> list[Path]:
 def _cli_validate_config(args: argparse.Namespace) -> int:
     raw = load_yaml(args.config)
     loaded = validate_config_v2(raw, args.root)
+    opening_count = sum(
+        row["disposition"] in SERVICE_INTERFACE_DISPOSITIONS
+        for row in loaded["cad_design"]["interfaces"])
     report = {
         "schema": 2,
         "kind": VALIDATION_KIND,
@@ -1386,6 +2286,26 @@ def _cli_validate_config(args: argparse.Namespace) -> int:
         "config_semantic_sha256": semantic_sha256(raw),
         "bindings": _binding_for_report(loaded["bindings"]),
         "scope_readiness_ceilings": loaded["scope_readiness_ceilings"],
+        "service_envelope_coverage": {
+            "legacy_omitted": (
+                "service_envelopes" not in raw and
+                "interface_assemblies" not in raw),
+            "legacy_readiness_capped": (
+                "service_envelopes" not in raw and
+                "interface_assemblies" not in raw and opening_count > 0),
+            "declared": len(loaded["service_envelopes"]),
+            "shared_mappings": len(
+                loaded["interface_assemblies"].get("mappings", {})),
+            "shared_non_enclosure_refs": len(
+                loaded["interface_assemblies"].get(
+                    "non_enclosure_refs", {})),
+            "shared_receipt_status": (
+                loaded["interface_assemblies"].get("receipt", {}).get("status")),
+            "required_edge_openings": opening_count,
+            "candidate_dimension_census_complete": sum(
+                _service_envelope_candidate_dimensions_complete(row)
+                for row in loaded["service_envelopes"].values()),
+        },
     }
     _write_or_print(
         report, args.output,

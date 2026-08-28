@@ -93,6 +93,24 @@ Each row must be user-confirmed or linked to a `D#`. Emit machine-readable
 electrical facts into the appropriate rules files rather than leaving them only
 in prose.
 
+### Connector assembly facts
+
+For every connector that is mated, fastened, cabled, or serviced, read
+[connector-assembly-contract.md](connector-assembly-contract.md) and lock the
+complete assembly before placement approval. Identify the exact receptacle,
+supported mate, grip/coupling, fastening method, final tool and torque authority,
+reaction load path, boot/cable/straight-run/bend, ordered operations, required
+neighbor-populated states, and every tolerance source. Bind these once in
+`03_src/rules/connector_assemblies.yaml`; the current enclosure adapter and any
+future realized-board PCB consumer may not create another connector-service
+dimension authority. Existing enclosure-v1
+inline candidates remain migration-only and cannot close readiness. Unknown
+hardware, realized orientation, or operations remain explicit `unknown`
+evidence and compile `INCOMPLETE`. A render or bare-body gap cannot close this
+fact lock. If no connector is operated, use explicit `operated: false`, exact
+`connector-applicability-record` evidence, a scoped rationale, and empty
+assembly/group lists. That compiler N-A is not a realized-PCB geometry PASS.
+
 ### Foreign mating facts (`D-MATE` / `M-IMPORT`)
 
 If the board plugs into, bolts to, or aligns with hardware this repository did
@@ -217,6 +235,9 @@ Do not leave commission/architecture/sourcing until:
 - spec-critical functions have a sourcing classification;
 - selected parts have exact dossiers, escape evidence, and required layout
   precedents;
+- every operated connector has a compiled, non-vacuous assembly contract with
+  exact refs and no represented unknown required operation, or the project has
+  an exact evidence-backed no-operated-connectors N-A decision;
 - module-versus-bare-IC decisions are recorded;
 - source-phase rules/schema and module-first gates pass;
 - stage journal and live status beacon identify the next stage.

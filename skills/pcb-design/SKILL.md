@@ -155,6 +155,8 @@ validate exact inputs and applicability
    real gates, not decoration after machine checks.
 10. Start with the cheapest fabrication tier that satisfies locked facts.
     Advanced stackup/process capability needs evidence and a decision record.
+11. Treat every operated connector as a complete receptacle/mate/tool/cable
+    assembly. Bare-body or render clearance never proves fastening or service.
 
 ## Stage ownership
 
@@ -184,6 +186,7 @@ domains. References longer than 100 lines have a contents list.
 | Need | Read |
 |---|---|
 | Commission, fact locks, sourcing, module/tier decisions | [commission-and-scope.md](references/commission-and-scope.md) |
+| Connector mate/tool/cable facts and shared service contract | [connector-assembly-contract.md](references/connector-assembly-contract.md) |
 | Canonical stage/command/dependency map | [execution-graph.md](references/execution-graph.md) |
 | Backtrack, checkpoint, journal, or handoff | [lifecycle-and-backtrack.md](references/lifecycle-and-backtrack.md) |
 | Human investigation report | [project-reports.md](references/project-reports.md) |

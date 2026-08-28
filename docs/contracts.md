@@ -28,6 +28,9 @@ as procedure.
 - The enclosure fit registry distinguishes press, clearance, compliant, and
   bearing features; records signed total and per-side allowance; and never
   promotes CAD-only or reference geometry to a physical-fit result.
+- The connector assembly registry binds complete receptacle/mate/tool/cable
+  combinations and simultaneous service states; qualitative failures reject a
+  prior claim but never manufacture a replacement clearance or tolerance.
 - Fabricated-example media have a proof document that binds source and display
   hashes, records conversion or generation provenance, and separates visible
   observations or CAD views from release identity and qualification claims.

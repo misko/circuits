@@ -90,6 +90,15 @@ project-specific motion/physical checks, and recomputes the aggregate. This is
 a fail-closed rollout boundary, not a claim that ready publication is
 impossible in the future.
 
+Schema-v2 configs using shared `interface_assemblies` are also temporarily
+rejected at this release boundary. Their current-tree validator loads the exact
+PCB-design connector compiler, but the release format does not yet package and
+select that compiler plus its canonical contract/evidence closure as a
+release-local replay authority. Publishing such a config would make an
+immutable release depend on later live skill bytes. Keep the design candidate
+`INCOMPLETE` outside the immutable stream until that replay closure is
+implemented and independently reopened.
+
 Scopes describe independently governed installed deliverables.  Do not add an
 optional physical-validation scope merely to lower a legitimate `CAD_READY`
 claim.  Instead, let the evaluator assign the component's achieved readiness

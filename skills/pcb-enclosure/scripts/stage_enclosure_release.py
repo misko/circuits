@@ -417,6 +417,13 @@ def stage_release(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
 
         try:
             replay_value = composition.load_yaml(temporary / replay_config)
+            if isinstance(replay_value, Mapping) and \
+                    "interface_assemblies" in replay_value:
+                raise release_verify.ReleaseError(
+                    "shared connector interface_assemblies are not yet "
+                    "eligible for immutable enclosure publication: the "
+                    "release stream does not yet bundle their exact compiler "
+                    "and receipt replay closure")
             composition_loaded = composition.validate_config_v2(
                 replay_value, temporary)
         except (composition.V2Error, OSError) as exc:
