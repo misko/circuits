@@ -1,0 +1,246 @@
+schema: 1
+contract_id: usb-hub-3s-v3-v1.12-service-assemblies
+
+evidence_sources:
+  - {id: realized-floorplan, kind: placement-contract, path: 03_src/floorplan.yaml}
+  - {id: xt60-part-dossier, kind: part-dossier, path: 02_parts/XT60PW-M/part.yaml}
+  - {id: usb-a-part-dossier, kind: part-dossier, path: 02_parts/KH-AF90DIP-112/part.yaml}
+  - {id: usb-c-part-dossier, kind: part-dossier, path: 02_parts/TYPE-C-31-M-12A/part.yaml}
+  - {id: fuse-part-dossier, kind: part-dossier, path: 02_parts/3568/part.yaml}
+  - {id: switch-part-dossier, kind: part-dossier, path: 02_parts/SS12D07VG6-087/part.yaml}
+  - {id: amber-led-part-dossier, kind: part-dossier, path: 02_parts/KT-0805Y/part.yaml}
+  - {id: green-led-part-dossier, kind: part-dossier, path: 02_parts/KT-0805G/part.yaml}
+  - {id: xt60-fit-observation, kind: first-article-observation, path: 03_src/mechanical/reference/usb-hub-wall-lid-unbound-qualitative-xt60-fit-observation-2026-08-27.md}
+
+assemblies:
+  - id: xt60-input-service
+    instances:
+      - {ref: J1, mating_axis_board: [-1.0, 0.0, 0.0], simultaneous_group_ids: [all-power-ports]}
+    receptacle:
+      manufacturer: AMASS
+      mpn: XT60PW-M
+      mounting_method: right-angle through-hole board receptacle
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [xt60-part-dossier], rationale: "The selected board part is named, but exact installed seating and complete received-body geometry are not qualified for enclosure service."}
+    mate:
+      manufacturer: null
+      mpn: null
+      part_kind: received XT60 cable plug assembly
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [xt60-fit-observation], rationale: "The photograph identifies a received mate qualitatively but not its MPN, overmold, termination, heat-shrink, or geometry."}
+    interface:
+      mating_plane_offset_mm: null
+      minimum_exposure_mm: null
+      exposure_setback_allowance_mm: null
+      minimum_service_clearance_mm: null
+      orientation_source_id: realized-floorplan
+      evidence: {grade: unknown, source_ids: [realized-floorplan, xt60-fit-observation], rationale: "The west-facing design axis is recorded, but realized exposure, process setback, and complete service clearance remain unmeasured."}
+    grip:
+      kind: null
+      across_flats_mm: null
+      outer_diameter_mm: null
+      axial_length_mm: null
+      evidence: {grade: unknown, source_ids: [xt60-fit-observation], rationale: "The received hand-grip body and removal purchase are not dimensioned."}
+    fastening:
+      method: null
+      thread_designation: null
+      final_tightening: null
+      evidence: {grade: unknown, source_ids: [xt60-fit-observation], rationale: "Insertion, latch, and final seating method and force are not qualified."}
+    tool:
+      kind: null
+      identifier: null
+      model_source_id: null
+      head_envelope_mm: null
+      approach: null
+      effective_sweep_radius_mm: null
+      counter_tool_required: null
+      evidence: {grade: unknown, source_ids: [xt60-fit-observation], rationale: "Finger and optional tool approach volumes are not measured."}
+    torque:
+      required: null
+      minimum_nm: null
+      maximum_nm: null
+      evidence: {grade: unknown, source_ids: [], rationale: "The exact mate assembly process and allowable insertion load are unselected."}
+    reaction:
+      method: null
+      load_path: null
+      evidence: {grade: unknown, source_ids: [xt60-fit-observation], rationale: "The board, solder-joint, hand, and base reaction path is not demonstrated."}
+    cable:
+      kind: received high-current lead
+      manufacturer: null
+      mpn: null
+      outer_diameter_mm: null
+      straight_run_mm: null
+      minimum_bend_radius_mm: null
+      exit: null
+      evidence: {grade: unknown, source_ids: [xt60-fit-observation], rationale: "The photograph proves a rising and flaring termination but supplies no cable OD, straight run, exit vector, or bend radius."}
+    operations:
+      - id: mate-service-remove
+        sequence: 1
+        kind: service
+        required: null
+        with_neighbors_populated: null
+        start_state: all-power-disconnected
+        end_state: all-power-connected
+        evidence: {grade: unknown, source_ids: [xt60-fit-observation], rationale: "Mating, lid service, cable bend, and removal have not been executed with all required neighboring ports populated."}
+    tolerances:
+      - id: xt60-complete-service-stack
+        applies_to: receptacle seating, PCB edge, mate, rear termination, cable, base and roof registration, and print process
+        effect: exposure_setback
+        minus_mm: null
+        plus_mm: null
+        evidence: {grade: unknown, source_ids: [realized-floorplan, xt60-fit-observation], rationale: "The photograph rejects the predecessor skirt but supplies no replacement one-sided exposure or service allowance."}
+
+  - id: usb-a-output-service
+    instances:
+      - {ref: J2, mating_axis_board: [1.0, 0.0, 0.0], simultaneous_group_ids: [all-power-ports]}
+      - {ref: J3, mating_axis_board: [1.0, 0.0, 0.0], simultaneous_group_ids: [all-power-ports]}
+      - {ref: J4, mating_axis_board: [1.0, 0.0, 0.0], simultaneous_group_ids: [all-power-ports]}
+    receptacle:
+      manufacturer: Jing Extension of the Electronic Co.
+      mpn: KH-AF90DIP-112
+      mounting_method: right-angle through-hole USB-A receptacle
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [usb-a-part-dossier], rationale: "The fitted receptacle identity is selected, but installed seating and complete service geometry are not qualified."}
+    mate:
+      manufacturer: null
+      mpn: null
+      part_kind: USB-A cable plug assembly
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [], rationale: "No exact supported USB-A plug, overmold, termination, or cable assembly is selected."}
+    interface:
+      mating_plane_offset_mm: null
+      minimum_exposure_mm: null
+      exposure_setback_allowance_mm: null
+      minimum_service_clearance_mm: null
+      orientation_source_id: realized-floorplan
+      evidence: {grade: unknown, source_ids: [realized-floorplan, usb-a-part-dossier], rationale: "The east-facing design axes are recorded, but realized mouth exposure and complete three-port service clearance are unqualified."}
+    grip: {kind: null, across_flats_mm: null, outer_diameter_mm: null, axial_length_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "Supported overmold grip geometry is unselected."}}
+    fastening: {method: null, thread_designation: null, final_tightening: null, evidence: {grade: unknown, source_ids: [], rationale: "Latch, seating, and extraction process are unqualified."}}
+    tool: {kind: null, identifier: null, model_source_id: null, head_envelope_mm: null, approach: null, effective_sweep_radius_mm: null, counter_tool_required: null, evidence: {grade: unknown, source_ids: [], rationale: "Finger and optional release-tool service volumes are unmeasured."}}
+    torque: {required: null, minimum_nm: null, maximum_nm: null, evidence: {grade: unknown, source_ids: [], rationale: "Insertion and extraction force authority is absent."}}
+    reaction: {method: null, load_path: null, evidence: {grade: unknown, source_ids: [], rationale: "Board, solder-joint, hand, and enclosure reaction paths are unproven."}}
+    cable: {kind: null, manufacturer: null, mpn: null, outer_diameter_mm: null, straight_run_mm: null, minimum_bend_radius_mm: null, exit: null, evidence: {grade: unknown, source_ids: [], rationale: "Exact cable OD, straight run, exit, strain relief, and bend are unselected."}}
+    operations:
+      - {id: mate-service-remove, sequence: 1, kind: service, required: null, with_neighbors_populated: null, start_state: all-power-disconnected, end_state: all-power-connected, evidence: {grade: unknown, source_ids: [], rationale: "Simultaneous three-port mating and service with J1 and J5 populated are not demonstrated."}}
+    tolerances:
+      - {id: usb-a-complete-service-stack, applies_to: "receptacle seating, PCB edge, three mates, terminations, cables, roof registration, and print process", effect: exposure_setback, minus_mm: null, plus_mm: null, evidence: {grade: unknown, source_ids: [realized-floorplan, usb-a-part-dossier], rationale: "The complete one-sided exposure and service stack is not closed."}}
+
+  - id: usb-c-output-service
+    instances:
+      - {ref: J5, mating_axis_board: [0.0, 1.0, 0.0], simultaneous_group_ids: [all-power-ports]}
+    receptacle:
+      manufacturer: HRO
+      mpn: TYPE-C-31-M-12A
+      mounting_method: right-angle edge-mounted USB-C receptacle
+      model_source_id: null
+      body_envelope_mm: null
+      evidence: {grade: unknown, source_ids: [usb-c-part-dossier], rationale: "The exact fitted receptacle is selected, but installed seating and service geometry are not qualified."}
+    mate: {manufacturer: null, mpn: null, part_kind: USB-C cable plug assembly, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "No exact supported USB-C plug, overmold, termination, or cable is selected."}}
+    interface: {mating_plane_offset_mm: null, minimum_exposure_mm: null, exposure_setback_allowance_mm: null, minimum_service_clearance_mm: null, orientation_source_id: realized-floorplan, evidence: {grade: unknown, source_ids: [realized-floorplan, usb-c-part-dossier], rationale: "The south-facing design axis is recorded, but realized mouth exposure and complete service clearance remain unqualified."}}
+    grip: {kind: null, across_flats_mm: null, outer_diameter_mm: null, axial_length_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "Supported overmold grip geometry is unselected."}}
+    fastening: {method: null, thread_designation: null, final_tightening: null, evidence: {grade: unknown, source_ids: [], rationale: "Latch, seating, and extraction process are unqualified."}}
+    tool: {kind: null, identifier: null, model_source_id: null, head_envelope_mm: null, approach: null, effective_sweep_radius_mm: null, counter_tool_required: null, evidence: {grade: unknown, source_ids: [], rationale: "Finger and optional release-tool service volumes are unmeasured."}}
+    torque: {required: null, minimum_nm: null, maximum_nm: null, evidence: {grade: unknown, source_ids: [], rationale: "Insertion and extraction force authority is absent."}}
+    reaction: {method: null, load_path: null, evidence: {grade: unknown, source_ids: [], rationale: "Board, solder-joint, hand, and enclosure reaction paths are unproven."}}
+    cable: {kind: null, manufacturer: null, mpn: null, outer_diameter_mm: null, straight_run_mm: null, minimum_bend_radius_mm: null, exit: null, evidence: {grade: unknown, source_ids: [], rationale: "Exact cable OD, straight run, exit, strain relief, and bend are unselected."}}
+    operations:
+      - {id: mate-service-remove, sequence: 1, kind: service, required: null, with_neighbors_populated: null, start_state: all-power-disconnected, end_state: all-power-connected, evidence: {grade: unknown, source_ids: [], rationale: "Mating and service with J1-J4 populated are not demonstrated."}}
+    tolerances:
+      - {id: usb-c-complete-service-stack, applies_to: "receptacle seating, PCB edge, mate, termination, cable, roof registration, and print process", effect: exposure_setback, minus_mm: null, plus_mm: null, evidence: {grade: unknown, source_ids: [realized-floorplan, usb-c-part-dossier], rationale: "The complete one-sided exposure and service stack is not closed."}}
+
+  - id: blade-fuse-service
+    instances:
+      - {ref: F1, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [fuse-service]}
+    receptacle: {manufacturer: Keystone Electronics, mpn: "3568", mounting_method: through-hole MINI blade fuse holder, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [fuse-part-dossier], rationale: "The holder identity is selected, but the received holder, installed fuse, and seating geometry are not service-qualified."}}
+    mate: {manufacturer: null, mpn: null, part_kind: MINI blade fuse, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [fuse-part-dossier], rationale: "The exact installed fuse and extraction body are not selected."}}
+    interface: {mating_plane_offset_mm: null, minimum_exposure_mm: null, exposure_setback_allowance_mm: null, minimum_service_clearance_mm: null, orientation_source_id: realized-floorplan, evidence: {grade: unknown, source_ids: [realized-floorplan, fuse-part-dossier], rationale: "The top service axis is recorded, but installed height and extraction clearance are unknown."}}
+    grip: {kind: null, across_flats_mm: null, outer_diameter_mm: null, axial_length_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "Finger or extraction-tool grip geometry is unknown."}}
+    fastening: {method: null, thread_designation: null, final_tightening: null, evidence: {grade: unknown, source_ids: [], rationale: "Fuse insertion and retention method and force are unqualified."}}
+    tool: {kind: null, identifier: null, model_source_id: null, head_envelope_mm: null, approach: null, effective_sweep_radius_mm: null, counter_tool_required: null, evidence: {grade: unknown, source_ids: [], rationale: "The selected fuse puller or finger envelope is unknown."}}
+    torque: {required: null, minimum_nm: null, maximum_nm: null, evidence: {grade: unknown, source_ids: [], rationale: "The service force rather than threaded torque remains unqualified."}}
+    reaction: {method: null, load_path: null, evidence: {grade: unknown, source_ids: [], rationale: "Holder, PCB, hand, and enclosure reaction paths are unproven."}}
+    cable: {kind: null, manufacturer: null, mpn: null, outer_diameter_mm: null, straight_run_mm: null, minimum_bend_radius_mm: null, exit: null, evidence: {grade: unknown, source_ids: [], rationale: "Cable applicability and surrounding harness obstacles have not been reviewed."}}
+    operations:
+      - {id: inspect-replace, sequence: 1, kind: service, required: null, with_neighbors_populated: null, start_state: fuse-installed, end_state: fuse-serviced, evidence: {grade: unknown, source_ids: [], rationale: "Inspection, removal, and replacement through the roof opening are not demonstrated."}}
+    tolerances:
+      - {id: fuse-service-stack, applies_to: "holder seating, installed fuse, extraction tool, roof registration, and print process", effect: exposure_setback, minus_mm: null, plus_mm: null, evidence: {grade: unknown, source_ids: [realized-floorplan, fuse-part-dossier], rationale: "The complete top-access service stack is not closed."}}
+
+  - id: power-switch-service
+    instances:
+      - {ref: SW1, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [switch-service]}
+    receptacle: {manufacturer: XKB Industrial Precision, mpn: SS12D07VG6-087, mounting_method: through-hole slide switch, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [switch-part-dossier], rationale: "The candidate switch identity is recorded, but the received VG4 versus VG6 variant, installed body, and actuator geometry are not qualified."}}
+    mate: {manufacturer: null, mpn: null, part_kind: user finger or service tool, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "The supported actuation finger or tool envelope is not defined."}}
+    interface: {mating_plane_offset_mm: null, minimum_exposure_mm: null, exposure_setback_allowance_mm: null, minimum_service_clearance_mm: null, orientation_source_id: realized-floorplan, evidence: {grade: unknown, source_ids: [realized-floorplan, switch-part-dossier], rationale: "The top actuation axis is recorded, but installed actuator travel and clearance are unknown."}}
+    grip: {kind: null, across_flats_mm: null, outer_diameter_mm: null, axial_length_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "Actuator purchase and guard clearance are unknown."}}
+    fastening: {method: null, thread_designation: null, final_tightening: null, evidence: {grade: unknown, source_ids: [], rationale: "Actuation and service method and force are unqualified."}}
+    tool: {kind: null, identifier: null, model_source_id: null, head_envelope_mm: null, approach: null, effective_sweep_radius_mm: null, counter_tool_required: null, evidence: {grade: unknown, source_ids: [], rationale: "Finger or tool approach and sweep are not measured."}}
+    torque: {required: null, minimum_nm: null, maximum_nm: null, evidence: {grade: unknown, source_ids: [], rationale: "Actuation force authority is absent."}}
+    reaction: {method: null, load_path: null, evidence: {grade: unknown, source_ids: [], rationale: "Switch, PCB, finger, and enclosure reaction paths are unproven."}}
+    cable: {kind: null, manufacturer: null, mpn: null, outer_diameter_mm: null, straight_run_mm: null, minimum_bend_radius_mm: null, exit: null, evidence: {grade: unknown, source_ids: [], rationale: "Cable applicability and internal obstacles around the switch remain unreviewed."}}
+    operations:
+      - {id: actuate-service, sequence: 1, kind: service, required: null, with_neighbors_populated: null, start_state: switch-idle, end_state: switch-actuated, evidence: {grade: unknown, source_ids: [], rationale: "Actuation and service through the roof opening are not demonstrated."}}
+    tolerances:
+      - {id: switch-service-stack, applies_to: "switch seating, actuator travel, hand or tool, roof registration, and print process", effect: exposure_setback, minus_mm: null, plus_mm: null, evidence: {grade: unknown, source_ids: [realized-floorplan, switch-part-dossier], rationale: "The complete top-access service stack is not closed."}}
+
+  - id: amber-status-view
+    instances:
+      - {ref: D8, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [amber-indicator-service]}
+    receptacle: {manufacturer: KENTO, mpn: KT-0805Y, mounting_method: top-side surface-mount indicator, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [amber-led-part-dossier], rationale: "The indicator is selected, but installed body, emission centre, and viewing geometry are not qualified."}}
+    mate: {manufacturer: null, mpn: null, part_kind: viewer sightline, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "Required user sightline, viewing cone, and ambient conditions are undefined."}}
+    interface: {mating_plane_offset_mm: null, minimum_exposure_mm: null, exposure_setback_allowance_mm: null, minimum_service_clearance_mm: null, orientation_source_id: realized-floorplan, evidence: {grade: unknown, source_ids: [realized-floorplan, amber-led-part-dossier], rationale: "The top-facing board location is recorded, but roof registration and optical clearance are unknown."}}
+    grip: {kind: null, across_flats_mm: null, outer_diameter_mm: null, axial_length_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "No physical grip is expected, but the optical service cell is not yet qualified."}}
+    fastening: {method: null, thread_designation: null, final_tightening: null, evidence: {grade: unknown, source_ids: [], rationale: "No mating fastener is expected, but applicability remains unevidenced in this connector schema."}}
+    tool: {kind: null, identifier: null, model_source_id: null, head_envelope_mm: null, approach: null, effective_sweep_radius_mm: null, counter_tool_required: null, evidence: {grade: unknown, source_ids: [], rationale: "No service tool is expected, but viewing and inspection access are unqualified."}}
+    torque: {required: null, minimum_nm: null, maximum_nm: null, evidence: {grade: unknown, source_ids: [], rationale: "Torque applicability is not yet dispositioned by an evidence-backed operation."}}
+    reaction: {method: null, load_path: null, evidence: {grade: unknown, source_ids: [], rationale: "No contact reaction is expected, but the viewing operation is not qualified."}}
+    cable: {kind: null, manufacturer: null, mpn: null, outer_diameter_mm: null, straight_run_mm: null, minimum_bend_radius_mm: null, exit: null, evidence: {grade: unknown, source_ids: [], rationale: "Cable applicability is not yet dispositioned for this viewing aperture."}}
+    operations:
+      - {id: inspect, sequence: 1, kind: service, required: null, with_neighbors_populated: null, start_state: indicator-covered, end_state: indicator-viewed, evidence: {grade: unknown, source_ids: [], rationale: "Visibility through the exact printed roof has not been physically demonstrated."}}
+    tolerances:
+      - {id: amber-view-stack, applies_to: "LED seating, emission centre, roof registration, aperture print process, and required sightline", effect: exposure_setback, minus_mm: null, plus_mm: null, evidence: {grade: unknown, source_ids: [realized-floorplan, amber-led-part-dossier], rationale: "The complete optical service stack is not closed."}}
+
+  - id: green-status-view
+    instances:
+      - {ref: D9, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [green-indicator-service]}
+      - {ref: D10, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [green-indicator-service]}
+      - {ref: D11, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [green-indicator-service]}
+      - {ref: D12, mating_axis_board: [0.0, 0.0, 1.0], simultaneous_group_ids: [green-indicator-service]}
+    receptacle: {manufacturer: KENTO, mpn: KT-0805G, mounting_method: top-side surface-mount indicator, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [green-led-part-dossier], rationale: "The indicators are selected, but installed bodies, emission centres, and viewing geometry are not qualified."}}
+    mate: {manufacturer: null, mpn: null, part_kind: viewer sightline, model_source_id: null, body_envelope_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "Required user sightlines, viewing cones, and ambient conditions are undefined."}}
+    interface: {mating_plane_offset_mm: null, minimum_exposure_mm: null, exposure_setback_allowance_mm: null, minimum_service_clearance_mm: null, orientation_source_id: realized-floorplan, evidence: {grade: unknown, source_ids: [realized-floorplan, green-led-part-dossier], rationale: "The top-facing board locations are recorded, but roof registration and optical clearances are unknown."}}
+    grip: {kind: null, across_flats_mm: null, outer_diameter_mm: null, axial_length_mm: null, evidence: {grade: unknown, source_ids: [], rationale: "No physical grip is expected, but the optical service cell is not yet qualified."}}
+    fastening: {method: null, thread_designation: null, final_tightening: null, evidence: {grade: unknown, source_ids: [], rationale: "No mating fastener is expected, but applicability remains unevidenced in this connector schema."}}
+    tool: {kind: null, identifier: null, model_source_id: null, head_envelope_mm: null, approach: null, effective_sweep_radius_mm: null, counter_tool_required: null, evidence: {grade: unknown, source_ids: [], rationale: "No service tool is expected, but viewing and inspection access are unqualified."}}
+    torque: {required: null, minimum_nm: null, maximum_nm: null, evidence: {grade: unknown, source_ids: [], rationale: "Torque applicability is not yet dispositioned by an evidence-backed operation."}}
+    reaction: {method: null, load_path: null, evidence: {grade: unknown, source_ids: [], rationale: "No contact reaction is expected, but the viewing operation is not qualified."}}
+    cable: {kind: null, manufacturer: null, mpn: null, outer_diameter_mm: null, straight_run_mm: null, minimum_bend_radius_mm: null, exit: null, evidence: {grade: unknown, source_ids: [], rationale: "Cable applicability is not yet dispositioned for these viewing apertures."}}
+    operations:
+      - {id: inspect, sequence: 1, kind: service, required: null, with_neighbors_populated: null, start_state: indicators-covered, end_state: indicators-viewed, evidence: {grade: unknown, source_ids: [], rationale: "Visibility through the exact printed roof has not been physically demonstrated for all four indicators."}}
+    tolerances:
+      - {id: green-view-stack, applies_to: "LED seating, emission centres, roof registration, aperture print process, and required sightlines", effect: exposure_setback, minus_mm: null, plus_mm: null, evidence: {grade: unknown, source_ids: [realized-floorplan, green-led-part-dossier], rationale: "The complete optical service stack is not closed."}}
+
+simultaneous_groups:
+  - id: all-power-ports
+    members: [J1, J2, J3, J4, J5]
+    required_state: all_connected
+    serviceable_member_refs: [J1, J2, J3, J4, J5]
+  - id: fuse-service
+    members: [F1]
+    required_state: service
+    serviceable_member_refs: [F1]
+  - id: switch-service
+    members: [SW1]
+    required_state: service
+    serviceable_member_refs: [SW1]
+  - id: amber-indicator-service
+    members: [D8]
+    required_state: service
+    serviceable_member_refs: [D8]
+  - id: green-indicator-service
+    members: [D9, D10, D11, D12]
+    required_state: service
+    serviceable_member_refs: [D9, D10, D11, D12]

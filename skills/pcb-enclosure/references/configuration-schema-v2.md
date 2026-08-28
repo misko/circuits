@@ -200,9 +200,17 @@ connector-service authority. The current validator also does not instantiate
 or sweep complete plug/tool/cable solids against generated enclosure geometry.
 Mapped scopes therefore remain `INCOMPLETE` until both the legacy projection
 and governing service verifier are composed. Physical qualification remains
-required. A shared-receipt config is not eligible for immutable enclosure
-publication until its exact connector compiler/receipt replay closure is
-bundled and independently reopened.
+required. A shared-receipt config is eligible only for the current
+all-`INCOMPLETE` immutable-candidate boundary when the prepared release mirrors
+the exact receipt-owned contract and evidence paths beneath the fixed
+`source/connector-assembly/` virtual project root, copies the exact receipt
+below `verification/`, and binds the exact compiler at
+`tooling/connector_assembly_contract.py` with replay-tool role
+`connector_assembly_contract`. The recorded paths inside the receipt remain
+unchanged: the release virtualizes filesystem resolution, not source identity.
+Publication and reopen validation reject a missing or extra closure file,
+compiler role/path substitution, nested binding drift, and a receipt that does
+not deterministically recompile from those release-local bytes.
 
 ### Inline migration form
 

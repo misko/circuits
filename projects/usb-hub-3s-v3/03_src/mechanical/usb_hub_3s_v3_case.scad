@@ -1,10 +1,12 @@
 /*
  * USB Hub 3S v3 v1.12 enclosure — reviewed authored OpenSCAD authority.
  *
- * The complete PCB is retained on H1-H4 before the one-piece wall lid lowers
- * vertically over it.  Five edge-connector notches remain open through the
- * bottom of their side skirts for that full-body motion.  Four independent
- * base posts receive the top-down case screws and never retain the PCB.
+ * The complete PCB is retained on H1-H4 before the roof-only lid lowers
+ * vertically onto four independent base posts.  The lid has no skirts or
+ * side walls, so there is no vertical skirt barrier along the declared J1-J5
+ * mating axes during lid installation and service.  Unknown mate,
+ * termination, cable, grip, bend, and tool volumes are not proven clear.  The
+ * four top-down case screws never retain the PCB.
  *
  * The fixed selector part="installed_case" emits only the installed enclosure
  * solids for collision checks.  Printable selectors are base, lid, and
@@ -23,23 +25,17 @@ case_holes = [[-70, -51], [-70, 51], [70, -51], [70, 51]];
 xy_clearance = 8;
 wall = 2.4;
 floor = 2.4;
-roof = 2.4;
+// A 3.2 mm upward-only plate is 2.37x as stiff in simple bending as the
+// predecessor's 2.4 mm roof.  The Z=27 bearing/clearance plane is unchanged.
+// Printed warp and handling flex still require a first-article test.
+roof = 3.2;
 corner_radius = 4.4;
 board_bottom_z = 9.5;
 inside_top_z = 27;
 seam_z = 10.7;
 process_minimum_wall = 1.2;
-skirt_bottom_clearance = 0.3;
-skirt_bottom_z = floor + skirt_bottom_clearance;
-skirt_plane_x = board_size[0] / 2 + 3.5;
-skirt_plane_y = board_size[1] / 2 + 3.5;
-skirt_span_x = 130.4;
-skirt_span_y = 92.4;
 case_post_top_z = inside_top_z;
 roof_bearing_z = inside_top_z;
-skirt_roof_overlap = 0.3;
-skirt_height = roof_bearing_z + skirt_roof_overlap - skirt_bottom_z;
-skirt_center_z = skirt_bottom_z + skirt_height / 2;
 
 boss_d = 9;
 case_post_d = 9;
@@ -90,8 +86,6 @@ vents = [
     [20, -23, 4, 20, 2, 5, "x"]
 ];
 vent_service_ligament_min = 1.2;
-side_notch_ligament_min = 1.2;
-post_skirt_clearance_min = 0.3;
 
 $fn = 48;
 eps = 0.05;
@@ -101,54 +95,12 @@ inner_size = [
     board_size[1] + 2 * xy_clearance
 ];
 outer_size = [inner_size[0] + 2 * wall, inner_size[1] + 2 * wall];
+// The service roof stops at the exact PCB outline.  Only four localized
+// diagonal lugs reach the closure posts, away from the J1-J5 connector banks.
+roof_main_size = board_size;
+closure_lug_d = 9;
+closure_lug_candidate_corridor_min = 1.2;
 overall_z = inside_top_z + roof;
-
-function side_span(side) =
-    side == "north" || side == "south" ? skirt_span_x : skirt_span_y;
-
-function port_u(port) =
-    port[2] == "north" || port[2] == "south" ? port[4] : port[5];
-
-function skirt_transform(side) =
-    side == "north" ?
-        [[1,0,0,0], [0,0,-1,skirt_plane_y+wall/2],
-         [0,1,0,skirt_center_z], [0,0,0,1]] :
-    side == "south" ?
-        [[1,0,0,0], [0,0,-1,-skirt_plane_y+wall/2],
-         [0,1,0,skirt_center_z], [0,0,0,1]] :
-    side == "east" ?
-        [[0,0,-1,skirt_plane_x+wall/2], [1,0,0,0],
-         [0,1,0,skirt_center_z], [0,0,0,1]] :
-        [[0,0,1,-skirt_plane_x-wall/2], [1,0,0,0],
-         [0,1,0,skirt_center_z], [0,0,0,1]];
-
-function transform_point(matrix, point) = [
-    matrix[0][0]*point[0] + matrix[0][1]*point[1] +
-        matrix[0][2]*point[2] + matrix[0][3],
-    matrix[1][0]*point[0] + matrix[1][1]*point[1] +
-        matrix[1][2]*point[2] + matrix[1][3],
-    matrix[2][0]*point[0] + matrix[2][1]*point[1] +
-        matrix[2][2]*point[2] + matrix[2][3]
-];
-
-function vector_error(a, b) =
-    sqrt(pow(a[0]-b[0], 2) + pow(a[1]-b[1], 2) + pow(a[2]-b[2], 2));
-
-function skirt_expected_center(side) =
-    side == "north" ? [0, skirt_plane_y, skirt_center_z] :
-    side == "south" ? [0, -skirt_plane_y, skirt_center_z] :
-    side == "east" ? [skirt_plane_x, 0, skirt_center_z] :
-    [-skirt_plane_x, 0, skirt_center_z];
-
-function opening_expected_center(port) =
-    port[2] == "north" ? [port[4], skirt_plane_y, port[6]] :
-    port[2] == "south" ? [port[4], -skirt_plane_y, port[6]] :
-    port[2] == "east" ? [skirt_plane_x, port[5], port[6]] :
-    [-skirt_plane_x, port[5], port[6]];
-
-function opening_local_center(port) = [
-    port_u(port), port[6] - skirt_center_z, wall/2
-];
 
 function bounds_clearance(center_a, half_a, center_b, half_b) =
     let(dx = max(abs(center_a[0] - center_b[0]) - half_a[0] - half_b[0], 0),
@@ -164,41 +116,30 @@ function vent_slot_half_size(vent) =
     vent[6] == "x" ? [vent[3]/2, vent[4]/2]
                      : [vent[4]/2, vent[3]/2];
 
-side_ports = [for (port = ports)
-    if (port[3] == "opening" && port[2] != "top") port];
 top_service_ports = [for (port = ports)
     if (port[3] == "service_opening" && port[2] == "top") port];
-skirt_sides = ["north", "south", "east", "west"];
+edge_ports = [for (port = ports)
+    if (port[3] == "opening" && port[2] != "top") port];
 
-skirt_center_errors = [for (side = skirt_sides)
-    vector_error(
-        transform_point(skirt_transform(side), [0, 0, wall/2]),
-        skirt_expected_center(side))];
-skirt_vertical_errors = [for (side = skirt_sides)
-    let(origin = transform_point(skirt_transform(side), [0, 0, wall/2]),
-        vertical = transform_point(skirt_transform(side), [0, 1, wall/2]))
-    vector_error(
-        [vertical[0]-origin[0], vertical[1]-origin[1],
-         vertical[2]-origin[2]], [0, 0, 1])];
-opening_center_errors = [for (port = side_ports)
-    vector_error(
-        transform_point(skirt_transform(port[2]), opening_local_center(port)),
-        opening_expected_center(port))];
-opening_top_errors = [for (port = side_ports)
-    abs(transform_point(skirt_transform(port[2]), [
-        port_u(port), port[6]-skirt_center_z+port[9]/2, wall/2
-    ])[2] - (port[6]+port[9]/2))];
-opening_bottom_errors = [for (port = side_ports)
-    abs(transform_point(skirt_transform(port[2]), [
-        port_u(port), -skirt_height/2-eps, wall/2
-    ])[2] - (skirt_bottom_z-eps))];
-opening_top_ligaments = [for (port = side_ports)
-    inside_top_z - (port[6] + port[9]/2)];
-opening_end_ligaments = [for (port = side_ports)
-    side_span(port[2])/2 - abs(port_u(port)) - port[8]/2];
-opening_pair_ligaments = [for (a = side_ports) for (b = side_ports)
-    if (a[1] < b[1] && a[2] == b[2])
-        abs(port_u(a)-port_u(b)) - (a[8]+b[8])/2];
+function lug_is_on_port_side(point, side) =
+    side == "east" ? point[0] > 0 :
+    side == "west" ? point[0] < 0 :
+    side == "north" ? point[1] > 0 : point[1] < 0;
+
+function port_bank_coordinate(port) =
+    port[2] == "north" || port[2] == "south" ? port[4] : port[5];
+
+function lug_bank_coordinate(point, side) =
+    side == "north" || side == "south" ? point[0] : point[1];
+
+roof_lug_candidate_corridor_clearances = [
+    for (port = edge_ports)
+        for (point = case_holes)
+            if (lug_is_on_port_side(point, port[2]))
+                abs(port_bank_coordinate(port) -
+                    lug_bank_coordinate(point, port[2])) -
+                    port[8]/2 - closure_lug_d/2
+];
 
 vent_service_ligaments = [
     for (vent = vents)
@@ -209,50 +150,31 @@ vent_service_ligaments = [
                     [port[4], port[5]], [port[8]/2, port[9]/2])
 ];
 
-post_skirt_clearance_x =
-    abs(case_holes[2][0]) - skirt_span_x/2 - case_post_d/2;
-post_skirt_clearance_y =
-    abs(case_holes[2][1]) - skirt_span_y/2 - case_post_d/2;
-
-assert(wall + 1e-6 >= process_minimum_wall,
-       "active skirt wall is below the declared process minimum");
+assert(floor + 1e-6 >= process_minimum_wall,
+       "base floor is below the declared process minimum");
 assert(roof + 1e-6 >= process_minimum_wall,
        "roof is below the declared process minimum");
 assert(abs(case_post_top_z-roof_bearing_z) < 1e-6,
        "case posts and lid roof must meet at the intended bearing plane");
-assert(skirt_roof_overlap > 0,
-       "lid skirts must overlap the roof to remain one printable solid");
-assert(max(skirt_center_errors) < 1e-6,
-       "skirt transform does not center its declared wall plane");
-assert(max(skirt_vertical_errors) < 1e-6,
-       "skirt transform does not map local vertical to global +Z");
-assert(max(opening_center_errors) < 1e-6,
-       "side notch center does not match its declared tangent/Z coordinates");
-assert(max(opening_top_errors) < 1e-6,
-       "side notch top does not match its declared top");
-assert(max(opening_bottom_errors) < 1e-6,
-       "side notch does not reach through the skirt bottom");
-assert(min(opening_top_ligaments) + 1e-6 >= process_minimum_wall,
-       "side notch leaves too little material below the roof");
-assert(min(opening_end_ligaments) + 1e-6 >= side_notch_ligament_min,
-       "side notch leaves too little material at a skirt end");
-assert(min(opening_pair_ligaments) + 1e-6 >= side_notch_ligament_min,
-       "adjacent side notches leave too little skirt ligament");
-assert(post_skirt_clearance_x + 1e-6 >= post_skirt_clearance_min,
-       "north/south skirt endpoint is too close to a case post");
-assert(post_skirt_clearance_y + 1e-6 >= post_skirt_clearance_min,
-       "east/west skirt endpoint is too close to a case post");
+assert(abs(roof_main_size[0]-board_size[0]) < 1e-6 &&
+       abs(roof_main_size[1]-board_size[1]) < 1e-6,
+       "main roof service edges must stop at the exact PCB outline");
+assert(min(roof_lug_candidate_corridor_clearances) + 1e-6 >=
+       closure_lug_candidate_corridor_min,
+       "corner closure lug crowds a legacy connector-opening corridor");
 assert(min(vent_service_ligaments) + 1e-6 >=
        vent_service_ligament_min,
        "vent-to-service-opening ligament is below declaration");
 
-echo(str("LID_SKIRT_CENSUS sides=", len(skirt_sides),
-         " bottom_open_notches=", len(side_ports),
-         " max_center_error_mm=", max(opening_center_errors),
-         " min_top_ligament_mm=", min(opening_top_ligaments),
-         " min_pair_ligament_mm=", min(opening_pair_ligaments),
-         " min_post_clearance_mm=",
-         min(post_skirt_clearance_x, post_skirt_clearance_y)));
+echo(str("ROOF_ONLY_LID_CENSUS side_walls=0 edge_openings=",
+         len(edge_ports),
+         " roof_bottom_z_mm=", roof_bearing_z,
+         " roof_thickness_mm=", roof,
+         " main_roof_xy_mm=", roof_main_size,
+         " board_edge_overhang_mm=0",
+         " localized_corner_lugs=", len(case_holes),
+         " candidate_corridor_min_mm=",
+         min(roof_lug_candidate_corridor_clearances)));
 echo(str("VENT_SERVICE_LIGAMENT_CENSUS pairs=",
          len(vent_service_ligaments),
          " conservative_min_mm=", min(vent_service_ligaments),
@@ -262,6 +184,22 @@ module rounded_rect_2d(size, radius) {
     rr = min(radius, min(size[0], size[1]) / 2 - 0.01);
     offset(r = rr)
         square([size[0] - 2*rr, size[1] - 2*rr], center = true);
+}
+
+module roof_profile_2d() {
+    union() {
+        rounded_rect_2d(roof_main_size, corner_radius);
+        for (point = case_holes) {
+            sx = point[0] < 0 ? -1 : 1;
+            sy = point[1] < 0 ? -1 : 1;
+            hull() {
+                translate([sx*(board_size[0]/2-corner_radius),
+                           sy*(board_size[1]/2-corner_radius)])
+                    circle(d = 2*corner_radius);
+                translate(point) circle(d = closure_lug_d);
+            }
+        }
+    }
 }
 
 module access_profile_2d(w, h, shape) {
@@ -277,23 +215,6 @@ module access_profile_2d(w, h, shape) {
         ]);
     } else {
         square([w, h], center = true);
-    }
-}
-
-module bottom_open_profile_2d(w, h, shape, bottom_y) {
-    if (shape == "arch") {
-        flat = min(w / 3, 4.0);
-        slope = min((w - flat) / 2, h / 2);
-        polygon([
-            [-w/2, bottom_y], [w/2, bottom_y],
-            [w/2, h/2-slope], [flat/2, h/2],
-            [-flat/2, h/2], [-w/2, h/2-slope]
-        ]);
-    } else {
-        polygon([
-            [-w/2, bottom_y], [w/2, bottom_y],
-            [w/2, h/2], [-w/2, h/2]
-        ]);
     }
 }
 
@@ -343,24 +264,6 @@ module base_part() {
     }
 }
 
-module flat_skirt(side) {
-    span = side_span(side);
-    linear_extrude(height = wall)
-        difference() {
-            square([span, skirt_height], center = true);
-            for (port = side_ports)
-                if (port[2] == side)
-                    translate([port_u(port), port[6]-skirt_center_z])
-                        bottom_open_profile_2d(
-                            port[8], port[9], port[7],
-                            skirt_bottom_z-port[6]-eps);
-        }
-}
-
-module assembled_skirt(side) {
-    multmatrix(skirt_transform(side)) flat_skirt(side);
-}
-
 module lid_fastener_cuts() {
     bearing_z = overall_z - screw_head_recess_depth;
     for (point = case_holes) {
@@ -373,15 +276,9 @@ module lid_fastener_cuts() {
 
 module lid_assembled() {
     difference() {
-        union() {
-            translate([0, 0, roof_bearing_z])
-                linear_extrude(height = roof)
-                    rounded_rect_2d(outer_size, corner_radius);
-            assembled_skirt("north");
-            assembled_skirt("south");
-            assembled_skirt("east");
-            assembled_skirt("west");
-        }
+        translate([0, 0, roof_bearing_z])
+            linear_extrude(height = roof)
+                roof_profile_2d();
         top_access_cuts();
         lid_fastener_cuts();
     }
@@ -446,7 +343,7 @@ module base_review() {
     if (show_reference_board) reference_board();
 }
 
-module closed_review() {
+module installed_review() {
     installed_case();
     if (show_reference_board) reference_board();
 }
@@ -457,5 +354,5 @@ else if (part == "insert_coupon") insert_coupon();
 else if (part == "installed_case") installed_case();
 else if (part == "assembly") assembly();
 else if (part == "base_review") base_review();
-else if (part == "closed_review") closed_review();
+else if (part == "installed_review") installed_review();
 else assert(false, str("Unknown enclosure part selector: ", part));

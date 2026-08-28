@@ -318,6 +318,13 @@ def package(config_path: Path, root: Path, build_dir: Path, output: Path,
     if set(part_by_name) != set(config["cad"]["printable_parts"]) or \
             len(part_records) != len(part_by_name):
         raise EnclosureError("generation.json part census differs from config")
+    if authored is not None and (
+            installed_case_record.get("canonicalization") !=
+            "ascii-stl-facet-order-v1" or any(
+                row.get("canonicalization") != "ascii-stl-facet-order-v1"
+                for row in part_records)):
+        raise EnclosureError(
+            "generation.json lacks canonical authored mesh identities")
     custom_parts = [part for part in config["cad"]["printable_parts"]
                     if part not in BUILT_IN_PRINTABLE_PARTS]
     selector_contract = generation.get("selector_contract")
@@ -335,12 +342,6 @@ def package(config_path: Path, root: Path, build_dir: Path, output: Path,
                 selector_contract.get("probe_result") not in {"EMPTY", "REJECTED"}:
             raise EnclosureError(
                 "generation.json lacks the closed authored-selector contract")
-        if installed_case_record.get("canonicalization") != \
-                "ascii-stl-facet-order-v1" or any(
-                    row.get("canonicalization") != "ascii-stl-facet-order-v1"
-                    for row in part_records):
-            raise EnclosureError(
-                "generation.json lacks canonical custom mesh identities")
     mesh_check = next((row for row in checks
                        if row.get("name") == "printable_meshes"), None)
     mesh_evidence = (mesh_check or {}).get("evidence", {}).get("parts", {})

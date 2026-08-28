@@ -91,7 +91,7 @@ def _canonicalize_ascii_stl(path: Path) -> None:
             path, f"generated ASCII STL {path}").decode("ascii")
     except UnicodeDecodeError as exc:
         raise EnclosureError(
-            f"custom authored STL is not OpenSCAD ASCII: {path}") from exc
+            f"authored STL is not OpenSCAD ASCII: {path}") from exc
     pending: list[tuple[float, float, float]] = []
     triangles: list[tuple[tuple[float, float, float], ...]] = []
     for line in source.splitlines():
@@ -375,7 +375,11 @@ def generate(config_path: Path, root: Path, build_dir: Path,
         executable, source, build_dir, config["cad"]["printable_parts"],
         protected_inputs)
         if authored is not None else None)
-    canonicalize = selector_contract is not None
+    # OpenSCAD's ASCII-STL facet order is not byte-stable for every authored
+    # model, including authored entrypoints that use only the standard part
+    # selectors.  Canonicalize every authored export; tying this to the custom
+    # selector probe leaves ordinary base/lid/coupon releases nondeterministic.
+    canonicalize = authored is not None
     records = []
     for part in parts:
         if part not in config["cad"]["printable_parts"]:

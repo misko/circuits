@@ -1,0 +1,42 @@
+mpn: USB4105-GF-A-120
+manufacturer: GCT
+type: usb_type_c_receptacle_power_only
+mates: receptacle
+datasheet: {doc_id: USB4105, revision: "B 2023-12-18", url: "https://gct.co/files/drawings/usb4105.pdf", sha256: fb331fbabee8392ed2937ed757c1610cb0f174b84625147c0b580a18eea8c0e5, fetched: 2026-08-13}
+package: right-angle top-mount Type-C receptacle, 16 active contacts, 1.20mm shell stakes
+footprint: pluto_rx2_8way_v5:GCT_USB4105_GF_A_120
+escape: {style: connector, pitch: 0.5, tier_required: jlc_2layer_default, checked: "escape_check.py 2026-08-13"}
+pins: {A1: GND, A4: VBUS, A5: CC1, A6: DP, A7: DM, A8: SBU1, A9: VBUS, A12: GND, B1: GND, B4: VBUS, B5: CC2, B6: DP, B7: DM, B8: SBU2, B9: VBUS, B12: GND, SH: SHIELD}
+pin_aliases:
+  A1:  {schematic: "1",  footprint: A1,  fused: true, why: "GCT realizes A1 and B12 as coincident manufacturer-defined GND lands; the TSX chip API still owns A1 as a separate logical contact.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; exact board A1/B12 pad coordinates; 03_tscircuit/parity_padmap.txt"}
+  A4:  {schematic: "2",  footprint: A4,  fused: true, why: "GCT realizes A4 and B9 as coincident manufacturer-defined VBUS lands; the TSX chip API still owns A4 as a separate logical contact.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; exact board A4/B9 pad coordinates; 03_tscircuit/parity_padmap.txt"}
+  A5:  {schematic: "3",  footprint: A5,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+  A6:  {schematic: "4",  footprint: A6,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+  A7:  {schematic: "5",  footprint: A7,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+  A8:  {schematic: "6",  footprint: A8,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+  A9:  {schematic: "7",  footprint: A9,  fused: true, why: "GCT realizes A9 and B4 as coincident manufacturer-defined VBUS lands; the TSX chip API still owns A9 as a separate logical contact.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; exact board A9/B4 pad coordinates; 03_tscircuit/parity_padmap.txt"}
+  A12: {schematic: "8",  footprint: A12, fused: true, why: "GCT realizes A12 and B1 as coincident manufacturer-defined GND lands; the TSX chip API still owns A12 as a separate logical contact.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; exact board A12/B1 pad coordinates; 03_tscircuit/parity_padmap.txt"}
+  B1:  {schematic: "9",  footprint: B1,  fused: true, why: "GCT realizes B1 and A12 as coincident manufacturer-defined GND lands; the TSX chip API still owns B1 as a separate logical contact.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; exact board B1/A12 pad coordinates; 03_tscircuit/parity_padmap.txt"}
+  B4:  {schematic: "10", footprint: B4,  fused: true, why: "GCT realizes B4 and A9 as coincident manufacturer-defined VBUS lands; the TSX chip API still owns B4 as a separate logical contact.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; exact board B4/A9 pad coordinates; 03_tscircuit/parity_padmap.txt"}
+  B5:  {schematic: "11", footprint: B5,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+  B6:  {schematic: "12", footprint: B6,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+  B7:  {schematic: "13", footprint: B7,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+  B8:  {schematic: "14", footprint: B8,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+  B9:  {schematic: "15", footprint: B9,  fused: true, why: "GCT realizes B9 and A4 as coincident manufacturer-defined VBUS lands; the TSX chip API still owns B9 as a separate logical contact.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; exact board B9/A4 pad coordinates; 03_tscircuit/parity_padmap.txt"}
+  B12: {schematic: "16", footprint: B12, fused: true, why: "GCT realizes B12 and A1 as coincident manufacturer-defined GND lands; the TSX chip API still owns B12 as a separate logical contact.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; exact board B12/A1 pad coordinates; 03_tscircuit/parity_padmap.txt"}
+  SH:  {schematic: "17", footprint: SH,  why: "The TSX chip API numbers its 17 logical ports while the realized connector uses GCT's alphanumeric contact identities.", evidence: "GCT USB4105 Rev B contact table and recommended PCB layout; 03_tscircuit/parity_padmap.txt"}
+limits: {vbus_collective_current: 5A, gnd_collective_current: 6.25A, voltage_rating: 48VDC, contact_resistance_initial_max: 40mOhm, durability: 20000_cycles, operating_temperature: -40C_to_85C}
+gotchas:
+  - "This board is a sink-only power consumer: use separate 5.1k Rd resistors on CC1 and CC2; never short the two CC pins."
+  - "A6/B6, A7/B7 and A8/B8 remain explicit no-connects because v5 has no USB data or alternate mode."
+  - "Retain all duplicated VBUS/GND contacts and all shell stakes in the custom footprint."
+  - "The exact KiCad 10 GCT USB4105 STEP is retained project-local at 03_src/lib/3dmodels/USB_C_Receptacle_GCT_USB4105-xx-A_16P_TopMnt_Horizontal.step, sha256 6338ce740fa231c2d3dcc6384e0576994a47240a312a21413cb85d76990a69a0, so headless rendering does not depend on an unresolved KICAD10_3DMODEL_DIR token."
+verified: "contact table, recommended PCB layout, ratings, suffix/stake option and mating-cycle rating on manufacturer drawing sheet 1 read from GCT USB4105 Rev B on 2026-08-13"
+sourcing: {lcsc: C5184243}
+layout:
+  source: "GCT USB4105 Revision B recommended PCB layout"
+  reviewed: 2026-08-13
+  notes: "Mount at a board edge; route all VBUS contacts together into F1, all grounds/shell to the ground structure, and route CC1/CC2 independently through U4 to their own Rd."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "GCT USB4105 Revision B recommended PCB layout", why: "manufacturer drawing fixes contacts, stakes, peg and edge datum"}
+  - {tier: 2, reached: false, artifact: "an open-hardware USB4105-GF-A-120 board with published copper and fabrication outputs", why: "no exact-part routed reference was captured during the source-stage search; placement must retain the manufacturer edge datum and re-derive local copper"}

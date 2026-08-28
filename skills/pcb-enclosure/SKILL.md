@@ -130,8 +130,13 @@ changes in `co_design`; reject stale subject bindings in `derived`.
     `07_enclosure_releases/`, then reopen it with
     `verify_enclosure_release.py`. The current publisher deliberately refuses
     `CAD_READY` and higher until it can consume and independently regrade a
-    governing schema-v2 scope receipt. Never write enclosure artifacts to or
-    reseal `07_releases/`.
+    governing schema-v2 scope receipt. For `interface_assemblies`, mirror the
+    receipt's exact contract and evidence paths beneath
+    `source/connector-assembly/`, copy the exact receipt below `verification/`,
+    bind the exact compiler as replay-tool role `connector_assembly_contract`,
+    and let the publisher independently regrade only those release-local
+    bytes. Never rewrite the receipt's recorded source paths, write enclosure
+    artifacts to, or reseal `07_releases/`.
 
 The built-in v1 OpenSCAD engine supports one axis-aligned rectangular PCB
 outline. It fails closed on cutouts, rounded/nonrectangular contours, or
@@ -212,7 +217,9 @@ clearly labeled draft. Immutable publication is a separate operation governed
 by `stage_enclosure_release.py` and the rules in `release-stream.md`. Its
 current deployment boundary is INCOMPLETE immutable candidates only; a ready
 or order-ready enclosure must remain unpublished until governing scoped
-regrade is implemented.
+regrade is implemented. A shared connector receipt is publishable at that
+INCOMPLETE boundary only with the exact recursive release-local closure and
+compiler role defined there.
 
 ## Interpret status without inflation
 

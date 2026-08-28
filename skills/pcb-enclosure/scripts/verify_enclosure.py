@@ -266,6 +266,16 @@ def _mesh_check(config_path: Path, config: Mapping[str, Any],
         part_by_name = {row["part"]: row for row in part_rows}
         if len(part_by_name) != len(part_rows) or set(part_by_name) != set(parts):
             raise EnclosureError("generation.json printable-part census differs from config")
+        authored = config["cad"].get("source")
+        installed_case = generation.get("installed_case")
+        if authored is not None and (
+                not isinstance(installed_case, Mapping) or
+                installed_case.get("canonicalization") !=
+                "ascii-stl-facet-order-v1" or any(
+                    row.get("canonicalization") != "ascii-stl-facet-order-v1"
+                    for row in part_rows)):
+            raise EnclosureError(
+                "generation.json lacks canonical authored mesh identities")
         mount_by_ref: dict[str, list[list[float]]] = {}
         for row in interface["board"]["mounting_holes"]:
             mount_by_ref.setdefault(row["ref"], []).append(row["position_mm"])

@@ -214,7 +214,7 @@ only a printed USB Hub coupon can advance this observation to
 | Missing authority | Separate receptacle body, mate, rear termination, cable OD/bend/straight run/exit, simultaneous state, operation sweep, print allowance, and assembly allowance |
 | Numeric result | **None.** The photograph supplies no defensible dimension or allowance and does not prove that +2.0 mm/side itself is too small. |
 | Disposition | Reject the opening-only assumption. A roof-only candidate may remove the witnessed skirt constraint, but still requires cable-strain/exit, simultaneous-mating, lid-motion, stiffness, and physical-fit tests. |
-| Authority | [Dated user feedback review](../projects/usb-hub-3s-v3/08_reviews/2026-08-27_wall-lid_external-user_xt60-fit.md) |
+| Authority | [Unbound qualitative XT60 fit observation](../projects/usb-hub-3s-v3/03_src/mechanical/reference/usb-hub-wall-lid-unbound-qualitative-xt60-fit-observation-2026-08-27.md) |
 | Limits | Open sides do not prove roof-edge, post, screw, bend, chafe, ingress, touch, thermal, or production fit. No numeric value from this row may seed a future tolerance. |
 
 ## Choosing a future starting tolerance

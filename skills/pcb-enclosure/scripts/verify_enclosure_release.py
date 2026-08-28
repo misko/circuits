@@ -22,6 +22,12 @@ from datetime import date as Date
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Mapping, Sequence
 
+# Verification must be read-only with respect to the release even when this
+# script itself is executed from release-local ``tooling/``.  Set the runtime
+# flag before importing any sibling replay module; caller environment and
+# ``python -B`` are useful defense in depth, but are not part of the contract.
+sys.dont_write_bytecode = True
+
 try:
     import yaml
 except ImportError as exc:  # pragma: no cover - environment failure
@@ -53,6 +59,10 @@ ALLOWED_PAYLOAD_ROOTS = {
     "README.md", "authorities", "cad", "meshes", "package", "renders",
     "source", "tooling", "verification",
 }
+CONNECTOR_COMPILER_ROLE = composition.CONNECTOR_COMPILER_ROLE
+CONNECTOR_COMPILER_RELEASE_PATH = composition.CONNECTOR_COMPILER_RELEASE_PATH
+CONNECTOR_COMPILER_SOURCE_PATH = composition.CONNECTOR_COMPILER_SOURCE_PATH
+CONNECTOR_REPLAY_ROOT = composition.CONNECTOR_RELEASE_PROJECT_ROOT
 
 
 class ReleaseError(ValueError):
@@ -495,6 +505,137 @@ def validate_replay_config(
             "authority_bindings": sorted(required)}
 
 
+def validate_connector_replay_closure(
+        release_dir: Path, config: Mapping[str, Any],
+        replay_tools: Sequence[Mapping[str, Any]],
+        payload_by_path: Mapping[str, Mapping[str, Any]],
+        ) -> dict[str, Any] | None:
+    """Reopen the exact receipt-owned connector replay closure.
+
+    Receipt paths remain byte-for-byte project-relative source identities.  A
+    release mirrors those inputs beneath one fixed virtual project root; no
+    config or manifest field gets to choose another root.  The compiler path is
+    similarly virtualized only through one exact manifest tool role/path while
+    its hash and size must equal the receipt's canonical source binding.
+    """
+    if "interface_assemblies" not in config:
+        return None
+    interface_assemblies = config["interface_assemblies"]
+    if not isinstance(interface_assemblies, Mapping):
+        raise ReleaseError("config.interface_assemblies: expected object")
+    receipt_raw = interface_assemblies.get("receipt")
+    receipt_binding = _binding(
+        receipt_raw, "config.interface_assemblies.receipt")
+    if not receipt_binding["path"].startswith("verification/"):
+        raise ReleaseError(
+            "shared connector receipt must be release-local below verification/")
+    receipt_payload = payload_by_path.get(receipt_binding["path"])
+    if receipt_payload is None or not _same_record(
+            receipt_binding, receipt_payload, "path", "path"):
+        raise ReleaseError(
+            "shared connector receipt binding does not match the payload census")
+    receipt_path = _match_file(
+        release_dir, receipt_binding, "release-local connector receipt")
+    receipt = load_json_strict(receipt_path)
+    inputs = _exact(receipt.get("inputs"), {
+        "contract", "compiler", "evidence_files",
+    }, "connector receipt.inputs")
+    contract = _binding(inputs["contract"],
+                        "connector receipt.inputs.contract")
+    compiler_source = _binding(inputs["compiler"],
+                               "connector receipt.inputs.compiler")
+    if compiler_source["path"] != CONNECTOR_COMPILER_SOURCE_PATH:
+        raise ReleaseError(
+            "connector receipt compiler path differs from the canonical "
+            f"source identity {CONNECTOR_COMPILER_SOURCE_PATH!r}")
+
+    tools_by_role = {row["role"]: row for row in replay_tools}
+    compiler_tool = tools_by_role.get(CONNECTOR_COMPILER_ROLE)
+    if compiler_tool is None:
+        raise ReleaseError(
+            "shared connector replay requires manifest tool role "
+            f"{CONNECTOR_COMPILER_ROLE!r}")
+    if compiler_tool["path"] != CONNECTOR_COMPILER_RELEASE_PATH:
+        raise ReleaseError(
+            f"manifest tool role {CONNECTOR_COMPILER_ROLE!r} must bind exact "
+            f"path {CONNECTOR_COMPILER_RELEASE_PATH!r}")
+    if (compiler_tool["sha256"], compiler_tool["size"]) != \
+            (compiler_source["sha256"], compiler_source["size"]):
+        raise ReleaseError(
+            "manifest-bound connector compiler differs from the exact "
+            "compiler identity recorded by the receipt")
+
+    evidence_raw = inputs["evidence_files"]
+    if not isinstance(evidence_raw, list):
+        raise ReleaseError("connector receipt.inputs.evidence_files: expected list")
+    evidence: list[dict[str, Any]] = []
+    for index, raw in enumerate(evidence_raw):
+        where = f"connector receipt.inputs.evidence_files[{index}]"
+        row = _exact(raw, {"id", "kind", "path", "sha256", "size"}, where)
+        _string(row["id"], f"{where}.id")
+        _string(row["kind"], f"{where}.kind")
+        evidence.append(_binding({
+            key: row[key] for key in ("path", "sha256", "size")
+        }, where))
+
+    original_bindings = [("contract", contract), *[
+        (f"evidence file {index}", row)
+        for index, row in enumerate(evidence)
+    ]]
+    original_paths: dict[str, str] = {}
+    canonical_original_paths: dict[str, str] = {}
+    expected_closure_files: set[str] = set()
+    for label, record in original_bindings:
+        original = record["path"]
+        canonical = canonical_path_key(original)
+        if original in original_paths or canonical in canonical_original_paths:
+            previous = original_paths.get(
+                original, canonical_original_paths.get(canonical, "unknown"))
+            raise ReleaseError(
+                f"connector replay inputs alias one source path: {previous!r} "
+                f"and {label!r}")
+        original_paths[original] = label
+        canonical_original_paths[canonical] = label
+        release_path = f"{CONNECTOR_REPLAY_ROOT}/{original}"
+        payload = payload_by_path.get(release_path)
+        expected = {
+            "path": release_path, "sha256": record["sha256"],
+            "size": record["size"],
+        }
+        if payload is None or not _same_record(
+                expected, payload, "path", "path"):
+            raise ReleaseError(
+                f"release-local connector {label} does not match the exact "
+                "receipt binding")
+        _match_file(release_dir, expected,
+                    f"release-local connector {label}")
+        expected_closure_files.add(original)
+
+    connector_root = resolve_plain_relative(
+        release_dir, CONNECTOR_REPLAY_ROOT,
+        "release-local connector virtual project root")
+    closure_files, _ = scan_regular_tree(connector_root)
+    if set(closure_files) != expected_closure_files:
+        raise ReleaseError(
+            "connector replay closure census differs from receipt inputs; "
+            f"missing={sorted(expected_closure_files - set(closure_files))}, "
+            f"extras={sorted(set(closure_files) - expected_closure_files)}")
+
+    return {
+        "receipt": receipt_binding["path"],
+        "compiler_role": CONNECTOR_COMPILER_ROLE,
+        "compiler": compiler_tool["path"],
+        "virtual_project_root": CONNECTOR_REPLAY_ROOT,
+        "contract": contract["path"],
+        "evidence_files": [row["path"] for row in evidence],
+        "compiler_binding": {
+            "path": compiler_tool["path"],
+            "sha256": compiler_tool["sha256"],
+            "size": compiler_tool["size"],
+        },
+    }
+
+
 def verify_release(release_dir: Path, project_root: Path | None = None,
                    *, require_directory_name: bool = True) -> dict[str, Any]:
     release_dir = _plain_directory(release_dir, "release")
@@ -725,14 +866,13 @@ def verify_release(release_dir: Path, project_root: Path | None = None,
             raise ReleaseError(
                 "release-local replay config must contain a YAML/JSON object "
                 "before shared connector membership is inspected")
-        if "interface_assemblies" in replay_value:
-            raise ReleaseError(
-                "shared connector interface_assemblies are not yet eligible "
-                "for immutable enclosure publication; the release format does "
-                "not bundle and select their exact compiler/receipt replay "
-                "closure")
+        connector_replay = validate_connector_replay_closure(
+            release_dir, replay_value, replay_tools, payload_by_path)
         composition_loaded = composition.validate_config_v2(
-            replay_value, release_dir)
+            replay_value, release_dir,
+            release_connector_compiler=(
+                connector_replay["compiler_binding"]
+                if connector_replay is not None else None))
     except ReleaseError:
         raise
     except (composition.V2Error, OSError) as exc:
@@ -791,6 +931,11 @@ def verify_release(release_dir: Path, project_root: Path | None = None,
             "config": replay_config["path"],
             "tools": {row["role"]: row["path"] for row in replay_tools},
             "resolution": replay_resolution,
+            "connector_assembly": (
+                None if connector_replay is None else {
+                    key: value for key, value in connector_replay.items()
+                    if key != "compiler_binding"
+                }),
         },
         "external_parent_checked": project_root is not None,
     }

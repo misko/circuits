@@ -13,7 +13,7 @@ evidence_sources:
     path: 03_src/floorplan.yaml
   - id: v5-service-observation
     kind: first-article-observation
-    path: 08_reviews/2026-08-27_connector-service_first-article.md
+    path: 03_src/mechanical/reference/pluto-v5-unbound-qualitative-connector-service-observation-2026-08-27.md
   - id: usb-c-part-dossier
     kind: part-dossier
     path: 02_parts/USB4105-GF-A-120/part.yaml

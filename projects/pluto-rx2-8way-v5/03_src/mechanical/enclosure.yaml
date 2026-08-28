@@ -39,8 +39,8 @@ cad:
   source:
     kind: authored_scad
     path: 03_src/mechanical/pluto_rx2_8way_case.scad
-    sha256: 87552e9639a67f32623c19e9fc4fdd055a847a9756a58ecdac2763d3a2544342
-    size: 66687
+    sha256: 5b63f35410ddcf4aeb1050598c2a793a5e419e3f28c52456659191d021915f1b
+    size: 71190
 geometry:
   topology: split_shell
   xy_clearance_mm: 1.0
@@ -88,6 +88,10 @@ fasteners:
     minimum_engagement_mm: 4.0
     minimum_tip_clearance_mm: 0.2
 interfaces:
+  # Schema-v1 requires finite opening candidates.  The authored roof-only CAD
+  # has no J1-J10 connector-facing walls; shared assembly authority lives in
+  # enclosure-v2.yaml and remains INCOMPLETE while mate/tool/cable facts are
+  # unknown.
   - id: usb-c-power
     ref: J1
     role: power-input

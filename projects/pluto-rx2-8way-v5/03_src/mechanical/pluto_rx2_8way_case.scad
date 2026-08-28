@@ -45,9 +45,20 @@ xy_clearance = 1.00;
 wall = 2.40;
 floor = 2.40;
 base_sidewall_h = 0.00;
+lid_sidewall_h = 0.00;
 roof = 2.40;
 outer_radius = 4.40;
 inner_radius = 2.00;
+// The roof stops at Edge.Cuts on every connector-facing edge.  It therefore
+// adds no nominal mating-plane setback to the fabricated board's already
+// flush J1-J10 connector faces.  The board's intrinsic zero exposure and
+// dense SMA pitch remain unresolved; this topology only removes case walls.
+roof_plate_size = pcb_size;
+roof_plate_radius = 1.00;
+roof_added_mating_setback = max(
+    (roof_plate_size[0] - pcb_size[0]) / 2,
+    (roof_plate_size[1] - pcb_size[1]) / 2
+);
 
 // E-Z LOK 260-M3-BR / 260-M3-CR nominal pocket.
 insert_hole_d = 4.25;
@@ -109,6 +120,48 @@ case_post_board_corner_clearance = sqrt(
 // Shared top service opening.
 service_size = [24.0, 13.0];
 service_center = [-16.0, -23.8];
+service_notch_south_y = -pcb_size[1] / 2 - eps;
+service_notch_north_y = service_center[1] + service_size[1] / 2;
+top_service_centers = [[-21.0, -23.5], [-11.0, -24.5]];
+
+// Analytic *legacy-candidate* corridors used only to prove that the four
+// localized closure lugs do not reintroduce an obstruction.  These are the
+// schema-v1 D10 SMA, W12 USB-C and J11/J12 11x9 / 6x8 candidate envelopes;
+// they are not substitutes for the shared connector contract's unknown
+// mates, grips, tools, cables, operations, or tolerances.
+sma_legacy_candidate_r = 5.0;
+usb_legacy_candidate_half_w = 6.0;
+top_service_legacy_half_diagonals = [
+    sqrt(pow(11.0 / 2, 2) + pow(9.0 / 2, 2)),
+    sqrt(pow(6.0 / 2, 2) + pow(8.0 / 2, 2))
+];
+function point_distance_2d(a, b) =
+    sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2));
+north_sma_lug_candidate_clearance = min([
+    for (x = north_sma_x, p = case_holes)
+        abs(p[0] - x) - case_lug_d / 2 - sma_legacy_candidate_r
+]);
+side_sma_lug_candidate_clearance = min([
+    for (y = side_sma_y, p = case_holes)
+        abs(p[1] - y) - case_lug_d / 2 - sma_legacy_candidate_r
+]);
+usb_lug_candidate_clearance = min([
+    for (p = case_holes)
+        abs(p[0]) - case_lug_d / 2 - usb_legacy_candidate_half_w
+]);
+top_service_lug_candidate_clearance = min([
+    for (i = [0 : len(top_service_centers) - 1], p = case_holes)
+        point_distance_2d(top_service_centers[i], p)
+            - case_lug_d / 2 - top_service_legacy_half_diagonals[i]
+]);
+top_service_notch_legacy_clearance = min(
+    top_service_centers[0][0] - 11.0 / 2
+        - (service_center[0] - service_size[0] / 2),
+    (service_center[0] + service_size[0] / 2)
+        - (top_service_centers[1][0] + 6.0 / 2),
+    service_notch_north_y
+        - (top_service_centers[0][1] + 9.0 / 2)
+);
 
 // Separate RX2/reference antenna mount.  The two additional inserts are the
 // same E-Z LOK 260-M3-BR/CR cold-press family and the same coupon-qualified
@@ -244,6 +297,10 @@ module shell_2d() {
         rounded_rect_2d(outer_size, outer_radius);
         rounded_rect_2d(inner_size, inner_radius);
     }
+}
+
+module roof_plate_2d() {
+    rounded_rect_2d(roof_plate_size, roof_plate_radius);
 }
 
 module base_alignment_lip() {
@@ -419,9 +476,20 @@ module base() {
 }
 
 module service_opening() {
-    translate([service_center[0], service_center[1], inner_roof_z - eps])
+    // J11/J12 use an edge-open notch, not another closed plug-sized hole.
+    // It preserves the predecessor's lateral candidate width while removing
+    // the south bridge completely.  Exact mate/cable service remains gated by
+    // the shared connector receipt and a physical simultaneous-mating test.
+    translate([
+        service_center[0] - service_size[0] / 2,
+        service_notch_south_y,
+        inner_roof_z - eps
+    ])
         linear_extrude(height = roof + 2 * eps)
-            rounded_rect_2d(service_size, 2.0);
+            square([
+                service_size[0],
+                service_notch_north_y - service_notch_south_y
+            ]);
 }
 
 module lid_case_fastener_cuts() {
@@ -541,12 +609,13 @@ module lid_engraving() {
 module lid_final() {
     difference() {
         union() {
-            translate([0, 0, seam_z])
-                linear_extrude(height = inner_roof_z - seam_z + eps)
-                    shell_2d();
+            // Roof-only connector topology.  There is no continuous vertical
+            // skirt on any board edge and no roof projection beyond the
+            // nominal J1-J10 mating planes.  Only the four distant corner
+            // closure lugs descend below the roof.
             translate([0, 0, inner_roof_z])
                 linear_extrude(height = roof)
-                    rounded_rect_2d(outer_size, outer_radius);
+                    roof_plate_2d();
             // External closure lugs surround the independent base posts.  No
             // lid column bears on or shares an axis with the PCB.
             for (p = case_holes)
@@ -554,9 +623,8 @@ module lid_final() {
                     cylinder(h = overall_z - seam_z, d = case_lug_d);
             lid_mount_bosses();
         }
-        sma_cutouts();
-        // The pillar-only base has no mating perimeter lip.  The four case
-        // posts and their D9.4 sleeves establish lid registration instead.
+        // The pillar-only base and roof-only lid have no mating perimeter lip.
+        // The four case posts and their D9.4 sleeves establish registration.
         service_opening();
         lid_case_fastener_cuts();
         lid_mount_fastener_cuts();
@@ -1587,6 +1655,22 @@ assert(case_post_board_corner_clearance >= 1.00,
        "Independent case post is too close to the PCB corner");
 assert(base_sidewall_h == 0.00,
        "Pillar-only base must not restore a perimeter side wall");
+assert(lid_sidewall_h == 0.00,
+       "Roof-only lid must not restore a connector-facing side wall");
+assert(abs(roof_added_mating_setback) <= 0.001,
+       "Roof edge must add 0.0 mm nominal J1-J10 mating-plane setback");
+assert(service_notch_south_y < -pcb_size[1] / 2,
+       "J11/J12 service notch must remain continuously open to the south edge");
+assert(north_sma_lug_candidate_clearance >= 7.00 - 0.001,
+       "Corner lugs intrude into a north-SMA legacy candidate corridor");
+assert(side_sma_lug_candidate_clearance >= 11.00 - 0.001,
+       "Corner lugs intrude into a side-SMA legacy candidate corridor");
+assert(usb_lug_candidate_clearance >= 36.00 - 0.001,
+       "Corner lugs intrude into the USB-C legacy candidate corridor");
+assert(top_service_lug_candidate_clearance >= 16.70,
+       "Corner lugs intrude into a J11/J12 legacy candidate corridor");
+assert(top_service_notch_legacy_clearance >= 1.50 - 0.001,
+       "Edge-open J11/J12 notch narrowed a legacy candidate envelope");
 assert(inner_roof_z >= pcb_top_z + sma_top_above_pcb + top_clearance,
        "Lid violates SMA top clearance");
 assert((mount_boss_bottom_d - insert_flange_recess_d) / 2 >= 0.90,
@@ -1699,6 +1783,19 @@ echo(str(
     "PCB_ENCLOSURE_FACTS:",
     "board_bottom_z=", pcb_bottom_z,
     ";base_sidewall_h=", base_sidewall_h,
+    ";lid_sidewall_h=", lid_sidewall_h,
+    ";roof_added_mating_setback=", roof_added_mating_setback,
+    ";intrinsic_sma_mating_exposure=0",
+    ";service_notch_open_edge=1",
+    ";north_sma_lug_candidate_clearance=",
+        north_sma_lug_candidate_clearance,
+    ";side_sma_lug_candidate_clearance=",
+        side_sma_lug_candidate_clearance,
+    ";usb_lug_candidate_clearance=", usb_lug_candidate_clearance,
+    ";top_service_lug_candidate_clearance=",
+        top_service_lug_candidate_clearance,
+    ";top_service_notch_legacy_clearance=",
+        top_service_notch_legacy_clearance,
     ";base_floor_h=", floor,
     ";base_board_support_count=", len(mount_holes),
     ";base_case_post_count=", len(case_holes),

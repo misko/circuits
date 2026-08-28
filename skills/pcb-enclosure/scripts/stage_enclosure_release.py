@@ -23,6 +23,11 @@ from datetime import date as Date
 from pathlib import Path, PurePosixPath
 from typing import Any, Mapping, Sequence
 
+# Publication may be invoked from a prepared replay-tool closure.  Keep its
+# imports read-only before taking the workspace snapshot so bytecode caches can
+# neither mutate the source tree nor slip into the immutable payload census.
+sys.dont_write_bytecode = True
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(SCRIPT_DIR))
 import enclosure_v2 as composition  # noqa: E402
@@ -415,17 +420,27 @@ def stage_release(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
                 raise release_verify.ReleaseError(
                     "predecessor identity changed before publication")
 
+        files, _ = release_verify.scan_regular_tree(temporary)
+        payloads = [_record_for_release_file(temporary, relative)
+                    for relative in sorted(files)]
+        payload_by_path = {row["path"]: row for row in payloads}
+        config_record = payload_by_path[replay_config]
+        replay_tools = [
+            {"role": role, **payload_by_path[path]} for role, path in tools
+        ]
         try:
             replay_value = composition.load_yaml(temporary / replay_config)
-            if isinstance(replay_value, Mapping) and \
-                    "interface_assemblies" in replay_value:
+            if not isinstance(replay_value, Mapping):
                 raise release_verify.ReleaseError(
-                    "shared connector interface_assemblies are not yet "
-                    "eligible for immutable enclosure publication: the "
-                    "release stream does not yet bundle their exact compiler "
-                    "and receipt replay closure")
+                    "release-local replay config must contain a YAML/JSON "
+                    "object before shared connector replay is inspected")
+            connector_replay = release_verify.validate_connector_replay_closure(
+                temporary, replay_value, replay_tools, payload_by_path)
             composition_loaded = composition.validate_config_v2(
-                replay_value, temporary)
+                replay_value, temporary,
+                release_connector_compiler=(
+                    connector_replay["compiler_binding"]
+                    if connector_replay is not None else None))
         except (composition.V2Error, OSError) as exc:
             raise release_verify.ReleaseError(
                 f"release-local schema-v2 config is invalid: {exc}") from exc
@@ -437,14 +452,6 @@ def stage_release(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
                 f"required scope census; expected={required_scopes}, "
                 f"actual={sorted(scopes)}")
 
-        files, _ = release_verify.scan_regular_tree(temporary)
-        payloads = [_record_for_release_file(temporary, relative)
-                    for relative in sorted(files)]
-        payload_by_path = {row["path"]: row for row in payloads}
-        config_record = payload_by_path[replay_config]
-        replay_tools = [
-            {"role": role, **payload_by_path[path]} for role, path in tools
-        ]
         manifest = {
             "schema": 2,
             "kind": release_verify.KIND,

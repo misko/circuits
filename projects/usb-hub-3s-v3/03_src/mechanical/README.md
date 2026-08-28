@@ -1,127 +1,135 @@
-# USB Hub 3S v3 v1.12 wall-lid enclosure candidate
+# USB Hub 3S v3 v1.12 roof-only enclosure candidate
 
-This directory is the discoverable source for a three-print enclosure candidate
-bound exactly to immutable PCB release `v1.12-2026-07-28`:
+This is the mutable enclosure authority for the fabricated PCB release
+`v1.12-2026-07-28`. The candidate is intentionally **INCOMPLETE**. It removes
+the wall-lid feature implicated by the received XT60 fit observation without
+inventing dimensions for the unknown mate, rear termination, heat-shrink,
+cable, bend, grip, tool, or service operation.
 
-- a floor-down foundation with only four PCB bosses and four independent case
-  posts above its floor;
-- one roof-down lid whose four close-in side skirts lower vertically over the
-  already-fastened complete PCB; and
-- one insert-fit coupon.
-
-The sealed PCB STEP is missing F2, J1-J5, Q1-Q6, and U3-U5, and SW1 has no
-modeled body. The committed augmentation binds exact JLC/EasyEDA catalog bodies
-and registration transforms for those 16 refs without changing the PCB release.
-Their exact composition with the sealed STEP covers all 121 modeled refs plus
-SW1, and the exact installed-case intersection is empty. Physical fit and
-thermal tests remain `NOT_RUN`, so the immutable enclosure candidate is
-truthfully `INCOMPLETE`, never `CAD_READY`, `PRINT_VERIFIED`, or order-ready.
+The immutable PCB release and the existing enclosure releases remain inputs.
+They are not edited or resealed by this candidate.
 
 ## Topology and load paths
 
-The PCB is retained with four M3 screws on H1-H4. Four different top-down M3
-screws close the lid onto four perimeter posts. Removing every case screw and
-the complete lid does not release the PCB.
+The three printable parts remain:
 
-PCB-to-boss and roof-to-post terminal bearing contacts are intentional and
-nonpenetrating, so the four schema-v2 whole-part motion cases declare 0.0 mm at
-their endpoints. Positive clearance to non-bearing features remains encoded by
-the analytic skirt/notch/post assertions and must be checked physically. A
-future contact-aware motion schema is tracked in `improvements.md` as IMP-239;
-the candidate does not pretend that a whole-part positive clearance can coexist
-with its required bearing contacts.
+- a floor-down foundation with four H1-H4 PCB bosses and four separate case
+  posts;
+- a roof-down lid with no vertical skirts or side walls; and
+- the D4.05-D4.45 insert-fit coupon centred on the D4.25 transferred prior.
 
-The lid is one piece: its roof bridges four 2.4 mm skirts. Each skirt stops
-0.30 mm before the adjacent 9 mm corner posts, which fill the corner structure
-without intersecting the lid's vertical path. J1-J5 use full-width,
-bottom-open notches, so the complete lid lowers 40 mm over the populated PCB
-without threading a connector through a final-pose hole. The SCAD asserts:
+The PCB is retained by four M3 screws before the roof is installed. Four
+different top-down M3 screws close the roof at the corner posts. Removing the
+roof and every case screw does not loosen the PCB.
 
-- four skirt transforms map local vertical to global +Z;
-- all five notch tangent/Z centers and tops match the declared interface
-  coordinates on their wall planes;
-- every notch reaches through the skirt bottom;
-- minimum material is 4.40 mm below the roof, 2.00 mm between adjacent
-  notches, and 0.30 mm between skirt endpoints and case posts; and
-- all 140 vent-slot/top-service-opening pairs retain at least a conservative
-  1.40 mm 2D ligament against the 1.20 mm process minimum.
+The roof bottom remains at Z=27.0 mm, preserving the predecessor's interior
+height. Thickness grows upward from 2.4 to 3.2 mm. Its main plate stops at the
+exact 130 x 92 mm PCB outline, rather than retaining the predecessor shell's
+10.4 mm per-side roof overhang. Only four local diagonal lugs reach the closure
+posts at (+/-70, +/-51) mm. Those lugs are outside the J1-J5 legacy opening
+corridors; the narrowest analytic candidate corridor is 5.0 mm.
 
-The schema-v1 `topology: split_shell` value is the supported two-shell/no-panel
-vocabulary. Exact skirt reach, assembly motion, and clearance authority live in
-the authored SCAD and schema-v2 intent rather than the generic v1 seam engine.
+That 5.0 mm assertion is only a check against the old two-dimensional opening
+candidates. It is not a complete connector-service clearance. The design makes
+the narrower claim that there is no vertical skirt barrier along the declared
+J1-J5 mating axes. The roof edge, local lugs, posts, screw heads, and base floor
+remain obstacles until complete received connector/cable/tool solids and their
+operations are swept. The preserved 150.8 x 112.8 mm base floor projects
+**10.4 mm outboard of every exact PCB edge**. An XT60 under-grip finger path,
+rear termination, or cable that bends downward can still encounter that shelf;
+the roof-only change does not prove the whole service cell unobstructed.
 
-Connector openings, plug envelopes, vents, and service openings remain
-provisional conservative gauges until received-part measurements exist. The
-project-specific compositor closes the CAD obstruction census while preserving
-each input's authority; the generic schema still cannot express that mixed
-subject, so all readiness scopes retain an `INCOMPLETE` ceiling.
+The 3.2/2.4 thickness ratio gives a 2.37x simple thickness-cubed plate-bending
+candidate before vents and local geometry. This is not print evidence. Flatness,
+handling flex, fastened sag, and component clearance require a first article.
 
-## Committed source
+## Connector-assembly authority
 
-- `usb_hub_3s_v3_case.scad` — authored reproducible CAD and analytic geometry
-  assertions;
-- `enclosure.yaml` — schema-v1 generation/verification binding;
-- `mechanical-intent-v2.yaml` — three states and four straight 40 mm motions;
-- `enclosure-v2.yaml` — exact subjects, scoped policy, independent fasteners,
-  four clearance cases, and physical-test census;
-- `reference/board-interface-v1.12.json` — deterministic exact interface
-  extraction committed for clean-clone validation; and
-- `reference/supplemental-obstruction-decision.yaml` — reviewed authority
-  boundary and mixed-authority status ceiling;
-- `reference/obstruction-models.json` and `reference/obstruction_models/` —
-  exact parent/model/footprint/transform bindings for the 16 supplemented refs;
-- `prepare_obstruction_step.py` — deterministic supplemental STEP producer; and
-- `compose_obstruction_step.py` — exact sealed-plus-supplement compositor and
-  complete occurrence/solid inspection producer.
+`../rules/connector_assemblies.yaml` is now the one project connector/service
+fact lock. It covers 7 profiles, 12 interface refs, and 5 simultaneous groups:
 
-The immutable PCB release is an input only. Nothing under `07_releases/` is
-edited by this candidate.
+- J1 XT60 input;
+- J2-J4 USB-A outputs;
+- J5 USB-C output;
+- F1 fuse service;
+- SW1 switch service; and
+- D8-D12 indicator viewing apertures.
 
-## Generated printable outputs
+The compiled receipt is valid but `INCOMPLETE`: all 77 required evidence
+claims remain explicitly unknown. The dated XT60 photograph rejects the old
+skirt assumption but contributes no millimetre value. Schema v2 maps every one
+of the 12 `opening` or `service_opening` interfaces to that exact receipt and
+accounts for every receipt ref; nothing is hidden through a non-enclosure
+disposition.
 
-Regenerate into this stable ignored build path:
+The current composition does not instantiate or sweep complete mate,
+termination, cable, bend, grip, tool, and reaction solids. Connector access
+therefore stays `INCOMPLETE` even though the roof has no skirts.
+
+## Exact PCB and obstruction evidence
+
+The v1 CAD design binds these immutable PCB authorities:
+
+- manifest SHA-256 `2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4`;
+- PCB SHA-256 `2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf`;
+- STEP SHA-256 `e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11`;
+  and
+- deterministic interface SHA-256
+  `36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b`.
+
+The sealed STEP omits modeled F2, J1-J5, Q1-Q6, and U3-U5; SW1 has no model.
+The generic parent inspection therefore truthfully fails at 106/121 modeled
+refs plus unmodeled SW1. The bound project compositor adds the reviewed
+supplemental bodies without changing the PCB release. The composite covers
+121/121 modeled refs plus SW1, 244 component solids, and its exact installed
+case intersection is empty at 0 mm^3.
+
+That result proves non-penetration only for the represented final installed
+pose. It does not prove connector mating, cable motion, roof installation over
+received leads, board support contact, print fit, ingress/touch protection, or
+thermal performance.
+
+## Source and disposable build
+
+Authored source:
+
+- `usb_hub_3s_v3_case.scad` - roof-only CAD, closed selectors, and analytic
+  roof/lug/vent assertions;
+- `enclosure.yaml` - exact schema-v1 generation binding;
+- `mechanical-intent-v2.yaml` - service states, four linear motions, unknowns,
+  and excluded claims;
+- `enclosure-v2.yaml` - exact receipt mappings, scopes, independent fasteners,
+  clearance cases, and physical-test census; and
+- `reference/` plus the two obstruction scripts - exact board interface and
+  supplemental obstruction authority.
+
+Regenerate into:
 
 ```text
-projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-wall-lid-v2/
+projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/
 ```
 
-Key files are:
+Important outputs are `base.stl`, `lid.stl`, `insert_coupon.stl`,
+`assembled-case.stl`, four review renders, generation/validation receipts,
+the composite STEP/mesh, and the exact collision report. These build outputs
+are disposable and ignored. The hash-bound printable STLs, renders, source,
+connector replay closure, and evidence are tracked in immutable candidate
+`07_enclosure_releases/v0.3.0-2026-08-27/`; its overall status and every scope
+remain `INCOMPLETE`.
 
-| File | Purpose |
-|---|---|
-| `base.stl` | foundation, H1-H4 bosses, and four independent case posts |
-| `lid.stl` | roof-down one-piece four-skirt lid with bottom-open notches |
-| `insert_coupon.stl` | 4.05/4.15/4.25/4.35/4.45 mm pilot ladder |
-| `assembled-case.stl` | installed enclosure selector for review checks |
-| `assembly.png` | exploded CAD review |
-| `closed-assembly.png` | closed lid plus reference PCB review |
-| `base-board.png` | lid-off board-seating/load-path review |
-| `generation.json` | exact source/selector/mesh receipt |
-| `v2-validation.json` | exact schema-v2 binding receipt |
-| `step-inspection.json` | expected incomplete STEP census |
-| `verification.json` | expected governing `FAIL` report |
+## Exact regeneration
 
-Generated files are intentionally ignored and reproducible; they are not
-hidden under `08_reviews/`. Printable copies and their governing evidence are
-published under `07_enclosure_releases/v0.1.0-2026-08-27/`.
-
-## Insert-fit revision
-
-The production pilot is now D4.25 mm and is declared
-`pilot_basis: coupon_prior`. It is centred on the closest same-family PETG,
-0.4 mm nozzle, 0.2 mm layer observation in the repository-wide fit registry,
-not on a physical test of this enclosure. The new 4.05–4.45 mm ladder brackets
-that prior. Print it with the production boss orientation and process before
-installing inserts in the full base; until then the enclosure remains
-`INCOMPLETE` and D4.25 is not a USB Hub production-fit claim.
-
-## Exact replay
-
-Run from repository root:
+Run from the repository root. Compile the canonical shared connector receipt
+before schema-v2 validation; exit 2 is the expected honest `INCOMPLETE` result.
 
 ```sh
 project_path=projects/usb-hub-3s-v3
-build_path="$project_path/06_build/mechanical/usb-hub-v1.12-wall-lid-v2"
+build_path="$project_path/06_build/mechanical/usb-hub-v1.12-roof-only-v3"
+mkdir -p "$build_path"
+
+/usr/bin/python3 skills/pcb-design/scripts/connector_assembly_contract.py \
+  --project "$project_path"
+test "$?" -eq 2
 
 /usr/bin/python3 skills/pcb-enclosure/scripts/enclosure_v2.py \
   validate-intent "$project_path/03_src/mechanical/mechanical-intent-v2.yaml" \
@@ -134,24 +142,9 @@ build_path="$project_path/06_build/mechanical/usb-hub-v1.12-wall-lid-v2"
 /usr/bin/python3 skills/pcb-enclosure/scripts/generate_enclosure.py \
   "$project_path/03_src/mechanical/enclosure.yaml" --root "$project_path" \
   --build-dir "$build_path"
-
-xvfb-run -a /usr/bin/openscad -o "$build_path/closed-assembly.png" --render \
-  --imgsize 1800,1300 --autocenter --viewall --projection p \
-  --colorscheme Tomorrow -D 'part="closed_review"' \
-  -D 'show_reference_board=true' \
-  "$project_path/03_src/mechanical/usb_hub_3s_v3_case.scad"
-
-xvfb-run -a /usr/bin/openscad -o "$build_path/base-board.png" --render \
-  --imgsize 1800,1300 --autocenter --viewall --projection p \
-  --colorscheme Tomorrow -D 'part="base_review"' \
-  -D 'show_reference_board=true' \
-  "$project_path/03_src/mechanical/usb_hub_3s_v3_case.scad"
-
-/usr/bin/python3 skills/pcb-enclosure/scripts/render_enclosure.py \
-  "$build_path/enclosure.scad" --output "$build_path/assembly.png"
 ```
 
-Reproduce the committed interface authority rather than trusting it:
+Reproduce the exact interface authority:
 
 ```sh
 /usr/bin/python3 skills/pcb-enclosure/scripts/extract_board_interface.py \
@@ -166,8 +159,7 @@ cmp "$build_path/board-interface.replayed.json" \
   "$project_path/03_src/mechanical/reference/board-interface-v1.12.json"
 ```
 
-The parent audit deliberately exits nonzero, then the bound augmentation closes
-the obstruction census and produces the governing composite inspection:
+The parent STEP inspection is expected to fail closed:
 
 ```sh
 uv run --offline --with cadquery python \
@@ -176,13 +168,12 @@ uv run --offline --with cadquery python \
   --interface "$project_path/03_src/mechanical/reference/board-interface-v1.12.json" \
   --output "$build_path/step-inspection.json" \
   --component-mesh "$build_path/components.stl"
+test "$?" -eq 1
+```
 
-/usr/bin/python3 skills/pcb-enclosure/scripts/verify_enclosure.py \
-  "$project_path/03_src/mechanical/enclosure.yaml" --root "$project_path" \
-  --build-dir "$build_path" --target cad \
-  --step-inspection "$build_path/step-inspection.json" \
-  --report "$build_path/verification.json"
+Then reproduce the reviewed composite and final-pose collision:
 
+```sh
 /usr/bin/python3 "$project_path/03_src/mechanical/prepare_obstruction_step.py" \
   --project-root "$project_path" \
   --manifest "$project_path/03_src/mechanical/reference/obstruction-models.json" \
@@ -210,28 +201,28 @@ uv run --offline --with cadquery python \
   --report "$build_path/composite-collision.json"
 ```
 
-Expected parent result: exit 1 / `FAIL` at 106/121. Expected composite result:
-121/121 modeled refs plus SW1, then exact collision `EMPTY`, 0 mm^3. These CAD
-results permit an immutable `INCOMPLETE` candidate only; physical tests below
-still gate every higher readiness claim.
+## Physical qualification plan
 
-## Assembly and physical plan
+1. Print the D4.05-D4.45 coupon in the production PETG profile and qualify the
+   exact E-Z LOK insert lot before printing the full base.
+2. Retain the PCB on H1-H4. Prove all four intended boss faces seat
+   simultaneously and no connector, solder tail, component, floor edge, or
+   case post carries the board.
+3. Measure and bind each actual J1-J5 receptacle/mate/termination/cable service
+   assembly, including grip, straight run, bend, tool, reaction path, and
+   simultaneous neighbor state.
+4. Mate J1-J5 simultaneously, then execute the complete 40 mm roof install and
+   removal path. Inspect the roof edge, all four local lugs/posts/screws, the
+   10.4 mm base-floor shelf, under-grip finger paths, downward cable bends, and
+   strain reliefs for contact or chafe.
+5. Exercise F1 and SW1 and verify all five indicator apertures in the installed
+   state.
+6. Measure roof flatness, warp, handling flex, and fastened sag relative to the
+   populated board.
+7. Remove only the four case screws and roof; prove the PCB remains secured.
+8. Run the declared roof-covered, open-sided thermal soak after electrical
+   load qualification.
 
-1. Print the coupon in production PETG settings and qualify the exact insert
-   lot, pilot, flange seating, spin resistance, and boss condition.
-2. Install inserts into the four PCB bosses and four independent case posts.
-3. Place the complete PCB vertically onto H1-H4 and retain it with four M3x6
-   screws.
-4. Prove all four boss lands seat simultaneously and no connector, solder tail,
-   component, lid skirt, or case post supports the PCB.
-5. Lower the complete lid through its declared 40 mm vertical path. Prove all
-   five bottom-open notches clear the full connector bodies without forced
-   deflection and the skirts clear all four posts.
-6. Close only the four perimeter M3x6 screws, then remove them and lift the lid
-   40 mm. Prove the PCB remains secured throughout.
-7. Mate the real XT60, three simultaneous USB-A plugs, USB-C plug, fuse, and
-   switch/service tooling; record notch witness marks, rattle, wear, and cable
-   bend/exit behavior.
-8. Run the closed-case thermal soak only after electrical load testing is
-   qualified; record converter, switch, fuse/clip, connector, air, and case
-   temperatures.
+Until those checks and the missing exact service geometry are recorded, this
+candidate is not `CAD_READY`, `PRINT_VERIFIED`, `THERMALLY_VERIFIED`,
+order-ready, or a production-fit claim.

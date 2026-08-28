@@ -64,6 +64,25 @@ Every `--replay-tool role=path` must name a unique ordinary file below
 and tool identities, so resolution is from the released tree rather than a
 live project or skill checkout.
 
+For a config with `interface_assemblies`, the prepared workspace also carries
+this exact recursive closure:
+
+```text
+source/connector-assembly/<receipt contract path>
+source/connector-assembly/<each receipt evidence path>
+verification/<exact connector receipt>.json
+tooling/connector_assembly_contract.py
+```
+
+The contract and evidence suffixes are the unchanged project-relative paths
+recorded by the receipt. `source/connector-assembly/` is their fixed virtual
+project root; it may contain no file outside that receipt-derived census. The
+receipt itself must be bound by `interface_assemblies.receipt` below
+`verification/`. Supply the compiler as
+`--replay-tool connector_assembly_contract=tooling/connector_assembly_contract.py`.
+Its bytes must match the receipt's canonical compiler source binding exactly.
+Do not rewrite and reseal receipt paths to fit the release layout.
+
 ## Status composition
 
 Declare at least one scope with `--scope name=STATUS`.  Typical component
@@ -90,14 +109,13 @@ project-specific motion/physical checks, and recomputes the aggregate. This is
 a fail-closed rollout boundary, not a claim that ready publication is
 impossible in the future.
 
-Schema-v2 configs using shared `interface_assemblies` are also temporarily
-rejected at this release boundary. Their current-tree validator loads the exact
-PCB-design connector compiler, but the release format does not yet package and
-select that compiler plus its canonical contract/evidence closure as a
-release-local replay authority. Publishing such a config would make an
-immutable release depend on later live skill bytes. Keep the design candidate
-`INCOMPLETE` outside the immutable stream until that replay closure is
-implemented and independently reopened.
+Schema-v2 configs using shared `interface_assemblies` remain capped by the same
+all-`INCOMPLETE` policy, but may publish when their exact release-local closure
+is present. The publisher selects the compiler only from the manifest role,
+reopens the complete receipt-derived contract/evidence census, deterministically
+regrades the exact receipt, and repeats that operation during reopen. Missing,
+extra, linked, aliased, substituted, stale, or live-tree-dependent inputs fail
+publication.
 
 Scopes describe independently governed installed deliverables.  Do not add an
 optional physical-validation scope merely to lower a legitimate `CAD_READY`
@@ -129,6 +147,7 @@ Example for an enclosure derived from a fixed PCB release:
   --replay-tool compose=tooling/enclosure_v2.py \
   --replay-tool verify=tooling/verify_enclosure.py \
   --replay-tool collision=tooling/build_collision.py \
+  --replay-tool connector_assembly_contract=tooling/connector_assembly_contract.py \
   --predecessor v0.4.0-2026-08-25 \
   --immutable-candidate
 ```
@@ -143,9 +162,11 @@ The publisher performs this closed transaction:
    `authorities/pcb-release/` without writing anywhere in `07_releases/`.
 4. Optionally copy and hash-bind the exact predecessor `MANIFEST.json` beneath
    `authorities/enclosure-predecessor/`.
-5. Copy every prepared regular file; reopen the complete release-local
-   schema-v2 config; derive its exact required-scope census; then generate a
-   sorted full-file census and bind the replay config and tools.
+5. Copy every prepared regular file; bind the replay config and tools; reopen
+   the complete release-local schema-v2 config; for `interface_assemblies`,
+   derive and regrade the exact receipt/compiler/contract/evidence closure;
+   derive the exact required-scope census; then generate a sorted full-file
+   census.
 6. Write schema-v2 `MANIFEST.json` and reopen the complete staging tree with
    the same verifier used after publication.
 7. Recheck the prepared workspace, live parent, and optional predecessor
@@ -181,10 +202,13 @@ rules, predecessor copy, and release-local replay resolution.  It rejects any
 missing, extra, linked, aliased, or unmanifested object.
 
 Replay resolution proves that every file binding names exact release-local
-bytes and that the declared tools are in the payload; the release verifier
-does not execute those tools. Include each script's import/dependency closure
-under `tooling/`, then run the release-local toolchain separately before
-claiming that executable replay has succeeded.
+bytes and that the declared tools are in the payload. For
+`interface_assemblies`, the release verifier executes only the exact
+manifest-bound `connector_assembly_contract` tool against the release-local
+virtual project root and requires deterministic receipt equality. Other replay
+tools are identity-bound but are not executed by this release verifier. Include
+each script's import/dependency closure under `tooling/`, then run the remaining
+release-local toolchain separately before claiming full executable replay.
 
 Add `--project-root projects/<project>` to also compare the release against the
 current external PCB parent and optional enclosure predecessor.  This external
@@ -202,6 +226,8 @@ release still reopens from its local authorities and tooling.
   STEP;
 - an optional exact predecessor manifest identity and local copy;
 - exact release-root (`.`) replay config and role-to-tool identities;
+- for shared connector work, the exact `connector_assembly_contract` role and
+  receipt-derived virtual-project closure;
 - a sorted record for every ordinary payload file except `MANIFEST.json`.
 
 The manifest deliberately does not claim firmware compatibility.  Compose PCB,

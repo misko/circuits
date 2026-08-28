@@ -18,10 +18,14 @@ an addition, deletion, content edit, or mode edit in any frozen archive.
 The enclosure stream is deliberately independent.  Changes lexically rooted
 at ``03_src/mechanical`` or ``07_enclosure_releases`` are classified as
 enclosure-only and do not put the parent PCB into this gate's reseal/RF-build
-denominator.  This gate does not validate those changes; the enclosure release
-gate remains their authority.  The exemption is exact-prefix-only, so every
-other path under PCB source, generated KiCad, fabrication releases, or reviews
-continues to fail closed into ordinary PCB publication grading.
+denominator.  One exact connector-service authority can join that mechanical
+classification, but only when base/head bytes prove its companion child
+contract gained exactly one approved allowlist row and nothing else.  This gate
+does not validate those changes; the enclosure release gate remains their
+authority.  Prefix exemptions remain exact-prefix-only and the connector
+allowance is a paired diff proof, so every other path under PCB source,
+generated KiCad, fabrication releases, or reviews continues to fail closed
+into ordinary PCB publication grading.
 
 The gate is intentionally pcbnew-free.  It composes the existing release gates
 and adds the publication-only properties they cannot infer from an isolated
@@ -71,6 +75,12 @@ ENCLOSURE_ONLY_ROOTS = (
     "03_src/mechanical",
     "07_enclosure_releases",
 )
+CONNECTOR_AUTHORITY_INNER = "03_src/rules/connector_assemblies.yaml"
+CONNECTOR_CHILD_CONTRACT_INNER = "03_src/rules/contracts.md"
+CANONICAL_CONNECTOR_CONTRACT_ROWS = {
+    "| `connector_assemblies.yaml` | go-forward shared connector service contract; binds each receptacle, supported mate, grip/fastening/tool/torque/reaction/cable cell, simultaneous population, operation sequence, and tolerance provenance for the PCB and enclosure consumers. Unknown facts are explicit and compile `INCOMPLETE`, never default dimensions. |",
+    "| `connector_assemblies.yaml` | complete receptacle/mate/grip/tool/cable/operation/tolerance contracts for every operated or serviced external interface; compiled by `pcb-design` and allowed to remain explicitly `INCOMPLETE` while hardware and service facts are unknown |",
+}
 PATH_OUTSIDE_PROJECT = "outside-project"
 PATH_BOOKKEEPING = "bookkeeping"
 PATH_ENCLOSURE_ONLY = "enclosure-only"
@@ -115,8 +125,8 @@ def classify_project_path(path):
     Ordering is the safety property: the two independent enclosure roots are
     removed explicitly before the broad ``03_src`` PCB-source rule runs.  A
     near-miss such as ``03_src/mechanical-electrical`` therefore remains PCB
-    material.  No contracts or rules outside the mechanical subtree inherit
-    the exemption.
+    material.  The connector authority and its child contract also remain
+    material here; only the base/head paired-diff proof can reclassify them.
     """
     parsed = _project_rel(path)
     if not parsed:
@@ -151,6 +161,71 @@ def enclosure_only_projects(paths):
     """Enclosure-only diff paths -> sorted project-relative directories."""
     return sorted({str(_project_rel(p)[0]) for p in paths
                    if is_enclosure_only_project_path(p)})
+
+
+def _git_blob_text(commit, path, root):
+    """Return one tracked UTF-8 text blob, or ``None`` when absent."""
+    cp = _git("show", f"{commit}:{Path(path).as_posix()}", root=root)
+    if cp.returncode:
+        return None
+    return cp.stdout
+
+
+def _git_file_identity(commit, path, root):
+    """Return one tracked file's ``(mode, kind, oid)``, or ``None``."""
+    rel = Path(path).as_posix()
+    cp = _git("ls-tree", "-z", commit, "--", rel, root=root)
+    if cp.returncode:
+        return None
+    matches = []
+    for record in cp.stdout.split("\0"):
+        if not record:
+            continue
+        metadata, listed = record.split("\t", 1)
+        if listed == rel:
+            matches.append(tuple(metadata.split()))
+    return matches[0] if len(matches) == 1 else None
+
+
+def _connector_bundle_enclosure_paths(paths, base, head, root):
+    """Prove exact connector-authority + child-contract migration bundles.
+
+    Both paths are PCB material by default.  A project earns the mechanical
+    classification only when the authority path changed in the same diff and
+    the contract's *entire* byte delta is insertion of exactly one approved
+    allowlist row.  A missing/deleted authority, an existing authority edited
+    without its sibling, any additional contract byte, or any near-prefix earns
+    no allowance.
+    """
+    changed = set(paths)
+    allowed = set()
+    for project_rel in _changed_active_projects(paths):
+        authority = f"{project_rel}/{CONNECTOR_AUTHORITY_INNER}"
+        contract = f"{project_rel}/{CONNECTOR_CHILD_CONTRACT_INNER}"
+        if authority not in changed or contract not in changed:
+            continue
+        base_authority_identity = _git_file_identity(base, authority, root)
+        head_authority_identity = _git_file_identity(head, authority, root)
+        if (base_authority_identity is not None or
+                head_authority_identity is None or
+                head_authority_identity[:2] != ("100644", "blob")):
+            continue
+        base_contract_identity = _git_file_identity(base, contract, root)
+        head_contract_identity = _git_file_identity(head, contract, root)
+        if (base_contract_identity is None or head_contract_identity is None or
+                base_contract_identity[:2] != ("100644", "blob") or
+                head_contract_identity[:2] != base_contract_identity[:2]):
+            continue
+        before = _git_blob_text(base, contract, root)
+        after = _git_blob_text(head, contract, root)
+        if before is None or after is None:
+            continue
+        for row in CANONICAL_CONNECTOR_CONTRACT_ROWS:
+            added = row + "\n"
+            if after.count(added) == 1 and after.replace(added, "", 1) == before:
+                allowed.update((authority, contract))
+                break
+    return allowed
 
 
 def _changed_active_projects(paths):
@@ -607,11 +682,21 @@ def main(argv=None):
     try:
         if args.base:
             names = _diff_names(args.base, args.head, root)
-            selected = affected_projects(names)
+            connector_bundle_paths = _connector_bundle_enclosure_paths(
+                names, args.base, args.head, root)
+            selection_names = [
+                path for path in names if path not in connector_bundle_paths
+            ]
+            selected = affected_projects(selection_names)
             enclosure_paths = [
                 path for path in names if is_enclosure_only_project_path(path)
             ]
-            enclosure_projects = enclosure_only_projects(enclosure_paths)
+            enclosure_paths.extend(sorted(connector_bundle_paths))
+            enclosure_paths.sort()
+            enclosure_projects = sorted({
+                str(parsed[0]) for path in enclosure_paths
+                if (parsed := _project_rel(path)) is not None
+            })
             changed_active = _changed_active_projects(names)
             changed_archives = _changed_archive_subjects(names)
             changed_archive_set = set(changed_archives)

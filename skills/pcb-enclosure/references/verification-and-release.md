@@ -183,7 +183,14 @@ declared `INCOMPLETE`. It refuses every ready status, component-ready scope,
 partial scope census, and order-ready flag.
 
 An `INCOMPLETE` publication requires `--immutable-candidate` and can never be
-order-ready. Reopen every release with `verify_enclosure_release.py`;
+order-ready. A config using `interface_assemblies` additionally requires the
+exact receipt below `verification/`, the receipt-owned contract and evidence
+paths mirrored without rewriting beneath `source/connector-assembly/`, and the
+exact compiler at `tooling/connector_assembly_contract.py` under replay-tool
+role `connector_assembly_contract`. Publication and reopen both execute that
+manifest-selected compiler against only the release-local mirror and require
+deterministic receipt equality; the live PCB-design compiler is not a replay
+fallback. Reopen every release with `verify_enclosure_release.py`;
 optionally add `--project-root` to compare its local authority copies with the
 current immutable PCB parent. Never write enclosure artifacts under
 `07_releases/` or reseal a PCB because its enclosure changed. See

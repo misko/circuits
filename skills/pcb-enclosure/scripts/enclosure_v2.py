@@ -54,6 +54,11 @@ INTENT_KIND = "pcb-enclosure-mechanical-intent-v2"
 PHYSICAL_KIND = "pcb-enclosure-physical-evidence-v2"
 VALIDATION_KIND = "pcb-enclosure-v2-validation"
 CONNECTOR_RECEIPT_KIND = "connector-assembly-contract-receipt"
+CONNECTOR_COMPILER_ROLE = "connector_assembly_contract"
+CONNECTOR_COMPILER_SOURCE_PATH = (
+    "skills/pcb-design/scripts/connector_assembly_contract.py")
+CONNECTOR_COMPILER_RELEASE_PATH = "tooling/connector_assembly_contract.py"
+CONNECTOR_RELEASE_PROJECT_ROOT = "source/connector-assembly"
 SERVICE_INTERFACE_DISPOSITIONS = frozenset({"opening", "service_opening"})
 
 READINESS = ("INCOMPLETE", "CAD_READY", "PRINT_VERIFIED",
@@ -118,7 +123,9 @@ INTERFACE_SIDE_AXES = {
 }
 
 
-def _connector_compiler_module(expected_binding: Any):
+def _connector_compiler_module(
+        expected_binding: Any, *, release_root: Path | None = None,
+        release_binding: Any = None):
     """Load the exact receipt-bound compiler bytes as the sole schema authority.
 
     Import machinery reopens a path after a caller inspects it.  That permits a
@@ -127,26 +134,56 @@ def _connector_compiler_module(expected_binding: Any):
     first, execute those same bytes, and make the imported compiler report that
     captured identity during its deterministic recompile.
     """
-    path = (Path(__file__).resolve().parents[2] / "pcb-design" / "scripts" /
-            "connector_assembly_contract.py")
     expected = _exact(expected_binding, {"path", "sha256", "size"},
                       "connector receipt compiler binding")
-    repo_root = Path(__file__).resolve().parents[3]
-    relative = path.relative_to(repo_root).as_posix()
-    if expected["path"] != relative:
+    if expected["path"] != CONNECTOR_COMPILER_SOURCE_PATH:
         raise V2Error(
             "connector receipt compiler binding does not name the canonical "
-            f"compiler {relative}")
+            f"compiler {CONNECTOR_COMPILER_SOURCE_PATH}")
+
+    if release_root is None:
+        if release_binding is not None:
+            raise V2Error(
+                "connector release compiler binding requires a release root")
+        repo_root = Path(__file__).resolve().parents[3]
+        path = repo_root / CONNECTOR_COMPILER_SOURCE_PATH
+        reported_binding = dict(expected)
+    else:
+        if release_binding is None:
+            raise V2Error(
+                "connector release replay requires a manifest-bound compiler")
+        release_item = _exact(
+            release_binding, {"path", "sha256", "size"},
+            "release connector compiler binding")
+        if release_item["path"] != CONNECTOR_COMPILER_RELEASE_PATH:
+            raise V2Error(
+                "release connector compiler binding must name the exact "
+                f"release path {CONNECTOR_COMPILER_RELEASE_PATH}")
+        loaded_release_binding = validate_file_binding(
+            release_item, release_root,
+            "release connector compiler binding")
+        if (loaded_release_binding["sha256"], loaded_release_binding["size"]) != \
+                (expected["sha256"], expected["size"]):
+            raise V2Error(
+                "release connector compiler identity differs from the exact "
+                "compiler identity recorded by the receipt")
+        path = loaded_release_binding["path"]
+        # The connector receipt owns the canonical source identity.  The
+        # release manifest owns where those exact bytes are reopened.  Keep
+        # compilation deterministic by reporting the former back to the
+        # compiler while executing only the latter.
+        reported_binding = dict(expected)
     try:
         payload = read_stable_bytes(path, "connector assembly compiler")
     except V1EnclosureError as exc:
         raise V2Error(f"cannot load connector assembly compiler: {exc}") from exc
     loaded_binding = {
-        "path": relative,
+        "path": path,
         "sha256": hashlib.sha256(payload).hexdigest(),
         "size": len(payload),
     }
-    if dict(expected) != loaded_binding:
+    if (expected["sha256"], expected["size"]) != \
+            (loaded_binding["sha256"], loaded_binding["size"]):
         raise V2Error(
             "connector receipt compiler identity differs from the exact "
             "compiler bytes loaded for regrade")
@@ -162,7 +199,7 @@ def _connector_compiler_module(expected_binding: Any):
         raise V2Error("connector assembly compiler lacks load_and_compile API")
     # The compiler normally reopens __file__ to bind its own identity.  Use the
     # exact bytes already loaded, so a second path read cannot mix authorities.
-    module._compiler_binding = lambda: dict(loaded_binding)
+    module._compiler_binding = lambda: dict(reported_binding)
     return module, loaded_binding
 
 
@@ -1171,9 +1208,11 @@ def _service_envelope_candidate_dimensions_complete(
 
 
 def _load_shared_connector_receipt(value: Any, root: Path,
-                                   where: str) -> tuple[dict[str, Any],
-                                                        dict[str, Any],
-                                                        dict[str, Any]]:
+                                   where: str, *,
+                                   release_compiler: Any = None
+                                   ) -> tuple[dict[str, Any],
+                                              dict[str, Any],
+                                              dict[str, Any]]:
     """Reopen and independently recompile the pcb-design connector receipt."""
     receipt, binding = _load_bound_json_bytes(value, root, where)
     top = _exact(receipt, {
@@ -1196,8 +1235,11 @@ def _load_shared_connector_receipt(value: Any, root: Path,
     inputs = _exact(top["inputs"], {
         "contract", "compiler", "evidence_files",
     }, f"{where}.receipt.inputs")
+    input_root = (root / CONNECTOR_RELEASE_PROJECT_ROOT
+                  if release_compiler is not None else root)
     contract_binding = validate_file_binding(
-        inputs["contract"], root, f"{where}.receipt.inputs.contract")
+        inputs["contract"], input_root,
+        f"{where}.receipt.inputs.contract")
     evidence_bindings = []
     if not isinstance(inputs["evidence_files"], list):
         raise V2Error(f"{where}.receipt.inputs.evidence_files: expected list")
@@ -1214,7 +1256,7 @@ def _load_shared_connector_receipt(value: Any, root: Path,
             "path": evidence["path"],
             "sha256": evidence["sha256"],
             "size": evidence["size"],
-        }, root, evidence_where))
+        }, input_root, evidence_where))
     if not isinstance(top["assemblies"], list) or not top["assemblies"]:
         raise V2Error(f"{where}.receipt.assemblies: expected non-empty list")
     if not isinstance(top["simultaneous_groups"], list):
@@ -1226,9 +1268,15 @@ def _load_shared_connector_receipt(value: Any, root: Path,
     # The shared compiler is the only schema authority. Recompiling here closes
     # the fake/stale-receipt seam without cloning its many connector fields into
     # the enclosure skill.
-    compiler, loaded_compiler = _connector_compiler_module(inputs["compiler"])
+    if release_compiler is None:
+        compiler, loaded_compiler = _connector_compiler_module(
+            inputs["compiler"])
+    else:
+        compiler, loaded_compiler = _connector_compiler_module(
+            inputs["compiler"], release_root=root,
+            release_binding=release_compiler)
     try:
-        valid, findings = compiler.validate_receipt(receipt, root)
+        valid, findings = compiler.validate_receipt(receipt, input_root)
     except Exception as exc:
         raise V2Error(
             f"{where}.receipt: shared connector regrade failed: {exc}") from exc
@@ -1253,16 +1301,15 @@ def _load_shared_connector_receipt(value: Any, root: Path,
                 f"{where}.receipt: {label} changed during regrade")
 
     # A checkout edit after the first binding check must not leave a successful
-    # report for contract, evidence, or compiler bytes that are no longer the
-    # named live authorities.
+    # report for receipt, contract, evidence, or compiler bytes that are no
+    # longer the named authorities.
+    require_unchanged(binding, "connector receipt")
     require_unchanged(contract_binding, "connector contract")
     for index, evidence_binding in enumerate(evidence_bindings):
         require_unchanged(
             evidence_binding, f"connector evidence file {index}")
-    compiler_path = (Path(__file__).resolve().parents[3] /
-                     loaded_compiler["path"])
     require_unchanged({
-        "path": compiler_path,
+        "path": loaded_compiler["path"],
         "sha256": loaded_compiler["sha256"],
         "size": loaded_compiler["size"],
     }, "connector compiler")
@@ -1270,7 +1317,7 @@ def _load_shared_connector_receipt(value: Any, root: Path,
         "contract": contract_binding,
         "evidence_files": evidence_bindings,
         "compiler": {
-            "path": compiler_path,
+            "path": loaded_compiler["path"],
             "sha256": loaded_compiler["sha256"],
             "size": loaded_compiler["size"],
         },
@@ -1282,7 +1329,9 @@ def _validate_interface_assemblies(value: Any, root: Path,
                                    scopes: Mapping[str, Any],
                                    interfaces: Sequence[Mapping[str, Any]],
                                    operations: Mapping[str, Any],
-                                   states: Mapping[str, Any]) -> dict[str, Any]:
+                                   states: Mapping[str, Any], *,
+                                   release_compiler: Any = None
+                                   ) -> dict[str, Any]:
     """Bind serviced openings to shared profiles without restating dimensions."""
     if value is None:
         return {}
@@ -1290,7 +1339,8 @@ def _validate_interface_assemblies(value: Any, root: Path,
         "receipt", "mappings", "non_enclosure_refs", "group_state_bindings",
     }, "config.interface_assemblies")
     receipt, binding, input_bindings = _load_shared_connector_receipt(
-        top["receipt"], root, "config.interface_assemblies.receipt")
+        top["receipt"], root, "config.interface_assemblies.receipt",
+        release_compiler=release_compiler)
 
     assemblies: dict[str, Mapping[str, Any]] = {}
     ref_to_assembly: dict[str, str] = {}
@@ -1878,8 +1928,17 @@ def _state_and_motion_cross_checks(intent: Mapping[str, Any],
                 f"intent operation {operation['id']}: unknown parts {sorted(missing)}")
 
 
-def validate_config_v2(value: Mapping[str, Any], root: Path) -> dict[str, Any]:
-    """Validate and cross-bind one complete schema-v2 configuration."""
+def validate_config_v2(value: Mapping[str, Any], root: Path, *,
+                       release_connector_compiler: Any = None
+                       ) -> dict[str, Any]:
+    """Validate and cross-bind one complete schema-v2 configuration.
+
+    ``release_connector_compiler`` is reserved for the immutable-release
+    verifier.  When present, connector contract/evidence resolution moves to
+    the fixed release-local virtual project root and the compiler is selected
+    by its exact manifest binding.  Ordinary project validation leaves it
+    unset and retains the canonical live compiler/project contract guard.
+    """
     top = _exact_optional(value, {
         "schema", "kind", "name", "mode", "subject", "external_subjects",
         "verification_scopes", "installed_parts", "fastener_policy",
@@ -1992,7 +2051,8 @@ def validate_config_v2(value: Mapping[str, Any], root: Path) -> dict[str, Any]:
         operation_map, state_map, external)
     interface_assemblies = _validate_interface_assemblies(
         top.get("interface_assemblies"), root, scopes,
-        cad_design["interfaces"], operation_map, state_map)
+        cad_design["interfaces"], operation_map, state_map,
+        release_compiler=release_connector_compiler)
     if service_envelopes and interface_assemblies:
         raise V2Error(
             "config: service_envelopes and interface_assemblies are mutually "

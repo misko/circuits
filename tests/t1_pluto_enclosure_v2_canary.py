@@ -155,21 +155,31 @@ def t_pluto_v2_clean_clone_replay():
         _validate_config(), "Pluto v2 config").out)
     eq(report["status"], "VALID")
     eq(report["scope_readiness_ceilings"], {
-        # This published config predates the shared connector-service receipt.
-        # Structural replay remains valid, but edge openings cannot retain a
-        # readiness claim merely because the new additive authority is absent.
         "shell": "INCOMPLETE",
-        "board_retention": "INCOMPLETE",
+        "board_retention": "CAD_READY",
         "antenna_accessory": "INCOMPLETE",
-        "thermal": "INCOMPLETE",
+        "thermal": "PRINT_VERIFIED",
     })
-    eq(report["service_envelope_coverage"]["legacy_omitted"], True)
-    eq(report["service_envelope_coverage"]["legacy_readiness_capped"], True)
+    eq(report["service_envelope_coverage"], {
+        "legacy_omitted": False,
+        "legacy_readiness_capped": False,
+        "declared": 0,
+        "shared_mappings": 4,
+        "shared_non_enclosure_refs": 0,
+        "shared_receipt_status": "INCOMPLETE",
+        "required_edge_openings": 12,
+        "candidate_dimension_census_complete": 0,
+    })
     interface = Path(report["bindings"]["interface"]["path"])
     check("06_build" not in interface.parts,
           "v2 interface authority must not depend on ignored build output")
     check(interface.is_relative_to(PROJECT / "07_enclosure_releases"),
           "v2 interface must reopen from the sealed enclosure stream")
+    receipt = Path(report["bindings"]["connector_assembly_receipt"]["path"])
+    check("06_build" not in receipt.parts,
+          "connector authority must not depend on ignored build output")
+    check(receipt.is_relative_to(PROJECT / "07_enclosure_releases"),
+          "connector receipt must reopen from the sealed enclosure stream")
 
     original = yaml.safe_load((MECHANICAL / "enclosure.yaml").read_text())
     adapter = yaml.safe_load(
@@ -179,93 +189,85 @@ def t_pluto_v2_clean_clone_replay():
        "v2 CAD adapter should differ only by its replay-stable interface binding")
 
 
-@test("Pluto v5 shared connector overlay covers every J1-J12 enclosure interface")
-def t_pluto_v2_shared_connector_overlay():
-    receipt_relative = Path(
-        "06_build/verification/t1_pluto_connector_assembly_contract.json")
-    receipt_path = PROJECT / receipt_relative
-    result = run([
-        KPY, CONNECTOR_COMPILER, "--project", PROJECT,
-        "--output", receipt_relative,
-    ])
-    eq(result.rc, 2, "honest incomplete connector-contract exit")
-    try:
-        value = yaml.safe_load(CONFIG.read_text())
-        value["interface_assemblies"] = {
-            "receipt": {
-                "path": receipt_relative.as_posix(),
-                "sha256": hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
-                "size": receipt_path.stat().st_size,
-            },
-            "non_enclosure_refs": [],
-            "mappings": [
-                {
-                    "id": "sma-bank",
-                    "assembly_id": "amphenol-901-143-6rfx-v5-bank",
-                    "interface_ids": [
-                        "rx-sma", "ant1-sma", "ant2-sma", "ant3-sma",
-                        "ant4-sma", "ant5-sma", "ant6-sma", "ant7-sma",
-                        "ant8-sma",
-                    ],
-                    "scope": "shell",
-                    "mated_in_states": ["installed"],
-                    "mated_during_operations": [],
-                },
-                {
-                    "id": "usb-c",
-                    "assembly_id": "gct-usb4105-power-service",
-                    "interface_ids": ["usb-c-power"],
-                    "scope": "shell",
-                    "mated_in_states": ["installed"],
-                    "mated_during_operations": [],
-                },
-                {
-                    "id": "swd",
-                    "assembly_id": "samtec-swd-service",
-                    "interface_ids": ["swd-service"],
-                    "scope": "shell",
-                    "mated_in_states": ["installed"],
-                    "mated_during_operations": [],
-                },
-                {
-                    "id": "bench-power",
-                    "assembly_id": "cjt-bench-power-service",
-                    "interface_ids": ["bench-power-service"],
-                    "scope": "shell",
-                    "mated_in_states": ["installed"],
-                    "mated_during_operations": [],
-                },
-            ],
-            "group_state_bindings": [
-                {"group_id": group, "enclosure_state_ids": ["installed"]}
-                for group in (
-                    "all-sma-service", "usb-c-service", "swd-service",
-                    "bench-power-service",
-                )
-            ],
-        }
-        value["physical_tests"].append({
-            "id": "connector_cable_service",
-            "type": "cable_strain_clearance",
-            "scope": "shell",
-            "required_for": "PRINT_VERIFIED",
-            "subject_parts": ["base", "lid", "pcb"],
-        })
-        overlay = tmpdir("pluto_enclosure_v2_connector_overlay_") / \
-            "enclosure-v2.yaml"
-        overlay.write_text(yaml.safe_dump(value, sort_keys=False),
-                           encoding="utf-8")
-        report = json.loads(must_pass(
-            _validate_config(overlay), "Pluto connector overlay").out)
-        eq(report["service_envelope_coverage"]["shared_mappings"], 4)
-        eq(report["service_envelope_coverage"]["shared_non_enclosure_refs"],
-           0)
-        eq(report["service_envelope_coverage"]["required_edge_openings"], 12)
-        eq(report["service_envelope_coverage"]["shared_receipt_status"],
-           "INCOMPLETE")
-        eq(report["scope_readiness_ceilings"]["shell"], "INCOMPLETE")
-    finally:
-        receipt_path.unlink(missing_ok=True)
+@test("Pluto v5 canonical connector receipt covers every J1-J12 interface")
+def t_pluto_v2_shared_connector_receipt():
+    value = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+    shared = value["interface_assemblies"]
+    binding = shared["receipt"]
+    receipt_path = PROJECT / binding["path"]
+    check(receipt_path.is_relative_to(PROJECT / "07_enclosure_releases"),
+          "canonical connector receipt is immutable release evidence")
+    eq(binding["sha256"], _sha(receipt_path), "receipt binding hash")
+    eq(binding["size"], receipt_path.stat().st_size,
+       "receipt binding size")
+
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    eq(receipt["status"], "INCOMPLETE",
+       "unknown service facts remain fail-closed")
+    eq(receipt["summary"], {
+        "assembly_count": 4,
+        "instance_count": 12,
+        "operation_count": 8,
+        "simultaneous_group_count": 4,
+        "tolerance_count": 6,
+        "evidence_total": 50,
+        "evidence_exact": 2,
+        "evidence_conservative": 0,
+        "evidence_unknown": 48,
+        "evidence_ceiling": "UNKNOWN",
+        "evidence_file_count": 7,
+    })
+    eq(receipt["inputs"]["compiler"], {
+        "path": CONNECTOR_COMPILER.relative_to(ROOT).as_posix(),
+        "sha256": _sha(CONNECTOR_COMPILER),
+        "size": CONNECTOR_COMPILER.stat().st_size,
+    }, "canonical compiler binding")
+    eq(receipt["inputs"]["contract"], {
+        "path": CONNECTOR_CONTRACT.relative_to(PROJECT).as_posix(),
+        "sha256": _sha(CONNECTOR_CONTRACT),
+        "size": CONNECTOR_CONTRACT.stat().st_size,
+    }, "canonical project contract binding")
+    for row in receipt["inputs"]["evidence_files"]:
+        evidence = PROJECT / row["path"]
+        eq(row["sha256"], _sha(evidence), f"{row['id']} evidence hash")
+        eq(row["size"], evidence.stat().st_size,
+           f"{row['id']} evidence size")
+
+    receipt_refs = {
+        instance["ref"]
+        for assembly in receipt["assemblies"]
+        for instance in assembly["instances"]
+    }
+    eq(receipt_refs, {f"J{index}" for index in range(1, 13)},
+       "receipt connector census")
+    receipt_groups = {row["id"] for row in receipt["simultaneous_groups"]}
+    eq(receipt_groups, {
+        "all-sma-service", "usb-c-service", "swd-service",
+        "bench-power-service",
+    })
+    eq({row["group_id"] for row in shared["group_state_bindings"]},
+       receipt_groups, "every service group has an enclosure state")
+    eq(shared["non_enclosure_refs"], [],
+       "all receipt connectors require enclosure coverage")
+
+    cad = yaml.safe_load(CAD_DESIGN.read_text(encoding="utf-8"))
+    required = {
+        row["id"]: row["ref"] for row in cad["interfaces"]
+        if row["disposition"] in {"opening", "service_opening"}
+    }
+    mapped_ids = {
+        interface_id
+        for mapping in shared["mappings"]
+        for interface_id in mapping["interface_ids"]
+    }
+    eq(mapped_ids, set(required), "all connector openings are mapped")
+    eq(set(required.values()), receipt_refs,
+       "mapped CAD openings cover the receipt connector census")
+    eq({row["scope"] for row in shared["mappings"]}, {"shell"},
+       "all connector service limits the shell scope")
+    check(any(row["id"] == "connector_cable_service"
+              for row in value["physical_tests"]),
+          "connector cable-service physical test remains required")
 
 
 @test("Pluto v5 aggregate remains incomplete despite optimistic CAD inputs")
@@ -335,6 +337,31 @@ def t_pluto_v2_cable_only_opening_bites():
     broken.write_text(yaml.safe_dump(value, sort_keys=False), encoding="utf-8")
     must_fail(_validate_config(broken), "Pluto cable-only antenna opening",
               "requires full_part")
+
+
+@test("Pluto v5 cannot omit one canonical connector opening",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_pluto_v2_connector_opening_omission_bites():
+    value = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+    value["interface_assemblies"]["mappings"][0]["interface_ids"].remove(
+        "ant8-sma")
+    broken = tmpdir("pluto_enclosure_v2_missing_connector_") / \
+        "enclosure-v2.yaml"
+    broken.write_text(yaml.safe_dump(value, sort_keys=False), encoding="utf-8")
+    must_fail(_validate_config(broken), "Pluto omitted connector opening",
+              "coverage must equal every connector/service opening")
+
+
+@test("Pluto v5 cannot substitute the canonical connector receipt binding",
+      kind="known_bad", gate="enclosure_v2.py")
+def t_pluto_v2_connector_receipt_binding_bites():
+    value = yaml.safe_load(CONFIG.read_text(encoding="utf-8"))
+    value["interface_assemblies"]["receipt"]["sha256"] = "0" * 64
+    broken = tmpdir("pluto_enclosure_v2_bad_connector_receipt_") / \
+        "enclosure-v2.yaml"
+    broken.write_text(yaml.safe_dump(value, sort_keys=False), encoding="utf-8")
+    must_fail(_validate_config(broken), "Pluto substituted connector receipt",
+              "bound size/hash differs from actual file")
 
 
 if __name__ == "__main__":

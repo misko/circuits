@@ -1,6 +1,6 @@
 schema: 1
 kind: pcb-enclosure-config-v1
-name: usb-hub-3s-v1.12-wall-lid-case
+name: usb-hub-3s-v1.12-roof-only-case
 mode: derived
 subject:
   release: v1.12-2026-07-28
@@ -37,14 +37,14 @@ cad:
   source:
     kind: authored_scad
     path: 03_src/mechanical/usb_hub_3s_v3_case.scad
-    sha256: 034c9dc09f89ca02a9cddd78afe1b844b4f79d2db698133a62e40c7405e8e2f2
-    size: 16806
+    sha256: ca8e79bfbfe403f3e3648a44ea05f6521825e6b68f98fc5cc86049ec81e47a6f
+    size: 12618
 geometry:
   topology: split_shell
   xy_clearance_mm: 8.0
   wall_mm: 2.4
   floor_mm: 2.4
-  roof_mm: 2.4
+  roof_mm: 3.2
   corner_radius_mm: 4.4
   board_bottom_z_mm: 9.5
   inside_top_z_mm: 27.0
@@ -219,7 +219,7 @@ interfaces:
 thermal:
   risk: high
   physical_soak_required: true
-  load_case: closed case, USB-A total 6 A plus USB-C 3 A at hottest expected ambient
+  load_case: roof-covered open-sided case, USB-A total 6 A plus USB-C 3 A at hottest expected ambient
   vents:
     - center_mm: [-8.0, 31.0]
       count: 5

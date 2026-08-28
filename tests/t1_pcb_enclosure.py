@@ -149,6 +149,43 @@ def _fake_cadquery(directory: Path, *, duplicate_substrate: bool = False) -> Pat
     return directory
 
 
+def _hostile_facet_order_openscad(directory: Path) -> Path:
+    """Fake OpenSCAD that changes only facet/cyclic-vertex serialization."""
+    directory.mkdir(parents=True, exist_ok=True)
+    executable = directory / "openscad-hostile-order"
+    executable.write_text(
+        "#!/usr/bin/env python3\n"
+        "from pathlib import Path\n"
+        "import sys\n"
+        "if '--version' in sys.argv:\n"
+        "    print('OpenSCAD version 2021.01')\n"
+        "    raise SystemExit(0)\n"
+        "output = Path(sys.argv[sys.argv.index('-o') + 1])\n"
+        "state = Path(__file__).with_suffix('.counter')\n"
+        "count = int(state.read_text()) if state.exists() else 0\n"
+        "state.write_text(str(count + 1))\n"
+        "triangles = [\n"
+        "    ((0, 0, 0), (1, 0, 0), (0, 1, 0)),\n"
+        "    ((0, 0, 1), (0, 1, 1), (1, 0, 1)),\n"
+        "]\n"
+        "variant = count % 3\n"
+        "if variant == 1:\n"
+        "    triangles = [(b, c, a) for a, b, c in reversed(triangles)]\n"
+        "elif variant == 2:\n"
+        "    triangles = [(c, a, b) for a, b, c in triangles]\n"
+        "lines = ['solid hostile']\n"
+        "for triangle in triangles:\n"
+        "    lines.extend(('  facet normal 99 99 99', '    outer loop'))\n"
+        "    lines.extend('      vertex %g %g %g' % point for point in triangle)\n"
+        "    lines.extend(('    endloop', '  endfacet'))\n"
+        "lines.extend(('endsolid hostile', ''))\n"
+        "output.write_text('\\n'.join(lines), encoding='ascii')\n",
+        encoding="utf-8",
+    )
+    executable.chmod(0o755)
+    return executable
+
+
 def _fresh_fixture(step_refs=("J1", "SW1")) -> dict[str, Path]:
     work = tmpdir("pcb_enclosure_")
     root = work / "root"
@@ -601,6 +638,70 @@ def t_authored_scad_clean_round_trip():
         manifest = json.loads(archive.read("MANIFEST.json"))
     eq(manifest["cad_authority"], generation["authority"],
        "package CAD authority")
+
+
+@test("standard-selector authored SCAD canonicalizes hostile facet ordering")
+def t_authored_standard_selectors_replay_byte_identically():
+    fixture = _fresh_fixture()
+    _enable_authored_scad(fixture)
+    openscad = _hostile_facet_order_openscad(fixture["work"] / "hostile-openscad")
+    command = [
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"], "--openscad", openscad,
+    ]
+    must_pass(run(command), "first standard-selector authored generation")
+    generation = json.loads((fixture["build"] / "generation.json").read_text())
+    eq(generation["selector_contract"], None,
+       "standard selectors do not claim the custom-selector probe")
+    eq([row["part"] for row in generation["parts"]],
+       ["base", "lid", "insert_coupon"], "standard authored part census")
+    for row in [*generation["parts"], generation["installed_case"]]:
+        eq(row.get("canonicalization"), "ascii-stl-facet-order-v1",
+           f"{row['selector']} canonicalization receipt")
+    paths = {
+        "base": fixture["build"] / "base.stl",
+        "lid": fixture["build"] / "lid.stl",
+        "coupon": fixture["build"] / "insert_coupon.stl",
+        "installed_case": fixture["build"] / "assembled-case.stl",
+    }
+    first = {name: path.read_bytes() for name, path in paths.items()}
+
+    must_pass(run(command), "repeated standard-selector authored generation")
+    repeated = json.loads((fixture["build"] / "generation.json").read_text())
+    eq(int(openscad.with_suffix(".counter").read_text()), 8,
+       "hostile renderer exercised a different ordering for every replayed selector")
+    for name, path in paths.items():
+        eq(path.read_bytes(), first[name],
+           f"{name} STL bytes after hostile facet-order replay")
+    eq({row["part"]: row["sha256"] for row in repeated["parts"]},
+       {row["part"]: row["sha256"] for row in generation["parts"]},
+       "standard authored printable hashes replay deterministically")
+    eq(repeated["installed_case"]["sha256"],
+       generation["installed_case"]["sha256"],
+       "standard authored installed-case hash replays deterministically")
+
+
+@test("standard authored mesh receipts cannot omit canonicalization",
+      kind="known_bad", gate="verify_enclosure.py")
+def t_authored_standard_selector_canonicalization_receipt_bites():
+    fixture = _fresh_fixture()
+    _enable_authored_scad(fixture)
+    must_pass(run([
+        KPY, GENERATE, fixture["config"], "--root", fixture["root"],
+        "--build-dir", fixture["build"],
+    ]), "generate standard authored canonicalization receipt")
+    generation_path = fixture["build"] / "generation.json"
+    generation = json.loads(generation_path.read_text())
+    generation["parts"][0].pop("canonicalization")
+    _write_json(generation_path, generation)
+    _refresh_collision_receipt(fixture, 0.0)
+    must_fail(run(_verify_args(fixture)),
+              "verify authored receipt without canonicalization",
+              "ENCLOSURE VERDICT FAIL")
+    _assert_only_failed(fixture, "printable_meshes")
+    contains(fixture["report"].read_text(),
+             "generation.json lacks canonical authored mesh identities",
+             "canonicalization omission finding")
 
 
 @test("authored SCAD may declare receipt-bound custom printable selectors")

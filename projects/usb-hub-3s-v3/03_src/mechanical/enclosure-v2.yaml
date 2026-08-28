@@ -1,6 +1,6 @@
 schema: 2
 kind: pcb-enclosure-config-v2
-name: usb-hub-3s-v1.12-wall-lid-case
+name: usb-hub-3s-v1.12-roof-only-case
 mode: derived
 subject:
   release: v1.12-2026-07-28
@@ -22,12 +22,12 @@ subject:
     size: 61228
   mechanical_intent:
     path: 03_src/mechanical/mechanical-intent-v2.yaml
-    sha256: eef3c02b07b540305f5f334b60df79229ce4f3e37397bf6cece7eb0bce30b393
-    size: 4383
+    sha256: 36105dbd693753c3066db49bb50c9f61250dd8a0a8b937eb263fffc9536d75c3
+    size: 5701
   cad_design:
     path: 03_src/mechanical/enclosure.yaml
-    sha256: 6c429ab65df3af03efbe4381982e7832340d31cef37648367d0d00f1015e699f
-    size: 6262
+    sha256: 3237f652f0b61f892240280d1a4c63b2c86514fc9e5af22aabac385ca1ba3099
+    size: 6280
 external_subjects:
   - id: supplemental_obstruction_decision
     role: supplemental_obstruction_authority_decision
@@ -51,19 +51,19 @@ external_subjects:
       excluded_claims: [received_part_tolerance, physical_fit, production_readiness]
 verification_scopes:
   - id: shell
-    description: Floor-down foundation, isolated PCB bosses, four independent closure posts, and one roof-down lid with four post-clearing side skirts.
+    description: Floor-down foundation, isolated PCB bosses, four independent closure posts, and one 3.2 mm roof whose main service edges stop at the exact PCB outline with only localized corner closure lugs.
     required: true
     depends_on: []
   - id: board_retention
-    description: PCB seats only on H1-H4 bosses and remains fastened to the base while the complete wall lid and all case screws are removed.
+    description: PCB seats only on H1-H4 bosses and remains fastened to the base while the complete roof and all case screws are removed.
     required: true
     depends_on: [shell]
   - id: connector_access
-    description: Full 40 mm vertical lid install/removal over the populated PCB through five bottom-open connector notches, plus simultaneous connector and top-service access.
+    description: Full 40 mm vertical roof install and removal over the populated PCB with no vertical skirt barrier along J1-J5 mating axes, plus simultaneous connector, termination, cable, grip, tool, and top-service access still awaiting exact evidence.
     required: true
     depends_on: [shell, board_retention]
   - id: thermal
-    description: Closed PETG enclosure behavior at the declared combined output load and ambient.
+    description: Roof-covered, open-sided PETG enclosure behavior at the declared combined output load and ambient.
     required: true
     depends_on: [shell, connector_access]
 installed_parts:
@@ -122,7 +122,7 @@ clearance_cases:
   - id: lid_installation
     scope: connector_access
     operation: install_complete_lid
-    opening_id: five_bottom_open_notches_and_case_posts
+    opening_id: board-edge-roof-and-localized-corner-lugs
     moving_parts: [lid]
     obstacles: [base, pcb]
     envelope_basis: full_part
@@ -131,7 +131,7 @@ clearance_cases:
   - id: lid_removal
     scope: connector_access
     operation: remove_complete_lid
-    opening_id: five_bottom_open_notches_and_case_posts
+    opening_id: board-edge-roof-and-localized-corner-lugs
     moving_parts: [lid]
     obstacles: [base, pcb]
     envelope_basis: full_part
@@ -146,6 +146,66 @@ clearance_cases:
     envelope_basis: full_part
     method: linear_sweep_envelope
     minimum_clearance_mm: 0.0
+interface_assemblies:
+  receipt:
+    path: 06_build/verification/connector_assembly_contract.json
+    sha256: 1a1b5109eaa912d84138b21184a242c40d2b8c631aa3d52a98356a1e25ac1f79
+    size: 52793
+  non_enclosure_refs: []
+  group_state_bindings:
+    - group_id: all-power-ports
+      enclosure_state_ids: [lid_removed_service, installed]
+    - group_id: fuse-service
+      enclosure_state_ids: [installed]
+    - group_id: switch-service
+      enclosure_state_ids: [installed]
+    - group_id: amber-indicator-service
+      enclosure_state_ids: [installed]
+    - group_id: green-indicator-service
+      enclosure_state_ids: [installed]
+  mappings:
+    - id: xt60-input-service
+      assembly_id: xt60-input-service
+      interface_ids: [xt60-input]
+      scope: connector_access
+      mated_in_states: [lid_removed_service, installed]
+      mated_during_operations: [install_complete_lid, remove_complete_lid]
+    - id: usb-a-output-service
+      assembly_id: usb-a-output-service
+      interface_ids: [usb-a-1, usb-a-2, usb-a-3]
+      scope: connector_access
+      mated_in_states: [lid_removed_service, installed]
+      mated_during_operations: [install_complete_lid, remove_complete_lid]
+    - id: usb-c-output-service
+      assembly_id: usb-c-output-service
+      interface_ids: [usb-c-output]
+      scope: connector_access
+      mated_in_states: [lid_removed_service, installed]
+      mated_during_operations: [install_complete_lid, remove_complete_lid]
+    - id: blade-fuse-service
+      assembly_id: blade-fuse-service
+      interface_ids: [blade-fuse-service]
+      scope: connector_access
+      mated_in_states: [installed]
+      mated_during_operations: []
+    - id: power-switch-service
+      assembly_id: power-switch-service
+      interface_ids: [power-switch]
+      scope: connector_access
+      mated_in_states: [installed]
+      mated_during_operations: []
+    - id: amber-status-view
+      assembly_id: amber-status-view
+      interface_ids: [master-status-led]
+      scope: connector_access
+      mated_in_states: [installed]
+      mated_during_operations: []
+    - id: green-status-view
+      assembly_id: green-status-view
+      interface_ids: [usb-a-1-status-led, usb-a-2-status-led, usb-a-3-status-led, usb-c-status-led]
+      scope: connector_access
+      mated_in_states: [installed]
+      mated_during_operations: []
 physical_tests:
   - id: insert_coupon
     type: insert_coupon
@@ -167,6 +227,16 @@ physical_tests:
     scope: connector_access
     required_for: PRINT_VERIFIED
     subject_parts: [base, lid, pcb]
+  - id: cable_strain_and_exit_clearance
+    type: cable_strain_clearance
+    scope: connector_access
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid, pcb]
+  - id: base_floor_connector_service_obstacle
+    type: custom.usb-hub.base-floor-connector-service-obstacle
+    scope: connector_access
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, pcb]
   - id: lid_off_retention
     type: lid_off_pcb_retention
     scope: board_retention
@@ -177,9 +247,14 @@ physical_tests:
     scope: board_retention
     required_for: PRINT_VERIFIED
     subject_parts: [base, lid, pcb]
-  - id: wall_lid_service_cycle
-    type: custom.usb-hub.wall-lid-service-cycle
+  - id: roof_lid_service_cycle
+    type: custom.usb-hub.roof-lid-service-cycle
     scope: connector_access
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid, pcb]
+  - id: roof_plate_flex_and_warp
+    type: custom.usb-hub.roof-plate-flex-warp
+    scope: shell
     required_for: PRINT_VERIFIED
     subject_parts: [base, lid, pcb]
   - id: thermal_soak

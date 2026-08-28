@@ -68,10 +68,12 @@ Generation probes that closed contract and records the declared/custom census
 and probe result in `generation.json`; packaging refuses missing or changed
 selector-contract evidence. This prevents a catch-all assembly fallback from
 silently exporting the wrong geometry under a mistyped accessory filename.
-For these custom-part configurations, generation also canonicalizes OpenSCAD's
+For every authored-SCAD configuration, generation canonicalizes OpenSCAD's
 otherwise nondeterministic ASCII-STL facet ordering and records that transform
-on every printable mesh and the installed-case mesh. Independent replay must
-therefore reproduce byte-identical mesh hashes, not merely matching volumes.
+on every printable mesh and the installed-case mesh. This applies even when the
+entrypoint uses only the standard base, lid, and coupon selectors; custom
+selectors additionally carry the closed-selector probe above. Independent
+replay must reproduce byte-identical mesh hashes, not merely matching volumes.
 
 Omit `cad.source` to use the built-in declarative engine. To use one reviewed hand-authored entrypoint, add this exact mapping:
 

@@ -1,9 +1,21 @@
 # Pluto RX2 8-way v5 printable enclosure
 
-This is a support-conscious split enclosure for the exact 90 × 65 × 1.6 mm
+This is a support-conscious, roof-only enclosure for the exact 90 × 65 × 1.6 mm
 `pluto-rx2-8way-v5` PCB release `v0.2.1-2026-08-14`. It preserves access to
 all nine right-angle SMA jacks, USB-C power, and the J11/J12 top service bay.
 The connector-relative lid labels are the larger `A1` through `A8` markings.
+
+The lid has **no continuous connector-facing sidewall**. Its central roof
+stops at the PCB outline, so it adds 0.0 mm nominal mating-plane setback to
+J1-J10. Only four localized closure lugs descend at the far corners, outside
+the schema-v1 candidate service corridors. J11/J12 use a south-edge-open
+notch instead of a closed aperture. These changes remove the predecessor
+case-created 3.4 mm recess and circular SMA webs; they do not fix the board's
+intrinsic 0.0 mm positive SMA exposure or its 15/18 mm port pitch.
+The base's 2.40 mm-thick foundation still extends 3.40 mm beyond Edge.Cuts,
+far below the SMA center plane; exact STEP collision is empty, but complete
+finger/tool/cable clearance against that deck is not yet modeled or physically
+tested and remains part of the connector-service `INCOMPLETE` boundary.
 
 The PCB and shell now use **independent fasteners**. Four M3 × 6 screws retain
 the PCB directly to its four base standoffs. Four different M3 × 6 screws in
@@ -44,12 +56,20 @@ the adapter seats.
 
 This design is **`INCOMPLETE`**, not `PRINT_VERIFIED`. User photographs show
 that the predecessor base bore on SMA bodies and that the predecessor antenna
-adapter was loose. The revised pillar-only base and localized key have not yet
+adapter was loose, and fabricated-board feedback reports poor SMA hand access.
+The revised pillar-only base, roof-only lid, and localized key have not yet
 been printed. The supplied STL is authoritative evidence for a flexible
 holder's clearance concept, not for the antenna itself. The modeled D10/D8.75
 antenna and D2.50 cable are conservative candidate witnesses. Automated
 collision and insertion-path checks cannot qualify physical retention,
 rattle, PCB seating, printer-process fit, or the unmeasured cable termination.
+
+The canonical connector receipt is also `INCOMPLETE`: 48 of 50 connector
+assembly facts remain unknown. No exact supported SMA/USB-C/SWD/bench mate,
+grip, tool, torque/reaction method, cable, complete operation, or tolerance
+stack is qualified. Open sides prevent this enclosure from worsening the
+nominal mating-plane setback; they do not prove hand-start, tightening,
+simultaneous mating, cable strain, or removal on the fabricated board.
 
 Production requires one authoritative antenna/cable profile from calipers or
 a dimensioned vendor drawing:
@@ -131,7 +151,16 @@ The separate `part="antenna_vs_compliant_key"` and
 the declared grip/aperture overlap without mislabeling it as rigid clearance.
 Printed insertion, retention, finish-safety, and cycle testing remain required.
 
-Access-zone checks use conservative configured plug envelopes:
+Access-zone checks use the legacy conservative configured plug envelopes only
+to prove that localized case features do not reintroduce the removed walls:
+
+- the roof adds 0.0 mm nominal setback at every J1-J10 mating plane;
+- the nearest north/side SMA candidate corridors clear a closure lug by
+  7.0/11.0 mm;
+- the USB-C candidate corridor clears a closure lug by 36.0 mm;
+- the nearest J11/J12 candidate corridor clears a closure lug by 16.764 mm;
+- the edge-open J11/J12 notch preserves at least 1.5 mm around the old finite
+  plug candidates while deleting the south bridge;
 
 - the north SMA plug envelope remains 3.5 mm from the adapter;
 - each east/west SMA plug envelope remains 8.0 mm from it;
@@ -205,8 +234,9 @@ The PCB bottom is 7.80 mm above the case exterior floor. The SMA RF centerline
 and wall seam are at Z=19.70 mm. The inside lid face is Z=24.70 mm and the
 case top is Z=27.10 mm. The base has no lower perimeter wall: its 96.8 × 71.8
 mm foundation is open on every side above Z=2.40 mm. Four external closure
-posts/lugs make the total envelope 112.0 × 87.0 mm. The lid supplies the upper
-connector skirt and the closed adapter sits on its exterior top plane.
+posts/lugs make the total envelope 112.0 × 87.0 mm. The 90 × 65 mm roof has no
+upper connector skirt; its edge is nominally flush with Edge.Cuts and the
+closed adapter sits on its exterior top plane.
 
 ## Print and assembly
 
@@ -214,7 +244,9 @@ Print PETG at 0.20 mm layers with a 0.4 mm nozzle, four perimeters, at least
 five top/bottom layers, and 25–35% infill. Disable supports for all five parts.
 `base.stl` prints foundation-down; the PCB pillars and case posts rise directly
 from the deck with every side open.
-`lid.stl` prints exterior-face-down. `rx2_antenna_mount.stl` prints its closed
+`lid.stl` prints exterior-face-down; the roof is the bed face and only the four
+corner lugs and two antenna-mount bosses grow upward. There are no perimeter
+walls or trapped connector cutouts. `rx2_antenna_mount.stl` prints its closed
 top face on the bed, so the rectangular underside cavity, roof-hung rails,
 screw wells, and bottom-open full-body U-arch grow upward without trapped support.
 

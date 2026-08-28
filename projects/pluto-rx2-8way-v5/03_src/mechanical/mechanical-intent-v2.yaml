@@ -85,6 +85,10 @@ operations:
     disconnecting_permitted: false
     clearance_case: loaded_mount_installation
 unknowns:
+  - id: connector_service_assemblies
+    scope: shell
+    question: The roof-only topology removes the enclosure's nominal J1-J10 setback and continuous edge walls, but the 2.40 mm base foundation still projects 3.40 mm beyond Edge.Cuts below connector height and the compiled connector contract still has 48 of 50 facts unknown. Select exact SMA/USB-C/SWD/bench mates, grips, tools, torque/reaction methods, cables, operations, simultaneous states, and tolerances; prove clearance against the deck and all populated service operations. The fabricated board's 0.0 mm SMA exposure and 15/18 mm pitch limitation are not solved by this case.
+    blocks_readiness: CAD_READY
   - id: actual_antenna_envelope
     scope: antenna_accessory
     question: Measure the production antenna body, elbow, connector, cable termination, cable diameter, and bend radius; the current L-envelope is only conservative candidate geometry.

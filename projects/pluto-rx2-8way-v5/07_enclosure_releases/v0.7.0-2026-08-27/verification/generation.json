@@ -1,0 +1,237 @@
+{
+  "assembly_contract": {
+    "board_fastener_axes_mm": [
+      [
+        -40.0,
+        27.5
+      ],
+      [
+        40.0,
+        27.5
+      ],
+      [
+        -40.0,
+        -27.5
+      ],
+      [
+        40.0,
+        -27.5
+      ]
+    ],
+    "case_fastener_axes_mm": [
+      [
+        -49.0,
+        -36.5
+      ],
+      [
+        49.0,
+        -36.5
+      ],
+      [
+        -49.0,
+        36.5
+      ],
+      [
+        49.0,
+        36.5
+      ]
+    ],
+    "fastener_strategy": "separate_perimeter",
+    "kind": "pcb-enclosure-assembly-contract-v1",
+    "pcb_retained_with_lid_removed": true,
+    "shared_board_shell_axes": false,
+    "shell_closure_axes_mm": [
+      [
+        -49.0,
+        -36.5
+      ],
+      [
+        49.0,
+        -36.5
+      ],
+      [
+        -49.0,
+        36.5
+      ],
+      [
+        49.0,
+        36.5
+      ]
+    ]
+  },
+  "authority": {
+    "binding": {
+      "path": "03_src/mechanical/pluto_rx2_8way_case.scad",
+      "sha256": "5b63f35410ddcf4aeb1050598c2a793a5e419e3f28c52456659191d021915f1b",
+      "size": 71190
+    },
+    "kind": "authored_scad"
+  },
+  "config": {
+    "path": "projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml",
+    "raw_sha256": "2cbc41da24b10e1a39a38593934d6f9a591a9b9b067ef2d128dad3eb08412234",
+    "semantic_sha256": "6dd65475afb9d6d717a42b290e6d61334bcf6031597bb6a2ae88ed69f56db563"
+  },
+  "engine": {
+    "executable": "/usr/bin/openscad",
+    "minimum_version": "2021.01",
+    "version": "OpenSCAD version 2021.01"
+  },
+  "installed_case": {
+    "canonicalization": "ascii-stl-facet-order-v1",
+    "command": [
+      "/usr/bin/openscad",
+      "-o",
+      "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/assembled-case.stl",
+      "-D",
+      "part=\"installed_case\"",
+      "-D",
+      "show_reference_board=false",
+      "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/enclosure.scad"
+    ],
+    "execution": {
+      "kind": "atomic-same-directory-output-v1"
+    },
+    "path": "assembled-case.stl",
+    "selector": "installed_case",
+    "sha256": "ff7206e712c8c0b4e4611d7f6074175155f9a431c6481774bd6683e603bc5c7c",
+    "size": 4936060
+  },
+  "interface": {
+    "raw_sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+    "semantic_sha256": "c75481b39a3a1b6101823f7d6f62e73e99be529915d30c6228a842595f7af409"
+  },
+  "kind": "pcb-enclosure-generation-v1",
+  "mode": "derived",
+  "name": "pluto-rx2-8way-v5-split-shell",
+  "parts": [
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/base.stl",
+        "-D",
+        "part=\"base\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "base",
+      "path": "base.stl",
+      "selector": "base",
+      "sha256": "2c119f624d9aeea2df62d6100fbd02954348142d8a7ce5b98718f102e9dac619",
+      "size": 1191901
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/lid.stl",
+        "-D",
+        "part=\"lid\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "lid",
+      "path": "lid.stl",
+      "selector": "lid",
+      "sha256": "290100d82468e2f150477fc1eaa5b864c2178a5d017df39c6ae4190bcf23a573",
+      "size": 3137832
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/insert_coupon.stl",
+        "-D",
+        "part=\"insert_coupon\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "insert_coupon",
+      "path": "insert_coupon.stl",
+      "selector": "insert_coupon",
+      "sha256": "d81727855a0aa2ace7bdb2cf98e2eed7f2eac0e12dd9b86b2ab6ed8ddc946429",
+      "size": 1162772
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/rx2_antenna_mount.stl",
+        "-D",
+        "part=\"rx2_antenna_mount\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "rx2_antenna_mount",
+      "path": "rx2_antenna_mount.stl",
+      "selector": "rx2_antenna_mount",
+      "sha256": "665dd923586cb9e85e9a884c8b0e5a9e3c5b870fbeca8996da11fed5665c6bf2",
+      "size": 834677
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/rx2_antenna_fit_gauge.stl",
+        "-D",
+        "part=\"rx2_antenna_fit_gauge\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-roof-only/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "rx2_antenna_fit_gauge",
+      "path": "rx2_antenna_fit_gauge.stl",
+      "selector": "rx2_antenna_fit_gauge",
+      "sha256": "d32f0125d56dd256915008d8c77fd78526506d589a96a342ef37f955cede6bc8",
+      "size": 1489170
+    }
+  ],
+  "schema": 1,
+  "selector_contract": {
+    "custom": [
+      "rx2_antenna_mount",
+      "rx2_antenna_fit_gauge"
+    ],
+    "declared": [
+      "base",
+      "lid",
+      "insert_coupon",
+      "rx2_antenna_mount",
+      "rx2_antenna_fit_gauge"
+    ],
+    "kind": "closed-authored-selectors-v1",
+    "mesh_canonicalization": "ascii-stl-facet-order-v1",
+    "probe_result": "REJECTED",
+    "probe_selector": "__pcb_enclosure_unknown__"
+  },
+  "source": {
+    "path": "enclosure.scad",
+    "sha256": "5b63f35410ddcf4aeb1050598c2a793a5e419e3f28c52456659191d021915f1b",
+    "size": 71190
+  }
+}

@@ -1,0 +1,42 @@
+mpn: A2541WV-2P
+manufacturer: CJT (Changjiang Connectors)
+type: vertical_bench_power_header
+mates: plug
+datasheet:
+  doc_id: A2541-SERIES
+  revision: "2014-03-28 captured PDF metadata"
+  url: "https://datasheet.lcsc.com/datasheet/pdf/057439725ed853ec31a4cbfed6c9b081.pdf?productCode=C225477"
+  local: 02_parts/A2541WV-2P/A2541-series.pdf
+  sha256: 86333224b53edd496b82266d962f5aa85fc52961443f873143449a4a19e72e16
+  fetched: 2026-08-14
+package: 1x2 2.54mm-pitch vertical through-hole male header, black PBT body
+footprint: Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical
+escape: {style: connector, pitch: 2.54, tier_required: jlc_2layer_default, checked: "manufacturer PCB layout and KiCad 10 standard footprint 2026-08-14"}
+pins:
+  1: BENCH_5V
+  2: GND
+limits: {current_rating: 3A, voltage_rating: 250V_AC_DC, operating_temperature: -40C_to_105C, contact_resistance_max: 20mOhm}
+mechanical:
+  pitch_mm: 2.54
+  recommended_hole_diameter_mm: 1.02
+  pin_section_mm: 0.64_square
+  insulator_height_mm: 2.54
+  mating_pin_length_mm: 6.00
+  solder_tail_length_mm: 3.00
+  body_length_mm: 5.08
+  body_width_mm: 2.54
+gotchas:
+  - "J12 pin 1 is nominal +5V only and pin 2 is GND; the square pad and nearby silk identify pin 1. This unkeyed header can be reversed by a loose lead, so verify polarity before energizing."
+  - "J12 and USB-C J1 join at VBUS_RAW and are not reverse-isolated. Use exactly one source at a time; never energize J12 while a powered USB-C cable is connected."
+  - "Bench input remains limited to 4.75V-5.5V and enters before F1, so it receives the same fuse, protected-node TVS and LDO path as USB-C."
+verified: "CJT A2541 series manufacturer drawing A-216 identifies A2541WV-2P as a 2-position vertical single-row header, 2.54mm pitch, 0.64mm square pins, 1.02mm recommended holes, 5.08x2.54mm body, 6mm mating pins and 3mm solder tails; series page A-212 gives 3A, 250V, -40C to +105C and 20mOhm maximum; exact LCSC C225477 identity and through-hole availability observed 2026-08-14"
+sourcing: {lcsc: C225477}
+layout:
+  source: "CJT A2541 series manufacturer drawing A-216"
+  reviewed: 2026-08-14
+  notes: "Place close to J1/F1, keep pin 1 nearest the raw-VBUS trunk, use a square pin-1 land, label +5V and GND on silk, and retain hand access for female jumper leads."
+layout_refs:
+  - {tier: 1, reached: true, artifact: "CJT A2541 series drawing A-216", why: "manufacturer drawing fixes pitch, hole, body and pin dimensions"}
+  - {tier: 2, reached: false, artifact: "open-hardware reference using exact A2541WV-2P", why: "no exact-code routed precedent was required for a two-pin low-current bench input; the manufacturer land is complete"}
+  - {tier: 3, reached: true, artifact: "LCSC C225477 product record", why: "exact catalog identity, ratings, stock and JLC sourcing code"}
+  - {tier: 4, reached: true, artifact: "KiCad 10 PinHeader_1x02_P2.54mm_Vertical footprint and model", why: "standard library geometry matches the manufacturer 2.54mm pitch, 5.08x2.54mm body and nominal 1.0/1.02mm hole"}

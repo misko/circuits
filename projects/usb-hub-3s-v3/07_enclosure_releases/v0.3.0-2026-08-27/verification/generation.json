@@ -1,0 +1,179 @@
+{
+  "assembly_contract": {
+    "board_fastener_axes_mm": [
+      [
+        -59.0,
+        40.0
+      ],
+      [
+        -59.0,
+        -40.0
+      ],
+      [
+        21.0,
+        42.0
+      ],
+      [
+        59.0,
+        -26.0
+      ]
+    ],
+    "case_fastener_axes_mm": [
+      [
+        -70.0,
+        -51.0
+      ],
+      [
+        -70.0,
+        51.0
+      ],
+      [
+        70.0,
+        -51.0
+      ],
+      [
+        70.0,
+        51.0
+      ]
+    ],
+    "fastener_strategy": "separate_perimeter",
+    "kind": "pcb-enclosure-assembly-contract-v1",
+    "pcb_retained_with_lid_removed": true,
+    "shared_board_shell_axes": false,
+    "shell_closure_axes_mm": [
+      [
+        -70.0,
+        -51.0
+      ],
+      [
+        -70.0,
+        51.0
+      ],
+      [
+        70.0,
+        -51.0
+      ],
+      [
+        70.0,
+        51.0
+      ]
+    ]
+  },
+  "authority": {
+    "binding": {
+      "path": "03_src/mechanical/usb_hub_3s_v3_case.scad",
+      "sha256": "ca8e79bfbfe403f3e3648a44ea05f6521825e6b68f98fc5cc86049ec81e47a6f",
+      "size": 12618
+    },
+    "kind": "authored_scad"
+  },
+  "config": {
+    "path": "projects/usb-hub-3s-v3/03_src/mechanical/enclosure.yaml",
+    "raw_sha256": "3237f652f0b61f892240280d1a4c63b2c86514fc9e5af22aabac385ca1ba3099",
+    "semantic_sha256": "a05016e7d5074b156ec3038dc205c07b6f564fef9903b9b5576c70cd0416fb19"
+  },
+  "engine": {
+    "executable": "/usr/bin/openscad",
+    "minimum_version": "2021.01",
+    "version": "OpenSCAD version 2021.01"
+  },
+  "installed_case": {
+    "canonicalization": "ascii-stl-facet-order-v1",
+    "command": [
+      "/usr/bin/openscad",
+      "-o",
+      "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/canonical-replay-a/assembled-case.stl",
+      "-D",
+      "part=\"installed_case\"",
+      "-D",
+      "show_reference_board=false",
+      "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/canonical-replay-a/enclosure.scad"
+    ],
+    "execution": {
+      "kind": "atomic-same-directory-output-v1"
+    },
+    "path": "assembled-case.stl",
+    "selector": "installed_case",
+    "sha256": "023012e5e1d63c1e284dcd1945c5f23d152b3ec4c7f0776cd892207e1d345b83",
+    "size": 2006808
+  },
+  "interface": {
+    "raw_sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+    "semantic_sha256": "91ba96b687a4ceb100d246e0b9254357e31b684ffa5299973c2eec96107b6518"
+  },
+  "kind": "pcb-enclosure-generation-v1",
+  "mode": "derived",
+  "name": "usb-hub-3s-v1.12-roof-only-case",
+  "parts": [
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/canonical-replay-a/base.stl",
+        "-D",
+        "part=\"base\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/canonical-replay-a/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "base",
+      "path": "base.stl",
+      "selector": "base",
+      "sha256": "bd0c426c166135753d0881f8a8ef26b81cdc1ee978164b2d38cb953562d47bdc",
+      "size": 820586
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/canonical-replay-a/lid.stl",
+        "-D",
+        "part=\"lid\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/canonical-replay-a/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "lid",
+      "path": "lid.stl",
+      "selector": "lid",
+      "sha256": "0592fb66e4282964a533c5061ba1281376f25d27d9e6482ceb1883b057c1cb0c",
+      "size": 1285535
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/canonical-replay-a/insert_coupon.stl",
+        "-D",
+        "part=\"insert_coupon\"",
+        "-D",
+        "show_reference_board=false",
+        "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/canonical-replay-a/enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "insert_coupon",
+      "path": "insert_coupon.stl",
+      "selector": "insert_coupon",
+      "sha256": "121c3c5afb5b09f87a2d420661248352bf23ebd1de2037a44828b3a153e2774b",
+      "size": 1289644
+    }
+  ],
+  "schema": 1,
+  "selector_contract": null,
+  "source": {
+    "path": "enclosure.scad",
+    "sha256": "ca8e79bfbfe403f3e3648a44ea05f6521825e6b68f98fc5cc86049ec81e47a6f",
+    "size": 12618
+  }
+}

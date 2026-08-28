@@ -27,8 +27,11 @@ folder.
 
 From the project root, run the three OpenSCAD export commands in `README.md`.
 Each must exit zero and produce a non-empty STL under `06_build/mechanical/`.
-Render `part="assembly"` and visually confirm that all nine SMA openings, USB-C
-opening, service opening, and four fastener axes align with the reference board.
+Render `part="assembly"` and visually confirm that every J1-J10 edge is
+continuously open, the J11/J12 roof notch reaches the south edge, the roof adds
+no nominal mating-plane setback, and all independent fastener axes align with
+the reference board. This visual check is not complete mate/tool/cable-service
+evidence; the shared connector receipt governs that boundary.
 
 ## Repair
 

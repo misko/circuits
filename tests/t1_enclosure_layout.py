@@ -13,6 +13,30 @@ from harness import ROOT, check, contains, main, test, tmpdir  # noqa: E402
 
 AUDIT = ROOT / "skills/pcb-enclosure/scripts/enclosure_layout_audit.py"
 
+NEW_RELEASE_STLS = {
+    "projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.7.0-2026-08-27": {
+        "meshes/base.stl",
+        "meshes/insert_coupon.stl",
+        "meshes/lid.stl",
+        "meshes/rx2_antenna_fit_gauge.stl",
+        "meshes/rx2_antenna_mount.stl",
+        "source/reference/user-antenna-holder-reference.stl",
+        "verification/assembled-case.stl",
+        "verification/clearance-intersection.stl",
+        "verification/reference-meshes/rx2_antenna_reference.stl",
+        "verification/reference-meshes/rx2_cable_reference.stl",
+        "verification/step-components.stl",
+    },
+    "projects/usb-hub-3s-v3/07_enclosure_releases/v0.3.0-2026-08-27": {
+        "meshes/base.stl",
+        "meshes/insert_coupon.stl",
+        "meshes/lid.stl",
+        "verification/assembled-case.stl",
+        "verification/composite-clearance-intersection.stl",
+        "verification/composite-components.stl",
+    },
+}
+
 
 def fixture() -> Path:
     root = tmpdir("enclosure-layout-")
@@ -41,7 +65,33 @@ def t_real_fleet():
     result = run(ROOT)
     check(result.returncode == 0, result.stdout)
     contains(result.stdout, "designed_projects=2", "real design census")
-    contains(result.stdout, "tracked_stls=80", "real STL census")
+    tracked = {
+        path for path in subprocess.check_output(
+            ["git", "-C", str(ROOT), "ls-files", "-z", "--", "*.stl"],
+            text=True).split("\0") if path
+    }
+    for release_root, expected_relative in NEW_RELEASE_STLS.items():
+        actual_relative = {
+            path.removeprefix(release_root + "/") for path in tracked
+            if path.startswith(release_root + "/")
+        }
+        check(actual_relative == expected_relative,
+              f"wrong tracked STL inventory under {release_root}: "
+              f"{sorted(actual_relative)}")
+    added_release_count = sum(map(len, NEW_RELEASE_STLS.values()))
+    outside_new_releases = {
+        path for path in tracked
+        if not any(path.startswith(root + "/") for root in NEW_RELEASE_STLS)
+    }
+    check(len(outside_new_releases) == 80,
+          "the established 80-STL fleet outside the two new release trees "
+          f"drifted to {len(outside_new_releases)}")
+    expected_total = len(outside_new_releases) + added_release_count
+    check(expected_total == 97 and len(tracked) == expected_total,
+          f"tracked STL census is {len(tracked)}, expected 80 + "
+          f"{added_release_count} = 97")
+    contains(result.stdout, f"tracked_stls={expected_total}",
+             "real STL census")
 
 
 @test("minimal authored enclosure source passes without generated payloads")

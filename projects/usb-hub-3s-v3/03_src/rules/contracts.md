@@ -20,6 +20,7 @@ belongs here.
 | `policy_waivers.yaml` | policy_audit waivers accepted WITH measurement evidence (canon M4/M-WAIV): a YAML list, each entry naming the WAIVED S-/P-/R-/M-/E- policy ID + `why:` + the measurement that justifies it; P-ADJ net-span over-budget dispositions land here with the measured span + why. An entry without evidence is itself a FAIL |
 | `policy_audit.json` | OPTIONAL `policy_audit.py` config (`--config 03_src/rules/policy_audit.json`, its default path): thresholds + HUMAN-item verdict pointers (S5/S6/S7) |
 | `critical_parts.yaml` | selective accepted facts for catastrophic part/footprint identities and geometry; graded by `critical_part_facts.py` before routing |
+| `connector_assemblies.yaml` | complete receptacle/mate/grip/tool/cable/operation/tolerance contracts for every operated or serviced external interface; compiled by `pcb-design` and allowed to remain explicitly `INCOMPLETE` while hardware and service facts are unknown |
 | `contracts.md` | this file |
 
 ## The rule that makes this folder worth existing

@@ -781,6 +781,7 @@ def t_v2_shared_connector_receipt_stale():
       kind="known_bad", gate="enclosure_v2.py")
 def t_v2_shared_connector_mid_regrade_input_drift():
     for field, phrase in (
+            ("connector_receipt", "connector receipt changed during regrade"),
             ("connector_contract", "connector contract changed during regrade"),
             ("connector_evidence",
              "connector evidence file 0 changed during regrade")):

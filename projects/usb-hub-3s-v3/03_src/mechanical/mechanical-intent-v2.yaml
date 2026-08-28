@@ -1,6 +1,6 @@
 schema: 2
 kind: pcb-enclosure-mechanical-intent-v2
-name: usb-hub-3s-v1.12-wall-lid-case
+name: usb-hub-3s-v1.12-roof-only-case
 desired_release:
   lifecycle: draft
   readiness: CAD_READY
@@ -46,7 +46,7 @@ operations:
     moving_parts: [lid]
     direction: [0, 0, -1]
     travel_mm: 40.0
-    cable_condition: not_applicable
+    cable_condition: pre_attached
     threading_permitted: false
     bending_permitted: false
     disconnecting_permitted: false
@@ -58,7 +58,7 @@ operations:
     moving_parts: [lid]
     direction: [0, 0, 1]
     travel_mm: 40.0
-    cable_condition: not_applicable
+    cable_condition: pre_attached
     threading_permitted: false
     bending_permitted: false
     disconnecting_permitted: false
@@ -90,28 +90,43 @@ unknowns:
     blocks_readiness: CAD_READY
   - id: actual_mating_hardware
     scope: connector_access
-    question: Measure the intended XT60, three simultaneous USB-A, and USB-C plug overmolds, straight exits, and bend radii; present opening envelopes are conservative gauges.
+    question: Bind separate received dimensions for every receptacle body, mated plug or overmold, rear termination or heat-shrink, cable OD, minimum bend radius, straight run, exit vector, simultaneous mating group, and service state; present plug envelopes are conservative gauges only.
+    blocks_readiness: CAD_READY
+  - id: xt60_mated_service_envelope
+    scope: connector_access
+    question: The first-article photo proves the XT60 lead, heat-shrink, and thick cable rise into the predecessor skirt, but supplies no dimensions; bind the received mated assembly and execute its installation and service sweep before claiming roof-only fit.
+    blocks_readiness: CAD_READY
+  - id: base_floor_service_shelf
+    scope: connector_access
+    question: The preserved base floor projects 10.4 mm outboard of each exact PCB edge; qualify the XT60 and every other received grip, termination, downward cable bend, under-grip finger path, and removal sweep against that shelf before calling the service cell unobstructed.
     blocks_readiness: CAD_READY
   - id: first_article_board_support
     scope: board_retention
-    question: Prove the assembled PCB reaches nonpenetrating terminal contact on all four H1-H4 bearing faces and bears on no connector, solder tail, component, lid skirt, or case post.
+    question: Prove the assembled PCB reaches nonpenetrating terminal contact on all four H1-H4 bearing faces and bears on no connector, solder tail, component, roof, or case post.
     blocks_readiness: PRINT_VERIFIED
-  - id: wall_lid_drop_fit
+  - id: roof_lid_drop_fit
     scope: connector_access
-    question: Print and exercise the complete 40 mm vertical lid install/removal path over the populated PCB; prove all five bottom-open notches clear full connector bodies without forced deflection and the roof reaches nonpenetrating terminal bearing contact on all four case posts.
+    question: Print and exercise the complete 40 mm vertical roof install and removal path over the populated, simultaneously mated assembly; prove the roof edge, localized corner lugs, posts, screws, base floor, terminations, cables, grips, and tools do not interfere, and prove the roof reaches nonpenetrating terminal bearing contact on all four case posts.
+    blocks_readiness: PRINT_VERIFIED
+  - id: roof_plate_stiffness
+    scope: shell
+    question: Measure first-article flatness and handling flex of the 130 x 92 x 3.2 mm vented PETG main roof plus four corner lugs; prove it does not warp or sag onto populated components while fastened only at four perimeter posts.
     blocks_readiness: PRINT_VERIFIED
   - id: insert_process_fit
     scope: shell
     question: Qualify the insert pilot with the exact printer, PETG, slicer, and E-Z LOK insert lot before using the production pocket.
     blocks_readiness: PRINT_VERIFIED
-  - id: closed_case_thermal
+  - id: roof_only_thermal
     scope: thermal
-    question: Run the defined closed-case load soak and record converter, switch, fuse, connector, air, and enclosure temperatures.
+    question: Run the defined roof-covered, open-sided load soak and record converter, switch, fuse, connector, air, and enclosure temperatures.
     blocks_readiness: THERMALLY_VERIFIED
 excluded_claims:
   - exact_component_clearance
   - physical_fit
   - print_verified
   - thermal_performance
+  - connector_service_clearance
+  - cable_bend_clearance
+  - ingress_protection
   - production_readiness
   - order_readiness

@@ -72,10 +72,20 @@ def t_diff_selection_is_semantic():
 def t_enclosure_classifier_is_fail_closed():
     for material in (
             "projects/x/03_src/mechanical-electrical/route.yaml",
+            "projects/x/03_src/contracts.md",
+            "projects/x/03_src/route.yaml",
+            "projects/x/03_src/rules/connector_assemblies.yaml",
+            "projects/x/03_src/rules/contracts.md",
+            "projects/x/03_src/rules/nets.yaml",
             "projects/x/03_src/rules/rf.yaml",
+            "projects/x/03_src/rules/connector_assemblies.yaml.bak",
+            "projects/x/03_src/rules/connector_assemblies/nets.yaml",
             "projects/x/03_src/lib/rf.pretty/J1.kicad_mod",
             "projects/x/04_kicad/x.kicad_pcb",
             "projects/x/07_releases/v2/MANIFEST.txt",
+            "projects/x/08_reviews/DISPOSITIONS.md",
+            "projects/x/08_reviews/2026-08-27_connector-service_first-article.md.bak",
+            "projects/x/08_reviews/2026-08-27_connector-service_first-article-and-routing.md",
             "projects/x/08_reviews/redteam_layout.md"):
         check(pg.classify_project_path(material) == pg.PATH_PCB_MATERIAL,
               f"material near/mixed path escaped PCB grading: {material}")
@@ -122,6 +132,52 @@ def _enclosure_diff_repo(*, add_electrical=False):
         rules.mkdir(parents=True)
         (rules / "rf.yaml").write_text("impedance_ohms: 50\n")
     head = _commit(root, "candidate")
+    return root, base, head
+
+
+def _connector_bundle_repo(*, missing_contract=False, extra_contract=False,
+                           near_prefix=False, mixed_material=False,
+                           preexisting_authority=False, contract_mode_drift=False):
+    root = tmpdir("pub_connector_bundle_")
+    must_pass(run(["git", "init", "-q"], cwd=root),
+              "init connector bundle fixture")
+    must_pass(run(["git", "config", "user.email", "tests@example.invalid"],
+                  cwd=root), "configure fixture email")
+    must_pass(run(["git", "config", "user.name", "Publication Gate Tests"],
+                  cwd=root), "configure fixture name")
+    project = root / "projects" / "demo"
+    rules = project / "03_src" / "rules"
+    rules.mkdir(parents=True)
+    contract = rules / "contracts.md"
+    contract.write_text(
+        "# child contract\n\n| File | What |\n|---|---|\n"
+        "| `contracts.md` | this file |\n")
+    connector = rules / "connector_assemblies.yaml"
+    if preexisting_authority:
+        connector.write_text("schema: 1\nassemblies: [old]\n")
+    base = _commit(root, "base connector child contract")
+
+    connector.write_text("schema: 1\nassemblies: []\n")
+    if not missing_contract:
+        canonical = sorted(pg.CANONICAL_CONNECTOR_CONTRACT_ROWS)[0]
+        contract.write_text(contract.read_text().replace(
+            "| `contracts.md` | this file |\n",
+            canonical + "\n| `contracts.md` | this file |\n"))
+        if extra_contract:
+            contract.write_text(contract.read_text() +
+                                "electrical policy changed too\n")
+        if contract_mode_drift:
+            contract.chmod(0o755)
+    if near_prefix:
+        (rules / "connector_assemblies.yaml.bak").write_text(
+            "electrical: true\n")
+    if mixed_material:
+        (project / "03_src" / "route.yaml").write_text("schema: 1\n")
+        (rules / "nets.yaml").write_text("classes: []\n")
+        reviews = project / "08_reviews"
+        reviews.mkdir()
+        (reviews / "DISPOSITIONS.md").write_text("# generic ledger\n")
+    head = _commit(root, "connector bundle candidate")
     return root, base, head
 
 
@@ -176,6 +232,49 @@ def t_enclosure_diff_does_not_launder_electrical_change():
     contains(r.out, "1 material project(s)", "PCB coverage denominator")
     contains(r.out, "2 enclosure-only path(s) across 1 project(s)",
              "independent enclosure accounting")
+
+
+@test("an exact connector authority plus canonical child-contract row is "
+      "enclosure governance only")
+def t_exact_connector_contract_bundle_is_enclosure_only():
+    root, base, head = _connector_bundle_repo()
+    r = must_pass(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "exact connector governance bundle")
+    contains(r.out, "2 enclosure-only path(s) across 1 project(s)",
+             "paired connector bundle accounting")
+    contains(r.out, "0 PCB project(s), 0 board(s) graded",
+             "connector bundle stays outside PCB denominator")
+
+
+@test("mechanical connector bundle cannot launder simultaneous electrical "
+      "source or generic review changes", kind="known_bad")
+def t_connector_contract_diff_does_not_launder_material_changes():
+    root, base, head = _connector_bundle_repo(mixed_material=True)
+    r = must_fail(run([sys.executable, PUB, "--root", root,
+                       "--base", base, "--head", head]),
+                  "mixed connector/electrical publication", "BOARD-COVERAGE")
+    contains(r.out, "1 material project(s)", "PCB coverage denominator")
+    contains(r.out, "2 enclosure-only path(s) across 1 project(s)",
+             "mechanical connector accounting")
+
+
+@test("connector allowance rejects missing siblings, extra contract bytes, "
+      "and near-prefix paths", kind="known_bad")
+def t_connector_contract_bundle_is_exact_and_fail_closed():
+    fixtures = (
+        ("missing child-contract delta", {"missing_contract": True}),
+        ("extra child-contract byte", {"extra_contract": True}),
+        ("near-prefix sibling", {"near_prefix": True}),
+        ("pre-existing authority mutation", {"preexisting_authority": True}),
+        ("child-contract mode drift", {"contract_mode_drift": True}),
+    )
+    for label, kwargs in fixtures:
+        root, base, head = _connector_bundle_repo(**kwargs)
+        r = must_fail(run([sys.executable, PUB, "--root", root,
+                           "--base", base, "--head", head]),
+                      label, "BOARD-COVERAGE")
+        contains(r.out, "1 material project(s)", f"{label} PCB selection")
 
 
 @test("moving electrical source into the enclosure subtree cannot launder its "

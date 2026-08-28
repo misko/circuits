@@ -1,0 +1,420 @@
+{
+  "artifact_id": "usb-hub-3s-v3-enclosure",
+  "based_on": {
+    "manifest": {
+      "release_path": "authorities/pcb-release/MANIFEST.txt",
+      "sha256": "2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4",
+      "size": 41456,
+      "source_path": "MANIFEST.txt"
+    },
+    "pcb": {
+      "release_path": "authorities/pcb-release/source/usb_hub_3s_v2.kicad_pcb",
+      "sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+      "size": 2007690,
+      "source_path": "source/usb_hub_3s_v2.kicad_pcb"
+    },
+    "pcb_release": {
+      "project_path": "07_releases/v1.12-2026-07-28",
+      "release_id": "v1.12-2026-07-28"
+    },
+    "step": {
+      "release_path": "authorities/pcb-release/3d/usb_hub_3s_v2.step",
+      "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+      "size": 2239061,
+      "source_path": "3d/usb_hub_3s_v2.step"
+    }
+  },
+  "date": "2026-08-27",
+  "kind": "pcb-enclosure-release-v2",
+  "lifecycle": "immutable_candidate",
+  "payload_count": 57,
+  "payloads": [
+    {
+      "path": "README.md",
+      "sha256": "8fce8fbf9aba3c751ae3436bd982ff9c4a2e1f08bcb0a985b259f0f94252d9b8",
+      "size": 3584
+    },
+    {
+      "path": "authorities/enclosure-predecessor/MANIFEST.json",
+      "sha256": "09bf27638cc174ec67258bba31e93a8d37c9bb1a2243f515c183b44a8648e51d",
+      "size": 13978
+    },
+    {
+      "path": "authorities/pcb-release/3d/usb_hub_3s_v2.step",
+      "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+      "size": 2239061
+    },
+    {
+      "path": "authorities/pcb-release/MANIFEST.txt",
+      "sha256": "2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4",
+      "size": 41456
+    },
+    {
+      "path": "authorities/pcb-release/source/usb_hub_3s_v2.kicad_pcb",
+      "sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+      "size": 2007690
+    },
+    {
+      "path": "cad/usb_hub_3s_v3_case.scad",
+      "sha256": "034c9dc09f89ca02a9cddd78afe1b844b4f79d2db698133a62e40c7405e8e2f2",
+      "size": 16806
+    },
+    {
+      "path": "meshes/base.stl",
+      "sha256": "19c793d6a38673fd7412847b3f1042de5d5b9da56e21dd0d85689e06f0fa7e50",
+      "size": 802255
+    },
+    {
+      "path": "meshes/insert_coupon.stl",
+      "sha256": "9e481211747cfb11362c9d078754cef097a5daf0a6837492d7ad695e8583fdf1",
+      "size": 1263214
+    },
+    {
+      "path": "meshes/lid.stl",
+      "sha256": "9f909055a7def080690ca41e0836705f7610e602a8837351a8a05381f06c8d1f",
+      "size": 1234374
+    },
+    {
+      "path": "renders/assembly.png",
+      "sha256": "df57c795724d7d598e4ec8ecf6a2c3e08a93dbd1548503ef6fecbb059dc9c4fa",
+      "size": 48559
+    },
+    {
+      "path": "renders/base-board.png",
+      "sha256": "4fab15a7b72cf66f359600ce56dc67a54d305cf5c305538bb6034b36dec6c52e",
+      "size": 46741
+    },
+    {
+      "path": "renders/closed-assembly.png",
+      "sha256": "6c9af4b28095e0a84d99ed8db49db58e49c1e1ea33cddd46acfd222c744a35fe",
+      "size": 63468
+    },
+    {
+      "path": "renders/insert-coupon.png",
+      "sha256": "e2e081e5906ed4771274c0587a62c85cfc248a683ade7be8007fec47e4f98d56",
+      "size": 25978
+    },
+    {
+      "path": "source/enclosure-cad-design-v2.yaml",
+      "sha256": "348e490183ee1d55aa732d39a9291dfec464d4d975a7651108c1e90d13d32b54",
+      "size": 6212
+    },
+    {
+      "path": "source/enclosure-v2.yaml",
+      "sha256": "d117e4e1b4d4e7e196b204688258ebb19ea7b6e08f95f92c54ab4a7b27e2e7a7",
+      "size": 6878
+    },
+    {
+      "path": "source/mechanical-intent-v2.yaml",
+      "sha256": "eef3c02b07b540305f5f334b60df79229ce4f3e37397bf6cece7eb0bce30b393",
+      "size": 4383
+    },
+    {
+      "path": "source/reference/obstruction-models.json",
+      "sha256": "594d6ca32e6455f91364c08f0b3a6b2edacd3f77662cc4deae62da8958a5695b",
+      "size": 6571
+    },
+    {
+      "path": "source/reference/obstruction_models/C130056/SON-8_L3.0-W3.0-H1.0-P0.65.step",
+      "sha256": "fe4edffe6c341b4a1972262e087900083e16735d623278a987347963f15dc070",
+      "size": 1972353
+    },
+    {
+      "path": "source/reference/obstruction_models/C130056/SON-8_L3.0-W3.0-P0.65-LS3.0-BL-EP.kicad_mod",
+      "sha256": "2c0752567b86e95cab5f53736278713aa78837b79410fa6e61bc97f1d99684cd",
+      "size": 2473
+    },
+    {
+      "path": "source/reference/obstruction_models/C2760089/PDFN-8_L5.6-W5.2-P1.27-LS6.1-BL.kicad_mod",
+      "sha256": "e6cac692d0fbd576c20025cf1d1e46c53a51e29efbe7049ffc19687dfbe2b656",
+      "size": 3024
+    },
+    {
+      "path": "source/reference/obstruction_models/C2760089/PDFN-8_L5.6-W5.2-P1.27-LS6.1-BL.step",
+      "sha256": "729eeed7ca05d88471b93de3fcdf8f3c5b4e965f970681e7bea3e929d8826795",
+      "size": 1530053
+    },
+    {
+      "path": "source/reference/obstruction_models/C2939728/SW-TH_SS12D07VG4.kicad_mod",
+      "sha256": "da19b177ae6090281827e572dfb8fee70d18114602f41bb46a7c5a9949cc1a7b",
+      "size": 3263
+    },
+    {
+      "path": "source/reference/obstruction_models/C2939728/SW-TH_SS12D07VG4.step",
+      "sha256": "e6711b67698be2771b712dbb6dc1f5191600ab870bc0b45d4f4c9a5ed8070c43",
+      "size": 1648974
+    },
+    {
+      "path": "source/reference/obstruction_models/C404363/DFN-8_L5.2-W6.1-H1.0-P1.27-BL-EP.step",
+      "sha256": "e94dd23646a5de18977d6e9ded6f7809383edec92cc7dbfe11c54c264d18765b",
+      "size": 1584657
+    },
+    {
+      "path": "source/reference/obstruction_models/C404363/DFN-8_L5.2-W6.1-P1.27-BL-EP.kicad_mod",
+      "sha256": "b4100c0bc70b82df1ef9e22196ca241f34259a9877bcca7fd3381bf3ecccc529",
+      "size": 3179
+    },
+    {
+      "path": "source/reference/obstruction_models/C503996/USB-A-TH_USB-A-F-90.kicad_mod",
+      "sha256": "67df7b1fb4b8d82a200a7ce5dbbcf368812163e7ea61ce1a31a6914ad339bf9e",
+      "size": 3941
+    },
+    {
+      "path": "source/reference/obstruction_models/C503996/USB-A-TH_USB-A-F-90.step",
+      "sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "size": 3102252
+    },
+    {
+      "path": "source/reference/obstruction_models/C5337088/USB-C-SMD_TYPE-C-31-M-12A.kicad_mod",
+      "sha256": "f1a7b4bfb29a5668e52abde0e91f35703726d3c3e194b8589fb21045e5ba26a8",
+      "size": 3325
+    },
+    {
+      "path": "source/reference/obstruction_models/C5337088/USB-C-SMD_TYPE-C-31-M-12A.step",
+      "sha256": "fca24d969713ecd0d1eeea5920e0345d09585f96ee261a99c750bbdd0ec0a27a",
+      "size": 2777952
+    },
+    {
+      "path": "source/reference/obstruction_models/C6165170/F2920-1.step",
+      "sha256": "071004dc1bb9780fe246fa6900f817f2d83b526947a1f20847d41c9a16cb67b6",
+      "size": 953729
+    },
+    {
+      "path": "source/reference/obstruction_models/C6165170/F2920.kicad_mod",
+      "sha256": "21498d140927b55d8c251ca20a5857fdbbf8f248210ac48c473aadfd2887c95a",
+      "size": 1807
+    },
+    {
+      "path": "source/reference/obstruction_models/C98732/CONN-TH_XT60PW-M.kicad_mod",
+      "sha256": "f5dd33a9caf67dde1d44bf77bb8004e3951d60a9b1ac1958259bcd68c1f069fc",
+      "size": 3265
+    },
+    {
+      "path": "source/reference/obstruction_models/C98732/CONN-TH_XT60PW-M.step",
+      "sha256": "3b036d033f3037f3bb025b765d33774d9f1a53459046d49200378027d424d01a",
+      "size": 2005370
+    },
+    {
+      "path": "source/reference/supplemental-obstruction-decision.yaml",
+      "sha256": "5342a1282213745cdbe34e82bc471193814b422cadf69be3d7143228714050d6",
+      "size": 2974
+    },
+    {
+      "path": "tooling/build_collision.py",
+      "sha256": "ea2d4bad98106d647541dc4ded58e6b6826ba885fa3315101d38dcb4991e32e7",
+      "size": 17928
+    },
+    {
+      "path": "tooling/compose_obstruction_step.py",
+      "sha256": "8188b53965c1a79998bef2e60f7fb0474ad9858e062616abee84bf0fd0a0bc86",
+      "size": 10588
+    },
+    {
+      "path": "tooling/enclosure_common.py",
+      "sha256": "f69fd0b327fdf8d0012bb50bbad2774526a9a978dc34738f48281212d359b10b",
+      "size": 55290
+    },
+    {
+      "path": "tooling/enclosure_v2.py",
+      "sha256": "d51d8aa2454bf04b7e13ae3226af814bf7232529b261b51ff537d0034e32d6a7",
+      "size": 66266
+    },
+    {
+      "path": "tooling/generate_enclosure.py",
+      "sha256": "170eabe7e4745a517ba549a68c38be62f4c34559cdecdab670e4153384991642",
+      "size": 19909
+    },
+    {
+      "path": "tooling/inspect_step.py",
+      "sha256": "049e1d95f628dc942b7567f9a8a30a3c968098ba41421d578ec8f97623bfdefc",
+      "size": 12272
+    },
+    {
+      "path": "tooling/pipeline_runtime.py",
+      "sha256": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+      "size": 49746
+    },
+    {
+      "path": "tooling/prepare_obstruction_step.py",
+      "sha256": "8d83145f6d514d8b13fbee13c75ed7455b49c17831d41afcc1d55c25be0b3fbf",
+      "size": 10793
+    },
+    {
+      "path": "tooling/process_runner.py",
+      "sha256": "1314cb382fc9bab8bbae960c818712a01acbf9517cd9a98840ba58580b861670",
+      "size": 8702
+    },
+    {
+      "path": "tooling/verify_enclosure.py",
+      "sha256": "edb5b583bf7d30b013a269298811fed0a9e5f13484a442e97b8fd0b8ef5980d9",
+      "size": 40603
+    },
+    {
+      "path": "tooling/verify_enclosure_release.py",
+      "sha256": "f4b7e8ccdf96c047c5fee831983a1f5f325f40802e55739608200281590139f8",
+      "size": 35928
+    },
+    {
+      "path": "verification/assembled-case.stl",
+      "sha256": "404dec147f6cb58e137ee044075b116b77b290220ff52f0c19ab637e103c13f2",
+      "size": 1978271
+    },
+    {
+      "path": "verification/board-interface.json",
+      "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+      "size": 61228
+    },
+    {
+      "path": "verification/composite-clearance-intersection.stl",
+      "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445",
+      "size": 181
+    },
+    {
+      "path": "verification/composite-collision.json",
+      "sha256": "9f99af1e025d763258890de9d1cf89e586c24ff0d579080427f0a468151c00cf",
+      "size": 3193
+    },
+    {
+      "path": "verification/composite-components.stl",
+      "sha256": "c9137171e1362716ec1957402d885fe4272a3d2e74725eec8f3ddae64ec3cea7",
+      "size": 28861184
+    },
+    {
+      "path": "verification/composite-obstructions.step",
+      "sha256": "7f3e75a38ca79f2f87349be4e905bd3cc452733fd80b245c4780068366d4338c",
+      "size": 22386695
+    },
+    {
+      "path": "verification/composite-step-inspection.json",
+      "sha256": "5d7d4712b5731a41056b5b90fb1bc91a796394fe7329b0889c1b7191e8a55b34",
+      "size": 2922
+    },
+    {
+      "path": "verification/generation.json",
+      "sha256": "ae77b601dcdb277807b00c0e73b452b4becabf811d90e43adc790667656a88a2",
+      "size": 5090
+    },
+    {
+      "path": "verification/mechanical-intent-validation-v2.json",
+      "sha256": "e053ad34dfe1bcd84b49c2ed206d432ed9f8c1b747560a88f1773be9c18b225d",
+      "size": 176
+    },
+    {
+      "path": "verification/obstruction-augmentation.json",
+      "sha256": "53710c8627931b8963e97b658f17a0e525dc0892d2c853cb080e88159307283b",
+      "size": 5911
+    },
+    {
+      "path": "verification/supplemental-obstructions.step",
+      "sha256": "8ef4addba3826d8e5e45be8577000bd77d12c486fe4b0fdf55042e3b23ccfb3c",
+      "size": 8483265
+    },
+    {
+      "path": "verification/v2-validation.json",
+      "sha256": "51b351ac8efa52f8cea2a60bff6661c21a4a6f369ac7c38b5aedb6f18eec04f2",
+      "size": 2802
+    }
+  ],
+  "predecessor": {
+    "manifest": {
+      "release_path": "authorities/enclosure-predecessor/MANIFEST.json",
+      "sha256": "09bf27638cc174ec67258bba31e93a8d37c9bb1a2243f515c183b44a8648e51d",
+      "size": 13978,
+      "source_path": "MANIFEST.json"
+    },
+    "project_path": "07_enclosure_releases/v0.1.0-2026-08-27",
+    "release_id": "v0.1.0-2026-08-27"
+  },
+  "publication": {
+    "immutable_candidate": true,
+    "order_ready": false,
+    "release": true
+  },
+  "release_id": "v0.2.0-2026-08-27",
+  "replay": {
+    "config": {
+      "path": "source/enclosure-v2.yaml",
+      "sha256": "d117e4e1b4d4e7e196b204688258ebb19ea7b6e08f95f92c54ab4a7b27e2e7a7",
+      "size": 6878
+    },
+    "root": ".",
+    "tools": [
+      {
+        "path": "tooling/build_collision.py",
+        "role": "collision_builder",
+        "sha256": "ea2d4bad98106d647541dc4ded58e6b6826ba885fa3315101d38dcb4991e32e7",
+        "size": 17928
+      },
+      {
+        "path": "tooling/enclosure_v2.py",
+        "role": "composition_validator",
+        "sha256": "d51d8aa2454bf04b7e13ae3226af814bf7232529b261b51ff537d0034e32d6a7",
+        "size": 66266
+      },
+      {
+        "path": "tooling/enclosure_common.py",
+        "role": "enclosure_common",
+        "sha256": "f69fd0b327fdf8d0012bb50bbad2774526a9a978dc34738f48281212d359b10b",
+        "size": 55290
+      },
+      {
+        "path": "tooling/generate_enclosure.py",
+        "role": "enclosure_generator",
+        "sha256": "170eabe7e4745a517ba549a68c38be62f4c34559cdecdab670e4153384991642",
+        "size": 19909
+      },
+      {
+        "path": "tooling/verify_enclosure.py",
+        "role": "generic_verifier",
+        "sha256": "edb5b583bf7d30b013a269298811fed0a9e5f13484a442e97b8fd0b8ef5980d9",
+        "size": 40603
+      },
+      {
+        "path": "tooling/compose_obstruction_step.py",
+        "role": "obstruction_compositor",
+        "sha256": "8188b53965c1a79998bef2e60f7fb0474ad9858e062616abee84bf0fd0a0bc86",
+        "size": 10588
+      },
+      {
+        "path": "tooling/pipeline_runtime.py",
+        "role": "pipeline_runtime",
+        "sha256": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+        "size": 49746
+      },
+      {
+        "path": "tooling/process_runner.py",
+        "role": "process_runner",
+        "sha256": "1314cb382fc9bab8bbae960c818712a01acbf9517cd9a98840ba58580b861670",
+        "size": 8702
+      },
+      {
+        "path": "tooling/verify_enclosure_release.py",
+        "role": "release_verifier",
+        "sha256": "f4b7e8ccdf96c047c5fee831983a1f5f325f40802e55739608200281590139f8",
+        "size": 35928
+      },
+      {
+        "path": "tooling/inspect_step.py",
+        "role": "step_inspector",
+        "sha256": "049e1d95f628dc942b7567f9a8a30a3c968098ba41421d578ec8f97623bfdefc",
+        "size": 12272
+      },
+      {
+        "path": "tooling/prepare_obstruction_step.py",
+        "role": "supplement_builder",
+        "sha256": "8d83145f6d514d8b13fbee13c75ed7455b49c17831d41afcc1d55c25be0b3fbf",
+        "size": 10793
+      }
+    ]
+  },
+  "schema": 2,
+  "scopes": {
+    "board_retention": "INCOMPLETE",
+    "connector_access": "INCOMPLETE",
+    "shell": "INCOMPLETE",
+    "thermal": "INCOMPLETE"
+  },
+  "status": "INCOMPLETE",
+  "status_reason": "D4.25 insert pilot is a transferred coupon prior; physical insert, assembly, service-cycle, and thermal evidence remain NOT_RUN.",
+  "version": "v0.2.0"
+}

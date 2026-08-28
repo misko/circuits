@@ -24,6 +24,7 @@ README and both configs bind it.
 | `reference/board-interface*.json` | Reviewed deterministic extraction of an exact immutable parent PCB; never hand-edited |
 | `reference/*decision*.yaml` | Reviewed authority decision that preserves blockers and excluded claims; not installed geometry |
 | `reference/obstruction-models.json` | Exact model, footprint, transform, reference-census, and parent-release bindings for supplemental obstruction geometry |
+| `reference/usb-hub-wall-lid-unbound-qualitative-xt60-fit-observation-2026-08-27.md` | Qualitative physical-fit observation with explicitly unbound printed-article identity; negative mechanical evidence only, never dimensional authority |
 | `reference/obstruction_models/*/*.step` | Hash-bound JLC/EasyEDA catalog bodies; obstruction authority only, not received-part fit proof |
 | `reference/obstruction_models/*/*.kicad_mod` | Hash-bound JLC/EasyEDA registration footprints for those bodies; not a replacement PCB land-pattern authority |
 | `README.md` | Board-specific dimensions, assumptions, export, print and assembly instructions |

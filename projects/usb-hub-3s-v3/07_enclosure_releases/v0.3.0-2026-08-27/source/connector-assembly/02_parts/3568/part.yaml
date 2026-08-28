@@ -1,0 +1,27 @@
+mpn: 3568
+manufacturer: Keystone Electronics
+type: fuse_holder
+datasheet:
+  doc_id: M65p42
+  revision: Keystone catalog M65 p.42
+  url: https://www.keyelco.com/userAssets/file/M65p42.pdf
+  sha256: caa141ea51ac68cf80ab6e14ad2075fcfc76206451f4bfe45330005c0deaf395
+  fetched: 2026-07-21
+package: MINI blade fuse holder, THT, 2 clips
+footprint: Fuse:Fuseholder_Blade_Mini_Keystone_3568
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-21}
+pins:
+  1: IN
+  2: OUT
+limits: {current: 20A holder rating, voltage: 32V}
+gotchas:
+  - "hand-solder line, uncoded (not in JLC catalog); pairs with a 10A MINI
+     blade fuse (e.g. Littelfuse 0297010, also hand item, listed in
+     ORDER_README hand-solder list) — matches the 'FUSE 10A MINI' silk"
+  - "10A element sized for v3's 6.8A worst-case input trunk (E-TOPO derived,
+     ADR-0001); ~1.5x margin. RT-T1 fix 2026-07-22: the prior 20A element (a
+     STALE carry-over of v1/v2's 15.5A worst-case) left the 8-27A overload
+     band unprotected on this 6.8A board — reconciled to 10A. The HOLDER
+     itself is 20A-rated (fine; that is its max, not the element value)."
+verified: "2-clip holder, drawing from Keystone catalog p.42; non-polarized - 2026-07-21"
+sourcing: {lcsc: C5249699, alternates: [], note: "hand-solder; Keystone 3568 or equivalent MINI holder (JLC C5249699)"}

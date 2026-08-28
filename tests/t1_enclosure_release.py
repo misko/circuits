@@ -2,10 +2,12 @@
 """Enclosure-release transaction gates over sanitized synthetic projects."""
 from __future__ import annotations
 
+import copy
 import hashlib
 import importlib.util
 import json
 import os
+import shutil
 import sys
 from pathlib import Path
 
@@ -147,7 +149,92 @@ def _fixture() -> dict[str, Path]:
         "root": root, "project": project, "pcb_release": pcb_release,
         "workspace": workspace, "pcb": pcb, "step": step,
         "parent_manifest": parent_manifest,
+        "source_fixture": source_fixture,
     }
+
+
+def _add_shared_connector_replay_closure(fixture: dict[str, Path]) -> None:
+    """Mirror one exact shared receipt and every receipt-owned replay input."""
+    source_fixture = fixture["source_fixture"]
+    _v2base._add_shared_connector_contract(source_fixture)
+    source_root = source_fixture["root"]
+    workspace = fixture["workspace"]
+    source_config = yaml.safe_load(source_fixture["config"].read_text())
+    receipt_source = source_fixture["connector_receipt"]
+    receipt = json.loads(receipt_source.read_text())
+
+    receipt_target = (workspace / "verification" /
+                      "connector_assembly_contract.json")
+    receipt_target.write_bytes(receipt_source.read_bytes())
+    mirror_root = workspace / "source" / "connector-assembly"
+    copied_inputs: list[Path] = []
+    nested = [receipt["inputs"]["contract"], *receipt["inputs"]["evidence_files"]]
+    for record in nested:
+        source = source_root / record["path"]
+        target = mirror_root / record["path"]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+        eq(_sha(target), record["sha256"], "mirrored connector input hash")
+        eq(target.stat().st_size, record["size"],
+           "mirrored connector input size")
+        copied_inputs.append(target)
+
+    compiler_target = workspace / "tooling" / "connector_assembly_contract.py"
+    compiler_target.write_bytes(_v2base.CONNECTOR_COMPILER.read_bytes())
+    eq(_sha(compiler_target), receipt["inputs"]["compiler"]["sha256"],
+       "mirrored connector compiler hash")
+
+    config_path = workspace / "source" / "enclosure-v2.yaml"
+    config = yaml.safe_load(config_path.read_text())
+    config.pop("service_envelopes", None)
+    config["interface_assemblies"] = copy.deepcopy(
+        source_config["interface_assemblies"])
+    config["interface_assemblies"]["receipt"] = {
+        "path": "verification/connector_assembly_contract.json",
+        "sha256": _sha(receipt_target),
+        "size": receipt_target.stat().st_size,
+    }
+    config_path.write_text(yaml.safe_dump(config, sort_keys=False),
+                           encoding="utf-8")
+    fixture["connector_receipt"] = receipt_target
+    fixture["connector_contract"] = copied_inputs[0]
+    fixture["connector_evidence"] = copied_inputs[1]
+    fixture["connector_compiler"] = compiler_target
+    fixture["connector_mirror_root"] = mirror_root
+
+
+def _rewrite_prepared_connector_receipt(
+        fixture: dict[str, Path], receipt: dict) -> None:
+    path = fixture["connector_receipt"]
+    path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n",
+                    encoding="utf-8")
+    config_path = fixture["workspace"] / "source" / "enclosure-v2.yaml"
+    config = yaml.safe_load(config_path.read_text())
+    config["interface_assemblies"]["receipt"] = {
+        "path": "verification/connector_assembly_contract.json",
+        "sha256": _sha(path), "size": path.stat().st_size,
+    }
+    config_path.write_text(yaml.safe_dump(config, sort_keys=False),
+                           encoding="utf-8")
+
+
+def _reseal_manifest_payload(manifest: dict, release: Path,
+                             relative: str) -> None:
+    path = release / relative
+    replacement = {"sha256": _sha(path), "size": path.stat().st_size}
+    for row in manifest["payloads"]:
+        if row["path"] == relative:
+            row.update(replacement)
+            break
+    else:
+        manifest["payloads"].append({"path": relative, **replacement})
+        manifest["payloads"].sort(key=lambda row: row["path"])
+        manifest["payload_count"] = len(manifest["payloads"])
+    if manifest["replay"]["config"]["path"] == relative:
+        manifest["replay"]["config"].update(replacement)
+    for row in manifest["replay"]["tools"]:
+        if row["path"] == relative:
+            row.update(replacement)
 
 
 def _args(fixture: dict[str, Path], *, version: str = "v0.1.0",
@@ -166,6 +253,14 @@ def _args(fixture: dict[str, Path], *, version: str = "v0.1.0",
         "--replay-config", "source/enclosure-v2.yaml", "--replay-tool",
         "regrade=tooling/replay.py",
     ]
+    connector_compiler = (fixture["workspace"] / "tooling" /
+                          "connector_assembly_contract.py")
+    if connector_compiler.is_file():
+        result.extend((
+            "--replay-tool",
+            "connector_assembly_contract="
+            "tooling/connector_assembly_contract.py",
+        ))
     for scope in scopes:
         result.extend(("--scope", scope))
     if candidate:
@@ -187,6 +282,38 @@ def _parent_snapshot(fixture: dict[str, Path]) -> dict[str, str]:
         path.relative_to(fixture["pcb_release"]).as_posix(): _sha(path)
         for path in fixture["pcb_release"].rglob("*") if path.is_file()
     }
+
+
+def _release_tree_census(root: Path) -> dict[str, object]:
+    """Capture every directory plus the identity of every release file."""
+    return {
+        "directories": sorted(
+            path.relative_to(root).as_posix()
+            for path in root.rglob("*") if path.is_dir()),
+        "files": {
+            path.relative_to(root).as_posix(): {
+                "sha256": _sha(path), "size": path.stat().st_size,
+            }
+            for path in sorted(root.rglob("*")) if path.is_file()
+        },
+    }
+
+
+def _add_release_local_verifier(fixture: dict[str, Path]) -> None:
+    """Install the verifier's exact import closure in synthetic tooling/."""
+    workspace_tooling = fixture["workspace"] / "tooling"
+    sources = {
+        "verify_enclosure_release.py": VERIFY,
+        "enclosure_v2.py": SCRIPTS / "enclosure_v2.py",
+        "enclosure_common.py": SCRIPTS / "enclosure_common.py",
+        "process_runner.py": (
+            ROOT / "skills" / "kicad-pcb" / "scripts" / "process_runner.py"),
+        "pipeline_runtime.py": (
+            ROOT / "skills" / "pcb-design" / "scripts" /
+            "pipeline_runtime.py"),
+    }
+    for name, source in sources.items():
+        (workspace_tooling / name).write_bytes(source.read_bytes())
 
 
 @test("release publisher parses standard sha256sum parent manifests")
@@ -233,50 +360,290 @@ def t_publish_incomplete_candidate_clean():
               "release reopen against external parent")
 
 
-@test("publisher refuses shared connector configs until replay closure is bundled",
-      kind="known_bad", gate="stage_enclosure_release.py")
-def t_shared_connector_release_requires_replay_closure():
+@test("publisher seals and verifier regrades a release-local connector closure")
+def t_shared_connector_release_replay_clean():
     fixture = _fixture()
-    config_path = fixture["workspace"] / "source" / "enclosure-v2.yaml"
-    config = yaml.safe_load(config_path.read_text())
-    # The explicit release boundary must bite before trusting any receipt or
-    # mapping content; those authorities are not yet package-replayable.
-    config["interface_assemblies"] = {}
-    config_path.write_text(yaml.safe_dump(config, sort_keys=False))
-    must_fail(run(_args(fixture)), "publish shared connector config",
-              "not yet eligible for immutable enclosure publication")
-    check(not _release(fixture).exists(), "unsupported release was published")
+    _add_shared_connector_replay_closure(fixture)
+    must_pass(run(_args(fixture)), "publish shared connector release")
+    release = _release(fixture)
+    result = must_pass(run([KPY, VERIFY, release]),
+                       "release-local connector replay")
+    contains(result.out, "status=INCOMPLETE", "connector release status")
+    # Remove every mutable project-side connector source. Reopening must still
+    # use the exact contract/evidence/compiler bytes inside the release.
+    shutil.rmtree(fixture["source_fixture"]["root"])
+    must_pass(run([KPY, VERIFY, release]), "offline connector replay")
+    module = _load_verify_module()
+    original_loader = module.composition._connector_compiler_module
+    executed_from: list[str] = []
+
+    def capture_release_compiler(expected, **kwargs):
+        compiler, binding = original_loader(expected, **kwargs)
+        executed_from.append(compiler.__file__)
+        return compiler, binding
+
+    module.composition._connector_compiler_module = capture_release_compiler
+    try:
+        reopened = module.verify_release(release)
+    finally:
+        module.composition._connector_compiler_module = original_loader
+    eq(executed_from, [str(release / "tooling" /
+                           "connector_assembly_contract.py")],
+       "executed connector compiler source")
+    eq(reopened["replay"]["connector_assembly"], {
+        "receipt": "verification/connector_assembly_contract.json",
+        "compiler_role": "connector_assembly_contract",
+        "compiler": "tooling/connector_assembly_contract.py",
+        "virtual_project_root": "source/connector-assembly",
+        "contract": "03_src/rules/connector_assemblies.yaml",
+        "evidence_files": ["02_parts/synthetic-connector/part.yaml"],
+    }, "release-local connector replay closure")
 
 
-@test("release verifier independently refuses unsealed shared connector replay",
+@test("release-local connector verification is read-only across repeated reopens")
+def t_release_local_connector_replay_preserves_exact_census_clean():
+    fixture = _fixture()
+    _add_shared_connector_replay_closure(fixture)
+    _add_release_local_verifier(fixture)
+    must_pass(run(_args(fixture)), "publish self-verifying connector release")
+    release = _release(fixture)
+    local_verifier = release / "tooling" / "verify_enclosure_release.py"
+    before = _release_tree_census(release)
+
+    # Simulate an embedding caller that explicitly re-enables bytecode after
+    # interpreter startup.  The release verifier itself must remain read-only;
+    # relying only on the caller's environment or ``python -B`` is insufficient.
+    invoke = (
+        "import runpy,sys\n"
+        "sys.dont_write_bytecode=False\n"
+        "script=sys.argv[1]\n"
+        "sys.argv=sys.argv[1:]\n"
+        "runpy.run_path(script, run_name='__main__')\n"
+    )
+    for attempt in ("first", "second"):
+        must_pass(run([KPY, "-c", invoke, local_verifier, release]),
+                  f"{attempt} release-local connector verify")
+        eq(_release_tree_census(release), before,
+           f"release tree after {attempt} release-local verify")
+
+
+@test("release verifier independently requires the exact connector tool role",
       kind="known_bad", gate="verify_enclosure_release.py")
-def t_shared_connector_release_reopen_requires_replay_closure():
+def t_shared_connector_release_wrong_role_bites():
     fixture = _fixture()
-    must_pass(run(_args(fixture)), "publish clean predecessor fixture")
+    _add_shared_connector_replay_closure(fixture)
+    must_pass(run(_args(fixture)), "publish connector fixture")
     release = _release(fixture)
     manifest_path = release / "MANIFEST.json"
     manifest = json.loads(manifest_path.read_text())
-    config_record = manifest["replay"]["config"]
-    config_path = release / config_record["path"]
-    config = yaml.safe_load(config_path.read_text())
-    config["interface_assemblies"] = {}
-    config_path.write_text(yaml.safe_dump(config, sort_keys=False),
-                           encoding="utf-8")
-    replacement = {
-        "sha256": _sha(config_path), "size": config_path.stat().st_size,
-    }
-    config_record.update(replacement)
-    for row in manifest["payloads"]:
-        if row["path"] == config_record["path"]:
-            row.update(replacement)
-            break
-    else:
-        raise AssertionError("replay config absent from payload census")
+    connector_tool = next(
+        row for row in manifest["replay"]["tools"]
+        if row["role"] == "connector_assembly_contract")
+    connector_tool["role"] = "connector_compiler"
     manifest_path.write_text(
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",
         encoding="utf-8")
-    must_fail(run([KPY, VERIFY, release]), "reopen shared connector config",
-              "not yet eligible for immutable enclosure publication")
+    must_fail(run([KPY, VERIFY, release]), "reopen wrong connector tool role",
+              "requires manifest tool role 'connector_assembly_contract'")
+
+
+@test("connector release requires its exact compiler role and canonical tool path",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_compiler_selection_bites():
+    for mutation, expected in (
+            ("missing", "requires manifest tool role"),
+            ("wrong_path", "must bind exact path"),
+            ("substituted", "differs from the exact compiler identity")):
+        fixture = _fixture()
+        _add_shared_connector_replay_closure(fixture)
+        arguments = _args(fixture)
+        compiler = fixture["connector_compiler"]
+        if mutation == "missing":
+            compiler.unlink()
+            arguments = _args(fixture)
+        elif mutation == "wrong_path":
+            renamed = fixture["workspace"] / "tooling" / "renamed.py"
+            renamed.write_bytes(compiler.read_bytes())
+            compiler.unlink()
+            arguments = _args(fixture)
+            arguments.extend((
+                "--replay-tool",
+                "connector_assembly_contract=tooling/renamed.py",
+            ))
+        else:
+            compiler.write_bytes(compiler.read_bytes() + b"\n# substituted\n")
+        must_fail(run(arguments), f"connector compiler {mutation}", expected)
+        check(not _release(fixture).exists(),
+              f"{mutation} connector compiler was published")
+
+
+@test("connector release binds contract and every evidence byte",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_input_drift_bites():
+    for field, expected in (
+            ("connector_contract", "connector contract does not match"),
+            ("connector_evidence", "connector evidence file 0 does not match")):
+        fixture = _fixture()
+        _add_shared_connector_replay_closure(fixture)
+        path = fixture[field]
+        path.write_bytes(path.read_bytes() + b"\n# drift\n")
+        must_fail(run(_args(fixture)), f"drifted {field}", expected)
+        check(not _release(fixture).exists(),
+              f"drifted {field} release was published")
+
+
+@test("connector release closure has an exact receipt-derived file census",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_extra_closure_file_bites():
+    fixture = _fixture()
+    _add_shared_connector_replay_closure(fixture)
+    extra = fixture["connector_mirror_root"] / "unclaimed-evidence.yaml"
+    extra.write_text("claim: absent from receipt\n", encoding="utf-8")
+    must_fail(run(_args(fixture)), "extra connector closure input",
+              "connector replay closure census differs")
+    check(not _release(fixture).exists(),
+          "connector release with extra closure file was published")
+
+
+@test("connector receipt source path identities cannot be virtualized twice",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_recorded_paths_bite():
+    cases = (
+        ("compiler", "skills/pcb-design/scripts/renamed.py",
+         "compiler path differs from the canonical source identity"),
+        ("contract", "03_src/rules/alternate.yaml",
+         "receipt-selected authority"),
+        ("evidence", "02_parts/synthetic-connector/alternate.yaml",
+         "receipt source reopen failed"),
+    )
+    for field, replacement, expected in cases:
+        fixture = _fixture()
+        _add_shared_connector_replay_closure(fixture)
+        receipt = json.loads(fixture["connector_receipt"].read_text())
+        if field == "compiler":
+            receipt["inputs"]["compiler"]["path"] = replacement
+        elif field == "contract":
+            old = fixture["connector_contract"]
+            new = fixture["connector_mirror_root"] / replacement
+            new.parent.mkdir(parents=True, exist_ok=True)
+            new.write_bytes(old.read_bytes())
+            old.unlink()
+            receipt["inputs"]["contract"]["path"] = replacement
+        else:
+            old = fixture["connector_evidence"]
+            new = fixture["connector_mirror_root"] / replacement
+            new.parent.mkdir(parents=True, exist_ok=True)
+            new.write_bytes(old.read_bytes())
+            old.unlink()
+            receipt["inputs"]["evidence_files"][0]["path"] = replacement
+        _rewrite_prepared_connector_receipt(fixture, receipt)
+        must_fail(run(_args(fixture)), f"forged connector {field} path",
+                  expected)
+        check(not _release(fixture).exists(),
+              f"forged connector {field} path was published")
+
+
+@test("connector receipt nested hash and size bindings are load-bearing",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_nested_identity_bites():
+    for field, replacement in (("sha256", "0" * 64), ("size", 1)):
+        fixture = _fixture()
+        _add_shared_connector_replay_closure(fixture)
+        receipt = json.loads(fixture["connector_receipt"].read_text())
+        receipt["inputs"]["evidence_files"][0][field] = replacement
+        _rewrite_prepared_connector_receipt(fixture, receipt)
+        must_fail(run(_args(fixture)), f"forged evidence {field}",
+                  "connector evidence file 0 does not match")
+        check(not _release(fixture).exists(),
+              f"forged evidence {field} was published")
+
+
+@test("connector receipt inputs cannot alias one release-local source",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_nested_alias_bites():
+    fixture = _fixture()
+    _add_shared_connector_replay_closure(fixture)
+    receipt = json.loads(fixture["connector_receipt"].read_text())
+    contract = receipt["inputs"]["contract"]
+    evidence = receipt["inputs"]["evidence_files"][0]
+    evidence.update({key: contract[key] for key in ("path", "sha256", "size")})
+    _rewrite_prepared_connector_receipt(fixture, receipt)
+    must_fail(run(_args(fixture)), "aliased connector input",
+              "connector replay inputs alias one source path")
+    check(not _release(fixture).exists(),
+          "aliased connector closure was published")
+
+
+@test("connector release recompiles rather than trusting a resealed receipt",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_forged_receipt_bites():
+    fixture = _fixture()
+    _add_shared_connector_replay_closure(fixture)
+    receipt = json.loads(fixture["connector_receipt"].read_text())
+    receipt["semantic_sha256"] = "f" * 64
+    _rewrite_prepared_connector_receipt(fixture, receipt)
+    must_fail(run(_args(fixture)), "forged connector receipt",
+              "shared connector regrade failed")
+    check(not _release(fixture).exists(),
+          "forged connector receipt was published")
+
+
+@test("connector replay config cannot point back into a live build tree",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_shared_connector_release_live_path_bites():
+    fixture = _fixture()
+    _add_shared_connector_replay_closure(fixture)
+    config_path = fixture["workspace"] / "source" / "enclosure-v2.yaml"
+    config = yaml.safe_load(config_path.read_text())
+    config["interface_assemblies"]["receipt"]["path"] = (
+        "06_build/verification/connector_assembly_contract.json")
+    config_path.write_text(yaml.safe_dump(config, sort_keys=False),
+                           encoding="utf-8")
+    must_fail(run(_args(fixture)), "live connector receipt path",
+              "shared connector receipt must be release-local below verification/")
+    check(not _release(fixture).exists(),
+          "live-path connector release was published")
+
+
+@test("release verifier reopens nested connector bytes after manifest reseal",
+      kind="known_bad", gate="verify_enclosure_release.py")
+def t_shared_connector_release_reopen_nested_drift_bites():
+    fixture = _fixture()
+    _add_shared_connector_replay_closure(fixture)
+    must_pass(run(_args(fixture)), "publish connector fixture before drift")
+    release = _release(fixture)
+    relative = ("source/connector-assembly/03_src/rules/"
+                "connector_assemblies.yaml")
+    path = release / relative
+    path.write_bytes(path.read_bytes() + b"\n# post-release drift\n")
+    manifest_path = release / "MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text())
+    _reseal_manifest_payload(manifest, release, relative)
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8")
+    must_fail(run([KPY, VERIFY, release]), "resealed connector contract drift",
+              "connector contract does not match")
+
+
+@test("release verifier rejects manifested extras inside connector closure",
+      kind="known_bad", gate="verify_enclosure_release.py")
+def t_shared_connector_release_reopen_extra_bites():
+    fixture = _fixture()
+    _add_shared_connector_replay_closure(fixture)
+    must_pass(run(_args(fixture)), "publish connector fixture before extra")
+    release = _release(fixture)
+    relative = "source/connector-assembly/extra.yaml"
+    extra = release / relative
+    extra.write_text("claim: not in receipt\n", encoding="utf-8")
+    manifest_path = release / "MANIFEST.json"
+    manifest = json.loads(manifest_path.read_text())
+    _reseal_manifest_payload(manifest, release, relative)
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8")
+    must_fail(run([KPY, VERIFY, release]), "manifested connector extra",
+              "connector replay closure census differs")
 
 
 @test("release verifier controls a non-mapping replay before membership",

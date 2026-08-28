@@ -56,7 +56,7 @@ saying “oriented” does not establish either role.
 | Simultaneous state | `unknown`; prior CAD review did not bind a fully populated mate/cable/tool state |
 | Physical outcome | `REPORTED_FAIL` / qualitative `FIRST_ARTICLE_OBSERVATION`: operator reports that adjacent SMA connectors are difficult to hand tighten and lack enough outboard exposure for a good grip |
 | Evidence ceiling | `unknown` for replacement spacing, exposure, tool, torque, cable, and enclosure service allowances |
-| Existing authority | [dated qualitative first-article observation](../projects/pluto-rx2-8way-v5/08_reviews/2026-08-27_connector-service_first-article.md), [floorplan source](../projects/pluto-rx2-8way-v5/03_src/floorplan.yaml), and [prior render review](../projects/pluto-rx2-8way-v5/08_reviews/2026-08-13_dae8320d_render_review.md) |
+| Existing authority | [unbound qualitative connector-service observation](../projects/pluto-rx2-8way-v5/03_src/mechanical/reference/pluto-v5-unbound-qualitative-connector-service-observation-2026-08-27.md), [floorplan source](../projects/pluto-rx2-8way-v5/03_src/floorplan.yaml), and [prior render review](../projects/pluto-rx2-8way-v5/08_reviews/2026-08-13_dae8320d_render_review.md) |
 | Correct use | Reject the earlier render-only access conclusion; select actual mates/tools, measure the board, and build a connector-bank coupon before choosing new pitch or overhang |
 
 The useful reusable result is the failure class: bare-body and mating-axis
@@ -85,7 +85,7 @@ the Pluto service failure.
 | Simultaneous state | Physical XT60 lead mated; other simultaneous leads and lid service sequence unbound |
 | Physical outcome | `REPORTED_FAIL` / `FIRST_ARTICLE_OBSERVATION`: rear termination/cable occupies the lid-skirt service volume and creates interference/chafe risk |
 | Numeric result | None; this rejects the two-axis opening-only model, not a measured +2.0 mm/side allowance |
-| Existing authority | [dated user feedback review](../projects/usb-hub-3s-v3/08_reviews/2026-08-27_wall-lid_external-user_xt60-fit.md) and [FIT-008](enclosure-fit-registry.md#fit-008--usb-hub-xt60-mated-cable-interference-observation) |
+| Existing authority | [unbound qualitative XT60 fit observation](../projects/usb-hub-3s-v3/03_src/mechanical/reference/usb-hub-wall-lid-unbound-qualitative-xt60-fit-observation-2026-08-27.md) and [FIT-008](enclosure-fit-registry.md#fit-008--usb-hub-xt60-mated-cable-interference-observation) |
 | Correct use | Model the complete received connector assembly and cable service volume; test any roof-only or enlarged-opening candidate physically before transferring a number |
 
 The transferable lesson is that depth, rear termination, cable direction, and

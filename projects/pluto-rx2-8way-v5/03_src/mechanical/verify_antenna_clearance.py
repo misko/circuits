@@ -65,7 +65,12 @@ COMPLIANT_SELECTORS = (
 SOLID_SELECTORS = ("rx2_antenna_reference", "rx2_cable_reference")
 EVALUATED_SELECTORS = EMPTY_SELECTORS + COMPLIANT_SELECTORS + SOLID_SELECTORS
 FACT_KEYS = (
-    "board_bottom_z", "base_sidewall_h", "base_floor_h",
+    "board_bottom_z", "base_sidewall_h", "lid_sidewall_h",
+    "roof_added_mating_setback", "intrinsic_sma_mating_exposure",
+    "service_notch_open_edge", "north_sma_lug_candidate_clearance",
+    "side_sma_lug_candidate_clearance", "usb_lug_candidate_clearance",
+    "top_service_lug_candidate_clearance",
+    "top_service_notch_legacy_clearance", "base_floor_h",
     "base_board_support_count", "base_case_post_count",
     "case_post_board_corner_clearance", "case_top_z", "mount_h", "mount_roof",
     "mount_wall", "mount_half_x", "mount_center_y", "body_d",
@@ -956,6 +961,36 @@ def validate_facts(actual: Mapping[str, float], expected: Mapping[str, float],
                   "base floor config/fact")
     require_close(actual["base_sidewall_h"], 0.0,
                   "pillar-only base sidewall height")
+    require_close(actual["lid_sidewall_h"], 0.0,
+                  "roof-only lid sidewall height")
+    require_close(actual["roof_added_mating_setback"], 0.0,
+                  "roof-added mating-plane setback")
+    require_close(actual["intrinsic_sma_mating_exposure"], 0.0,
+                  "fabricated-board intrinsic SMA exposure")
+    require_close(actual["service_notch_open_edge"], 1.0,
+                  "J11/J12 edge-open service notch witness")
+    candidate_corridor_minima = {
+        "north SMA / closure lug": 7.0,
+        "side SMA / closure lug": 11.0,
+        "USB-C / closure lug": 36.0,
+        "top service / closure lug": 16.70,
+        "top service / notch": 1.5,
+    }
+    observed_candidate_corridors = {
+        "north SMA / closure lug":
+            actual["north_sma_lug_candidate_clearance"],
+        "side SMA / closure lug":
+            actual["side_sma_lug_candidate_clearance"],
+        "USB-C / closure lug": actual["usb_lug_candidate_clearance"],
+        "top service / closure lug":
+            actual["top_service_lug_candidate_clearance"],
+        "top service / notch":
+            actual["top_service_notch_legacy_clearance"],
+    }
+    for label, minimum in candidate_corridor_minima.items():
+        if observed_candidate_corridors[label] + 0.001 < minimum:
+            raise RuntimeError(
+                f"{label} candidate corridor clearance is below {minimum} mm")
     require_close(actual["base_board_support_count"], 4.0,
                   "pillar-only board-support census")
     require_close(actual["base_case_post_count"], 4.0,
@@ -1301,6 +1336,18 @@ def derive_candidate_evidence(facts: Mapping[str, float],
     usb_arch_top = (finite_number(usb["center_mm"][2], "USB center z")
                     + finite_number(usb["opening_mm"][1], "USB opening height") / 2)
     analytic = {
+        "roof_added_mating_plane_setback":
+            facts["roof_added_mating_setback"],
+        "north_sma_to_closure_lug_candidate_corridor":
+            facts["north_sma_lug_candidate_clearance"],
+        "side_sma_to_closure_lug_candidate_corridor":
+            facts["side_sma_lug_candidate_clearance"],
+        "usb_c_to_closure_lug_candidate_corridor":
+            facts["usb_lug_candidate_clearance"],
+        "top_service_to_closure_lug_candidate_corridor":
+            facts["top_service_lug_candidate_clearance"],
+        "top_service_notch_legacy_candidate_clearance":
+            facts["top_service_notch_legacy_clearance"],
         "north_sma_plug_to_mount": north_gap,
         "side_sma_plug_to_mount": side_gap,
         "cable_lower_surface_above_usb_arch_top":
@@ -1316,8 +1363,18 @@ def derive_candidate_evidence(facts: Mapping[str, float],
         "cable_witness_beyond_south_case_edge":
             facts["cable_tail_length"] - facts["outer_half_y"],
     }
-    if min(analytic.values()) <= 0:
-        raise RuntimeError(f"non-positive derived access clearance: {analytic}")
+    # Zero is required for the roof-added setback: positive would recess the
+    # already-flush board connector plane; negative is not represented by this
+    # roof topology.  Every actual clearance remains strictly positive.
+    require_close(analytic["roof_added_mating_plane_setback"], 0.0,
+                  "analytic roof-added mating-plane setback")
+    positive_analytic = {
+        key: value for key, value in analytic.items()
+        if key != "roof_added_mating_plane_setback"
+    }
+    if min(positive_analytic.values()) <= 0:
+        raise RuntimeError(
+            f"non-positive derived access clearance: {positive_analytic}")
     clearances = {
         "rigid_body_radial": facts["body_radial_clearance"],
         "body_above_lid": facts["body_axis_z"] - facts["body_d"] / 2,

@@ -1,0 +1,130 @@
+{
+  "bindings": {
+    "cad_design": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml",
+      "sha256": "2cbc41da24b10e1a39a38593934d6f9a591a9b9b067ef2d128dad3eb08412234",
+      "size": 5985
+    },
+    "connector_assembly_inputs": {
+      "compiler": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/skills/pcb-design/scripts/connector_assembly_contract.py",
+        "sha256": "db0dd73eeb47ebed4d03594b6d945b3f1b1e4d48d5b5b43ab536b1de1117c0f4",
+        "size": 65046
+      },
+      "contract": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/rules/connector_assemblies.yaml",
+        "sha256": "25bc1d090e483020415d26ea1d63f5ad3beb17088d6d62041afc5daa3666fabb",
+        "size": 20177
+      },
+      "evidence_files": [
+        {
+          "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/02_parts/901-143-6RFX/part.yaml",
+          "sha256": "11e981c789482904ba4605b2aabc3570d6e7e79518b515a9133e94b9ee103b35",
+          "size": 3974
+        },
+        {
+          "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/02_parts/901-143-6RFX/SMA6252A2-3GT50G-50-RevC.pdf",
+          "sha256": "96328d8531223f0d92326083352695388c91ad059df4511804d82d7b1b156cec",
+          "size": 125596
+        },
+        {
+          "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/02_parts/A2541WV-2P/part.yaml",
+          "sha256": "d0ce8cc9699fed96ef24f7a01322c0ec154aa29e2f287f023ba5d2cd2fb01b67",
+          "size": 3028
+        },
+        {
+          "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/floorplan.yaml",
+          "sha256": "8cd79de8ba1cc3041b47c48c6da0d313e8649b1496bf33e696f19e383cdfbc31",
+          "size": 11008
+        },
+        {
+          "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/02_parts/FTSH-105-01-L-DV-K-P-TR/part.yaml",
+          "sha256": "d92eaf52b100b8d2b2cc8cf1ae77f9dc290da0a33368058050295ec50f784745",
+          "size": 3756
+        },
+        {
+          "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/02_parts/USB4105-GF-A-120/part.yaml",
+          "sha256": "45277fd8473ddd8bcaf1c049fff003d10b16204bf002ba2c535ea99c1120f35e",
+          "size": 7614
+        },
+        {
+          "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/pluto-v5-unbound-qualitative-connector-service-observation-2026-08-27.md",
+          "sha256": "81309bb067e07442e81342a5caafc4f93b9d8858c9d5a2ed4bc82cf9fc83269c",
+          "size": 3724
+        }
+      ]
+    },
+    "connector_assembly_receipt": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.7.0-2026-08-27/verification/connector_assembly_contract.json",
+      "sha256": "46ea2751e3439e97167336c82ec6a5b8eeb873b8053c86c385366ae9501175b8",
+      "size": 38409
+    },
+    "external_subjects": {
+      "antenna_candidate_contract": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-adapter-candidate-contract.json",
+        "sha256": "d9cabbd2e9201ff750013c1d621e076d9b709a11594c87b78f8d0ebd29426373",
+        "size": 5773
+      },
+      "fit_adjustment_request": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/fit-adjustment-2026-08-27.json",
+        "sha256": "a862d5d7eaf339b9589780eb9d3f39cfc15eeb077b8483f37ce8b2eba5d1f315",
+        "size": 1158
+      },
+      "holder_measurement": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-holder-measurement.json",
+        "sha256": "7c096deaa74e1234206329f3040c67124715363128a0dd763aa832a369139194",
+        "size": 8172
+      },
+      "holder_reference_stl": {
+        "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-antenna-holder-reference.stl",
+        "sha256": "a1e74e1611c6b9027d5c63d88bc9293ca1ad833619e40cb52d8556bd1cd1030f",
+        "size": 14303684
+      }
+    },
+    "interface": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.4.0-2026-08-25/verification/board-interface.json",
+      "sha256": "3523a4de4f334516fbc7c2c44411831f461172762fe05e6cc32d1cbf2d017ed3",
+      "size": 31058
+    },
+    "mechanical_intent": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/03_src/mechanical/mechanical-intent-v2.yaml",
+      "sha256": "5bba0b53548a1a37306f76a73d28b15c840e821a5590a41f04e6dfaa666c1fdf",
+      "size": 5081
+    },
+    "pcb": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/source/pluto_rx2_8way_v5.kicad_pcb",
+      "sha256": "e2d1deaf4052b18b84df02d1b5cab48e131c6debbd70a03678c3ed918b24c2d5",
+      "size": 538805
+    },
+    "release_manifest": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/MANIFEST.txt",
+      "sha256": "084c7cb044d8166673465363bf2f7f5c2702aa3f491cf377aadd18a67464cdcc",
+      "size": 17338
+    },
+    "step": {
+      "path": "/home/mouse9911/gits/circuits-worktrees/regenerate-fabricated-enclosures-20260827/projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step",
+      "sha256": "650dcb30932316f4946b091e57ea5336f1411abbf0bfaf519e59ba048dee0c9f",
+      "size": 23398573
+    }
+  },
+  "config_semantic_sha256": "e6f1588d4c9bd2e1d0f82383c1a7f72107f71b098cb2e0df3cb1190a836ad51f",
+  "kind": "pcb-enclosure-v2-validation",
+  "schema": 2,
+  "scope_readiness_ceilings": {
+    "antenna_accessory": "INCOMPLETE",
+    "board_retention": "CAD_READY",
+    "shell": "INCOMPLETE",
+    "thermal": "PRINT_VERIFIED"
+  },
+  "service_envelope_coverage": {
+    "candidate_dimension_census_complete": 0,
+    "declared": 0,
+    "legacy_omitted": false,
+    "legacy_readiness_capped": false,
+    "required_edge_openings": 12,
+    "shared_mappings": 4,
+    "shared_non_enclosure_refs": 0,
+    "shared_receipt_status": "INCOMPLETE"
+  },
+  "status": "VALID"
+}
