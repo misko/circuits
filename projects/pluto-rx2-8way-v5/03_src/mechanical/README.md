@@ -7,11 +7,13 @@ The connector-relative lid labels are the larger `A1` through `A8` markings.
 
 The lid has **no continuous connector-facing sidewall**. Its central roof
 stops at the PCB outline, so it adds 0.0 mm nominal mating-plane setback to
-J1-J10. Only four localized closure lugs descend at the far corners, outside
-the schema-v1 candidate service corridors. J11/J12 use a south-edge-open
-notch instead of a closed aperture. These changes remove the predecessor
-case-created 3.4 mm recess and circular SMA webs; they do not fix the board's
-intrinsic 0.0 mm positive SMA exposure or its 15/18 mm port pitch.
+J1-J10. Four localized, full-height tangent closure webs join the roof to the
+external screw sleeves without closing an edge. The two south roots are D14;
+exact STEP collision rejected D14 at the north pair, so those use the largest
+passing D12 roots. J11/J12 use a south-edge-open notch instead of a closed
+aperture. These changes remove the predecessor case-created 3.4 mm recess and
+circular SMA webs; they do not fix the board's intrinsic 0.0 mm positive SMA
+exposure or its 15/18 mm port pitch.
 The base's 2.40 mm-thick foundation still extends 3.40 mm beyond Edge.Cuts,
 far below the SMA center plane; exact STEP collision is empty, but complete
 finger/tool/cable clearance against that deck is not yet modeled or physically
@@ -26,7 +28,10 @@ The revised base is an **open support deck**, not a lower shell. It has a flat
 2.40 mm printable foundation, four PCB support/insert pillars, and four
 independent case posts, but no surrounding sidewall or alignment lip. This
 removes the predecessor load path that allowed the base perimeter to reach the
-SMA bodies before the PCB seated on its intended supports.
+SMA bodies before the PCB seated on its intended supports. The PCB pillars now
+taper from D12 roots to D8 members over 2.0 mm; the case posts taper from D14
+roots to D9 members over 3.0 mm. Both transitions rise directly from the
+foundation without an unsupported ledge or sharp re-entrant root.
 
 This revision adds a **separate, closed-top, bottom-loaded RX2/reference
 antenna adapter**. Here, “top” means the exterior/top side of the PCB
@@ -70,6 +75,48 @@ grip, tool, torque/reaction method, cable, complete operation, or tolerance
 stack is qualified. Open sides prevent this enclosure from worsening the
 nominal mating-plane setback; they do not prove hand-start, tightening,
 simultaneous mating, cable strain, or removal on the fabricated board.
+
+## FDM and structural audit boundary
+
+`fdm-structural-contract.yaml` closes the five-part printable census, one
+PETG/0.4 mm nozzle/0.20 mm layer process declaration, twelve named load cases,
+and all 18 critical attachments. Ninety exact section/reinforcement assertions
+cover H1-H4 PCB pillars, C1-C4 base posts, C1-C4 lid webs, both lid antenna
+bosses, both adapter screw columns, and both compliant locator rails. The
+coupon and fit gauge are explicitly non-installed calibration parts rather
+than silently omitted attachments.
+
+The load census includes north/south and east/west connector mate/unmate,
+cable pull/bend, and SMA hand/wrench reaction at all four H1-H4 clamp roots.
+It credits no open case wall or connector body as an enclosure support and
+does not infer connector, solder-joint, PCB, screw-clamp, or tool capacity.
+Installed antenna axial/lateral reactions continue from mount columns through
+both lid bosses, all four lid webs, and all four base-post roots. Antenna
+insertion/removal is explicitly limited to the detached hood before its two
+mounting screws are installed.
+
+The mesh-visible structural load-path screen passes. At the four lid joints,
+the exact arbitrary-plane results are:
+
+| Joint pair | Root | Root area | Net throat | Root/member area ratio |
+|---|---:|---:|---:|---:|
+| South C1/C2 | D14 | 104.007 / 105.040 mm² | 14.000 mm | 1.004 / 1.014 |
+| North C3/C4 | D12 | 90.276 mm² | 12.007 mm | 0.900 |
+
+The roof remains 2.40 mm thick because the new load paths use the full 7.40 mm
+seam-to-roof height instead of relying on the roof skin alone. The D9.8 lid
+sleeves provide 0.40 mm nominal radial clearance over the D9 base posts, and
+the D3.8 case-screw bores provide 0.40 mm nominal radial clearance over M3.
+This reduces binding/removal risk without treating nominal CAD clearance as a
+fit result.
+
+The audit is still honestly `INCOMPLETE`: no pinned printer build volume,
+slicer/profile/toolpath receipt, local-thickness or self-intersection backend,
+or physical evidence is bound. A printed article must still survive declared
+case-screw torque, one-corner preload, roof twist, sleeve-binding removal,
+print warp, antenna axial/lateral reaction, and repeated service cycles. The
+structural screen does not establish PETG strength, insert torque, fatigue,
+creep, or print quality.
 
 Production requires one authoritative antenna/cable profile from calipers or
 a dimensioned vendor drawing:
@@ -155,10 +202,11 @@ Access-zone checks use the legacy conservative configured plug envelopes only
 to prove that localized case features do not reintroduce the removed walls:
 
 - the roof adds 0.0 mm nominal setback at every J1-J10 mating plane;
-- the nearest north/side SMA candidate corridors clear a closure lug by
-  7.0/11.0 mm;
-- the USB-C candidate corridor clears a closure lug by 36.0 mm;
-- the nearest J11/J12 candidate corridor clears a closure lug by 16.764 mm;
+- the nearest north/side SMA legacy candidates conservatively clear the new
+  closure webs by 4.88/3.09 mm;
+- the USB-C legacy candidate conservatively clears a closure web by 29.10 mm;
+- the nearest J11/J12 legacy candidate conservatively clears a closure web by
+  3.01 mm;
 - the edge-open J11/J12 notch preserves at least 1.5 mm around the old finite
   plug candidates while deleting the south bridge;
 
@@ -193,17 +241,21 @@ authority.
 | PCB insert engagement / tip clearance | 4.400 / 0.375 mm |
 | Case screws | 4 × M3 × 6 socket-head cap |
 | Case axes | (±49.0, ±36.5) mm, outside PCB corners |
-| Base case post / lid lug diameters | 9.0 / 14.0 mm |
+| Base case post member/root | D9.0 / D14.0 mm; 3.0 mm support-free taper |
+| Lid screw sleeve / closure root | D14.0 sleeve; D14 south, D12 north roots |
 | Post-to-PCB-corner clearance | 1.157 mm |
 | Case insert engagement / tip clearance | 4.400 / 0.375 mm |
 | Lid screw-head recess | 0.800 mm |
-| Lid wall around D9.4 post sleeve | 2.300 mm radial |
+| Lid post-sleeve / case-screw clearance | D9.8 / D3.8; 0.40 mm nominal radial each |
+| Lid closure-web height / minimum throat | 7.40 / 12.007 mm measured |
+| Lid closure-root minimum area / ratio | 90.276 mm² / 0.900 measured |
 
 The four board inserts enter the standoffs from above and remain below the
 PCB. The PCB screws bear directly on the board at H1–H4. The four case inserts
-enter the tall base posts from above; the lid's D14 external lugs slide over
-those posts and carry only shell-closing load. No lid column bears on the PCB,
-and none of the eight PCB/case screws shares an axis or stack.
+enter the tall base posts from above; the lid's D14 external sleeves slide
+over those posts and the tangent D14/D12 webs carry shell preload and handling
+loads into the roof. No lid column bears on the PCB, and none of the eight
+PCB/case screws shares an axis or stack.
 
 | RX2 adapter fastener dimension | Value |
 |---|---:|
@@ -244,9 +296,11 @@ Print PETG at 0.20 mm layers with a 0.4 mm nozzle, four perimeters, at least
 five top/bottom layers, and 25–35% infill. Disable supports for all five parts.
 `base.stl` prints foundation-down; the PCB pillars and case posts rise directly
 from the deck with every side open.
-`lid.stl` prints exterior-face-down; the roof is the bed face and only the four
-corner lugs and two antenna-mount bosses grow upward. There are no perimeter
-walls or trapped connector cutouts. `rx2_antenna_mount.stl` prints its closed
+`lid.stl` prints exterior-face-down; the roof is the bed face and the four
+full-height tangent webs, screw sleeves, and two antenna-mount bosses grow
+upward. Their transitions are continuous in Z and do not require support.
+There are no perimeter walls or trapped connector cutouts.
+`rx2_antenna_mount.stl` prints its closed
 top face on the bed, so the rectangular underside cavity, roof-hung rails,
 screw wells, and bottom-open full-body U-arch grow upward without trapped support.
 
@@ -297,50 +351,68 @@ From the repository root:
 /usr/bin/python3 skills/pcb-enclosure/scripts/generate_enclosure.py \
   projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml \
   --root projects/pluto-rx2-8way-v5 \
-  --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell
+  --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08
+
+/usr/bin/python3 skills/pcb-enclosure/scripts/fdm_structural_audit.py \
+  projects/pluto-rx2-8way-v5/03_src/mechanical/fdm-structural-contract.yaml \
+  --config projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml \
+  --root projects/pluto-rx2-8way-v5 \
+  --generation projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/generation.json \
+  --mesh base=projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/base.stl \
+  --mesh lid=projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/lid.stl \
+  --mesh insert_coupon=projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/insert_coupon.stl \
+  --mesh rx2_antenna_mount=projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/rx2_antenna_mount.stl \
+  --mesh rx2_antenna_fit_gauge=projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/rx2_antenna_fit_gauge.stl \
+  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/fdm-structural-audit.json
+test "$?" -eq 2
+
+/usr/bin/python3 skills/pcb-enclosure/scripts/enclosure_v2.py validate-config \
+  projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-v2.yaml \
+  --root projects/pluto-rx2-8way-v5 \
+  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/v2-validation.json
 
 uv run --offline --with cadquery python \
   skills/pcb-enclosure/scripts/inspect_step.py \
   projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
-  --interface projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/board-interface.json \
-  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
-  --component-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-components.stl
+  --interface projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.7.0-2026-08-27/verification/board-interface.json \
+  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/step-inspection.json \
+  --component-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/step-components.stl
 
 uv run --offline --with cadquery python \
   skills/pcb-enclosure/scripts/build_collision.py \
   --step projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
-  --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
-  --component-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-components.stl \
-  --generation projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/generation.json \
-  --assembled-case-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/assembled-case.stl \
+  --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/step-inspection.json \
+  --component-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/step-components.stl \
+  --generation projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/generation.json \
+  --assembled-case-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/assembled-case.stl \
   --board-bottom-z-mm 7.8 \
-  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/clearance-intersection.stl \
-  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/collision.json
+  --output projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/clearance-intersection.stl \
+  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/collision.json
 
 /usr/bin/python3 skills/pcb-enclosure/scripts/verify_enclosure.py \
   projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml \
   --root projects/pluto-rx2-8way-v5 \
-  --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell \
-  --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
-  --collision-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/clearance-intersection.stl \
-  --collision-report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/collision.json \
-  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/verification.json \
+  --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08 \
+  --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/step-inspection.json \
+  --collision-mesh projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/clearance-intersection.stl \
+  --collision-report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/collision.json \
+  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/verification.json \
   --target cad
 
 uv run --offline --with cadquery python \
   projects/pluto-rx2-8way-v5/03_src/mechanical/verify_antenna_clearance.py \
   --config projects/pluto-rx2-8way-v5/03_src/mechanical/enclosure-cad-design-v2.yaml \
-  --generation projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/generation.json \
+  --generation projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/generation.json \
   --scad projects/pluto-rx2-8way-v5/03_src/mechanical/pluto_rx2_8way_case.scad \
   --step projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/3d/pluto_rx2_8way_v5.step \
-  --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/step-inspection.json \
+  --step-inspection projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/step-inspection.json \
   --holder-stl projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-antenna-holder-reference.stl \
   --holder-png projects/pluto-rx2-8way-v5/03_src/mechanical/reference/user-clearance-reference.png \
   --holder-measurement projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-holder-measurement.json \
   --fit-adjustment projects/pluto-rx2-8way-v5/03_src/mechanical/reference/fit-adjustment-2026-08-27.json \
   --candidate-contract projects/pluto-rx2-8way-v5/03_src/mechanical/reference/antenna-adapter-candidate-contract.json \
-  --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell \
-  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-split-shell/antenna-clearance.json
+  --build-dir projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08 \
+  --report projects/pluto-rx2-8way-v5/06_build/mechanical/pluto-fdm-v08/antenna-clearance.json
 ```
 
 The generic verifier binds the sealed PCB/STEP and exact installed-case

@@ -22,19 +22,19 @@ subject:
     size: 31058
   mechanical_intent:
     path: 03_src/mechanical/mechanical-intent-v2.yaml
-    sha256: 5bba0b53548a1a37306f76a73d28b15c840e821a5590a41f04e6dfaa666c1fdf
-    size: 5081
+    sha256: d1f93c2f00e2680d1df30f3f9c133d9f39a5f541624642e46391b0d1efe711ef
+    size: 6390
   cad_design:
     path: 03_src/mechanical/enclosure-cad-design-v2.yaml
-    sha256: 2cbc41da24b10e1a39a38593934d6f9a591a9b9b067ef2d128dad3eb08412234
+    sha256: d3325c1ff462d445625dffdec9d50c9b8fef15842b8b10c5e57eac076c0b9ce1
     size: 5985
 external_subjects:
   - id: antenna_candidate_contract
     role: antenna_envelope_candidate
     source:
       path: 03_src/mechanical/reference/antenna-adapter-candidate-contract.json
-      sha256: d9cabbd2e9201ff750013c1d621e076d9b709a11594c87b78f8d0ebd29426373
-      size: 5773
+      sha256: 7216c66e11570ef15cae2ddbce997de38267b7aa436a46bf0531abc7bc66dc5c
+      size: 6293
     authority:
       grade: conservative_candidate
       basis: Reviewed machine contract for the pillar-only base, conservative L-shaped antenna envelope, and user-requested D8.50 key/D9.55 aperture fit candidate; none measures the production antenna.
@@ -75,7 +75,7 @@ external_subjects:
       excluded_claims: [physical_fit]
 verification_scopes:
   - id: shell
-    description: Pillar-only open base and roof-only lid bound to the immutable PCB/STEP; J1-J10 have no connector-facing case wall or nominal added mating-plane setback, J11/J12 use an edge-open notch, and the fabricated board's intrinsic flush SMA faces and dense pitch remain unsolved.
+    description: Pillar-only open base and roof-only lid bound to the immutable PCB/STEP; four full-height tangent closure webs use D14 south and collision-limited D12 north roots while J1-J10 keep continuously open connector-facing edges, J11/J12 keep an edge-open notch, and the fabricated board's intrinsic flush SMA faces and dense pitch remain unsolved.
     required: true
     depends_on: []
   - id: board_retention
@@ -225,6 +225,46 @@ interface_assemblies:
       scope: shell
       mated_in_states: [installed]
       mated_during_operations: []
+manufacturing_audit:
+  contract:
+    path: 03_src/mechanical/fdm-structural-contract.yaml
+    sha256: 99a6d2d70b18b7cbbfe8d40baaa5a5300617feb2467aa26a62e59417225a71b7
+    size: 29777
+  receipt:
+    path: 06_build/mechanical/pluto-fdm-v08/fdm-structural-audit.json
+    sha256: 7cc6d6bd86892a7e97732abd157026ddb0b891da2f0d91b5124ed8691efbc78b
+    size: 64447
+  generation:
+    path: 06_build/mechanical/pluto-fdm-v08/generation.json
+    sha256: c43182408ef624357a90119c251d33107af465d294daba7f8b63d0d483e5318d
+    size: 5789
+  collision:
+    path: 06_build/mechanical/pluto-fdm-v08/collision.json
+    sha256: f38fffd904e80bb8e9a5ec383813e41b7f84bcbae0e794ded1508ec6b27e435b
+    size: 4036
+  collision_subject:
+    mode: subject_step
+  meshes:
+    - part: base
+      path: 06_build/mechanical/pluto-fdm-v08/base.stl
+      sha256: 02724639c263df6d619e9fedfa3e5b1d44e049230097f2b2c43e11e01421cd6a
+      size: 1576372
+    - part: lid
+      path: 06_build/mechanical/pluto-fdm-v08/lid.stl
+      sha256: 1cbe5cdbb292f9c65834a2bbc4684b866234f94a3430d0d2a7f444624224f707
+      size: 3138635
+    - part: insert_coupon
+      path: 06_build/mechanical/pluto-fdm-v08/insert_coupon.stl
+      sha256: d81727855a0aa2ace7bdb2cf98e2eed7f2eac0e12dd9b86b2ab6ed8ddc946429
+      size: 1162772
+    - part: rx2_antenna_mount
+      path: 06_build/mechanical/pluto-fdm-v08/rx2_antenna_mount.stl
+      sha256: 665dd923586cb9e85e9a884c8b0e5a9e3c5b870fbeca8996da11fed5665c6bf2
+      size: 834677
+    - part: rx2_antenna_fit_gauge
+      path: 06_build/mechanical/pluto-fdm-v08/rx2_antenna_fit_gauge.stl
+      sha256: d32f0125d56dd256915008d8c77fd78526506d589a96a342ef37f955cede6bc8
+      size: 1489170
 physical_tests:
   - id: insert_coupon
     type: insert_coupon
@@ -246,6 +286,11 @@ physical_tests:
     scope: shell
     required_for: PRINT_VERIFIED
     subject_parts: [base, lid, pcb]
+  - id: connector_mate_unmate_tool_reaction
+    type: custom.pluto-rx2-8way.connector-mate-unmate-tool-reaction
+    scope: shell
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, pcb]
   - id: lid_off_retention
     type: lid_off_pcb_retention
     scope: board_retention
@@ -256,6 +301,11 @@ physical_tests:
     scope: board_retention
     required_for: PRINT_VERIFIED
     subject_parts: [base, lid, pcb]
+  - id: closure_joint_torque_twist_cycle
+    type: custom.pluto-rx2-8way.closure-joint-torque-twist-cycle
+    scope: shell
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid]
   - id: antenna_insertion
     type: accessory_insertion_removal
     scope: antenna_accessory

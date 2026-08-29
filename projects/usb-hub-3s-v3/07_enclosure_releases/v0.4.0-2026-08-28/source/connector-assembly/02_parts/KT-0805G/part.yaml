@@ -1,0 +1,80 @@
+mpn: KT-0805G
+manufacturer: Hubei KENTO Elec
+type: led_indicator          # v1.6 D9/D10/D11 = per-port USB-A rail, D12 = USB-C rail
+datasheet: {doc_id: KT-0805 series, revision: series/LCSC, url: "https://www.lcsc.com/product-detail/C2297.html", sha256: null, fetched: 2026-07-25}
+package: "0805 (2012 metric), 2.0 x 1.25 mm"
+footprint: LED_SMD:LED_0805_2012Metric
+escape: {style: passive, pitch: 1.0, tier_required: jlc_2layer_default, checked: escape_check 2026-07-25}
+pins:
+  1: {name: K, note: "CATHODE, and on all four green indicators it goes straight to
+      GND. KiCad Device:LED is pin 1 = K (verified in
+      /usr/share/kicad/symbols/Device.kicad_sym); LED_SMD:LED_0805_2012Metric puts
+      pad 1 at x=-0.9375 (WEST) with the F.Fab chamfer corner at (-1.000,-0.600)
+      and the F.SilkS cathode band at x=-1.685, both at that same end."}
+  2: {name: A, note: "anode; D9/D10/D11.2 = LEDVA1/2/3 (from VBUSA1/2/3 through
+      R38/R39/R40), D12.2 = LEDVC (from VBUSC through R41)"}
+limits:
+  colour: "emerald green, 525 nm dominant (513-528 nm)"
+  vf: "2.6-3.1 V @ 5 mA"
+  iv: "430 mcd"
+  if_design: "USB-A ports 0.330 mA typ (0.282-0.377 mA over the 5VA setpoint window
+    5.07-5.23 V x Vf 2.6-3.1 V); USB-C 0.359 mA no-load, 0.330 mA at 5 A load,
+    0.275-0.405 mA over corners. Two orders of magnitude below the 5 mA test point."
+asserts:
+  - {assert: pad1_net_polarity, pad: 1, polarity: negative,
+     why: "pad 1 is the CATHODE (KiCad Device:LED pin 1 = K; LED_0805_2012Metric
+       marks pad 1 with both the F.Fab chamfer and the F.SilkS cathode band), and
+       on D9/D10/D11/D12 the cathode is wired directly to GND. If this pad ever
+       resolves to a positive net the LED is in backwards and every rail indicator
+       on the board is dark."}
+gotchas:
+  - "SAME ROTATION TRAP AS C2296, and the two JLC footprints are byte-identical
+     apart from the LCSC property and the model path -- so the measurement below
+     covers both codes. JLC's LED0805-R-RD model numbers pad 1 = ANODE (x=+1.05);
+     KiCad numbers pad 1 = CATHODE (x=-0.9375). A pad-NUMBER fit therefore returns
+     offset 180 at a 17.7x margin (rms 0.1125 mm vs 1.9875 mm) and IS WRONG.
+     MEASURED 2026-07-25 with two numbering-free channels, both saying 0:
+       (a) unlabelled size-matched PAD CLOUD: 0.1125 mm at 0 AND 180 (degenerate --
+           the two pads are identical, so this channel cannot pick between them),
+           1.4076 mm at 90 and 270. It ADMITS {0,180} and REFUTES {90,270} at 12.5x.
+       (b) POLARITY MARKS read as shapes, cathode-to-cathode, consulting no pad
+           number and no pin-1 marker: ours draws the cathode WEST (F.SilkS band
+           x=-1.685; F.Fab chamfer corner (-1.000,-0.600)); JLC draws the cathode
+           WEST as well (silk diode-glyph base at x=+0.200 with the triangle APEX
+           at x=-0.300 -- the triangle points at the cathode -- plus the silk body
+           outline chamfered at the WEST end, mean x=-2.025, square at the EAST).
+           0 is the only angle where both cathode marks land on the same side.
+     => offset 0, polarity two-channel. A 180 row ships four dark indicators."
+  - "The 5 mA figure on the LCSC page is the Vf TEST current, not an absolute
+     maximum; the design runs these at ~0.33 mA, which is dim-but-clearly-lit for a
+     430 mcd emerald part at 120 deg. If the bench says too dim, the ballast drops
+     from 6.98k (C23215) to 3.92k (C728591) -- BOTH already on this BOM, so the
+     change costs nothing but a value edit."
+  - "TAP POINTS ARE PART OF THE FUNCTION, not decoration. D9/D10/D11 tap VBUSA1/2/3
+     (POST the TPS2557 current-limit switches), so a latched-off port reads DARK; a
+     single LED on 5VA would leave a dead port looking identical to a working one.
+     D12 taps VBUSC (POST Q6 and F2), so a dark C indicator with the A indicators
+     lit means the ADR-0002 protection chain OPENED."
+  - "qty 4/board (D9, D10, D11, D12)."
+verified: "0805 chip LED, 2-pad polarized. Pad-1 = cathode established from
+  Device.kicad_sym (pin 1 = K) and the LED_0805_2012Metric F.Fab chamfer + F.SilkS
+  cathode band, both read as GEOMETRY not as text. JLC land + silk cross-checked
+  against the fetched EasyEDA model LED0805-R-RD.kicad_mod - 2026-07-25"
+sourcing:
+  lcsc: C2297
+  alternates: []
+  note: "JLCPCB/LCSC stock 2,085,000 on 2026-07-25 (MOQ 50, multiples of 50).
+    NEW BOM LINE in v1.6 (the second and last one the status-LED cell costs; the
+    five ballasts are C23215, already on the BOM as R7/R16, and the gate FET is
+    C78284, already on the BOM as Q7). Order-day stock recheck."
+layout:
+  source: "v1.6 status-LED cell (task#30 user decisions D2/D4)"
+  adjacency:
+    - "each rail LED sits ~4.5 mm from the pour it reports, with its ballast INSIDE
+       that pour, so the sense end needs no routed feeder and a mis-association is
+       visible by eye"
+  notes:
+    - "must be VISIBLE: each carries its own silk legend (USB-A1/2/3 5V, USB-C 5V OK)"
+    - "no gate needed: 5VA/5VC/VBUSA*/VBUSC all collapse on master-off, so these
+       four are dark in the OFF state by construction and contribute 0 uA to the
+       power_tree quiescent budget"

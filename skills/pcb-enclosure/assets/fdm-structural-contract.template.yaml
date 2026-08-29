@@ -1,0 +1,114 @@
+schema: 1
+kind: pcb-enclosure-fdm-structural-contract-v1
+name: replace-with-v1-config-name
+design_fingerprint: replace-with-fdm-structural-audit-design-fingerprint
+
+process_profiles:
+  - id: production
+    method: fdm
+    material: replace-with-exact-v1-material
+    nozzle_mm: 0.4
+    layer_mm: 0.2
+    minimum_wall_mm: 1.2
+    support_policy: forbid_when_practical
+    # The v1 adapter has no canonical slicer integration. Null is honest and
+    # forces slicer/toolpath evidence to remain INCOMPLETE.
+    slicer: null
+
+parts:
+  - id: base
+    process_profile: production
+    mesh_to_build:
+      - [1, 0, 0, 0]
+      - [0, 1, 0, 0]
+      - [0, 0, 1, 0]
+      - [0, 0, 0, 1]
+    structural_disposition: no_critical_attachment
+    structural_reason: Replace with audited attachments if the base has critical joints.
+    attachment_ids: []
+    support_exception_ids: []
+  - id: lid
+    process_profile: production
+    # Proper rigid transform only: orthonormal upper 3x3, determinant +1.
+    mesh_to_build:
+      - [1, 0, 0, 0]
+      - [0, 1, 0, 0]
+      - [0, 0, 1, 0]
+      - [0, 0, 0, 1]
+    structural_disposition: audited
+    structural_reason: null
+    attachment_ids: [replace-with-critical-attachment]
+    support_exception_ids: []
+  - id: insert_coupon
+    process_profile: production
+    mesh_to_build:
+      - [1, 0, 0, 0]
+      - [0, 1, 0, 0]
+      - [0, 0, 1, 0]
+      - [0, 0, 0, 1]
+    structural_disposition: no_critical_attachment
+    structural_reason: Standalone process coupon; no installed load path.
+    attachment_ids: []
+    support_exception_ids: []
+
+load_cases:
+  - id: lid_handling
+    description: Lid handling, removal, and uneven closure load.
+    direction_local: [0, 0, 1]
+    application: Applied at the closure member.
+    reaction: Reacted into the roof plate.
+
+attachments:
+  - id: replace-with-critical-attachment
+    part: lid
+    scope: shell
+    host: roof plate
+    member: closure lug
+    function: Transfer closure and handling load into the roof.
+    load_cases: [lid_handling]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [0, 0, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-5, -1, 5, 6]
+        minimum_area_mm2: 12
+        throat:
+          # This measures total/net material span on the named line. It is not
+          # a generic minimum-thickness result.
+          axis: u
+          coordinate_mm: 1
+          interval_mm: [-5, 5]
+          minimum_material_span_mm: 6
+      - id: member
+        plane:
+          origin_mm: [2, 0, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-5, -1, 5, 6]
+        minimum_area_mm2: 8
+        throat:
+          axis: u
+          coordinate_mm: 1
+          interval_mm: [-5, 5]
+          minimum_material_span_mm: 4
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.25
+      # Parallel/antiparallel root/member planes must share a registered
+      # in-plane frame and separate along their common normal by at least
+      # max(layer_mm, nozzle_mm / 2). Nonparallel normals must differ by at
+      # least 30 degrees. Measured net area must change by at least
+      # nozzle_mm * layer_mm OR throat span by max(layer_mm, nozzle_mm / 2).
+      # Tangential shifts and sub-process taper are not independent witnesses.
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+
+support_exceptions: []
+flexure_exceptions: []

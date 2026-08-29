@@ -1,0 +1,179 @@
+{
+  "assembly_contract": {
+    "board_fastener_axes_mm": [
+      [
+        -59.0,
+        40.0
+      ],
+      [
+        -59.0,
+        -40.0
+      ],
+      [
+        21.0,
+        42.0
+      ],
+      [
+        59.0,
+        -26.0
+      ]
+    ],
+    "case_fastener_axes_mm": [
+      [
+        -70.0,
+        -51.0
+      ],
+      [
+        -70.0,
+        51.0
+      ],
+      [
+        70.0,
+        -51.0
+      ],
+      [
+        70.0,
+        51.0
+      ]
+    ],
+    "fastener_strategy": "separate_perimeter",
+    "kind": "pcb-enclosure-assembly-contract-v1",
+    "pcb_retained_with_lid_removed": true,
+    "shared_board_shell_axes": false,
+    "shell_closure_axes_mm": [
+      [
+        -70.0,
+        -51.0
+      ],
+      [
+        -70.0,
+        51.0
+      ],
+      [
+        70.0,
+        -51.0
+      ],
+      [
+        70.0,
+        51.0
+      ]
+    ]
+  },
+  "authority": {
+    "binding": {
+      "path": "cad/usb_hub_3s_v3_case.scad",
+      "sha256": "c75beaf6a7de110c878768ea279cd14780591c354481e87740aadb84c651570d",
+      "size": 14647
+    },
+    "kind": "authored_scad"
+  },
+  "config": {
+    "path": "source/enclosure-cad-design-v2.yaml",
+    "raw_sha256": "8ec276ff19ff1cdaf5eb991a7ce1e97dc3df3ca0741e39fd3fd90c98dc2def31",
+    "semantic_sha256": "6fd1541bfdecd6e478d26e734f8499b61c209e2f82d4ed87247a1c2da9e82f8e"
+  },
+  "engine": {
+    "executable": "/usr/bin/openscad",
+    "minimum_version": "2021.01",
+    "version": "OpenSCAD version 2021.01"
+  },
+  "installed_case": {
+    "canonicalization": "ascii-stl-facet-order-v1",
+    "command": [
+      "/usr/bin/openscad",
+      "-o",
+      "assembled-case.stl",
+      "-D",
+      "part=\"installed_case\"",
+      "-D",
+      "show_reference_board=false",
+      "enclosure.scad"
+    ],
+    "execution": {
+      "kind": "atomic-same-directory-output-v1"
+    },
+    "path": "assembled-case.stl",
+    "selector": "installed_case",
+    "sha256": "260d5d1f1236d39928d98b2d189ae5311734d17288f5307b7713702063beffee",
+    "size": 2029673
+  },
+  "interface": {
+    "raw_sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+    "semantic_sha256": "91ba96b687a4ceb100d246e0b9254357e31b684ffa5299973c2eec96107b6518"
+  },
+  "kind": "pcb-enclosure-generation-v1",
+  "mode": "derived",
+  "name": "usb-hub-3s-v1.12-roof-only-case",
+  "parts": [
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "base.stl",
+        "-D",
+        "part=\"base\"",
+        "-D",
+        "show_reference_board=false",
+        "enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "base",
+      "path": "base.stl",
+      "selector": "base",
+      "sha256": "bd0c426c166135753d0881f8a8ef26b81cdc1ee978164b2d38cb953562d47bdc",
+      "size": 820586
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "lid.stl",
+        "-D",
+        "part=\"lid\"",
+        "-D",
+        "show_reference_board=false",
+        "enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "lid",
+      "path": "lid.stl",
+      "selector": "lid",
+      "sha256": "7d4105dd56126a39a8e00d5730909cef45ce3864812d2e13f38a51202ea68b71",
+      "size": 1279625
+    },
+    {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "insert_coupon.stl",
+        "-D",
+        "part=\"insert_coupon\"",
+        "-D",
+        "show_reference_board=false",
+        "enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "part": "insert_coupon",
+      "path": "insert_coupon.stl",
+      "selector": "insert_coupon",
+      "sha256": "121c3c5afb5b09f87a2d420661248352bf23ebd1de2037a44828b3a153e2774b",
+      "size": 1289644
+    }
+  ],
+  "schema": 1,
+  "selector_contract": null,
+  "source": {
+    "path": "enclosure.scad",
+    "sha256": "c75beaf6a7de110c878768ea279cd14780591c354481e87740aadb84c651570d",
+    "size": 14647
+  }
+}

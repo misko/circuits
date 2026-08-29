@@ -98,15 +98,21 @@ changes in `co_design`; reject stale subject bindings in `derived`.
    the lid must not loosen the PCB. With the current built-in CAD adapter, select
    `fasteners.strategy: separate_perimeter` and confirm the generation
    assembly contract; the v2 validator does not infer CAD axes from declarations.
-7. Apply [fdm-printability.md](references/fdm-printability.md). Use the built-in
+7. Apply [fdm-printability.md](references/fdm-printability.md) and, for every
+   new candidate, the closed contract in
+   [fdm-structural-audit.md](references/fdm-structural-audit.md). Use the built-in
    engine for its supported rectangular cases or bind one reviewed authored
    SCAD entrypoint. Keep authored source outside the build directory; never
    hand-edit generated copies or STL files.
-8. Generate from the exact v1 `subject.cad_design`, then verify its bindings,
+8. Generate from the exact v1 `subject.cad_design`; run the FDM/structural
+   audit against every declared printable mesh; then verify its bindings,
    interface coverage, generation assembly contract, fasteners, mesh topology,
    exact installed-position collision, and thermal intent. All enclosure tool
-   subprocesses use the repository's shared bounded process authority and
-   stage outputs atomically.
+   subprocesses use the repository's shared bounded process authority. A
+   manifold mesh or passing critical section never implies slicer quality,
+   strength, fit, or physical qualification. Missing slicer/profile/toolpath,
+   local-thickness, self-intersection, overhang, or build-volume evidence stays
+   explicitly `INCOMPLETE`.
 9. Read [assembly-and-motion.md](references/assembly-and-motion.md). Final-pose
    collision is not an insertion sweep. For a prewired/no-threading part,
    declare a straight operation and `full_part` clearance case. Until a
@@ -162,6 +168,11 @@ SKILL_DIR=skills/pcb-enclosure
   validate-config "$V2_CONFIG" --root "$SUBJECT_ROOT" \
   --output "$BUILD/v2-validation.json"
 
+# The validation report is relocation-stable: project authorities are
+# root-relative and shared tools use canonical source identifiers. Release
+# staging regenerates its release-local v2/intent/scope reports and replays the
+# generic schema-v1 report before sealing; release reopen remains read-only.
+
 /usr/bin/python3 "$SKILL_DIR/scripts/inspect_step.py" \
   "$STEP" --interface "$BUILD/board-interface.json" \
   --output "$BUILD/step-inspection.json" \
@@ -170,10 +181,22 @@ SKILL_DIR=skills/pcb-enclosure
 /usr/bin/python3 "$SKILL_DIR/scripts/generate_enclosure.py" \
   "$CAD_CONFIG" --root "$SUBJECT_ROOT" --build-dir "$BUILD"
 
+/usr/bin/python3 "$SKILL_DIR/scripts/fdm_structural_audit.py" \
+  "$FDM_CONTRACT" --config "$CAD_CONFIG" --root "$SUBJECT_ROOT" \
+  --generation "$BUILD/generation.json" \
+  --mesh base="$BUILD/base.stl" --mesh lid="$BUILD/lid.stl" \
+  --mesh insert_coupon="$BUILD/insert_coupon.stl" \
+  --output "$BUILD/fdm-audit.json"
+
+# Non-mutating policy census: grade only manifest-declared release meshes.
+/usr/bin/python3 "$SKILL_DIR/scripts/fdm_audit_fleet.py" \
+  --root .
+
 # Use the CadQuery/OCP Python environment used for STEP inspection.
 "$CADQUERY_PYTHON" "$SKILL_DIR/scripts/build_collision.py" \
   --step "$STEP" --step-inspection "$BUILD/step-inspection.json" \
   --component-mesh "$BUILD/components.stl" \
+  --interface "$INTERFACE" \
   --generation "$BUILD/generation.json" \
   --assembled-case-mesh "$BUILD/assembled-case.stl" \
   --board-bottom-z-mm "$BOARD_BOTTOM_Z_MM" \
@@ -247,7 +270,9 @@ verifiers; it does not manufacture motion, fit, or thermal evidence.
 - Read [enclosure-topologies.md](references/enclosure-topologies.md),
   [connector-access.md](references/connector-access.md),
   [fasteners-and-inserts.md](references/fasteners-and-inserts.md), and
-  [fdm-printability.md](references/fdm-printability.md) while designing.
+  [fdm-printability.md](references/fdm-printability.md) while designing. Read
+  [fdm-structural-audit.md](references/fdm-structural-audit.md) before every
+  new generation/release cycle.
 - Read [assembly-and-motion.md](references/assembly-and-motion.md) for service
   states, whole-body sweeps, and prewired parts.
 - Read [first-article-iteration.md](references/first-article-iteration.md) when

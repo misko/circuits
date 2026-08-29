@@ -1,0 +1,252 @@
+schema: 1
+kind: pcb-enclosure-config-v1
+name: usb-hub-3s-v1.12-roof-only-case
+mode: derived
+subject:
+  release: v1.12-2026-07-28
+  release_manifest:
+    path: authorities/pcb-release/MANIFEST.txt
+    sha256: 2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4
+    size: 41456
+  pcb:
+    path: authorities/pcb-release/source/usb_hub_3s_v2.kicad_pcb
+    sha256: 2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf
+    size: 2007690
+  step:
+    path: authorities/pcb-release/3d/usb_hub_3s_v2.step
+    sha256: e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11
+    size: 2239061
+  interface:
+    path: verification/board-interface.json
+    sha256: 36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b
+    size: 61228
+process:
+  method: fdm
+  material: PETG
+  nozzle_mm: 0.4
+  layer_mm: 0.2
+  support_policy: forbid_when_practical
+  minimum_wall_mm: 1.2
+cad:
+  engine: openscad
+  minimum_version: "2021.01"
+  printable_parts:
+    - base
+    - lid
+    - insert_coupon
+  source:
+    kind: authored_scad
+    path: cad/usb_hub_3s_v3_case.scad
+    sha256: c75beaf6a7de110c878768ea279cd14780591c354481e87740aadb84c651570d
+    size: 14647
+geometry:
+  topology: split_shell
+  xy_clearance_mm: 8.0
+  wall_mm: 2.4
+  floor_mm: 2.4
+  roof_mm: 3.2
+  corner_radius_mm: 4.4
+  board_bottom_z_mm: 9.5
+  inside_top_z_mm: 27.0
+  seam_z_mm: 10.7
+  panel_thickness_mm: 2.4
+  panel_capture_mm: 2.0
+  panel_clearance_mm: 0.30
+  corner_post_mm: 9.0
+  lid_column_board_gap_mm: 0.20
+fasteners:
+  strategy: separate_perimeter
+  thread: M3-0.5
+  board_holes: [H1, H2, H3, H4]
+  case_holes_mm:
+    - [-70.0, -51.0]
+    - [-70.0, 51.0]
+    - [70.0, -51.0]
+    - [70.0, 51.0]
+  boss_d_mm: 9.0
+  case_post_d_mm: 9.0
+  minimum_radial_wall_mm: 0.9
+  insert:
+    family: E-Z-LOK-260-M3-BR-or-CR
+    installation: cold_press
+    pilot_basis: coupon_prior
+    hole_d_mm: 4.25
+    body_d_mm: 4.216
+    flange_d_mm: 5.537
+    flange_recess_d_mm: 6.10
+    flange_recess_depth_mm: 0.60
+    length_mm: 4.775
+    bottom_clearance_mm: 0.70
+  screw:
+    clearance_d_mm: 3.5
+    head_d_mm: 6.3
+    head_recess_depth_mm: 1.0
+    board_length_mm: 6.0
+    lid_length_mm: 6.0
+    minimum_engagement_mm: 3.5
+    minimum_tip_clearance_mm: 0.1
+interfaces:
+  - id: xt60-input
+    ref: J1
+    role: battery-input
+    side: west
+    disposition: opening
+    center_mm: [-65.0, 25.6, 15.1]
+    shape: arch
+    opening_mm: [22.0, 15.0]
+    plug_envelope_mm: [18.0, 11.0, 35.0]
+    clearance_mm: 2.0
+  - id: usb-a-1
+    ref: J2
+    role: power-output
+    side: east
+    disposition: opening
+    center_mm: [65.0, 31.5, 14.5]
+    shape: rect
+    opening_mm: [20.0, 12.0]
+    plug_envelope_mm: [18.0, 10.0, 35.0]
+    clearance_mm: 1.0
+  - id: usb-a-2
+    ref: J3
+    role: power-output
+    side: east
+    disposition: opening
+    center_mm: [65.0, 9.5, 14.5]
+    shape: rect
+    opening_mm: [20.0, 12.0]
+    plug_envelope_mm: [18.0, 10.0, 35.0]
+    clearance_mm: 1.0
+  - id: usb-a-3
+    ref: J4
+    role: power-output
+    side: east
+    disposition: opening
+    center_mm: [65.0, -12.5, 14.5]
+    shape: rect
+    opening_mm: [20.0, 12.0]
+    plug_envelope_mm: [18.0, 10.0, 35.0]
+    clearance_mm: 1.0
+  - id: usb-c-output
+    ref: J5
+    role: power-output
+    side: south
+    disposition: opening
+    center_mm: [35.0, -46.0, 13.25]
+    shape: arch
+    opening_mm: [17.0, 11.0]
+    plug_envelope_mm: [15.0, 9.0, 30.0]
+    clearance_mm: 1.0
+  - id: blade-fuse-service
+    ref: F1
+    role: replaceable-fuse
+    side: top
+    disposition: service_opening
+    center_mm: [-45.04, 8.3, 27.0]
+    shape: arch
+    opening_mm: [26.0, 18.0]
+    plug_envelope_mm: [24.0, 16.0, 20.0]
+    clearance_mm: 1.0
+  - id: power-switch
+    ref: SW1
+    role: user-control
+    side: top
+    disposition: service_opening
+    center_mm: [-19.0, 8.0, 27.0]
+    shape: arch
+    opening_mm: [16.0, 12.0]
+    plug_envelope_mm: [14.0, 10.0, 12.0]
+    clearance_mm: 1.0
+  - id: output-polyfuse
+    ref: F2
+    role: internal-protection
+    side: top
+    disposition: internal
+    center_mm: [29.0, -24.0, 12.9]
+    shape: none
+    opening_mm: [0.0, 0.0]
+    plug_envelope_mm: [0.0, 0.0, 0.0]
+    clearance_mm: 0.0
+  - id: master-status-led
+    ref: D8
+    role: status-indicator
+    side: top
+    disposition: service_opening
+    center_mm: [-31.5, 13.0, 27.0]
+    shape: round
+    opening_mm: [3.2, 3.2]
+    plug_envelope_mm: [2.0, 2.0, 2.0]
+    clearance_mm: 0.5
+  - id: usb-a-1-status-led
+    ref: D9
+    role: status-indicator
+    side: top
+    disposition: service_opening
+    center_mm: [39.0, 39.5, 27.0]
+    shape: round
+    opening_mm: [3.2, 3.2]
+    plug_envelope_mm: [2.0, 2.0, 2.0]
+    clearance_mm: 0.5
+  - id: usb-a-2-status-led
+    ref: D10
+    role: status-indicator
+    side: top
+    disposition: service_opening
+    center_mm: [39.0, 18.0, 27.0]
+    shape: round
+    opening_mm: [3.2, 3.2]
+    plug_envelope_mm: [2.0, 2.0, 2.0]
+    clearance_mm: 0.5
+  - id: usb-a-3-status-led
+    ref: D11
+    role: status-indicator
+    side: top
+    disposition: service_opening
+    center_mm: [39.0, -4.0, 27.0]
+    shape: round
+    opening_mm: [3.2, 3.2]
+    plug_envelope_mm: [2.0, 2.0, 2.0]
+    clearance_mm: 0.5
+  - id: usb-c-status-led
+    ref: D12
+    role: status-indicator
+    side: top
+    disposition: service_opening
+    center_mm: [22.0, -36.0, 27.0]
+    shape: round
+    opening_mm: [3.2, 3.2]
+    plug_envelope_mm: [2.0, 2.0, 2.0]
+    clearance_mm: 0.5
+thermal:
+  risk: high
+  physical_soak_required: true
+  load_case: roof-covered open-sided case, USB-A total 6 A plus USB-C 3 A at hottest expected ambient
+  vents:
+    - center_mm: [-8.0, 31.0]
+      count: 5
+      length_mm: 34.0
+      width_mm: 2.0
+      pitch_mm: 5.0
+      axis: x
+    - center_mm: [-8.0, -12.0]
+      count: 5
+      length_mm: 34.0
+      width_mm: 2.0
+      pitch_mm: 5.0
+      axis: x
+    - center_mm: [27.0, 8.0]
+      count: 6
+      length_mm: 18.0
+      width_mm: 2.0
+      pitch_mm: 5.0
+      axis: x
+    - center_mm: [20.0, -23.0]
+      count: 4
+      length_mm: 20.0
+      width_mm: 2.0
+      pitch_mm: 5.0
+      axis: x
+physical_validation:
+  insert_coupon_required: true
+  board_drop_in_required: true
+  all_interfaces_mated_required: true
+  thermal_soak_required: true

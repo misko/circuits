@@ -19,7 +19,8 @@ cross-document contradictions.
 6. [Clearance cases](#clearance-cases)
 7. [Connector service envelopes](#connector-service-envelopes)
 8. [Extensible physical tests](#extensible-physical-tests)
-9. [Commands](#commands)
+9. [Manufacturing audit](#manufacturing-audit)
+10. [Commands](#commands)
 
 ## Top level
 
@@ -30,7 +31,8 @@ The exact fields are:
 - `verification_scopes` and `installed_parts`;
 - `fastener_policy` and `fastener_groups`;
 - `clearance_cases`, optional additive `service_envelopes` or the go-forward
-  `interface_assemblies`, and `physical_tests`.
+  `interface_assemblies`, `physical_tests`, and optional
+  `manufacturing_audit`.
 
 Already-published v2 configs may omit both connector fields and validate as a
 legacy compatibility case. When an `opening` or `service_opening` exists, that omission is
@@ -290,6 +292,63 @@ no-threading accessory also requires `accessory_insertion_removal`,
 affected installed part. These obligations cannot be removed merely by
 omitting rows from the authored test census.
 
+## Manufacturing audit
+
+New candidates add this exact mapping after generation:
+
+```yaml
+manufacturing_audit:
+  contract: {path: 03_src/mechanical/fdm-structural-contract.yaml,
+             sha256: <sha256>, size: <bytes>}
+  receipt: {path: 06_build/mechanical/candidate/fdm-audit.json,
+            sha256: <sha256>, size: <bytes>}
+  generation: {path: 06_build/mechanical/candidate/generation.json,
+               sha256: <sha256>, size: <bytes>}
+  collision: {path: 06_build/mechanical/candidate/collision.json,
+              sha256: <sha256>, size: <bytes>}
+  # Ordinary boards use the exact schema-v1 CAD subject STEP.
+  collision_subject: {mode: subject_step}
+  meshes:
+    - {part: base, path: 06_build/mechanical/candidate/base.stl,
+       sha256: <sha256>, size: <bytes>}
+    - {part: lid, path: 06_build/mechanical/candidate/lid.stl,
+       sha256: <sha256>, size: <bytes>}
+```
+
+Mesh rows exactly equal the schema-v1 printable selector census. The selected
+collision must be a full `pcb-enclosure-collision-v1` receipt proving an exact
+EMPTY BRep result against `generation.installed_case`. Its interface identity
+must equal the schema-v1 CAD subject interface. `subject_step` additionally
+requires its STEP identity to equal the schema-v1 CAD subject STEP.
+
+A supplemental obstruction composition instead uses this closed union:
+
+```yaml
+collision_subject:
+  mode: external_composition
+  receipt: {path: 06_build/mechanical/candidate/composition.json,
+            sha256: <sha256>, size: <bytes>}
+  parent_step: {path: <schema-v1 subject STEP>, sha256: <sha256>, size: <bytes>}
+  interface: {path: <schema-v1 subject interface>, sha256: <sha256>, size: <bytes>}
+  supplement_step: {path: <supplement STEP>, sha256: <sha256>, size: <bytes>}
+  augmentation_receipt: {path: <augmentation receipt>, sha256: <sha256>, size: <bytes>}
+  validator: {path: <hermetic compositor>, sha256: <sha256>, size: <bytes>}
+```
+
+The receipt must bind the composed collision STEP, and the exact validator
+must reproduce it through `--replay-receipt`. The v2 validator also loads the
+receipt-selected exact FDM compiler/helper, collision builder/helper, STEP
+inspector, and bounded runtime; independently regrades generation, collision,
+and FDM evidence; then reopens every binding.
+Each critical attachment names a required v2 scope. An intentional-flexure
+exception names an existing `PRINT_VERIFIED` physical test in that same scope.
+
+A represented `FAIL` invalidates the config. `INCOMPLETE` caps the required
+scope closure. Omitting the additive mapping keeps predecessor configs
+structurally valid but likewise caps them at `INCOMPLETE`; omission is backward
+compatibility, not current-policy certification. See
+[fdm-structural-audit.md](fdm-structural-audit.md) for the full contract.
+
 ## Commands
 
 ```bash
@@ -310,6 +369,26 @@ omitting rows from the authored test census.
   --root "$PROJECT" \
   --output "$PROJECT/06_build/mechanical/scoped-verdict.json"
 ```
+
+`validate-config` emits one canonical report: all project authorities are
+relative to `--root`, shared repository tools use their canonical `skills/...`
+source identifiers, `binding_path_base` is `.`, and the exact validation
+compiler is hash-bound. The report is byte-stable when the same project tree
+is relocated. Never copy an older absolute-path report into a release.
+
+For current-policy release staging, keep the standard names
+`verification/v2-validation.json`,
+`verification/mechanical-intent-validation-v2.json`,
+`verification/scope-statuses.json`, and
+`verification/scoped-verdict.json`. The publisher independently validates the
+release-local config, then regenerates these four canonical JSON products
+before constructing the manifest. Reopen derives them again and requires
+exact semantic and canonical-byte equality.
+
+For a declared `manufacturing_audit`, staging also replays the exact
+release-local schema-v1 verifier and atomically refreshes
+`verification/verification.json` before that census. Release verification is
+read-only and requires the carried generic report to reproduce byte-exact.
 
 The Python helper `aggregate_status(scope_statuses, required_scopes,
 ceilings=...)` returns `FAIL` if any required scope fails, `INCOMPLETE` if one

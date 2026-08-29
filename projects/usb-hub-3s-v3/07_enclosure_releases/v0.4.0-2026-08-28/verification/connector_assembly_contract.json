@@ -1,0 +1,1652 @@
+{
+  "assemblies": [
+    {
+      "cable": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Cable applicability is not yet dispositioned for this viewing aperture.",
+          "source_ids": []
+        },
+        "exit": null,
+        "kind": null,
+        "manufacturer": null,
+        "minimum_bend_radius_mm": null,
+        "mpn": null,
+        "outer_diameter_mm": null,
+        "straight_run_mm": null
+      },
+      "fastening": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No mating fastener is expected, but applicability remains unevidenced in this connector schema.",
+          "source_ids": []
+        },
+        "final_tightening": null,
+        "method": null,
+        "thread_designation": null
+      },
+      "grip": {
+        "across_flats_mm": null,
+        "axial_length_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No physical grip is expected, but the optical service cell is not yet qualified.",
+          "source_ids": []
+        },
+        "kind": null,
+        "outer_diameter_mm": null
+      },
+      "id": "amber-status-view",
+      "instances": [
+        {
+          "mating_axis_board": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "ref": "D8",
+          "simultaneous_group_ids": [
+            "amber-indicator-service"
+          ]
+        }
+      ],
+      "interface": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The top-facing board location is recorded, but roof registration and optical clearance are unknown.",
+          "source_ids": [
+            "amber-led-part-dossier",
+            "realized-floorplan"
+          ]
+        },
+        "exposure_setback_allowance_mm": null,
+        "mating_plane_offset_mm": null,
+        "minimum_exposure_mm": null,
+        "minimum_service_clearance_mm": null,
+        "orientation_source_id": "realized-floorplan"
+      },
+      "mate": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Required user sightline, viewing cone, and ambient conditions are undefined.",
+          "source_ids": []
+        },
+        "manufacturer": null,
+        "model_source_id": null,
+        "mpn": null,
+        "part_kind": "viewer sightline"
+      },
+      "operations": [
+        {
+          "end_state": "indicator-viewed",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "Visibility through the exact printed roof has not been physically demonstrated.",
+            "source_ids": []
+          },
+          "id": "inspect",
+          "kind": "service",
+          "required": null,
+          "sequence": 1,
+          "start_state": "indicator-covered",
+          "with_neighbors_populated": null
+        }
+      ],
+      "reaction": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No contact reaction is expected, but the viewing operation is not qualified.",
+          "source_ids": []
+        },
+        "load_path": null,
+        "method": null
+      },
+      "receptacle": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The indicator is selected, but installed body, emission centre, and viewing geometry are not qualified.",
+          "source_ids": [
+            "amber-led-part-dossier"
+          ]
+        },
+        "manufacturer": "KENTO",
+        "model_source_id": null,
+        "mounting_method": "top-side surface-mount indicator",
+        "mpn": "KT-0805Y"
+      },
+      "tolerances": [
+        {
+          "applies_to": "LED seating, emission centre, roof registration, aperture print process, and required sightline",
+          "effect": "exposure_setback",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "The complete optical service stack is not closed.",
+            "source_ids": [
+              "amber-led-part-dossier",
+              "realized-floorplan"
+            ]
+          },
+          "id": "amber-view-stack",
+          "minus_mm": null,
+          "plus_mm": null
+        }
+      ],
+      "tool": {
+        "approach": null,
+        "counter_tool_required": null,
+        "effective_sweep_radius_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No service tool is expected, but viewing and inspection access are unqualified.",
+          "source_ids": []
+        },
+        "head_envelope_mm": null,
+        "identifier": null,
+        "kind": null,
+        "model_source_id": null
+      },
+      "torque": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Torque applicability is not yet dispositioned by an evidence-backed operation.",
+          "source_ids": []
+        },
+        "maximum_nm": null,
+        "minimum_nm": null,
+        "required": null
+      }
+    },
+    {
+      "cable": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Cable applicability and surrounding harness obstacles have not been reviewed.",
+          "source_ids": []
+        },
+        "exit": null,
+        "kind": null,
+        "manufacturer": null,
+        "minimum_bend_radius_mm": null,
+        "mpn": null,
+        "outer_diameter_mm": null,
+        "straight_run_mm": null
+      },
+      "fastening": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Fuse insertion and retention method and force are unqualified.",
+          "source_ids": []
+        },
+        "final_tightening": null,
+        "method": null,
+        "thread_designation": null
+      },
+      "grip": {
+        "across_flats_mm": null,
+        "axial_length_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Finger or extraction-tool grip geometry is unknown.",
+          "source_ids": []
+        },
+        "kind": null,
+        "outer_diameter_mm": null
+      },
+      "id": "blade-fuse-service",
+      "instances": [
+        {
+          "mating_axis_board": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "ref": "F1",
+          "simultaneous_group_ids": [
+            "fuse-service"
+          ]
+        }
+      ],
+      "interface": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The top service axis is recorded, but installed height and extraction clearance are unknown.",
+          "source_ids": [
+            "fuse-part-dossier",
+            "realized-floorplan"
+          ]
+        },
+        "exposure_setback_allowance_mm": null,
+        "mating_plane_offset_mm": null,
+        "minimum_exposure_mm": null,
+        "minimum_service_clearance_mm": null,
+        "orientation_source_id": "realized-floorplan"
+      },
+      "mate": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The exact installed fuse and extraction body are not selected.",
+          "source_ids": [
+            "fuse-part-dossier"
+          ]
+        },
+        "manufacturer": null,
+        "model_source_id": null,
+        "mpn": null,
+        "part_kind": "MINI blade fuse"
+      },
+      "operations": [
+        {
+          "end_state": "fuse-serviced",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "Inspection, removal, and replacement through the roof opening are not demonstrated.",
+            "source_ids": []
+          },
+          "id": "inspect-replace",
+          "kind": "service",
+          "required": null,
+          "sequence": 1,
+          "start_state": "fuse-installed",
+          "with_neighbors_populated": null
+        }
+      ],
+      "reaction": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Holder, PCB, hand, and enclosure reaction paths are unproven.",
+          "source_ids": []
+        },
+        "load_path": null,
+        "method": null
+      },
+      "receptacle": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The holder identity is selected, but the received holder, installed fuse, and seating geometry are not service-qualified.",
+          "source_ids": [
+            "fuse-part-dossier"
+          ]
+        },
+        "manufacturer": "Keystone Electronics",
+        "model_source_id": null,
+        "mounting_method": "through-hole MINI blade fuse holder",
+        "mpn": "3568"
+      },
+      "tolerances": [
+        {
+          "applies_to": "holder seating, installed fuse, extraction tool, roof registration, and print process",
+          "effect": "exposure_setback",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "The complete top-access service stack is not closed.",
+            "source_ids": [
+              "fuse-part-dossier",
+              "realized-floorplan"
+            ]
+          },
+          "id": "fuse-service-stack",
+          "minus_mm": null,
+          "plus_mm": null
+        }
+      ],
+      "tool": {
+        "approach": null,
+        "counter_tool_required": null,
+        "effective_sweep_radius_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The selected fuse puller or finger envelope is unknown.",
+          "source_ids": []
+        },
+        "head_envelope_mm": null,
+        "identifier": null,
+        "kind": null,
+        "model_source_id": null
+      },
+      "torque": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The service force rather than threaded torque remains unqualified.",
+          "source_ids": []
+        },
+        "maximum_nm": null,
+        "minimum_nm": null,
+        "required": null
+      }
+    },
+    {
+      "cable": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Cable applicability is not yet dispositioned for these viewing apertures.",
+          "source_ids": []
+        },
+        "exit": null,
+        "kind": null,
+        "manufacturer": null,
+        "minimum_bend_radius_mm": null,
+        "mpn": null,
+        "outer_diameter_mm": null,
+        "straight_run_mm": null
+      },
+      "fastening": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No mating fastener is expected, but applicability remains unevidenced in this connector schema.",
+          "source_ids": []
+        },
+        "final_tightening": null,
+        "method": null,
+        "thread_designation": null
+      },
+      "grip": {
+        "across_flats_mm": null,
+        "axial_length_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No physical grip is expected, but the optical service cell is not yet qualified.",
+          "source_ids": []
+        },
+        "kind": null,
+        "outer_diameter_mm": null
+      },
+      "id": "green-status-view",
+      "instances": [
+        {
+          "mating_axis_board": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "ref": "D10",
+          "simultaneous_group_ids": [
+            "green-indicator-service"
+          ]
+        },
+        {
+          "mating_axis_board": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "ref": "D11",
+          "simultaneous_group_ids": [
+            "green-indicator-service"
+          ]
+        },
+        {
+          "mating_axis_board": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "ref": "D12",
+          "simultaneous_group_ids": [
+            "green-indicator-service"
+          ]
+        },
+        {
+          "mating_axis_board": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "ref": "D9",
+          "simultaneous_group_ids": [
+            "green-indicator-service"
+          ]
+        }
+      ],
+      "interface": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The top-facing board locations are recorded, but roof registration and optical clearances are unknown.",
+          "source_ids": [
+            "green-led-part-dossier",
+            "realized-floorplan"
+          ]
+        },
+        "exposure_setback_allowance_mm": null,
+        "mating_plane_offset_mm": null,
+        "minimum_exposure_mm": null,
+        "minimum_service_clearance_mm": null,
+        "orientation_source_id": "realized-floorplan"
+      },
+      "mate": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Required user sightlines, viewing cones, and ambient conditions are undefined.",
+          "source_ids": []
+        },
+        "manufacturer": null,
+        "model_source_id": null,
+        "mpn": null,
+        "part_kind": "viewer sightline"
+      },
+      "operations": [
+        {
+          "end_state": "indicators-viewed",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "Visibility through the exact printed roof has not been physically demonstrated for all four indicators.",
+            "source_ids": []
+          },
+          "id": "inspect",
+          "kind": "service",
+          "required": null,
+          "sequence": 1,
+          "start_state": "indicators-covered",
+          "with_neighbors_populated": null
+        }
+      ],
+      "reaction": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No contact reaction is expected, but the viewing operation is not qualified.",
+          "source_ids": []
+        },
+        "load_path": null,
+        "method": null
+      },
+      "receptacle": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The indicators are selected, but installed bodies, emission centres, and viewing geometry are not qualified.",
+          "source_ids": [
+            "green-led-part-dossier"
+          ]
+        },
+        "manufacturer": "KENTO",
+        "model_source_id": null,
+        "mounting_method": "top-side surface-mount indicator",
+        "mpn": "KT-0805G"
+      },
+      "tolerances": [
+        {
+          "applies_to": "LED seating, emission centres, roof registration, aperture print process, and required sightlines",
+          "effect": "exposure_setback",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "The complete optical service stack is not closed.",
+            "source_ids": [
+              "green-led-part-dossier",
+              "realized-floorplan"
+            ]
+          },
+          "id": "green-view-stack",
+          "minus_mm": null,
+          "plus_mm": null
+        }
+      ],
+      "tool": {
+        "approach": null,
+        "counter_tool_required": null,
+        "effective_sweep_radius_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No service tool is expected, but viewing and inspection access are unqualified.",
+          "source_ids": []
+        },
+        "head_envelope_mm": null,
+        "identifier": null,
+        "kind": null,
+        "model_source_id": null
+      },
+      "torque": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Torque applicability is not yet dispositioned by an evidence-backed operation.",
+          "source_ids": []
+        },
+        "maximum_nm": null,
+        "minimum_nm": null,
+        "required": null
+      }
+    },
+    {
+      "cable": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Cable applicability and internal obstacles around the switch remain unreviewed.",
+          "source_ids": []
+        },
+        "exit": null,
+        "kind": null,
+        "manufacturer": null,
+        "minimum_bend_radius_mm": null,
+        "mpn": null,
+        "outer_diameter_mm": null,
+        "straight_run_mm": null
+      },
+      "fastening": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Actuation and service method and force are unqualified.",
+          "source_ids": []
+        },
+        "final_tightening": null,
+        "method": null,
+        "thread_designation": null
+      },
+      "grip": {
+        "across_flats_mm": null,
+        "axial_length_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Actuator purchase and guard clearance are unknown.",
+          "source_ids": []
+        },
+        "kind": null,
+        "outer_diameter_mm": null
+      },
+      "id": "power-switch-service",
+      "instances": [
+        {
+          "mating_axis_board": [
+            0.0,
+            0.0,
+            1.0
+          ],
+          "ref": "SW1",
+          "simultaneous_group_ids": [
+            "switch-service"
+          ]
+        }
+      ],
+      "interface": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The top actuation axis is recorded, but installed actuator travel and clearance are unknown.",
+          "source_ids": [
+            "realized-floorplan",
+            "switch-part-dossier"
+          ]
+        },
+        "exposure_setback_allowance_mm": null,
+        "mating_plane_offset_mm": null,
+        "minimum_exposure_mm": null,
+        "minimum_service_clearance_mm": null,
+        "orientation_source_id": "realized-floorplan"
+      },
+      "mate": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The supported actuation finger or tool envelope is not defined.",
+          "source_ids": []
+        },
+        "manufacturer": null,
+        "model_source_id": null,
+        "mpn": null,
+        "part_kind": "user finger or service tool"
+      },
+      "operations": [
+        {
+          "end_state": "switch-actuated",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "Actuation and service through the roof opening are not demonstrated.",
+            "source_ids": []
+          },
+          "id": "actuate-service",
+          "kind": "service",
+          "required": null,
+          "sequence": 1,
+          "start_state": "switch-idle",
+          "with_neighbors_populated": null
+        }
+      ],
+      "reaction": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Switch, PCB, finger, and enclosure reaction paths are unproven.",
+          "source_ids": []
+        },
+        "load_path": null,
+        "method": null
+      },
+      "receptacle": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The candidate switch identity is recorded, but the received VG4 versus VG6 variant, installed body, and actuator geometry are not qualified.",
+          "source_ids": [
+            "switch-part-dossier"
+          ]
+        },
+        "manufacturer": "XKB Industrial Precision",
+        "model_source_id": null,
+        "mounting_method": "through-hole slide switch",
+        "mpn": "SS12D07VG6-087"
+      },
+      "tolerances": [
+        {
+          "applies_to": "switch seating, actuator travel, hand or tool, roof registration, and print process",
+          "effect": "exposure_setback",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "The complete top-access service stack is not closed.",
+            "source_ids": [
+              "realized-floorplan",
+              "switch-part-dossier"
+            ]
+          },
+          "id": "switch-service-stack",
+          "minus_mm": null,
+          "plus_mm": null
+        }
+      ],
+      "tool": {
+        "approach": null,
+        "counter_tool_required": null,
+        "effective_sweep_radius_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Finger or tool approach and sweep are not measured.",
+          "source_ids": []
+        },
+        "head_envelope_mm": null,
+        "identifier": null,
+        "kind": null,
+        "model_source_id": null
+      },
+      "torque": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Actuation force authority is absent.",
+          "source_ids": []
+        },
+        "maximum_nm": null,
+        "minimum_nm": null,
+        "required": null
+      }
+    },
+    {
+      "cable": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Exact cable OD, straight run, exit, strain relief, and bend are unselected.",
+          "source_ids": []
+        },
+        "exit": null,
+        "kind": null,
+        "manufacturer": null,
+        "minimum_bend_radius_mm": null,
+        "mpn": null,
+        "outer_diameter_mm": null,
+        "straight_run_mm": null
+      },
+      "fastening": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Latch, seating, and extraction process are unqualified.",
+          "source_ids": []
+        },
+        "final_tightening": null,
+        "method": null,
+        "thread_designation": null
+      },
+      "grip": {
+        "across_flats_mm": null,
+        "axial_length_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Supported overmold grip geometry is unselected.",
+          "source_ids": []
+        },
+        "kind": null,
+        "outer_diameter_mm": null
+      },
+      "id": "usb-a-output-service",
+      "instances": [
+        {
+          "mating_axis_board": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "ref": "J2",
+          "simultaneous_group_ids": [
+            "all-power-ports"
+          ]
+        },
+        {
+          "mating_axis_board": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "ref": "J3",
+          "simultaneous_group_ids": [
+            "all-power-ports"
+          ]
+        },
+        {
+          "mating_axis_board": [
+            1.0,
+            0.0,
+            0.0
+          ],
+          "ref": "J4",
+          "simultaneous_group_ids": [
+            "all-power-ports"
+          ]
+        }
+      ],
+      "interface": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The east-facing design axes are recorded, but realized mouth exposure and complete three-port service clearance are unqualified.",
+          "source_ids": [
+            "realized-floorplan",
+            "usb-a-part-dossier"
+          ]
+        },
+        "exposure_setback_allowance_mm": null,
+        "mating_plane_offset_mm": null,
+        "minimum_exposure_mm": null,
+        "minimum_service_clearance_mm": null,
+        "orientation_source_id": "realized-floorplan"
+      },
+      "mate": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No exact supported USB-A plug, overmold, termination, or cable assembly is selected.",
+          "source_ids": []
+        },
+        "manufacturer": null,
+        "model_source_id": null,
+        "mpn": null,
+        "part_kind": "USB-A cable plug assembly"
+      },
+      "operations": [
+        {
+          "end_state": "all-power-connected",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "Simultaneous three-port mating and service with J1 and J5 populated are not demonstrated.",
+            "source_ids": []
+          },
+          "id": "mate-service-remove",
+          "kind": "service",
+          "required": null,
+          "sequence": 1,
+          "start_state": "all-power-disconnected",
+          "with_neighbors_populated": null
+        }
+      ],
+      "reaction": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Board, solder-joint, hand, and enclosure reaction paths are unproven.",
+          "source_ids": []
+        },
+        "load_path": null,
+        "method": null
+      },
+      "receptacle": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The fitted receptacle identity is selected, but installed seating and complete service geometry are not qualified.",
+          "source_ids": [
+            "usb-a-part-dossier"
+          ]
+        },
+        "manufacturer": "Jing Extension of the Electronic Co.",
+        "model_source_id": null,
+        "mounting_method": "right-angle through-hole USB-A receptacle",
+        "mpn": "KH-AF90DIP-112"
+      },
+      "tolerances": [
+        {
+          "applies_to": "receptacle seating, PCB edge, three mates, terminations, cables, roof registration, and print process",
+          "effect": "exposure_setback",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "The complete one-sided exposure and service stack is not closed.",
+            "source_ids": [
+              "realized-floorplan",
+              "usb-a-part-dossier"
+            ]
+          },
+          "id": "usb-a-complete-service-stack",
+          "minus_mm": null,
+          "plus_mm": null
+        }
+      ],
+      "tool": {
+        "approach": null,
+        "counter_tool_required": null,
+        "effective_sweep_radius_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Finger and optional release-tool service volumes are unmeasured.",
+          "source_ids": []
+        },
+        "head_envelope_mm": null,
+        "identifier": null,
+        "kind": null,
+        "model_source_id": null
+      },
+      "torque": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Insertion and extraction force authority is absent.",
+          "source_ids": []
+        },
+        "maximum_nm": null,
+        "minimum_nm": null,
+        "required": null
+      }
+    },
+    {
+      "cable": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Exact cable OD, straight run, exit, strain relief, and bend are unselected.",
+          "source_ids": []
+        },
+        "exit": null,
+        "kind": null,
+        "manufacturer": null,
+        "minimum_bend_radius_mm": null,
+        "mpn": null,
+        "outer_diameter_mm": null,
+        "straight_run_mm": null
+      },
+      "fastening": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Latch, seating, and extraction process are unqualified.",
+          "source_ids": []
+        },
+        "final_tightening": null,
+        "method": null,
+        "thread_designation": null
+      },
+      "grip": {
+        "across_flats_mm": null,
+        "axial_length_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Supported overmold grip geometry is unselected.",
+          "source_ids": []
+        },
+        "kind": null,
+        "outer_diameter_mm": null
+      },
+      "id": "usb-c-output-service",
+      "instances": [
+        {
+          "mating_axis_board": [
+            0.0,
+            1.0,
+            0.0
+          ],
+          "ref": "J5",
+          "simultaneous_group_ids": [
+            "all-power-ports"
+          ]
+        }
+      ],
+      "interface": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The south-facing design axis is recorded, but realized mouth exposure and complete service clearance remain unqualified.",
+          "source_ids": [
+            "realized-floorplan",
+            "usb-c-part-dossier"
+          ]
+        },
+        "exposure_setback_allowance_mm": null,
+        "mating_plane_offset_mm": null,
+        "minimum_exposure_mm": null,
+        "minimum_service_clearance_mm": null,
+        "orientation_source_id": "realized-floorplan"
+      },
+      "mate": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "No exact supported USB-C plug, overmold, termination, or cable is selected.",
+          "source_ids": []
+        },
+        "manufacturer": null,
+        "model_source_id": null,
+        "mpn": null,
+        "part_kind": "USB-C cable plug assembly"
+      },
+      "operations": [
+        {
+          "end_state": "all-power-connected",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "Mating and service with J1-J4 populated are not demonstrated.",
+            "source_ids": []
+          },
+          "id": "mate-service-remove",
+          "kind": "service",
+          "required": null,
+          "sequence": 1,
+          "start_state": "all-power-disconnected",
+          "with_neighbors_populated": null
+        }
+      ],
+      "reaction": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Board, solder-joint, hand, and enclosure reaction paths are unproven.",
+          "source_ids": []
+        },
+        "load_path": null,
+        "method": null
+      },
+      "receptacle": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The exact fitted receptacle is selected, but installed seating and service geometry are not qualified.",
+          "source_ids": [
+            "usb-c-part-dossier"
+          ]
+        },
+        "manufacturer": "HRO",
+        "model_source_id": null,
+        "mounting_method": "right-angle edge-mounted USB-C receptacle",
+        "mpn": "TYPE-C-31-M-12A"
+      },
+      "tolerances": [
+        {
+          "applies_to": "receptacle seating, PCB edge, mate, termination, cable, roof registration, and print process",
+          "effect": "exposure_setback",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "The complete one-sided exposure and service stack is not closed.",
+            "source_ids": [
+              "realized-floorplan",
+              "usb-c-part-dossier"
+            ]
+          },
+          "id": "usb-c-complete-service-stack",
+          "minus_mm": null,
+          "plus_mm": null
+        }
+      ],
+      "tool": {
+        "approach": null,
+        "counter_tool_required": null,
+        "effective_sweep_radius_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Finger and optional release-tool service volumes are unmeasured.",
+          "source_ids": []
+        },
+        "head_envelope_mm": null,
+        "identifier": null,
+        "kind": null,
+        "model_source_id": null
+      },
+      "torque": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Insertion and extraction force authority is absent.",
+          "source_ids": []
+        },
+        "maximum_nm": null,
+        "minimum_nm": null,
+        "required": null
+      }
+    },
+    {
+      "cable": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The photograph proves a rising and flaring termination but supplies no cable OD, straight run, exit vector, or bend radius.",
+          "source_ids": [
+            "xt60-fit-observation"
+          ]
+        },
+        "exit": null,
+        "kind": "received high-current lead",
+        "manufacturer": null,
+        "minimum_bend_radius_mm": null,
+        "mpn": null,
+        "outer_diameter_mm": null,
+        "straight_run_mm": null
+      },
+      "fastening": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Insertion, latch, and final seating method and force are not qualified.",
+          "source_ids": [
+            "xt60-fit-observation"
+          ]
+        },
+        "final_tightening": null,
+        "method": null,
+        "thread_designation": null
+      },
+      "grip": {
+        "across_flats_mm": null,
+        "axial_length_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The received hand-grip body and removal purchase are not dimensioned.",
+          "source_ids": [
+            "xt60-fit-observation"
+          ]
+        },
+        "kind": null,
+        "outer_diameter_mm": null
+      },
+      "id": "xt60-input-service",
+      "instances": [
+        {
+          "mating_axis_board": [
+            -1.0,
+            0.0,
+            0.0
+          ],
+          "ref": "J1",
+          "simultaneous_group_ids": [
+            "all-power-ports"
+          ]
+        }
+      ],
+      "interface": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The west-facing design axis is recorded, but realized exposure, process setback, and complete service clearance remain unmeasured.",
+          "source_ids": [
+            "realized-floorplan",
+            "xt60-fit-observation"
+          ]
+        },
+        "exposure_setback_allowance_mm": null,
+        "mating_plane_offset_mm": null,
+        "minimum_exposure_mm": null,
+        "minimum_service_clearance_mm": null,
+        "orientation_source_id": "realized-floorplan"
+      },
+      "mate": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The photograph identifies a received mate qualitatively but not its MPN, overmold, termination, heat-shrink, or geometry.",
+          "source_ids": [
+            "xt60-fit-observation"
+          ]
+        },
+        "manufacturer": null,
+        "model_source_id": null,
+        "mpn": null,
+        "part_kind": "received XT60 cable plug assembly"
+      },
+      "operations": [
+        {
+          "end_state": "all-power-connected",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "Mating, lid service, cable bend, and removal have not been executed with all required neighboring ports populated.",
+            "source_ids": [
+              "xt60-fit-observation"
+            ]
+          },
+          "id": "mate-service-remove",
+          "kind": "service",
+          "required": null,
+          "sequence": 1,
+          "start_state": "all-power-disconnected",
+          "with_neighbors_populated": null
+        }
+      ],
+      "reaction": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The board, solder-joint, hand, and base reaction path is not demonstrated.",
+          "source_ids": [
+            "xt60-fit-observation"
+          ]
+        },
+        "load_path": null,
+        "method": null
+      },
+      "receptacle": {
+        "body_envelope_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The selected board part is named, but exact installed seating and complete received-body geometry are not qualified for enclosure service.",
+          "source_ids": [
+            "xt60-part-dossier"
+          ]
+        },
+        "manufacturer": "AMASS",
+        "model_source_id": null,
+        "mounting_method": "right-angle through-hole board receptacle",
+        "mpn": "XT60PW-M"
+      },
+      "tolerances": [
+        {
+          "applies_to": "receptacle seating, PCB edge, mate, rear termination, cable, base and roof registration, and print process",
+          "effect": "exposure_setback",
+          "evidence": {
+            "grade": "unknown",
+            "rationale": "The photograph rejects the predecessor skirt but supplies no replacement one-sided exposure or service allowance.",
+            "source_ids": [
+              "realized-floorplan",
+              "xt60-fit-observation"
+            ]
+          },
+          "id": "xt60-complete-service-stack",
+          "minus_mm": null,
+          "plus_mm": null
+        }
+      ],
+      "tool": {
+        "approach": null,
+        "counter_tool_required": null,
+        "effective_sweep_radius_mm": null,
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "Finger and optional tool approach volumes are not measured.",
+          "source_ids": [
+            "xt60-fit-observation"
+          ]
+        },
+        "head_envelope_mm": null,
+        "identifier": null,
+        "kind": null,
+        "model_source_id": null
+      },
+      "torque": {
+        "evidence": {
+          "grade": "unknown",
+          "rationale": "The exact mate assembly process and allowable insertion load are unselected.",
+          "source_ids": []
+        },
+        "maximum_nm": null,
+        "minimum_nm": null,
+        "required": null
+      }
+    }
+  ],
+  "inputs": {
+    "compiler": {
+      "path": "skills/pcb-design/scripts/connector_assembly_contract.py",
+      "sha256": "db0dd73eeb47ebed4d03594b6d945b3f1b1e4d48d5b5b43ab536b1de1117c0f4",
+      "size": 65046
+    },
+    "contract": {
+      "path": "03_src/rules/connector_assemblies.yaml",
+      "sha256": "9ecc4dd7d168e42cc3265d0c535d3c4144dd2062db0e03635b8120b280254ab5",
+      "size": 25338
+    },
+    "evidence_files": [
+      {
+        "id": "amber-led-part-dossier",
+        "kind": "part-dossier",
+        "path": "02_parts/KT-0805Y/part.yaml",
+        "sha256": "d9cf56a2b03613014b2475fe6c92f024a49f4bf90be94410a95aaf08c8651d68",
+        "size": 5927
+      },
+      {
+        "id": "fuse-part-dossier",
+        "kind": "part-dossier",
+        "path": "02_parts/3568/part.yaml",
+        "sha256": "8f2a4b34e261a1ff7a8f211d5441168bbf46a8ff7fed47a15e59b01372f80321",
+        "size": 1376
+      },
+      {
+        "id": "green-led-part-dossier",
+        "kind": "part-dossier",
+        "path": "02_parts/KT-0805G/part.yaml",
+        "sha256": "876f0a01e3e061dd045737b1d480d519804f40cabc24fcff63a96f6be2a2b679",
+        "size": 5180
+      },
+      {
+        "id": "realized-floorplan",
+        "kind": "placement-contract",
+        "path": "03_src/floorplan.yaml",
+        "sha256": "d5e4992b193937dfd48b2ecc39ba97836eb240bf9c288fca26008654e24f7daf",
+        "size": 29741
+      },
+      {
+        "id": "switch-part-dossier",
+        "kind": "part-dossier",
+        "path": "02_parts/SS12D07VG6-087/part.yaml",
+        "sha256": "dbfb3dd500023c9e44f40c2e81075c459eba86b63720d6078a36347d4a7b9702",
+        "size": 3477
+      },
+      {
+        "id": "usb-a-part-dossier",
+        "kind": "part-dossier",
+        "path": "02_parts/KH-AF90DIP-112/part.yaml",
+        "sha256": "c576b71e8e3ccf3486a1c417f886d0e37dd076ba5325127d83f9a8ad19bdcde5",
+        "size": 1815
+      },
+      {
+        "id": "usb-c-part-dossier",
+        "kind": "part-dossier",
+        "path": "02_parts/TYPE-C-31-M-12A/part.yaml",
+        "sha256": "a06034cfdf972116b00a9aa37223bd6dd20a03965b763f806d94475d7cd56b19",
+        "size": 6972
+      },
+      {
+        "id": "xt60-fit-observation",
+        "kind": "first-article-observation",
+        "path": "03_src/mechanical/reference/usb-hub-wall-lid-unbound-qualitative-xt60-fit-observation-2026-08-27.md",
+        "sha256": "5011f4757fe5135625da669b048ff46eb4dd5ca28e00b849467b5ac2b7d6c958",
+        "size": 784
+      },
+      {
+        "id": "xt60-part-dossier",
+        "kind": "part-dossier",
+        "path": "02_parts/XT60PW-M/part.yaml",
+        "sha256": "4441d7a6c9eb77db4b29a5a5e3c4fb39dc3d31a29dcbe71303bc4df53cd2ce1a",
+        "size": 1157
+      }
+    ]
+  },
+  "kind": "connector-assembly-contract-receipt",
+  "schema": 1,
+  "semantic_sha256": "6ac28b16076e8998a399c26cfd8a37e55e4fcca3dbb1f052adb2047694658358",
+  "simultaneous_groups": [
+    {
+      "id": "all-power-ports",
+      "members": [
+        "J1",
+        "J2",
+        "J3",
+        "J4",
+        "J5"
+      ],
+      "required_state": "all_connected",
+      "serviceable_member_refs": [
+        "J1",
+        "J2",
+        "J3",
+        "J4",
+        "J5"
+      ]
+    },
+    {
+      "id": "amber-indicator-service",
+      "members": [
+        "D8"
+      ],
+      "required_state": "service",
+      "serviceable_member_refs": [
+        "D8"
+      ]
+    },
+    {
+      "id": "fuse-service",
+      "members": [
+        "F1"
+      ],
+      "required_state": "service",
+      "serviceable_member_refs": [
+        "F1"
+      ]
+    },
+    {
+      "id": "green-indicator-service",
+      "members": [
+        "D10",
+        "D11",
+        "D12",
+        "D9"
+      ],
+      "required_state": "service",
+      "serviceable_member_refs": [
+        "D10",
+        "D11",
+        "D12",
+        "D9"
+      ]
+    },
+    {
+      "id": "switch-service",
+      "members": [
+        "SW1"
+      ],
+      "required_state": "service",
+      "serviceable_member_refs": [
+        "SW1"
+      ]
+    }
+  ],
+  "status": "INCOMPLETE",
+  "subject_sha256": "f80d4e2361bfc4bd5ddcfb26a58f66d1e82a3db07c472b8293b15a07b2111b77",
+  "summary": {
+    "assembly_count": 7,
+    "evidence_ceiling": "UNKNOWN",
+    "evidence_conservative": 0,
+    "evidence_exact": 0,
+    "evidence_file_count": 9,
+    "evidence_total": 77,
+    "evidence_unknown": 77,
+    "instance_count": 12,
+    "operation_count": 7,
+    "simultaneous_group_count": 5,
+    "tolerance_count": 7
+  },
+  "unknowns": [
+    {
+      "path": "assemblies[0].cable.evidence",
+      "rationale": "The photograph proves a rising and flaring termination but supplies no cable OD, straight run, exit vector, or bend radius."
+    },
+    {
+      "path": "assemblies[0].fastening.evidence",
+      "rationale": "Insertion, latch, and final seating method and force are not qualified."
+    },
+    {
+      "path": "assemblies[0].grip.evidence",
+      "rationale": "The received hand-grip body and removal purchase are not dimensioned."
+    },
+    {
+      "path": "assemblies[0].interface.evidence",
+      "rationale": "The west-facing design axis is recorded, but realized exposure, process setback, and complete service clearance remain unmeasured."
+    },
+    {
+      "path": "assemblies[0].mate.evidence",
+      "rationale": "The photograph identifies a received mate qualitatively but not its MPN, overmold, termination, heat-shrink, or geometry."
+    },
+    {
+      "path": "assemblies[0].operations[0].evidence",
+      "rationale": "Mating, lid service, cable bend, and removal have not been executed with all required neighboring ports populated."
+    },
+    {
+      "path": "assemblies[0].reaction.evidence",
+      "rationale": "The board, solder-joint, hand, and base reaction path is not demonstrated."
+    },
+    {
+      "path": "assemblies[0].receptacle.evidence",
+      "rationale": "The selected board part is named, but exact installed seating and complete received-body geometry are not qualified for enclosure service."
+    },
+    {
+      "path": "assemblies[0].tolerances[0].evidence",
+      "rationale": "The photograph rejects the predecessor skirt but supplies no replacement one-sided exposure or service allowance."
+    },
+    {
+      "path": "assemblies[0].tool.evidence",
+      "rationale": "Finger and optional tool approach volumes are not measured."
+    },
+    {
+      "path": "assemblies[0].torque.evidence",
+      "rationale": "The exact mate assembly process and allowable insertion load are unselected."
+    },
+    {
+      "path": "assemblies[1].cable.evidence",
+      "rationale": "Exact cable OD, straight run, exit, strain relief, and bend are unselected."
+    },
+    {
+      "path": "assemblies[1].fastening.evidence",
+      "rationale": "Latch, seating, and extraction process are unqualified."
+    },
+    {
+      "path": "assemblies[1].grip.evidence",
+      "rationale": "Supported overmold grip geometry is unselected."
+    },
+    {
+      "path": "assemblies[1].interface.evidence",
+      "rationale": "The east-facing design axes are recorded, but realized mouth exposure and complete three-port service clearance are unqualified."
+    },
+    {
+      "path": "assemblies[1].mate.evidence",
+      "rationale": "No exact supported USB-A plug, overmold, termination, or cable assembly is selected."
+    },
+    {
+      "path": "assemblies[1].operations[0].evidence",
+      "rationale": "Simultaneous three-port mating and service with J1 and J5 populated are not demonstrated."
+    },
+    {
+      "path": "assemblies[1].reaction.evidence",
+      "rationale": "Board, solder-joint, hand, and enclosure reaction paths are unproven."
+    },
+    {
+      "path": "assemblies[1].receptacle.evidence",
+      "rationale": "The fitted receptacle identity is selected, but installed seating and complete service geometry are not qualified."
+    },
+    {
+      "path": "assemblies[1].tolerances[0].evidence",
+      "rationale": "The complete one-sided exposure and service stack is not closed."
+    },
+    {
+      "path": "assemblies[1].tool.evidence",
+      "rationale": "Finger and optional release-tool service volumes are unmeasured."
+    },
+    {
+      "path": "assemblies[1].torque.evidence",
+      "rationale": "Insertion and extraction force authority is absent."
+    },
+    {
+      "path": "assemblies[2].cable.evidence",
+      "rationale": "Exact cable OD, straight run, exit, strain relief, and bend are unselected."
+    },
+    {
+      "path": "assemblies[2].fastening.evidence",
+      "rationale": "Latch, seating, and extraction process are unqualified."
+    },
+    {
+      "path": "assemblies[2].grip.evidence",
+      "rationale": "Supported overmold grip geometry is unselected."
+    },
+    {
+      "path": "assemblies[2].interface.evidence",
+      "rationale": "The south-facing design axis is recorded, but realized mouth exposure and complete service clearance remain unqualified."
+    },
+    {
+      "path": "assemblies[2].mate.evidence",
+      "rationale": "No exact supported USB-C plug, overmold, termination, or cable is selected."
+    },
+    {
+      "path": "assemblies[2].operations[0].evidence",
+      "rationale": "Mating and service with J1-J4 populated are not demonstrated."
+    },
+    {
+      "path": "assemblies[2].reaction.evidence",
+      "rationale": "Board, solder-joint, hand, and enclosure reaction paths are unproven."
+    },
+    {
+      "path": "assemblies[2].receptacle.evidence",
+      "rationale": "The exact fitted receptacle is selected, but installed seating and service geometry are not qualified."
+    },
+    {
+      "path": "assemblies[2].tolerances[0].evidence",
+      "rationale": "The complete one-sided exposure and service stack is not closed."
+    },
+    {
+      "path": "assemblies[2].tool.evidence",
+      "rationale": "Finger and optional release-tool service volumes are unmeasured."
+    },
+    {
+      "path": "assemblies[2].torque.evidence",
+      "rationale": "Insertion and extraction force authority is absent."
+    },
+    {
+      "path": "assemblies[3].cable.evidence",
+      "rationale": "Cable applicability and surrounding harness obstacles have not been reviewed."
+    },
+    {
+      "path": "assemblies[3].fastening.evidence",
+      "rationale": "Fuse insertion and retention method and force are unqualified."
+    },
+    {
+      "path": "assemblies[3].grip.evidence",
+      "rationale": "Finger or extraction-tool grip geometry is unknown."
+    },
+    {
+      "path": "assemblies[3].interface.evidence",
+      "rationale": "The top service axis is recorded, but installed height and extraction clearance are unknown."
+    },
+    {
+      "path": "assemblies[3].mate.evidence",
+      "rationale": "The exact installed fuse and extraction body are not selected."
+    },
+    {
+      "path": "assemblies[3].operations[0].evidence",
+      "rationale": "Inspection, removal, and replacement through the roof opening are not demonstrated."
+    },
+    {
+      "path": "assemblies[3].reaction.evidence",
+      "rationale": "Holder, PCB, hand, and enclosure reaction paths are unproven."
+    },
+    {
+      "path": "assemblies[3].receptacle.evidence",
+      "rationale": "The holder identity is selected, but the received holder, installed fuse, and seating geometry are not service-qualified."
+    },
+    {
+      "path": "assemblies[3].tolerances[0].evidence",
+      "rationale": "The complete top-access service stack is not closed."
+    },
+    {
+      "path": "assemblies[3].tool.evidence",
+      "rationale": "The selected fuse puller or finger envelope is unknown."
+    },
+    {
+      "path": "assemblies[3].torque.evidence",
+      "rationale": "The service force rather than threaded torque remains unqualified."
+    },
+    {
+      "path": "assemblies[4].cable.evidence",
+      "rationale": "Cable applicability and internal obstacles around the switch remain unreviewed."
+    },
+    {
+      "path": "assemblies[4].fastening.evidence",
+      "rationale": "Actuation and service method and force are unqualified."
+    },
+    {
+      "path": "assemblies[4].grip.evidence",
+      "rationale": "Actuator purchase and guard clearance are unknown."
+    },
+    {
+      "path": "assemblies[4].interface.evidence",
+      "rationale": "The top actuation axis is recorded, but installed actuator travel and clearance are unknown."
+    },
+    {
+      "path": "assemblies[4].mate.evidence",
+      "rationale": "The supported actuation finger or tool envelope is not defined."
+    },
+    {
+      "path": "assemblies[4].operations[0].evidence",
+      "rationale": "Actuation and service through the roof opening are not demonstrated."
+    },
+    {
+      "path": "assemblies[4].reaction.evidence",
+      "rationale": "Switch, PCB, finger, and enclosure reaction paths are unproven."
+    },
+    {
+      "path": "assemblies[4].receptacle.evidence",
+      "rationale": "The candidate switch identity is recorded, but the received VG4 versus VG6 variant, installed body, and actuator geometry are not qualified."
+    },
+    {
+      "path": "assemblies[4].tolerances[0].evidence",
+      "rationale": "The complete top-access service stack is not closed."
+    },
+    {
+      "path": "assemblies[4].tool.evidence",
+      "rationale": "Finger or tool approach and sweep are not measured."
+    },
+    {
+      "path": "assemblies[4].torque.evidence",
+      "rationale": "Actuation force authority is absent."
+    },
+    {
+      "path": "assemblies[5].cable.evidence",
+      "rationale": "Cable applicability is not yet dispositioned for this viewing aperture."
+    },
+    {
+      "path": "assemblies[5].fastening.evidence",
+      "rationale": "No mating fastener is expected, but applicability remains unevidenced in this connector schema."
+    },
+    {
+      "path": "assemblies[5].grip.evidence",
+      "rationale": "No physical grip is expected, but the optical service cell is not yet qualified."
+    },
+    {
+      "path": "assemblies[5].interface.evidence",
+      "rationale": "The top-facing board location is recorded, but roof registration and optical clearance are unknown."
+    },
+    {
+      "path": "assemblies[5].mate.evidence",
+      "rationale": "Required user sightline, viewing cone, and ambient conditions are undefined."
+    },
+    {
+      "path": "assemblies[5].operations[0].evidence",
+      "rationale": "Visibility through the exact printed roof has not been physically demonstrated."
+    },
+    {
+      "path": "assemblies[5].reaction.evidence",
+      "rationale": "No contact reaction is expected, but the viewing operation is not qualified."
+    },
+    {
+      "path": "assemblies[5].receptacle.evidence",
+      "rationale": "The indicator is selected, but installed body, emission centre, and viewing geometry are not qualified."
+    },
+    {
+      "path": "assemblies[5].tolerances[0].evidence",
+      "rationale": "The complete optical service stack is not closed."
+    },
+    {
+      "path": "assemblies[5].tool.evidence",
+      "rationale": "No service tool is expected, but viewing and inspection access are unqualified."
+    },
+    {
+      "path": "assemblies[5].torque.evidence",
+      "rationale": "Torque applicability is not yet dispositioned by an evidence-backed operation."
+    },
+    {
+      "path": "assemblies[6].cable.evidence",
+      "rationale": "Cable applicability is not yet dispositioned for these viewing apertures."
+    },
+    {
+      "path": "assemblies[6].fastening.evidence",
+      "rationale": "No mating fastener is expected, but applicability remains unevidenced in this connector schema."
+    },
+    {
+      "path": "assemblies[6].grip.evidence",
+      "rationale": "No physical grip is expected, but the optical service cell is not yet qualified."
+    },
+    {
+      "path": "assemblies[6].interface.evidence",
+      "rationale": "The top-facing board locations are recorded, but roof registration and optical clearances are unknown."
+    },
+    {
+      "path": "assemblies[6].mate.evidence",
+      "rationale": "Required user sightlines, viewing cones, and ambient conditions are undefined."
+    },
+    {
+      "path": "assemblies[6].operations[0].evidence",
+      "rationale": "Visibility through the exact printed roof has not been physically demonstrated for all four indicators."
+    },
+    {
+      "path": "assemblies[6].reaction.evidence",
+      "rationale": "No contact reaction is expected, but the viewing operation is not qualified."
+    },
+    {
+      "path": "assemblies[6].receptacle.evidence",
+      "rationale": "The indicators are selected, but installed bodies, emission centres, and viewing geometry are not qualified."
+    },
+    {
+      "path": "assemblies[6].tolerances[0].evidence",
+      "rationale": "The complete optical service stack is not closed."
+    },
+    {
+      "path": "assemblies[6].tool.evidence",
+      "rationale": "No service tool is expected, but viewing and inspection access are unqualified."
+    },
+    {
+      "path": "assemblies[6].torque.evidence",
+      "rationale": "Torque applicability is not yet dispositioned by an evidence-backed operation."
+    }
+  ]
+}

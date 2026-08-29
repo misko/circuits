@@ -277,6 +277,53 @@ def _release(fixture: dict[str, Path], version: str = "v0.1.0") -> Path:
             f"{version}-2026-08-25")
 
 
+def _derived_report_fixture():
+    fixture = _fixture()
+    root = fixture["workspace"]
+    module = _load_verify_module()
+    validator = root / "tooling" / "enclosure_v2.py"
+    validator.write_bytes(Path(module.composition.__file__).read_bytes())
+    raw = module.composition.load_yaml(root / "source" / "enclosure-v2.yaml")
+    for field, source in (
+            ("release_manifest", fixture["parent_manifest"]),
+            ("pcb", fixture["pcb"]), ("step", fixture["step"])):
+        target = root / raw["subject"][field]["path"]
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+    loaded = module.composition.validate_config_v2(raw, root)
+    scopes = {
+        "shell": "INCOMPLETE", "board_retention": "INCOMPLETE",
+        "antenna_accessory": "INCOMPLETE", "thermal": "INCOMPLETE",
+    }
+    intent = module.composition.load_yaml(
+        loaded["bindings"]["mechanical_intent"]["path"])
+    reports = {
+        "verification/v2-validation.json":
+            module.composition.config_validation_report(
+                raw, loaded, root, validator_path=validator),
+        "verification/mechanical-intent-validation-v2.json":
+            module.composition.mechanical_intent_validation_report(intent),
+        "verification/scope-statuses.json": {"scope_statuses": scopes},
+    }
+    reports["verification/scoped-verdict.json"] = \
+        module.composition.aggregate_config_report(
+            reports["verification/scope-statuses.json"], loaded)
+    for relative, report in reports.items():
+        path = root / relative
+        path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+
+    def payloads():
+        return {
+            path.relative_to(root).as_posix(): {
+                "path": path.relative_to(root).as_posix(),
+                "sha256": _sha(path), "size": path.stat().st_size,
+            }
+            for path in root.rglob("*") if path.is_file()
+        }
+
+    return fixture, module, raw, loaded, scopes, payloads
+
+
 def _parent_snapshot(fixture: dict[str, Path]) -> dict[str, str]:
     return {
         path.relative_to(fixture["pcb_release"]).as_posix(): _sha(path)
@@ -807,6 +854,260 @@ def t_workspace_changes_during_stage_bite():
     finally:
         module._copy_regular = real_copy
     check(not _release(fixture).exists(), "workspace-race release was published")
+
+
+@test("release reopen rejects a file added after executable replay",
+      kind="known_bad", gate="verify_enclosure_release.py")
+def t_final_release_census_late_extra_bites():
+    fixture = _fixture()
+    must_pass(run(_args(fixture)), "candidate publication")
+    release = _release(fixture)
+    module = _load_verify_module()
+    real_closure = module.composition.required_scope_closure
+    late = release / "renders" / "late-extra.txt"
+    injected = False
+
+    def add_after_replay(*args, **kwargs):
+        nonlocal injected
+        result = real_closure(*args, **kwargs)
+        if not injected:
+            late.parent.mkdir()
+            late.write_text("late release mutation\n")
+            injected = True
+        return result
+
+    module.composition.required_scope_closure = add_after_replay
+    try:
+        try:
+            module.verify_release(release)
+        except module.ReleaseError as exc:
+            contains(str(exc), "release tree changed during verification")
+            contains(str(exc), "extras=['renders/late-extra.txt']")
+        else:
+            check(False, "late release extra escaped final census")
+    finally:
+        module.composition.required_scope_closure = real_closure
+        if late.exists():
+            late.unlink()
+        if late.parent.exists():
+            late.parent.rmdir()
+
+
+@test("stage rejects content changed after release verification",
+      kind="known_bad", gate="stage_enclosure_release.py")
+def t_final_staging_census_content_drift_bites():
+    fixture = _fixture()
+    module = _load_stage_module()
+    real_verify = module.release_verify.verify_release
+    injected = False
+
+    def mutate_after_verification(release_dir, *args, **kwargs):
+        nonlocal injected
+        result = real_verify(release_dir, *args, **kwargs)
+        if not injected:
+            readme = Path(release_dir) / "README.md"
+            readme.write_text(readme.read_text() + "late staging mutation\n")
+            injected = True
+        return result
+
+    module.release_verify.verify_release = mutate_after_verification
+    try:
+        try:
+            module.stage_release(_parsed_stage_args(module, fixture))
+        except module.release_verify.ReleaseError as exc:
+            contains(str(exc), "staged release tree changed after verification")
+            contains(str(exc), "changed=['README.md']")
+        else:
+            check(False, "late staged content drift was published")
+    finally:
+        module.release_verify.verify_release = real_verify
+    check(not _release(fixture).exists(), "late-drift release was published")
+
+
+@test("release derived reports match the independent schema-v2 regrade")
+def t_current_policy_derived_reports_clean():
+    fixture, module, raw, loaded, scopes, payloads = \
+        _derived_report_fixture()
+    root = fixture["workspace"]
+    records = payloads()
+    result = module.validate_current_policy_derived_reports(
+        root, raw, loaded, [{
+            "role": "compose", **records["tooling/enclosure_v2.py"],
+        }], records, scopes, current_policy=True)
+    eq(result["config_report"], "verification/v2-validation.json")
+    eq(result["intent_report"],
+       "verification/mechanical-intent-validation-v2.json")
+
+
+@test("release rejects stale config, intent, and scoped derived reports",
+      kind="known_bad", gate="verify_enclosure_release.py")
+def t_current_policy_stale_derived_reports_bite():
+    mutations = (
+        ("verification/v2-validation.json", "config_semantic_sha256"),
+        ("verification/mechanical-intent-validation-v2.json",
+         "intent_semantic_sha256"),
+        ("verification/scoped-verdict.json", "status"),
+    )
+    for relative, field in mutations:
+        fixture, module, raw, loaded, scopes, payloads = \
+            _derived_report_fixture()
+        root = fixture["workspace"]
+        path = root / relative
+        report = json.loads(path.read_text())
+        report[field] = ("0" * 64 if field.endswith("sha256") else "CAD_READY")
+        path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+        records = payloads()
+        try:
+            module.validate_current_policy_derived_reports(
+                root, raw, loaded, [{
+                    "role": "compose",
+                    **records["tooling/enclosure_v2.py"],
+                }], records, scopes, current_policy=True)
+        except module.ReleaseError as exc:
+            contains(str(exc), "canonical fresh regrade")
+            continue
+        check(False, f"stale derived report passed: {relative}")
+
+
+@test("release rejects absolute temporary paths in v2 validation",
+      kind="known_bad", gate="verify_enclosure_release.py")
+def t_current_policy_v2_temp_path_bites():
+    fixture, module, raw, loaded, scopes, payloads = \
+        _derived_report_fixture()
+    root = fixture["workspace"]
+    path = root / "verification/v2-validation.json"
+    report = json.loads(path.read_text())
+    report["bindings"]["cad_design"]["path"] = \
+        "/tmp/old-stage/source/enclosure-v1.yaml"
+    path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+    records = payloads()
+    try:
+        module.validate_current_policy_derived_reports(
+            root, raw, loaded, [{
+                "role": "compose", **records["tooling/enclosure_v2.py"],
+            }], records, scopes, current_policy=True)
+    except module.ReleaseError as exc:
+        contains(str(exc), "canonical fresh regrade")
+        return
+    check(False, "absolute temporary path in v2 report unexpectedly passed")
+
+
+@test("private staging refreshes generic verification from exact replay")
+def t_staging_refreshes_generic_verification():
+    root = tmpdir("enclosure_generic_report_refresh_")
+    for relative in ("source", "tooling", "verification", "meshes"):
+        (root / relative).mkdir(parents=True)
+    module = _load_verify_module()
+
+    def write(relative: str, payload: bytes) -> Path:
+        path = root / relative
+        path.write_bytes(payload)
+        return path
+
+    def binding(path: Path) -> dict[str, object]:
+        return {
+            "path": path.relative_to(root).as_posix(),
+            "sha256": _sha(path), "size": path.stat().st_size,
+        }
+
+    verifier = root / "tooling/verify_enclosure.py"
+    helper = root / "tooling/enclosure_common.py"
+    verifier.write_bytes((SCRIPTS / "verify_enclosure.py").read_bytes())
+    helper.write_bytes((SCRIPTS / "enclosure_common.py").read_bytes())
+    cad = write("source/enclosure.yaml", b"kind: synthetic\n")
+    source = write("verification/enclosure.scad", b"cube([1,1,1]);\n")
+    installed = write(
+        "verification/assembled-case.stl",
+        b"solid installed\nendsolid installed\n")
+    mesh = write("meshes/base.stl", b"solid base\nendsolid base\n")
+    component = write(
+        "verification/step-components.stl",
+        b"solid components\nendsolid components\n")
+    generation = {
+        "schema": 1, "kind": "pcb-enclosure-generation-v1",
+        "source": {
+            "path": source.name, "sha256": _sha(source),
+            "size": source.stat().st_size,
+        },
+        "installed_case": {
+            "path": installed.name, "sha256": _sha(installed),
+            "size": installed.stat().st_size,
+        },
+        "parts": [{
+            "part": "base", "path": mesh.name, "sha256": _sha(mesh),
+            "size": mesh.stat().st_size,
+        }],
+    }
+    generation_path = root / "verification/generation.json"
+    generation_path.write_text(
+        json.dumps(generation, indent=2, sort_keys=True) + "\n")
+    step = {
+        "schema": 1, "kind": "pcb-enclosure-step-inspection-v1",
+        "geometry": {"component_mesh": {
+            "path": component.name, "sha256": _sha(component),
+            "size": component.stat().st_size,
+        }},
+    }
+    step_path = root / "verification/step-inspection.json"
+    step_path.write_text(json.dumps(step, indent=2, sort_keys=True) + "\n")
+    expected = {
+        "schema": 1, "kind": "pcb-enclosure-verification-v1",
+        "status": "INCOMPLETE", "checks": [],
+    }
+    report_path = root / "verification/verification.json"
+    report_path.write_text(json.dumps({
+        **expected, "stale": True,
+    }, indent=2, sort_keys=True) + "\n")
+    config = {"subject": {
+        "release": "fixture", "release_manifest": binding(cad),
+        "pcb": binding(cad), "step": binding(cad),
+        "interface": binding(cad), "mechanical_intent": binding(cad),
+        "cad_design": binding(cad),
+    }}
+    audit = {"meshes": [{"part": "base", **binding(mesh)}]}
+    tools = {
+        "verify": {"role": "verify", **binding(verifier)},
+        "enclosure_common": {
+            "role": "enclosure_common", **binding(helper),
+        },
+    }
+
+    def payloads() -> dict[str, dict[str, object]]:
+        return {
+            path.relative_to(root).as_posix(): binding(path)
+            for path in root.rglob("*") if path.is_file()
+        }
+
+    expected_payload = json.dumps(expected, indent=2, sort_keys=True) + "\n"
+    real_runner = module.composition._run_collision_process
+
+    def fake_runner(command, *, cwd, timeout_s):
+        del cwd, timeout_s
+        output = Path(command[command.index("--report") + 1])
+        output.write_text(expected_payload)
+
+    module.composition._run_collision_process = fake_runner
+    try:
+        try:
+            module._validate_generic_verification_replay(
+                root, config, audit, binding(generation_path), tools,
+                payloads())
+        except module.ReleaseError as exc:
+            contains(str(exc), "does not reproduce byte-exact")
+        else:
+            check(False, "stale generic verification unexpectedly passed")
+        result = module._validate_generic_verification_replay(
+            root, config, audit, binding(generation_path), tools, payloads(),
+            refresh_report=True)
+        check(result["refreshed"], "staged generic report was not refreshed")
+        eq(report_path.read_text(), expected_payload,
+           "exact regenerated generic verification bytes")
+        result = module._validate_generic_verification_replay(
+            root, config, audit, binding(generation_path), tools, payloads())
+        check(not result["refreshed"],
+              "read-only reopen unexpectedly rewrote fresh report")
+    finally:
+        module.composition._run_collision_process = real_runner
 
 
 @test("final canonical destination check runs inside the stream lock",

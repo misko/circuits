@@ -28,6 +28,10 @@ FABRICATED_BOARD = FABRICATED_RELEASE / "source" / \
 CONNECTOR_CONTRACT = PROJECT / "03_src" / "rules" / \
     "connector_assemblies.yaml"
 CAD_DESIGN = MECHANICAL / "enclosure-cad-design-v2.yaml"
+V08_CAD_SOURCE = MECHANICAL / "pluto_rx2_8way_case.scad"
+V08_CAD_SOURCE_SHA256 = \
+    "6a79656adadfb0d98411454a91c42f4d4bf85c3cb481178360b344912a5b82d4"
+V08_CAD_SOURCE_SIZE = 78888
 
 
 def _sha(path: Path) -> str:
@@ -156,9 +160,9 @@ def t_pluto_v2_clean_clone_replay():
     eq(report["status"], "VALID")
     eq(report["scope_readiness_ceilings"], {
         "shell": "INCOMPLETE",
-        "board_retention": "CAD_READY",
+        "board_retention": "INCOMPLETE",
         "antenna_accessory": "INCOMPLETE",
-        "thermal": "PRINT_VERIFIED",
+        "thermal": "INCOMPLETE",
     })
     eq(report["service_envelope_coverage"], {
         "legacy_omitted": False,
@@ -170,12 +174,19 @@ def t_pluto_v2_clean_clone_replay():
         "required_edge_openings": 12,
         "candidate_dimension_census_complete": 0,
     })
-    interface = Path(report["bindings"]["interface"]["path"])
+    interface_relative = Path(report["bindings"]["interface"]["path"])
+    check(not interface_relative.is_absolute(),
+          "v2 report authority paths must be relocation-stable")
+    interface = PROJECT / interface_relative
     check("06_build" not in interface.parts,
           "v2 interface authority must not depend on ignored build output")
     check(interface.is_relative_to(PROJECT / "07_enclosure_releases"),
           "v2 interface must reopen from the sealed enclosure stream")
-    receipt = Path(report["bindings"]["connector_assembly_receipt"]["path"])
+    receipt_relative = Path(
+        report["bindings"]["connector_assembly_receipt"]["path"])
+    check(not receipt_relative.is_absolute(),
+          "connector report authority path must be relocation-stable")
+    receipt = PROJECT / receipt_relative
     check("06_build" not in receipt.parts,
           "connector authority must not depend on ignored build output")
     check(receipt.is_relative_to(PROJECT / "07_enclosure_releases"),
@@ -184,9 +195,21 @@ def t_pluto_v2_clean_clone_replay():
     original = yaml.safe_load((MECHANICAL / "enclosure.yaml").read_text())
     adapter = yaml.safe_load(
         (MECHANICAL / "enclosure-cad-design-v2.yaml").read_text())
+    eq(_sha(V08_CAD_SOURCE), V08_CAD_SOURCE_SHA256,
+       "final v0.8 authored CAD source hash")
+    eq(V08_CAD_SOURCE.stat().st_size, V08_CAD_SOURCE_SIZE,
+       "final v0.8 authored CAD source size")
+    eq(adapter["cad"]["source"], {
+        "kind": "authored_scad",
+        "path": "03_src/mechanical/pluto_rx2_8way_case.scad",
+        "sha256": V08_CAD_SOURCE_SHA256,
+        "size": V08_CAD_SOURCE_SIZE,
+    }, "v2 CAD adapter exact authored source binding")
     original["subject"]["interface"] = adapter["subject"]["interface"]
+    original["cad"]["source"] = adapter["cad"]["source"]
     eq(adapter, original,
-       "v2 CAD adapter should differ only by its replay-stable interface binding")
+       "v2 CAD adapter should differ only by its replay-stable interface "
+       "and exact v0.8 authored source bindings")
 
 
 @test("Pluto v5 canonical connector receipt covers every J1-J12 interface")

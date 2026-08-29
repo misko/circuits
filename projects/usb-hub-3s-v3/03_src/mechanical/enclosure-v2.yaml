@@ -22,11 +22,11 @@ subject:
     size: 61228
   mechanical_intent:
     path: 03_src/mechanical/mechanical-intent-v2.yaml
-    sha256: 36105dbd693753c3066db49bb50c9f61250dd8a0a8b937eb263fffc9536d75c3
-    size: 5701
+    sha256: a63b24108e1dc363c70fe1956fd7a2902fd5e59bba168b2369075e9679769880
+    size: 6150
   cad_design:
     path: 03_src/mechanical/enclosure.yaml
-    sha256: 3237f652f0b61f892240280d1a4c63b2c86514fc9e5af22aabac385ca1ba3099
+    sha256: 8c7363cee1f63a1f381b6ace5630737072b9fc5ecba0e43ee714be12fb5949d0
     size: 6280
 external_subjects:
   - id: supplemental_obstruction_decision
@@ -51,7 +51,7 @@ external_subjects:
       excluded_claims: [received_part_tolerance, physical_fit, production_readiness]
 verification_scopes:
   - id: shell
-    description: Floor-down foundation, isolated PCB bosses, four independent closure posts, and one 3.2 mm roof whose main service edges stop at the exact PCB outline with only localized corner closure lugs.
+    description: Floor-down foundation, isolated PCB bosses, four independent closure posts, and one 3.2 mm roof whose main service edges stop at the exact PCB outline with four D10.8 tapered closure ears rooted through D16 inboard pads.
     required: true
     depends_on: []
   - id: board_retention
@@ -206,6 +206,62 @@ interface_assemblies:
       scope: connector_access
       mated_in_states: [installed]
       mated_during_operations: []
+manufacturing_audit:
+  contract:
+    path: 03_src/mechanical/fdm-structural-contract.yaml
+    sha256: e5cecc6b97379c28f85a4b5573dd468a398d539efa94be22858701f56628eac7
+    size: 23813
+  receipt:
+    path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/fdm-audit.json
+    sha256: 027b58eb53aeecc1a4f20bd4dfb38a737a8725f5b737baadf12ae4e265ca6f14
+    size: 49321
+  generation:
+    path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/generation.json
+    sha256: 5ffb12d1c0e9d527d6dcbc332540f014caa8b0250ebe7e895e2c2a1458e6e9b9
+    size: 4162
+  collision:
+    path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/composite-collision.json
+    sha256: c9ae4ba359ba9c62c905ccb430cbef75874eba7b9be6236331e2ba0392f25c13
+    size: 4074
+  collision_subject:
+    mode: external_composition
+    receipt:
+      path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/composite-step-inspection.json
+      sha256: aab6db0cd299e6abecd11292ce8b19e4b6e416cd1265ebbe537f243ac9e54280
+      size: 10386
+    parent_step:
+      path: 07_releases/v1.12-2026-07-28/3d/usb_hub_3s_v2.step
+      sha256: e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11
+      size: 2239061
+    interface:
+      path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/board-interface.json
+      sha256: 36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b
+      size: 61228
+    supplement_step:
+      path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/supplemental-obstructions.step
+      sha256: 8825fb3436ef628235f7fd3bab6d6cd88a749c3d678b41c6155f5c69874dc820
+      size: 8483265
+    augmentation_receipt:
+      path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/obstruction-augmentation.json
+      sha256: a9dd0346d23ce5209907c4ae2f062a4660b80909b147d3ed02af19599e99a4cf
+      size: 5929
+    validator:
+      path: 03_src/mechanical/compose_obstruction_step.py
+      sha256: 820ab37091702c20320e19f49980cf898a2547853b7dbcab7866e8e54686f33c
+      size: 41209
+  meshes:
+    - part: base
+      path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/base.stl
+      sha256: bd0c426c166135753d0881f8a8ef26b81cdc1ee978164b2d38cb953562d47bdc
+      size: 820586
+    - part: lid
+      path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/lid.stl
+      sha256: 7d4105dd56126a39a8e00d5730909cef45ce3864812d2e13f38a51202ea68b71
+      size: 1279625
+    - part: insert_coupon
+      path: 06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/insert_coupon.stl
+      sha256: 121c3c5afb5b09f87a2d420661248352bf23ebd1de2037a44828b3a153e2774b
+      size: 1289644
 physical_tests:
   - id: insert_coupon
     type: insert_coupon
@@ -257,6 +313,11 @@ physical_tests:
     scope: shell
     required_for: PRINT_VERIFIED
     subject_parts: [base, lid, pcb]
+  - id: closure_joint_torque_twist_cycle
+    type: custom.usb-hub.closure-joint-torque-twist-cycle
+    scope: shell
+    required_for: PRINT_VERIFIED
+    subject_parts: [base, lid]
   - id: thermal_soak
     type: thermal_soak
     scope: thermal

@@ -1,0 +1,242 @@
+{
+  "binding_path_base": ".",
+  "bindings": {
+    "cad_design": {
+      "path": "source/enclosure-cad-design-v2.yaml",
+      "sha256": "8ec276ff19ff1cdaf5eb991a7ce1e97dc3df3ca0741e39fd3fd90c98dc2def31",
+      "size": 6230
+    },
+    "connector_assembly_inputs": {
+      "compiler": {
+        "path": "tooling/connector_assembly_contract.py",
+        "sha256": "db0dd73eeb47ebed4d03594b6d945b3f1b1e4d48d5b5b43ab536b1de1117c0f4",
+        "size": 65046
+      },
+      "contract": {
+        "path": "source/connector-assembly/03_src/rules/connector_assemblies.yaml",
+        "sha256": "9ecc4dd7d168e42cc3265d0c535d3c4144dd2062db0e03635b8120b280254ab5",
+        "size": 25338
+      },
+      "evidence_files": [
+        {
+          "path": "source/connector-assembly/02_parts/KT-0805Y/part.yaml",
+          "sha256": "d9cf56a2b03613014b2475fe6c92f024a49f4bf90be94410a95aaf08c8651d68",
+          "size": 5927
+        },
+        {
+          "path": "source/connector-assembly/02_parts/3568/part.yaml",
+          "sha256": "8f2a4b34e261a1ff7a8f211d5441168bbf46a8ff7fed47a15e59b01372f80321",
+          "size": 1376
+        },
+        {
+          "path": "source/connector-assembly/02_parts/KT-0805G/part.yaml",
+          "sha256": "876f0a01e3e061dd045737b1d480d519804f40cabc24fcff63a96f6be2a2b679",
+          "size": 5180
+        },
+        {
+          "path": "source/connector-assembly/03_src/floorplan.yaml",
+          "sha256": "d5e4992b193937dfd48b2ecc39ba97836eb240bf9c288fca26008654e24f7daf",
+          "size": 29741
+        },
+        {
+          "path": "source/connector-assembly/02_parts/SS12D07VG6-087/part.yaml",
+          "sha256": "dbfb3dd500023c9e44f40c2e81075c459eba86b63720d6078a36347d4a7b9702",
+          "size": 3477
+        },
+        {
+          "path": "source/connector-assembly/02_parts/KH-AF90DIP-112/part.yaml",
+          "sha256": "c576b71e8e3ccf3486a1c417f886d0e37dd076ba5325127d83f9a8ad19bdcde5",
+          "size": 1815
+        },
+        {
+          "path": "source/connector-assembly/02_parts/TYPE-C-31-M-12A/part.yaml",
+          "sha256": "a06034cfdf972116b00a9aa37223bd6dd20a03965b763f806d94475d7cd56b19",
+          "size": 6972
+        },
+        {
+          "path": "source/connector-assembly/03_src/mechanical/reference/usb-hub-wall-lid-unbound-qualitative-xt60-fit-observation-2026-08-27.md",
+          "sha256": "5011f4757fe5135625da669b048ff46eb4dd5ca28e00b849467b5ac2b7d6c958",
+          "size": 784
+        },
+        {
+          "path": "source/connector-assembly/02_parts/XT60PW-M/part.yaml",
+          "sha256": "4441d7a6c9eb77db4b29a5a5e3c4fb39dc3d31a29dcbe71303bc4df53cd2ce1a",
+          "size": 1157
+        }
+      ]
+    },
+    "connector_assembly_receipt": {
+      "path": "verification/connector_assembly_contract.json",
+      "sha256": "1a1b5109eaa912d84138b21184a242c40d2b8c631aa3d52a98356a1e25ac1f79",
+      "size": 52793
+    },
+    "external_subjects": {
+      "supplemental_obstruction_decision": {
+        "path": "source/reference/supplemental-obstruction-decision.yaml",
+        "sha256": "5342a1282213745cdbe34e82bc471193814b422cadf69be3d7143228714050d6",
+        "size": 2974
+      },
+      "supplemental_obstruction_models": {
+        "path": "source/reference/obstruction-models.json",
+        "sha256": "594d6ca32e6455f91364c08f0b3a6b2edacd3f77662cc4deae62da8958a5695b",
+        "size": 6571
+      }
+    },
+    "interface": {
+      "path": "verification/board-interface.json",
+      "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+      "size": 61228
+    },
+    "manufacturing_audit": {
+      "collision": {
+        "path": "verification/composite-collision.json",
+        "sha256": "3f160cb006b2699436596b3e5dd16a774a0107bf4aaa65ccb7e12c37dbfb54ab",
+        "size": 4074
+      },
+      "collision_builder": {
+        "path": "tooling/build_collision.py",
+        "sha256": "4ba1b3c27f6eb630ef67c33bdaca5d297e3253182bb68a6ce8afb25e308b2d0d",
+        "size": 43658
+      },
+      "collision_enclosure_common": {
+        "path": "tooling/enclosure_common.py",
+        "sha256": "00b5d4eac53da9ab5ed698d8851c6e800e65c53eabd14ff6e9b78e6552eb862c",
+        "size": 56026
+      },
+      "collision_pipeline_runtime": {
+        "path": "tooling/pipeline_runtime.py",
+        "sha256": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+        "size": 49746
+      },
+      "collision_process_runner": {
+        "path": "tooling/process_runner.py",
+        "sha256": "3af7c48b1f7c7583f8a76d2cf4752ab37400a27048f693570dde36d0059d8cf9",
+        "size": 10071
+      },
+      "collision_step_inspector": {
+        "path": "tooling/inspect_step.py",
+        "sha256": "64a7d4b7213c8cea5ae4006576595f0c987ff60780851cf2355570ba57e47329",
+        "size": 14210
+      },
+      "collision_subject": {
+        "augmentation_receipt": {
+          "path": "verification/obstruction-augmentation.json",
+          "sha256": "a9dd0346d23ce5209907c4ae2f062a4660b80909b147d3ed02af19599e99a4cf",
+          "size": 5929
+        },
+        "interface": {
+          "path": "verification/board-interface.json",
+          "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+          "size": 61228
+        },
+        "parent_step": {
+          "path": "authorities/pcb-release/3d/usb_hub_3s_v2.step",
+          "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+          "size": 2239061
+        },
+        "receipt": {
+          "path": "verification/composite-step-inspection.json",
+          "sha256": "05f4d41c0332adc80b29d6fb964821d884fdc63cb47b75795aa2467e33558fbe",
+          "size": 10181
+        },
+        "supplement_step": {
+          "path": "verification/supplemental-obstructions.step",
+          "sha256": "8825fb3436ef628235f7fd3bab6d6cd88a749c3d678b41c6155f5c69874dc820",
+          "size": 8483265
+        },
+        "validator": {
+          "path": "tooling/compose_obstruction_step.py",
+          "sha256": "820ab37091702c20320e19f49980cf898a2547853b7dbcab7866e8e54686f33c",
+          "size": 41209
+        }
+      },
+      "compiler": {
+        "path": "tooling/fdm_structural_audit.py",
+        "sha256": "248e8474e72624037b7e3b0fd1dfb2c3562a157e40af515f6c7a875320c71437",
+        "size": 85207
+      },
+      "contract": {
+        "path": "source/fdm-structural-contract.yaml",
+        "sha256": "e5cecc6b97379c28f85a4b5573dd468a398d539efa94be22858701f56628eac7",
+        "size": 23813
+      },
+      "enclosure_common": {
+        "path": "tooling/enclosure_common.py",
+        "sha256": "00b5d4eac53da9ab5ed698d8851c6e800e65c53eabd14ff6e9b78e6552eb862c",
+        "size": 56026
+      },
+      "generation": {
+        "path": "verification/generation.json",
+        "sha256": "f16a2f390ecf88d43852c297a2c4aa2631ff491e945e30a1f7533ce49b7fde8a",
+        "size": 4151
+      },
+      "meshes": {
+        "base": {
+          "path": "meshes/base.stl",
+          "sha256": "bd0c426c166135753d0881f8a8ef26b81cdc1ee978164b2d38cb953562d47bdc",
+          "size": 820586
+        },
+        "insert_coupon": {
+          "path": "meshes/insert_coupon.stl",
+          "sha256": "121c3c5afb5b09f87a2d420661248352bf23ebd1de2037a44828b3a153e2774b",
+          "size": 1289644
+        },
+        "lid": {
+          "path": "meshes/lid.stl",
+          "sha256": "7d4105dd56126a39a8e00d5730909cef45ce3864812d2e13f38a51202ea68b71",
+          "size": 1279625
+        }
+      },
+      "receipt": {
+        "path": "verification/fdm-structural-audit.json",
+        "sha256": "f42fa80ec8c1eb871acceb1c871e6f2a8de3907c4caafc113ea2ad09b79a94fb",
+        "size": 49321
+      }
+    },
+    "mechanical_intent": {
+      "path": "source/mechanical-intent-v2.yaml",
+      "sha256": "a63b24108e1dc363c70fe1956fd7a2902fd5e59bba168b2369075e9679769880",
+      "size": 6150
+    },
+    "pcb": {
+      "path": "authorities/pcb-release/source/usb_hub_3s_v2.kicad_pcb",
+      "sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+      "size": 2007690
+    },
+    "release_manifest": {
+      "path": "authorities/pcb-release/MANIFEST.txt",
+      "sha256": "2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4",
+      "size": 41456
+    },
+    "step": {
+      "path": "authorities/pcb-release/3d/usb_hub_3s_v2.step",
+      "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+      "size": 2239061
+    }
+  },
+  "config_semantic_sha256": "e0185a0848a48475d1f1fb583047168e4b94e697aa952b6318fe5df6f8df9298",
+  "kind": "pcb-enclosure-v2-validation",
+  "schema": 2,
+  "scope_readiness_ceilings": {
+    "board_retention": "INCOMPLETE",
+    "connector_access": "INCOMPLETE",
+    "shell": "INCOMPLETE",
+    "thermal": "INCOMPLETE"
+  },
+  "service_envelope_coverage": {
+    "candidate_dimension_census_complete": 0,
+    "declared": 0,
+    "legacy_omitted": false,
+    "legacy_readiness_capped": false,
+    "required_edge_openings": 12,
+    "shared_mappings": 7,
+    "shared_non_enclosure_refs": 0,
+    "shared_receipt_status": "INCOMPLETE"
+  },
+  "status": "VALID",
+  "validator": {
+    "path": "skills/pcb-enclosure/scripts/enclosure_v2.py",
+    "sha256": "9d4ecfa16eb2207d2a7665655a15a1d5ec15def4bce8ca460602ec386a6a117f",
+    "size": 152263
+  }
+}

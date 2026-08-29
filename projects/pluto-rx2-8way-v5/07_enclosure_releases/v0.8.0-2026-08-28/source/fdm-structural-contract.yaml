@@ -1,0 +1,901 @@
+schema: 1
+kind: pcb-enclosure-fdm-structural-contract-v1
+name: pluto-rx2-8way-v5-split-shell
+design_fingerprint: 2eedcf4bd70c04c102a6efeed50efdecc4a6ba12d7aee7e4dfd8f3f242a30fd4
+process_profiles:
+  - id: petg_04_02
+    method: fdm
+    material: PETG
+    nozzle_mm: 0.4
+    layer_mm: 0.2
+    minimum_wall_mm: 1.2
+    support_policy: forbid_when_practical
+    slicer: null
+parts:
+  - id: base
+    process_profile: petg_04_02
+    mesh_to_build:
+      - [1, 0, 0, 0]
+      - [0, 1, 0, 0]
+      - [0, 0, 1, 0]
+      - [0, 0, 0, 1]
+    structural_disposition: audited
+    structural_reason: null
+    attachment_ids: [base_pcb_h1, base_pcb_h2, base_pcb_h3, base_pcb_h4, base_case_c1, base_case_c2, base_case_c3, base_case_c4]
+    support_exception_ids: []
+  - id: lid
+    process_profile: petg_04_02
+    mesh_to_build:
+      - [1, 0, 0, 0]
+      - [0, 1, 0, 0]
+      - [0, 0, 1, 0]
+      - [0, 0, 0, 1]
+    structural_disposition: audited
+    structural_reason: null
+    attachment_ids: [lid_case_c1, lid_case_c2, lid_case_c3, lid_case_c4, lid_mount_m1, lid_mount_m2]
+    support_exception_ids: []
+  - id: insert_coupon
+    process_profile: petg_04_02
+    mesh_to_build:
+      - [1, 0, 0, 0]
+      - [0, 1, 0, 0]
+      - [0, 0, 1, 0]
+      - [0, 0, 0, 1]
+    structural_disposition: no_critical_attachment
+    structural_reason: "Process coupon only; it carries no installed product load path."
+    attachment_ids: []
+    support_exception_ids: []
+  - id: rx2_antenna_mount
+    process_profile: petg_04_02
+    mesh_to_build:
+      - [1, 0, 0, 0]
+      - [0, 1, 0, 0]
+      - [0, 0, 1, 0]
+      - [0, 0, 0, 1]
+    structural_disposition: audited
+    structural_reason: null
+    attachment_ids: [mount_column_m1, mount_column_m2, mount_rail_left, mount_rail_right]
+    support_exception_ids: []
+  - id: rx2_antenna_fit_gauge
+    process_profile: petg_04_02
+    mesh_to_build:
+      - [1, 0, 0, 0]
+      - [0, 1, 0, 0]
+      - [0, 0, 1, 0]
+      - [0, 0, 0, 1]
+    structural_disposition: no_critical_attachment
+    structural_reason: "Fit-selection gauge only; it is not an installed structural part."
+    attachment_ids: []
+    support_exception_ids: []
+load_cases:
+  - id: pcb_retention
+    description: PCB bearing, handling, and M3 retention load normal to the base.
+    direction_local: [0, 0, -1]
+    application: PCB bearing lands and screw heads.
+    reaction: Four tapered H1-H4 standoff roots into the foundation deck.
+  - id: case_preload
+    description: Axial preload from one or more case screws.
+    direction_local: [0, 0, -1]
+    application: Lid screw-head seats.
+    reaction: Lid webs, base posts, inserts, and foundation.
+  - id: case_twist
+    description: One-corner tightening or chassis twist.
+    direction_local: [1, 0, 0]
+    application: Roof and one closure ear.
+    reaction: Remaining closure webs and base-post roots.
+  - id: lid_removal
+    description: Sleeve binding, post misalignment, or manual lid-pry load.
+    direction_local: [0, 1, 0]
+    application: Lid roof and D9.8 post sleeves.
+    reaction: Tangent closure webs and D9 base posts.
+  - id: connector_mate_unmate_ns
+    description: Repeated axial mate/unmate reaction from the north SMA bank and south USB-C port while the PCB is clamped to H1-H4; connector and PCB capacity remain unquantified.
+    direction_local: [0, 1, 0]
+    application: J1-J4 and J9-J10 connector bodies, solder joints, and ground tabs through the PCB.
+    reaction: Opposed H1-H4 screw clamps and tapered PCB-pillar roots only; no open enclosure wall or connector body is credited as a case support.
+  - id: connector_mate_unmate_ew
+    description: Repeated axial mate/unmate reaction from the east/west SMA banks while the PCB is clamped to H1-H4; connector and PCB capacity remain unquantified.
+    direction_local: [1, 0, 0]
+    application: J5-J8 connector bodies, solder joints, and ground tabs through the PCB.
+    reaction: Opposed H1-H4 screw clamps and tapered PCB-pillar roots only; no open enclosure wall or connector body is credited as a case support.
+  - id: connector_cable_pull_bend
+    description: Conservative out-of-plane cable pull, bend, and handling moment from simultaneously serviced SMA/USB-C leads; cable, connector, and PCB capacity remain unquantified.
+    direction_local: [0, 0, 1]
+    application: Representative mated J1-J10 cable and strain-relief reactions transmitted through the PCB.
+    reaction: Mixed bearing, shear, and uplift at all four H1-H4 screw clamps and tapered PCB-pillar roots; open connector edges provide no reaction.
+  - id: sma_hand_tool_torque
+    description: Hand-tightening and wrench/tool torque at J2-J10 represented by the resulting PCB twist/uplift couple; the direction is informational and no connector, solder, or PCB strength is inferred.
+    direction_local: [0, 0, 1]
+    application: Coupling-nut and tool reaction at the nine SMA launches transmitted into the PCB.
+    reaction: Opposed H1-H4 clamp and tapered pillar-root reactions only; the roof-only case contributes no connector-side wall support.
+  - id: print_warp
+    description: Differential FDM shrink/warp represented as a root-separating load case.
+    direction_local: [0, 0, 1]
+    application: Broad deck/roof faces.
+    reaction: Printed pillars, posts, bosses, and closure-web roots.
+  - id: antenna_reaction
+    description: Axial reaction from the two-screw RX2 antenna hood.
+    direction_local: [0, 0, 1]
+    application: Hood screw columns and lid insert bosses.
+    reaction: Lid roof, four closure webs, four base case-post roots, and foundation.
+  - id: antenna_lateral
+    description: Lateral antenna/cable handling reaction.
+    direction_local: [1, 0, 0]
+    application: Antenna hood, locator rails, and screw columns.
+    reaction: Hood roof, lid bosses, roof plate, four closure webs, four base case-post roots, and foundation.
+  - id: antenna_insertion
+    description: Straight bottom-loading and removal force at the compliant locator keys while the hood is detached from the lid and both antenna-mount screws are absent.
+    direction_local: [0, 0, -1]
+    application: Roof-hung locator/key rails.
+    reaction: Detached hood roof and screw columns only; no lid closure or base-post reaction is credited during this operation.
+attachments:
+  - id: base_pcb_h1
+    part: base
+    scope: board_retention
+    host: "foundation deck"
+    member: "PCB standoff H1"
+    function: "Carry PCB bearing and M3 retention loads into the base deck."
+    load_cases: [pcb_retention, connector_mate_unmate_ns, connector_mate_unmate_ew, connector_cable_pull_bend, sma_hand_tool_torque, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-39.983, 27.5, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-7, 0, 7, 4.5]
+        minimum_area_mm2: 45
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-7, 7]
+          minimum_material_span_mm: 11.5
+      - id: member
+        plane:
+          origin_mm: [-40, 27.5, 5.11]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-5, -5, 5, 5]
+        minimum_area_mm2: 34
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-5, 5]
+          minimum_material_span_mm: 3.6
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.25
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: base_pcb_h2
+    part: base
+    scope: board_retention
+    host: "foundation deck"
+    member: "PCB standoff H2"
+    function: "Carry PCB bearing and M3 retention loads into the base deck."
+    load_cases: [pcb_retention, connector_mate_unmate_ns, connector_mate_unmate_ew, connector_cable_pull_bend, sma_hand_tool_torque, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [40.017, 27.5, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-7, 0, 7, 4.5]
+        minimum_area_mm2: 45
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-7, 7]
+          minimum_material_span_mm: 11.5
+      - id: member
+        plane:
+          origin_mm: [40, 27.5, 5.11]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-5, -5, 5, 5]
+        minimum_area_mm2: 34
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-5, 5]
+          minimum_material_span_mm: 3.6
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.25
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: base_pcb_h3
+    part: base
+    scope: board_retention
+    host: "foundation deck"
+    member: "PCB standoff H3"
+    function: "Carry PCB bearing and M3 retention loads into the base deck."
+    load_cases: [pcb_retention, connector_mate_unmate_ns, connector_mate_unmate_ew, connector_cable_pull_bend, sma_hand_tool_torque, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-39.983, -27.5, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-7, 0, 7, 4.5]
+        minimum_area_mm2: 45
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-7, 7]
+          minimum_material_span_mm: 11.5
+      - id: member
+        plane:
+          origin_mm: [-40, -27.5, 5.11]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-5, -5, 5, 5]
+        minimum_area_mm2: 34
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-5, 5]
+          minimum_material_span_mm: 3.6
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.25
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: base_pcb_h4
+    part: base
+    scope: board_retention
+    host: "foundation deck"
+    member: "PCB standoff H4"
+    function: "Carry PCB bearing and M3 retention loads into the base deck."
+    load_cases: [pcb_retention, connector_mate_unmate_ns, connector_mate_unmate_ew, connector_cable_pull_bend, sma_hand_tool_torque, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [40.017, -27.5, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-7, 0, 7, 4.5]
+        minimum_area_mm2: 45
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-7, 7]
+          minimum_material_span_mm: 11.5
+      - id: member
+        plane:
+          origin_mm: [40, -27.5, 5.11]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-5, -5, 5, 5]
+        minimum_area_mm2: 34
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-5, 5]
+          minimum_material_span_mm: 3.6
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.25
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: base_case_c1
+    part: base
+    scope: shell
+    host: "foundation deck"
+    member: "case-closure post C1"
+    function: "Carry insert preload, lid reaction, twist, and removal loads into the foundation."
+    load_cases: [case_preload, case_twist, lid_removal, antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-48.989844572, -36.513633315, 0]
+          normal: [0.597378142, -0.801959697, 0]
+          u_axis: [0.801959697, 0.597378142, 0]
+        roi_uv_mm: [-8, 0, 8, 5.5]
+        minimum_area_mm2: 70
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-8, 8]
+          minimum_material_span_mm: 14
+      - id: member
+        plane:
+          origin_mm: [-49, -36.5, 6.01]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-6, -6, 6, 6]
+        minimum_area_mm2: 62
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-6, 6]
+          minimum_material_span_mm: 8.8
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.1
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: base_case_c2
+    part: base
+    scope: shell
+    host: "foundation deck"
+    member: "case-closure post C2"
+    function: "Carry insert preload, lid reaction, twist, and removal loads into the foundation."
+    load_cases: [case_preload, case_twist, lid_removal, antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [49.010155428, -36.486366685, 0]
+          normal: [0.597378142, 0.801959697, 0]
+          u_axis: [-0.801959697, 0.597378142, 0]
+        roi_uv_mm: [-8, 0, 8, 5.5]
+        minimum_area_mm2: 70
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-8, 8]
+          minimum_material_span_mm: 14
+      - id: member
+        plane:
+          origin_mm: [49, -36.5, 6.01]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-6, -6, 6, 6]
+        minimum_area_mm2: 62
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-6, 6]
+          minimum_material_span_mm: 8.8
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.1
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: base_case_c3
+    part: base
+    scope: shell
+    host: "foundation deck"
+    member: "case-closure post C3"
+    function: "Carry insert preload, lid reaction, twist, and removal loads into the foundation."
+    load_cases: [case_preload, case_twist, lid_removal, antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-49.010155428, 36.486366685, 0]
+          normal: [-0.597378142, -0.801959697, 0]
+          u_axis: [0.801959697, -0.597378142, 0]
+        roi_uv_mm: [-8, 0, 8, 5.5]
+        minimum_area_mm2: 70
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-8, 8]
+          minimum_material_span_mm: 14
+      - id: member
+        plane:
+          origin_mm: [-49, 36.5, 6.01]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-6, -6, 6, 6]
+        minimum_area_mm2: 62
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-6, 6]
+          minimum_material_span_mm: 8.8
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.1
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: base_case_c4
+    part: base
+    scope: shell
+    host: "foundation deck"
+    member: "case-closure post C4"
+    function: "Carry insert preload, lid reaction, twist, and removal loads into the foundation."
+    load_cases: [case_preload, case_twist, lid_removal, antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [48.989844572, 36.513633315, 0]
+          normal: [-0.597378142, 0.801959697, 0]
+          u_axis: [-0.801959697, -0.597378142, 0]
+        roi_uv_mm: [-8, 0, 8, 5.5]
+        minimum_area_mm2: 70
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-8, 8]
+          minimum_material_span_mm: 14
+      - id: member
+        plane:
+          origin_mm: [49, 36.5, 6.01]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-6, -6, 6, 6]
+        minimum_area_mm2: 62
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-6, 6]
+          minimum_material_span_mm: 8.8
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1.1
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: lid_case_c1
+    part: lid
+    scope: shell
+    host: "roof plate"
+    member: "case screw web C1"
+    function: "Carry case-screw preload and local/torsional lid loads through a tangent web into the roof."
+    load_cases: [case_preload, case_twist, lid_removal, antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-38.009192, 25.509192, 0]
+          normal: [-0.707106781, 0.707106781, 0]
+          u_axis: [0, 0, 1]
+        roi_uv_mm: [-0.1, -7.3, 7.5, 7.3]
+        minimum_area_mm2: 103
+        throat:
+          axis: v
+          coordinate_mm: 3.333
+          interval_mm: [-7.3, 7.3]
+          minimum_material_span_mm: 14
+      - id: member
+        plane:
+          origin_mm: [-43.331125, 30.831125, 0]
+          normal: [-0.707106781, 0.707106781, 0]
+          u_axis: [0, 0, 1]
+        roi_uv_mm: [-0.1, -7.3, 7.5, 7.3]
+        minimum_area_mm2: 95
+        throat:
+          axis: v
+          coordinate_mm: 3.333
+          interval_mm: [-7.3, 7.3]
+          minimum_material_span_mm: 12.5
+    reinforcement:
+      kind: continuous_section
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: lid_case_c2
+    part: lid
+    scope: shell
+    host: "roof plate"
+    member: "case screw web C2"
+    function: "Carry case-screw preload and local/torsional lid loads through a tangent web into the roof."
+    load_cases: [case_preload, case_twist, lid_removal, antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [38.009192, 25.509192, 0]
+          normal: [0.707106781, 0.707106781, 0]
+          u_axis: [0, 0, 1]
+        roi_uv_mm: [-0.1, -7.3, 7.5, 7.3]
+        minimum_area_mm2: 103
+        throat:
+          axis: v
+          coordinate_mm: 3.333
+          interval_mm: [-7.3, 7.3]
+          minimum_material_span_mm: 14
+      - id: member
+        plane:
+          origin_mm: [43.331125, 30.831125, 0]
+          normal: [0.707106781, 0.707106781, 0]
+          u_axis: [0, 0, 1]
+        roi_uv_mm: [-0.1, -7.3, 7.5, 7.3]
+        minimum_area_mm2: 95
+        throat:
+          axis: v
+          coordinate_mm: 3.333
+          interval_mm: [-7.3, 7.3]
+          minimum_material_span_mm: 12.5
+    reinforcement:
+      kind: continuous_section
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: lid_case_c3
+    part: lid
+    scope: shell
+    host: "roof plate"
+    member: "case screw web C3"
+    function: "Carry case-screw preload and local/torsional lid loads through a tangent web into the roof."
+    load_cases: [case_preload, case_twist, lid_removal, antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-39.00528, -14.01188, 0]
+          normal: [-0.406138466, -0.913811549, 0]
+          u_axis: [0, 0, 1]
+        roi_uv_mm: [-0.1, -6.3, 7.5, 6.3]
+        minimum_area_mm2: 87.5
+        throat:
+          axis: v
+          coordinate_mm: 3.333
+          interval_mm: [-6.3, 6.3]
+          minimum_material_span_mm: 11.9
+      - id: member
+        plane:
+          origin_mm: [-45.743988, -29.173973, 0]
+          normal: [-0.406138466, -0.913811549, 0]
+          u_axis: [0, 0, 1]
+        roi_uv_mm: [-0.1, -7.3, 7.5, 7.3]
+        minimum_area_mm2: 95
+        throat:
+          axis: v
+          coordinate_mm: 3.333
+          interval_mm: [-7.3, 7.3]
+          minimum_material_span_mm: 12.5
+    reinforcement:
+      kind: blended_tab
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 0.8
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: lid_case_c4
+    part: lid
+    scope: shell
+    host: "roof plate"
+    member: "case screw web C4"
+    function: "Carry case-screw preload and local/torsional lid loads through a tangent web into the roof."
+    load_cases: [case_preload, case_twist, lid_removal, antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [39.00528, -14.01188, 0]
+          normal: [0.406138466, -0.913811549, 0]
+          u_axis: [0, 0, 1]
+        roi_uv_mm: [-0.1, -6.3, 7.5, 6.3]
+        minimum_area_mm2: 87.5
+        throat:
+          axis: v
+          coordinate_mm: 3.333
+          interval_mm: [-6.3, 6.3]
+          minimum_material_span_mm: 11.9
+      - id: member
+        plane:
+          origin_mm: [45.743988, -29.173973, 0]
+          normal: [0.406138466, -0.913811549, 0]
+          u_axis: [0, 0, 1]
+        roi_uv_mm: [-0.1, -7.3, 7.5, 7.3]
+        minimum_area_mm2: 95
+        throat:
+          axis: v
+          coordinate_mm: 3.333
+          interval_mm: [-7.3, 7.3]
+          minimum_material_span_mm: 12.5
+    reinforcement:
+      kind: blended_tab
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 0.8
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: lid_mount_m1
+    part: lid
+    scope: antenna_accessory
+    host: "lid roof"
+    member: "underside antenna-mount insert boss M1"
+    function: "React antenna hood screw loads into the lid roof without a sharp boss root."
+    load_cases: [antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-21.983, -8, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-12, 0, 12, 6.2]
+        minimum_area_mm2: 65
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-12, 12]
+          minimum_material_span_mm: 7.5
+      - id: member
+        plane:
+          origin_mm: [-22, -8, 4.51]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-7, -7, 7, 7]
+        minimum_area_mm2: 64
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-7, 7]
+          minimum_material_span_mm: 5.6
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: lid_mount_m2
+    part: lid
+    scope: antenna_accessory
+    host: "lid roof"
+    member: "underside antenna-mount insert boss M2"
+    function: "React antenna hood screw loads into the lid roof without a sharp boss root."
+    load_cases: [antenna_reaction, antenna_lateral, print_warp]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [22.017, -8, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-12, 0, 12, 6.2]
+        minimum_area_mm2: 65
+        throat:
+          axis: u
+          coordinate_mm: 2.43
+          interval_mm: [-12, 12]
+          minimum_material_span_mm: 7.5
+      - id: member
+        plane:
+          origin_mm: [22, -8, 4.51]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-7, -7, 7, 7]
+        minimum_area_mm2: 64
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-7, 7]
+          minimum_material_span_mm: 5.6
+    reinforcement:
+      kind: gusset
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 1
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: mount_column_m1
+    part: rx2_antenna_mount
+    scope: antenna_accessory
+    host: "closed hood roof"
+    member: "antenna-mount screw column M1"
+    function: "Carry screw-head and antenna reactions through the column into the closed hood roof."
+    load_cases: [antenna_reaction, antenna_lateral, antenna_insertion]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-21.983, -8, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-12, 0, 12, 5.5]
+        minimum_area_mm2: 65
+        throat:
+          axis: u
+          coordinate_mm: 3.013
+          interval_mm: [-12, 12]
+          minimum_material_span_mm: 5.5
+      - id: member
+        plane:
+          origin_mm: [-22, -8, 4.01]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-7, -7, 7, 7]
+        minimum_area_mm2: 79
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-7, 7]
+          minimum_material_span_mm: 5.5
+    reinforcement:
+      kind: continuous_section
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 0.8
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: mount_column_m2
+    part: rx2_antenna_mount
+    scope: antenna_accessory
+    host: "closed hood roof"
+    member: "antenna-mount screw column M2"
+    function: "Carry screw-head and antenna reactions through the column into the closed hood roof."
+    load_cases: [antenna_reaction, antenna_lateral, antenna_insertion]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [22.017, -8, 0]
+          normal: [1, 0, 0]
+          u_axis: [0, 1, 0]
+        roi_uv_mm: [-12, 0, 12, 5.5]
+        minimum_area_mm2: 65
+        throat:
+          axis: u
+          coordinate_mm: 3.013
+          interval_mm: [-12, 12]
+          minimum_material_span_mm: 5.5
+      - id: member
+        plane:
+          origin_mm: [22, -8, 4.01]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-7, -7, 7, 7]
+        minimum_area_mm2: 79
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-7, 7]
+          minimum_material_span_mm: 5.5
+    reinforcement:
+      kind: continuous_section
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 0.8
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: null
+  - id: mount_rail_left
+    part: rx2_antenna_mount
+    scope: antenna_accessory
+    host: "closed hood roof"
+    member: "left roof-hung locator/key rail"
+    function: "Guide the antenna and provide the intentionally compliant localized retention key."
+    load_cases: [antenna_insertion, antenna_lateral]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [-6.4, -7.983, 0]
+          normal: [0, 1, 0]
+          u_axis: [-1, 0, 0]
+        roi_uv_mm: [-3, 0, 3, 5.5]
+        minimum_area_mm2: 22
+        throat:
+          axis: u
+          coordinate_mm: 3.013
+          interval_mm: [-3, 3]
+          minimum_material_span_mm: 1.9
+      - id: member
+        plane:
+          origin_mm: [-6.4, -8, 6.013]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-11, -11, 11, 11]
+        minimum_area_mm2: 38
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-11, 11]
+          minimum_material_span_mm: 1.9
+    reinforcement:
+      kind: blended_tab
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 0.4
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: rail_left_flexure
+  - id: mount_rail_right
+    part: rx2_antenna_mount
+    scope: antenna_accessory
+    host: "closed hood roof"
+    member: "right roof-hung locator/key rail"
+    function: "Guide the antenna and provide the intentionally compliant localized retention key."
+    load_cases: [antenna_insertion, antenna_lateral]
+    root_sections:
+      - id: root
+        plane:
+          origin_mm: [6.4, -7.983, 0]
+          normal: [0, 1, 0]
+          u_axis: [-1, 0, 0]
+        roi_uv_mm: [-3, 0, 3, 5.5]
+        minimum_area_mm2: 22
+        throat:
+          axis: u
+          coordinate_mm: 3.013
+          interval_mm: [-3, 3]
+          minimum_material_span_mm: 1.9
+      - id: member
+        plane:
+          origin_mm: [6.4, -8, 6.013]
+          normal: [0, 0, 1]
+          u_axis: [1, 0, 0]
+        roi_uv_mm: [-11, -11, 11, 11]
+        minimum_area_mm2: 38
+        throat:
+          axis: u
+          coordinate_mm: 0
+          interval_mm: [-11, 11]
+          minimum_material_span_mm: 1.9
+    reinforcement:
+      kind: blended_tab
+      root_section: root
+      member_section: member
+      minimum_area_ratio: 0.4
+    overlap:
+      disposition: section_proved
+      section_id: root
+      reason: null
+    exception_id: rail_right_flexure
+support_exceptions: []
+flexure_exceptions:
+  - id: rail_left_flexure
+    type: intentional_flexure
+    attachment_id: mount_rail_left
+    rationale: The localized left key intentionally flexes during antenna insertion; rigid-section geometry cannot qualify strain or cycle life.
+    hard_stop: The D10.8 rigid channel and hood cavity bound travel outside the D8.50 localized key.
+    physical_test_id: antenna_retention
+  - id: rail_right_flexure
+    type: intentional_flexure
+    attachment_id: mount_rail_right
+    rationale: The localized right key intentionally flexes during antenna insertion; rigid-section geometry cannot qualify strain or cycle life.
+    hard_stop: The D10.8 rigid channel and hood cavity bound travel outside the D8.50 localized key.
+    physical_test_id: antenna_retention

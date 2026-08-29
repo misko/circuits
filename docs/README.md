@@ -66,6 +66,7 @@ support decisions but do not replace the owning skill procedure.
 | [`fabricated-examples.md`](fabricated-examples.md) | Prompt, photograph, and rendering provenance plus claim limits for the README showcase |
 | [`enclosure-fit-registry.md`](enclosure-fit-registry.md) | Cross-project enclosure fit observations, evidence grades, and reusable coupon priors |
 | [`connector-assembly-registry.md`](connector-assembly-registry.md) | Exact connector/mate/tool/cable combinations, service outcomes, and explicitly unknown fit facts |
+| [`enclosure-fdm-fleet-audit-2026-08-28.md`](enclosure-fdm-fleet-audit-2026-08-28.md) | Role-aware enclosure fleet census, local structural screen, successor-case evidence and qualification limits |
 
 ## Historical plans and snapshots
 

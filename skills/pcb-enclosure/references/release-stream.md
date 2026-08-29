@@ -83,6 +83,30 @@ receipt itself must be bound by `interface_assemblies.receipt` below
 Its bytes must match the receipt's canonical compiler source binding exactly.
 Do not rewrite and reseal receipt paths to fit the release layout.
 
+For a current-policy config with `manufacturing_audit`, the prepared workspace
+also carries the exact contract, receipt, generation receipt, and complete
+printable mesh census named by that mapping. The paths must resolve beneath
+`source/`, `verification/`, and `meshes/` as specified by schema v2. Supply the
+exact replay closure as:
+
+```text
+--replay-tool fdm_structural_audit=tooling/fdm_structural_audit.py
+--replay-tool enclosure_common=tooling/enclosure_common.py
+--replay-tool collision_builder=tooling/build_collision.py
+--replay-tool step_inspector=tooling/inspect_step.py
+--replay-tool enclosure_generator=tooling/generate_enclosure.py
+--replay-tool process_runner=tooling/process_runner.py
+--replay-tool pipeline_runtime=tooling/pipeline_runtime.py
+```
+
+The FDM compiler receipt binds the canonical identities of both scripts. The
+publisher executes those exact captured bytes, independently regrades the
+manufacturing receipt, and reopens the receipt and every bound input after the
+regrade. It does not infer printability or strength from a manifold STL. A
+legacy release without this mapping remains immutable and is classified
+`LEGACY/INCOMPLETE`; do not rewrite it merely to acquire a current-policy
+label.
+
 ## Status composition
 
 Declare at least one scope with `--scope name=STATUS`.  Typical component
@@ -117,6 +141,13 @@ regrades the exact receipt, and repeats that operation during reopen. Missing,
 extra, linked, aliased, substituted, stale, or live-tree-dependent inputs fail
 publication.
 
+The same boundary applies to `manufacturing_audit`. Its receipt may claim at
+most `CAD_READY`; absent slicer/toolpath evidence keeps the audit
+`INCOMPLETE`, and absent physical evidence prevents `PRINT_VERIFIED` elsewhere
+without falsely lowering an otherwise supported CAD-only claim. Every
+critical attachment scope and intentional-flexure physical-test identifier is
+cross-checked against the schema-v2 scope and test censuses.
+
 Scopes describe independently governed installed deliverables.  Do not add an
 optional physical-validation scope merely to lower a legitimate `CAD_READY`
 claim.  Instead, let the evaluator assign the component's achieved readiness
@@ -146,8 +177,14 @@ Example for an enclosure derived from a fixed PCB release:
   --replay-config source/enclosure-v2.yaml \
   --replay-tool compose=tooling/enclosure_v2.py \
   --replay-tool verify=tooling/verify_enclosure.py \
-  --replay-tool collision=tooling/build_collision.py \
+  --replay-tool collision_builder=tooling/build_collision.py \
+  --replay-tool step_inspector=tooling/inspect_step.py \
+  --replay-tool enclosure_generator=tooling/generate_enclosure.py \
+  --replay-tool process_runner=tooling/process_runner.py \
+  --replay-tool pipeline_runtime=tooling/pipeline_runtime.py \
   --replay-tool connector_assembly_contract=tooling/connector_assembly_contract.py \
+  --replay-tool fdm_structural_audit=tooling/fdm_structural_audit.py \
+  --replay-tool enclosure_common=tooling/enclosure_common.py \
   --predecessor v0.4.0-2026-08-25 \
   --immutable-candidate
 ```
@@ -165,14 +202,21 @@ The publisher performs this closed transaction:
 5. Copy every prepared regular file; bind the replay config and tools; reopen
    the complete release-local schema-v2 config; for `interface_assemblies`,
    derive and regrade the exact receipt/compiler/contract/evidence closure;
+   for `manufacturing_audit`, byte-replay the exact enclosure generator and all
+   printables/installed-case, independently recompute STEP component selection,
+   replay the exact collision builder, execute the FDM compiler plus helper and
+   bounded-runtime closure, and reopen every receipt, source, contract, and mesh;
    derive the exact required-scope census; then generate a sorted full-file
    census.
 6. Write schema-v2 `MANIFEST.json` and reopen the complete staging tree with
-   the same verifier used after publication.
+   the same verifier used after publication. After every executable replay and
+   external-authority check, that verifier rescans every regular path and
+   requires the final path/hash/size census to equal its entry census.
 7. Recheck the prepared workspace, live parent, and optional predecessor
    identities; recheck case/Unicode destination aliases while holding the
-   release-stream lock; then publish with one directory-relative atomic,
-   no-replace rename.
+   release-stream lock; rescan the staged path/hash/size census immediately
+   before publication; then publish with one directory-relative atomic,
+   no-replace rename. Any late extra, removal, or content drift fails closed.
 
 The advisory lock serializes this publisher with other cooperating publishers.
 The final alias census and `renameat2(RENAME_NOREPLACE)` still protect the exact
@@ -205,10 +249,27 @@ Replay resolution proves that every file binding names exact release-local
 bytes and that the declared tools are in the payload. For
 `interface_assemblies`, the release verifier executes only the exact
 manifest-bound `connector_assembly_contract` tool against the release-local
-virtual project root and requires deterministic receipt equality. Other replay
-tools are identity-bound but are not executed by this release verifier. Include
-each script's import/dependency closure under `tooling/`, then run the remaining
-release-local toolchain separately before claiming full executable replay.
+virtual project root and requires deterministic receipt equality. For
+`manufacturing_audit`, it likewise executes the exact manifest-bound
+generator/helper/runtime closure, requires byte-exact generation of every
+printable and the installed case, recomputes collision-governing STEP geometry
+and component selection, executes pinned exact BRep collision replay, and
+deterministically regrades the FDM receipt. It also executes the exact generic
+enclosure verifier in a fresh process and requires
+`verification/verification.json` to reproduce byte-for-byte from the canonical
+STEP inspection, optional generic collision pair, generation, and printables.
+The private publisher refreshes that report from the exact replay before its
+final payload census; release reopen never repairs evidence and fails closed
+on a different byte.
+An external collision subject also
+executes its manifest-bound obstruction compositor through `--replay-receipt`.
+The publisher regenerates the standard v2 config, mechanical-intent, scope
+input, and scoped-verdict reports from the validated release-local closure;
+reopen independently derives and compares all four. Absolute staging paths or
+stale compiler, helper, contract, receipt, subject, or scope identities fail.
+Every input and output is reopened after regrade. Include each script's exact
+import/dependency closure under `tooling/`; a missing OpenSCAD, `uv`, or pinned
+offline CadQuery runtime fails closed.
 
 Add `--project-root projects/<project>` to also compare the release against the
 current external PCB parent and optional enclosure predecessor.  This external
@@ -228,6 +289,10 @@ release still reopens from its local authorities and tooling.
 - exact release-root (`.`) replay config and role-to-tool identities;
 - for shared connector work, the exact `connector_assembly_contract` role and
   receipt-derived virtual-project closure;
+- for current-policy FDM work, exact generator, collision builder, STEP
+  inspector, FDM compiler, helper, process-runner, and pipeline-runtime roles
+  plus the receipt-derived contract, source, generation, installed case,
+  collision, and printable-mesh closure;
 - a sorted record for every ordinary payload file except `MANIFEST.json`.
 
 The manifest deliberately does not claim firmware compatibility.  Compose PCB,

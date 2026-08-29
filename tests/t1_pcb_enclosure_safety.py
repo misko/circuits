@@ -371,11 +371,13 @@ def t_collision_builder_uses_private_subjects():
     step.write_bytes(b"STEP subject\n")
     step_report = build / "step-inspection.json"
     component = build / "step-components.stl"
+    interface = build / "board-interface.json"
     generation = build / "generation.json"
     case = build / "assembled-case.stl"
     source = build / "enclosure.scad"
     for path, payload in (
-            (step_report, b"{}\n"), (component, b"solid c\nendsolid c\n"),
+            (step_report, b"{}\n"), (interface, b"{}\n"),
+            (component, b"solid c\nendsolid c\n"),
             (case, b"solid a\nendsolid a\n"),
             (source, b"cube([1,1,1]);\n")):
         path.write_bytes(payload)
@@ -397,12 +399,13 @@ def t_collision_builder_uses_private_subjects():
     real_build = module._build_snapshots
     observed = {}
 
-    def fake_build(step_copy, report_copy, component_copy, generation_copy,
-                   case_copy, source_copy, board_z, output, report_output,
-                   originals, bindings):
+    def fake_build(step_copy, report_copy, component_copy, interface_copy,
+                   generation_copy, case_copy, source_copy, board_z, output,
+                   report_output, originals, bindings):
         copies = {
             "step": step_copy, "step_report": report_copy,
-            "component_mesh": component_copy, "generation": generation_copy,
+            "component_mesh": component_copy, "interface": interface_copy,
+            "generation": generation_copy,
             "case_mesh": case_copy, "source": source_copy,
         }
         for key, copy in copies.items():
@@ -416,7 +419,7 @@ def t_collision_builder_uses_private_subjects():
     module._build_snapshots = fake_build
     try:
         result = module.build(
-            step, step_report, component, generation, case, 7.8,
+            step, step_report, component, interface, generation, case, 7.8,
             build / "intersection.stl", build / "collision.json")
     finally:
         module._build_snapshots = real_build
@@ -463,7 +466,7 @@ def t_bounded_subprocess_limits_bite():
     result = run_bounded(
         [sys.executable, "-c", "print('x' * 10000)"],
         timeout_s=2, max_output_bytes_per_stream=128, check=True)
-    contains(result.stdout, "stdout truncated at 128 bytes")
+    contains(result.stdout, "output truncated; retained final 128")
     check(len(result.stdout) < 256, "bounded capture retained unbounded output")
 
     started = time.monotonic()

@@ -25,11 +25,16 @@ roof and every case screw does not loosen the PCB.
 The roof bottom remains at Z=27.0 mm, preserving the predecessor's interior
 height. Thickness grows upward from 2.4 to 3.2 mm. Its main plate stops at the
 exact 130 x 92 mm PCB outline, rather than retaining the predecessor shell's
-10.4 mm per-side roof overhang. Only four local diagonal lugs reach the closure
-posts at (+/-70, +/-51) mm. Those lugs are outside the J1-J5 legacy opening
-corridors; the narrowest analytic candidate corridor is 5.0 mm.
+10.4 mm per-side roof overhang. Four tapered closure ears reach the posts at
+(+/-70, +/-51) mm. Each ear grows from a D16 inboard root pad into a D10.8
+screw member; the generated mesh measures a 57.60 mm^2 root section with an
+18.00 mm net throat, a 23.56 mm^2 drilled/recessed member section with 8.33 mm
+net material, and a 2.44 root/member section ratio. The D10.8 member leaves a
+2.25 mm radial bearing land around the D6.3 head and a 7.3 mm through-ligament
+around the D3.5 bore. The narrowest conservative legacy connector-opening
+corridor is 4.1 mm.
 
-That 5.0 mm assertion is only a check against the old two-dimensional opening
+That 4.1 mm assertion is only a check against the old two-dimensional opening
 candidates. It is not a complete connector-service clearance. The design makes
 the narrower claim that there is no vertical skirt barrier along the declared
 J1-J5 mating axes. The roof edge, local lugs, posts, screw heads, and base floor
@@ -42,6 +47,29 @@ the roof-only change does not prove the whole service cell unobstructed.
 The 3.2/2.4 thickness ratio gives a 2.37x simple thickness-cubed plate-bending
 candidate before vents and local geometry. This is not print evidence. Flatness,
 handling flex, fastened sag, and component clearance require a first article.
+
+## FDM and structural audit boundary
+
+`fdm-structural-contract.yaml` closes the three-part printable census and
+declares 17 critical attachments: H1-H4 PCB bosses, C1-C4 base posts, four lid
+ears, and five insert-coupon bosses. The shared auditor slices the exact
+generated meshes at 34 distinct root/member planes and grades 85 area, throat,
+and reinforcement assertions. Nine closed load cases reach those attachments:
+PCB clamp/service, west/east and south connector mate/unmate, cable pull/bend,
+hand/tool reaction, closure preload, detached-lid handling, fastened/binding
+closure-joint lateral service, and coupon pressing.
+Connector loads are reacted through the PCB and all four H1-H4 bosses; the open
+roof is never credited as a connector or cable support. The current structural
+local attachment-section screen passes.
+
+That is not a strength or print qualification. Mesh self-intersection and
+whole-part local thickness are not yet automated; no printer build volume,
+pinned slicer/profile, toolpath, bridge/support result, material strength, or
+global roof torsion/stiffness result or physical torque/load cycle is bound.
+The manufacturing receipt and every
+affected scope therefore remain `INCOMPLETE` even with a structural screen
+PASS. The required first article must include the declared closure-joint
+torque/twist/service-cycle test.
 
 ## Connector-assembly authority
 
@@ -100,13 +128,15 @@ Authored source:
   and excluded claims;
 - `enclosure-v2.yaml` - exact receipt mappings, scopes, independent fasteners,
   clearance cases, and physical-test census; and
+- `fdm-structural-contract.yaml` - exact printable/process/load/attachment and
+  mesh-section threshold census; and
 - `reference/` plus the two obstruction scripts - exact board interface and
   supplemental obstruction authority.
 
 Regenerate into:
 
 ```text
-projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-roof-only-v3/
+projects/usb-hub-3s-v3/06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4/
 ```
 
 Important outputs are `base.stl`, `lid.stl`, `insert_coupon.stl`,
@@ -114,7 +144,7 @@ Important outputs are `base.stl`, `lid.stl`, `insert_coupon.stl`,
 the composite STEP/mesh, and the exact collision report. These build outputs
 are disposable and ignored. The hash-bound printable STLs, renders, source,
 connector replay closure, and evidence are tracked in immutable candidate
-`07_enclosure_releases/v0.3.0-2026-08-27/`; its overall status and every scope
+`07_enclosure_releases/v0.4.0-2026-08-28/`; its overall status and every scope
 remain `INCOMPLETE`.
 
 ## Exact regeneration
@@ -124,7 +154,7 @@ before schema-v2 validation; exit 2 is the expected honest `INCOMPLETE` result.
 
 ```sh
 project_path=projects/usb-hub-3s-v3
-build_path="$project_path/06_build/mechanical/usb-hub-v1.12-roof-only-v3"
+build_path="$project_path/06_build/mechanical/usb-hub-v1.12-reinforced-roof-v4"
 mkdir -p "$build_path"
 
 /usr/bin/python3 skills/pcb-design/scripts/connector_assembly_contract.py \
@@ -135,13 +165,20 @@ test "$?" -eq 2
   validate-intent "$project_path/03_src/mechanical/mechanical-intent-v2.yaml" \
   --output "$build_path/mechanical-intent-validation-v2.json"
 
-/usr/bin/python3 skills/pcb-enclosure/scripts/enclosure_v2.py \
-  validate-config "$project_path/03_src/mechanical/enclosure-v2.yaml" \
-  --root "$project_path" --output "$build_path/v2-validation.json"
-
 /usr/bin/python3 skills/pcb-enclosure/scripts/generate_enclosure.py \
   "$project_path/03_src/mechanical/enclosure.yaml" --root "$project_path" \
   --build-dir "$build_path"
+
+/usr/bin/python3 skills/pcb-enclosure/scripts/fdm_structural_audit.py \
+  "$project_path/03_src/mechanical/fdm-structural-contract.yaml" \
+  --config "$project_path/03_src/mechanical/enclosure.yaml" \
+  --root "$project_path" --generation "$build_path/generation.json" \
+  --mesh base="$build_path/base.stl" \
+  --mesh lid="$build_path/lid.stl" \
+  --mesh insert_coupon="$build_path/insert_coupon.stl" \
+  --output "$build_path/fdm-audit.json"
+test "$?" -eq 2
+
 ```
 
 Reproduce the exact interface authority:
@@ -149,20 +186,20 @@ Reproduce the exact interface authority:
 ```sh
 /usr/bin/python3 skills/pcb-enclosure/scripts/extract_board_interface.py \
   "$project_path/07_releases/v1.12-2026-07-28/source/usb_hub_3s_v2.kicad_pcb" \
-  -o "$build_path/board-interface.replayed.json" \
+  -o "$build_path/board-interface.json" \
   --access-ref J1 --access-ref J2 --access-ref J3 --access-ref J4 \
   --access-ref J5 --access-ref F1 --access-ref F2 --access-ref SW1 \
   --access-ref D8 --access-ref D9 --access-ref D10 --access-ref D11 \
   --access-ref D12
 
-cmp "$build_path/board-interface.replayed.json" \
+cmp "$build_path/board-interface.json" \
   "$project_path/03_src/mechanical/reference/board-interface-v1.12.json"
 ```
 
 The parent STEP inspection is expected to fail closed:
 
 ```sh
-uv run --offline --with cadquery python \
+uv run --offline --with cadquery==2.8.0 python -B \
   skills/pcb-enclosure/scripts/inspect_step.py \
   "$project_path/07_releases/v1.12-2026-07-28/3d/usb_hub_3s_v2.step" \
   --interface "$project_path/03_src/mechanical/reference/board-interface-v1.12.json" \
@@ -179,27 +216,53 @@ Then reproduce the reviewed composite and final-pose collision:
   --manifest "$project_path/03_src/mechanical/reference/obstruction-models.json" \
   --output-dir "$build_path"
 
-uv run --offline --with cadquery python \
+uv run --offline --with cadquery==2.8.0 python -B \
   "$project_path/03_src/mechanical/compose_obstruction_step.py" \
   --parent-step "$project_path/07_releases/v1.12-2026-07-28/3d/usb_hub_3s_v2.step" \
   --supplement-step "$build_path/supplemental-obstructions.step" \
-  --interface "$project_path/03_src/mechanical/reference/board-interface-v1.12.json" \
+  --interface "$build_path/board-interface.json" \
   --augmentation-receipt "$build_path/obstruction-augmentation.json" \
   --output-step "$build_path/composite-obstructions.step" \
   --component-mesh "$build_path/composite-components.stl" \
   --report "$build_path/composite-step-inspection.json"
 
-uv run --offline --with cadquery python \
+/usr/bin/python3 -B \
+  "$project_path/03_src/mechanical/compose_obstruction_step.py" \
+  --replay-receipt "$build_path/composite-step-inspection.json"
+
+uv run --offline --with cadquery==2.8.0 python -B \
   skills/pcb-enclosure/scripts/build_collision.py \
   --step "$build_path/composite-obstructions.step" \
   --step-inspection "$build_path/composite-step-inspection.json" \
   --component-mesh "$build_path/composite-components.stl" \
+  --interface "$build_path/board-interface.json" \
   --generation "$build_path/generation.json" \
   --assembled-case-mesh "$build_path/assembled-case.stl" \
   --board-bottom-z-mm 9.5 \
   --output "$build_path/composite-clearance-intersection.stl" \
   --report "$build_path/composite-collision.json"
+
+/usr/bin/python3 -B skills/pcb-enclosure/scripts/build_collision.py \
+  --replay-receipt "$build_path/composite-collision.json"
+
+/usr/bin/python3 -B skills/pcb-enclosure/scripts/enclosure_v2.py \
+  validate-config "$project_path/03_src/mechanical/enclosure-v2.yaml" \
+  --root "$project_path" --output "$build_path/v2-validation.json"
 ```
+
+The authored enclosure generation and FDM receipt are deterministic byte
+replays. The supplemental obstruction path has a different boundary: KiCad
+and CadQuery may serialize an equivalent STEP with different bytes. The
+composition receipt therefore byte-binds the selected composite STEP used by
+the collision audit, then replays in a private directory with pinned
+CadQuery 2.8.0 through the shared bounded runtime. Replay requires exact
+validator/helper/input identities, 121/121 modeled references plus SW1, exact
+parent/supplement/PCB/component solid selection, a quantized per-solid geometry
+signature, and a byte-exact 244-solid component mesh. It deliberately does not
+claim that a freshly serialized composite STEP has the same bytes. The collision
+receipt separately replays against the exact selected STEP and must report
+`COMPLETE`, `EMPTY`, and exactly `0 mm3`. Do not claim byte identity for the
+regenerated supplemental STEP or its augmentation receipt.
 
 ## Physical qualification plan
 

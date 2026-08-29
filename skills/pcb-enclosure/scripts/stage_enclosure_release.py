@@ -436,11 +436,35 @@ def stage_release(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
                     "object before shared connector replay is inspected")
             connector_replay = release_verify.validate_connector_replay_closure(
                 temporary, replay_value, replay_tools, payload_by_path)
+            fdm_replay = release_verify.validate_fdm_replay_closure(
+                temporary, replay_value, replay_tools, payload_by_path,
+                refresh_derived_reports=True)
             composition_loaded = composition.validate_config_v2(
                 replay_value, temporary,
                 release_connector_compiler=(
                     connector_replay["compiler_binding"]
-                    if connector_replay is not None else None))
+                    if connector_replay is not None else None),
+                release_fdm_compiler=(
+                    fdm_replay["compiler_binding"]
+                    if fdm_replay is not None else None),
+                release_fdm_helper=(
+                    fdm_replay["helper_binding"]
+                    if fdm_replay is not None else None),
+                release_collision_builder=(
+                    fdm_replay["collision_builder_binding"]
+                    if fdm_replay is not None else None),
+                release_step_inspector=(
+                    fdm_replay["step_inspector_binding"]
+                    if fdm_replay is not None else None),
+                release_process_runner=(
+                    fdm_replay["process_runner_binding"]
+                    if fdm_replay is not None else None),
+                release_pipeline_runtime=(
+                    fdm_replay["pipeline_runtime_binding"]
+                    if fdm_replay is not None else None),
+                release_collision_subject_validator=(
+                    fdm_replay["collision_subject_validator_binding"]
+                    if fdm_replay is not None else None))
         except (composition.V2Error, OSError) as exc:
             raise release_verify.ReleaseError(
                 f"release-local schema-v2 config is invalid: {exc}") from exc
@@ -451,6 +475,56 @@ def stage_release(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
                 "declared release scopes differ from the validated schema-v2 "
                 f"required scope census; expected={required_scopes}, "
                 f"actual={sorted(scopes)}")
+        if fdm_replay is not None:
+            # Derived reports are products of the exact release-local closure,
+            # not opaque workspace evidence. Rebuild them after every replay
+            # and before the manifest census so staging paths never leak into
+            # the immutable candidate.
+            tools_by_role = {row["role"]: row for row in replay_tools}
+            validator = release_verify._required_replay_tool(
+                tools_by_role, release_verify.V2_VALIDATOR_ROLE,
+                release_verify.V2_VALIDATOR_RELEASE_PATH,
+                "schema-v2 validation compiler")
+            validator_path = temporary / validator["path"]
+            v2_report = composition.config_validation_report(
+                replay_value, composition_loaded, temporary,
+                validator_path=validator_path)
+            intent_binding = composition_loaded["bindings"][
+                "mechanical_intent"]
+            intent_raw = composition.load_yaml(intent_binding["path"])
+            intent_report = composition.mechanical_intent_validation_report(
+                intent_raw)
+            status_input = {"scope_statuses": dict(scopes)}
+            scoped_report = composition.aggregate_config_report(
+                status_input, composition_loaded)
+            derived = {
+                "verification/v2-validation.json": v2_report,
+                "verification/mechanical-intent-validation-v2.json":
+                    intent_report,
+                "verification/scope-statuses.json": status_input,
+                "verification/scoped-verdict.json": scoped_report,
+            }
+            for relative, report in derived.items():
+                composition._write_or_print(
+                    report, temporary / relative,
+                    inputs=[temporary / replay_config,
+                            intent_binding["path"], validator_path])
+
+            # Every rewritten report changes its payload identity. Rebuild the
+            # complete pre-manifest census and all records derived from it.
+            files, _ = release_verify.scan_regular_tree(temporary)
+            payloads = [_record_for_release_file(temporary, relative)
+                        for relative in sorted(files)]
+            payload_by_path = {row["path"]: row for row in payloads}
+            config_record = payload_by_path[replay_config]
+            replay_tools = [
+                {"role": role, **payload_by_path[path]}
+                for role, path in tools
+            ]
+
+        release_verify.validate_current_policy_derived_reports(
+            temporary, replay_value, composition_loaded, replay_tools,
+            payload_by_path, scopes, current_policy=fdm_replay is not None)
 
         manifest = {
             "schema": 2,
@@ -488,6 +562,9 @@ def stage_release(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
             "payloads": payloads,
         }
         _write_json_exclusive(temporary / release_verify.MANIFEST_NAME, manifest)
+        sealed_files, _ = release_verify.scan_regular_tree(temporary)
+        sealed_tree_snapshot = release_verify.regular_tree_content_snapshot(
+            temporary, sealed_files, "sealed staging tree")
         release_verify.verify_release(
             temporary, project_abs, require_directory_name=False)
         # Reopen every mutable source name through the stable no-link seam.
@@ -524,6 +601,20 @@ def stage_release(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
         if aliases:
             raise release_verify.ReleaseError(
                 f"release destination has a case/Unicode path collision: {aliases}")
+        final_staged_files, _ = release_verify.scan_regular_tree(temporary)
+        final_staged_snapshot = release_verify.regular_tree_content_snapshot(
+            temporary, final_staged_files, "final staging tree")
+        if final_staged_snapshot != sealed_tree_snapshot:
+            initial_paths = set(sealed_tree_snapshot)
+            final_paths = set(final_staged_snapshot)
+            changed = sorted(
+                path for path in initial_paths & final_paths
+                if sealed_tree_snapshot[path] != final_staged_snapshot[path])
+            raise release_verify.ReleaseError(
+                "staged release tree changed after verification; "
+                f"missing={sorted(initial_paths - final_paths)}, "
+                f"extras={sorted(final_paths - initial_paths)}, "
+                f"changed={changed}")
         _rename_noreplace_at(stream_fd, temporary.name, release_id)
         published = True
         _fsync_directory(enclosure_stream)

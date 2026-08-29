@@ -18,6 +18,7 @@ README and both configs bind it.
 | `enclosure.yaml` | Declarative enclosure identity, subject, process, CAD backend, geometry, fastener, access-interface, thermal and physical-validation contract |
 | `enclosure-v2.yaml` | Commissioned authority, scope, installed-part, fastener-role, assembly-motion and physical-test composition |
 | `mechanical-intent-v2.yaml` | Installed/service states, insertion/removal operations, unknowns and excluded claims |
+| `fdm-structural-contract.yaml` | Exact printable-part, process, load-case, attachment, section-probe and reinforcement census for the shared FDM structural audit; never physical-strength authority |
 | `*.scad` | Optional board-coupled parametric OpenSCAD source or an explicitly retained co-design prototype |
 | `prepare_obstruction_step.py` | Strict producer for the supplemental JLC-catalog obstruction STEP; never edits the sealed PCB release |
 | `compose_obstruction_step.py` | Exact CadQuery/OCP compositor for the sealed STEP plus the bound supplemental obstruction STEP |
@@ -36,13 +37,20 @@ README and both configs bind it.
   check must carry a nonzero denominator and exact subject hashes.
 - Run `enclosure_v2.py validate-intent` and `validate-config` against the
   committed paths; both must work from a clean clone before generation.
+- Regrade `fdm-structural-contract.yaml` against the exact generation receipt
+  and every declared printable STL. A mesh-visible structural PASS remains
+  `INCOMPLETE` while slicer/toolpath and physical load evidence are absent.
 - Re-extract a retained board interface into `06_build/mechanical/` and require
   byte identity with the committed `reference/` copy.
 - Regenerate under `06_build/mechanical/`; `rm -rf 06_build/` must never remove
   the only copy of a design decision or physical-test observation.
 - Rebuild and compose the supplemental obstruction STEP. The union must cover
   every modeled PCB reference plus every declared unmodeled access body before
-  its exact collision result may govern a candidate.
+  its exact collision result may govern a candidate. The selected composite
+  STEP remains byte-bound; `compose_obstruction_step.py --replay-receipt` must
+  independently reproduce its exact source/tool identities, occurrence and
+  solid-selection census, semantic geometry signature, and component-mesh
+  bytes through pinned CadQuery and the shared bounded runtime.
 - A render can establish CAD review only. Promote to `PRINT_VERIFIED` or
   `THERMALLY_VERIFIED` solely from a dated physical witness in `08_reviews/`.
 

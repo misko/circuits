@@ -2,6 +2,11 @@
 
 Design each part around an explicit build orientation. `forbid_when_practical` means remove avoidable supports and declare any unavoidable exception; it does not mean ignoring support needs.
 
+For new candidates, encode the exact per-part orientation, process, support
+exceptions, critical attachments, load cases, and mesh-section witnesses in
+the contract described by [fdm-structural-audit.md](fdm-structural-audit.md).
+A prose orientation note or clean manifold check is not that contract.
+
 ## Orientation
 
 - Print base and lid on broad exterior faces when this leaves cavities, grooves, and insert pockets open upward.
@@ -49,9 +54,15 @@ High thermal risk requires declared ventilation and physical soak evidence. Mode
 Before committing a full print:
 
 1. Generate every declared STL and require a single, closed, nonzero-volume connected component per part.
-2. Render the assembled design and inspect seams, mirrored sides, posts, panels, vents, and cable approach.
-3. Slice every orientation with the intended profile; inspect layer preview for unsupported islands, excessive bridges, thin walls, and accidental gap fill.
-4. Print the insert coupon and any connector/panel fit coupon that materially reduces risk.
-5. Re-run generation and verification after changing any authored dimension.
+2. Run the FDM/structural audit over the exact printable census. Reject a
+   floating/below-bed orientation, stale mesh, missing attachment/load census,
+   weak critical section, or unsupported flexure exception.
+3. Render the assembled design and inspect seams, mirrored sides, posts, panels, vents, and cable approach.
+4. Slice every orientation with the intended profile; inspect layer preview for unsupported islands, excessive bridges, thin walls, and accidental gap fill.
+5. Print the insert coupon and any connector/panel fit coupon that materially reduces risk.
+6. Re-run generation and every receipt after changing any authored dimension.
 
 Mesh manifold checks do not prove slicer quality, strength, tolerance, or support freedom. Preserve slicer screenshots or settings when they support a physical test record.
+The current deterministic adapter reports self-intersection, local-thickness,
+printer build volume, overhang/support, and slicer/toolpath checks as
+`INCOMPLETE`; do not summarize that receipt as an FDM pass.

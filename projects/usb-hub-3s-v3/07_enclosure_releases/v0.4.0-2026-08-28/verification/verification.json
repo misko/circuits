@@ -1,0 +1,525 @@
+{
+  "checks": [
+    {
+      "evidence": {
+        "files": {
+          "cad_source": {
+            "actual_sha256": "c75beaf6a7de110c878768ea279cd14780591c354481e87740aadb84c651570d",
+            "actual_size": 14647,
+            "exists": true,
+            "expected_sha256": "c75beaf6a7de110c878768ea279cd14780591c354481e87740aadb84c651570d",
+            "expected_size": 14647,
+            "matches": true
+          },
+          "interface": {
+            "actual_sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+            "actual_size": 61228,
+            "exists": true,
+            "expected_sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+            "expected_size": 61228,
+            "matches": true
+          },
+          "pcb": {
+            "actual_sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+            "actual_size": 2007690,
+            "exists": true,
+            "expected_sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+            "expected_size": 2007690,
+            "matches": true
+          },
+          "release_manifest": {
+            "actual_sha256": "2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4",
+            "actual_size": 41456,
+            "exists": true,
+            "expected_sha256": "2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4",
+            "expected_size": 41456,
+            "matches": true
+          },
+          "step": {
+            "actual_sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+            "actual_size": 2239061,
+            "exists": true,
+            "expected_sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+            "expected_size": 2239061,
+            "matches": true
+          }
+        }
+      },
+      "findings": [],
+      "graded": 5,
+      "name": "subject_binding",
+      "status": "PASS",
+      "total": 5
+    },
+    {
+      "evidence": {
+        "candidates": [
+          "D10",
+          "D11",
+          "D12",
+          "D8",
+          "D9",
+          "F1",
+          "F2",
+          "J1",
+          "J2",
+          "J3",
+          "J4",
+          "J5",
+          "SW1"
+        ],
+        "dispositions": {
+          "D10": "service_opening",
+          "D11": "service_opening",
+          "D12": "service_opening",
+          "D8": "service_opening",
+          "D9": "service_opening",
+          "F1": "service_opening",
+          "F2": "internal",
+          "J1": "opening",
+          "J2": "opening",
+          "J3": "opening",
+          "J4": "opening",
+          "J5": "opening",
+          "SW1": "service_opening"
+        }
+      },
+      "findings": [],
+      "graded": 62,
+      "name": "interface_coverage",
+      "status": "PASS",
+      "total": 62
+    },
+    {
+      "evidence": {
+        "board_case_axis_distances": [
+          {
+            "board_ref": "H1",
+            "case_index": 0,
+            "distance_mm": 91.6624241442479
+          },
+          {
+            "board_ref": "H1",
+            "case_index": 1,
+            "distance_mm": 15.556349186104045
+          },
+          {
+            "board_ref": "H1",
+            "case_index": 2,
+            "distance_mm": 157.8670326572334
+          },
+          {
+            "board_ref": "H1",
+            "case_index": 3,
+            "distance_mm": 129.46814279968643
+          },
+          {
+            "board_ref": "H2",
+            "case_index": 0,
+            "distance_mm": 15.556349186104045
+          },
+          {
+            "board_ref": "H2",
+            "case_index": 1,
+            "distance_mm": 91.6624241442479
+          },
+          {
+            "board_ref": "H2",
+            "case_index": 2,
+            "distance_mm": 129.46814279968643
+          },
+          {
+            "board_ref": "H2",
+            "case_index": 3,
+            "distance_mm": 157.8670326572334
+          },
+          {
+            "board_ref": "H3",
+            "case_index": 0,
+            "distance_mm": 130.11533345459327
+          },
+          {
+            "board_ref": "H3",
+            "case_index": 1,
+            "distance_mm": 91.44397191723465
+          },
+          {
+            "board_ref": "H3",
+            "case_index": 2,
+            "distance_mm": 105.11898020814318
+          },
+          {
+            "board_ref": "H3",
+            "case_index": 3,
+            "distance_mm": 49.8196748283246
+          },
+          {
+            "board_ref": "H4",
+            "case_index": 0,
+            "distance_mm": 131.40015220691336
+          },
+          {
+            "board_ref": "H4",
+            "case_index": 1,
+            "distance_mm": 150.23315213360866
+          },
+          {
+            "board_ref": "H4",
+            "case_index": 2,
+            "distance_mm": 27.313000567495326
+          },
+          {
+            "board_ref": "H4",
+            "case_index": 3,
+            "distance_mm": 77.78174593052023
+          }
+        ],
+        "board_insert_pocket_bottom_z_mm": 4.0249999999999995,
+        "board_thread_engagement_mm": 4.4,
+        "board_tip_clearance_mm": 0.375,
+        "boss_radial_wall_mm": 1.4500000000000002,
+        "case_insert_pocket_bottom_z_mm": 21.525000000000002,
+        "case_post_radial_wall_mm": 1.4500000000000002,
+        "case_thread_engagement_mm": 3.8000000000000007,
+        "case_tip_clearance_mm": 0.9749999999999996,
+        "minimum_board_case_axis_distance_mm": 9.0,
+        "pocket_bottom_above_floor_mm": 1.6249999999999996
+      },
+      "findings": [],
+      "graded": 29,
+      "name": "fastener_geometry",
+      "status": "PASS",
+      "total": 29
+    },
+    {
+      "evidence": {
+        "assembly_contract": {
+          "board_fastener_axes_mm": [
+            [
+              -59.0,
+              40.0
+            ],
+            [
+              -59.0,
+              -40.0
+            ],
+            [
+              21.0,
+              42.0
+            ],
+            [
+              59.0,
+              -26.0
+            ]
+          ],
+          "case_fastener_axes_mm": [
+            [
+              -70.0,
+              -51.0
+            ],
+            [
+              -70.0,
+              51.0
+            ],
+            [
+              70.0,
+              -51.0
+            ],
+            [
+              70.0,
+              51.0
+            ]
+          ],
+          "fastener_strategy": "separate_perimeter",
+          "kind": "pcb-enclosure-assembly-contract-v1",
+          "pcb_retained_with_lid_removed": true,
+          "shared_board_shell_axes": false,
+          "shell_closure_axes_mm": [
+            [
+              -70.0,
+              -51.0
+            ],
+            [
+              -70.0,
+              51.0
+            ],
+            [
+              70.0,
+              -51.0
+            ],
+            [
+              70.0,
+              51.0
+            ]
+          ]
+        },
+        "generation_file": {
+          "path": "generation.json",
+          "sha256": "f16a2f390ecf88d43852c297a2c4aa2631ff491e945e30a1f7533ce49b7fde8a",
+          "size": 4151
+        },
+        "parts": {
+          "base": {
+            "absolute_volume_mm3": 48136.414384951706,
+            "bbox_mm": {
+              "max": [
+                75.4,
+                56.4,
+                27.0
+              ],
+              "min": [
+                -75.4,
+                -56.4,
+                0.0
+              ],
+              "size": [
+                150.8,
+                112.8,
+                27.0
+              ]
+            },
+            "boundary_edges": 0,
+            "component_absolute_volume_mm3": 48136.41438495262,
+            "components": 1,
+            "degenerate_facets": 0,
+            "edge_manifold": true,
+            "format": "ascii",
+            "nonmanifold_edges": 0,
+            "orientation_consistent": true,
+            "orientation_mismatches": 0,
+            "path": "base.stl",
+            "sha256": "bd0c426c166135753d0881f8a8ef26b81cdc1ee978164b2d38cb953562d47bdc",
+            "signed_volume_mm3": 48136.414384951706,
+            "size": 820586,
+            "triangles": 4812
+          },
+          "insert_coupon": {
+            "absolute_volume_mm3": 12169.324659439639,
+            "bbox_mm": {
+              "max": [
+                36.0,
+                12.0,
+                11.725
+              ],
+              "min": [
+                -36.0,
+                -12.0,
+                0.0
+              ],
+              "size": [
+                72.0,
+                24.0,
+                11.725
+              ]
+            },
+            "boundary_edges": 0,
+            "component_absolute_volume_mm3": 12169.324659439595,
+            "components": 1,
+            "degenerate_facets": 0,
+            "edge_manifold": true,
+            "format": "ascii",
+            "nonmanifold_edges": 0,
+            "orientation_consistent": true,
+            "orientation_mismatches": 0,
+            "path": "insert_coupon.stl",
+            "sha256": "121c3c5afb5b09f87a2d420661248352bf23ebd1de2037a44828b3a153e2774b",
+            "signed_volume_mm3": 12169.324659439639,
+            "size": 1289644,
+            "triangles": 7504
+          },
+          "lid": {
+            "absolute_volume_mm3": 35218.10441337285,
+            "bbox_mm": {
+              "max": [
+                75.4,
+                56.4,
+                3.2
+              ],
+              "min": [
+                -75.4,
+                -56.4,
+                1.90735e-07
+              ],
+              "size": [
+                150.8,
+                112.8,
+                3.1999998092650004
+              ]
+            },
+            "boundary_edges": 0,
+            "component_absolute_volume_mm3": 35218.10441337301,
+            "components": 1,
+            "degenerate_facets": 0,
+            "edge_manifold": true,
+            "format": "ascii",
+            "nonmanifold_edges": 0,
+            "orientation_consistent": true,
+            "orientation_mismatches": 0,
+            "path": "lid.stl",
+            "sha256": "7d4105dd56126a39a8e00d5730909cef45ce3864812d2e13f38a51202ea68b71",
+            "signed_volume_mm3": 35218.10441337285,
+            "size": 1279625,
+            "triangles": 7224
+          }
+        },
+        "support_policy": "forbid_when_practical"
+      },
+      "findings": [],
+      "graded": 4,
+      "name": "printable_meshes",
+      "status": "PASS",
+      "total": 4
+    },
+    {
+      "evidence": {
+        "step_inspection": {
+          "geometry": {
+            "assembly_bbox_mm": {
+              "max": [
+                150.0,
+                -20.0,
+                9.2950001
+              ],
+              "min": [
+                20.0,
+                -112.0,
+                -1.1950000000000005
+              ],
+              "size": [
+                130.0,
+                92.0,
+                10.4900001
+              ]
+            },
+            "backend": "cadquery-step-exact",
+            "case_registration_translate_mm_at_board_z0": [
+              -85.0,
+              66.0,
+              -0.0
+            ],
+            "component_mesh": {
+              "path": "components.stl",
+              "sha256": "ed4afdd9e2cc2e38c877091ab1d5e510f4f70e635ced04248b248a6b8651b92b",
+              "size": 14567884
+            },
+            "component_solid_count": 110,
+            "pcb_outline_candidate_indices": [
+              110
+            ],
+            "pcb_related_solid_indices": [
+              110
+            ],
+            "pcb_solid": {
+              "index": 110,
+              "max_mm": [
+                150.0,
+                -20.0,
+                1.51
+              ],
+              "min_mm": [
+                20.0,
+                -112.0,
+                0.0
+              ],
+              "size_mm": [
+                130.0,
+                92.0,
+                1.51
+              ]
+            },
+            "solid_count": 111,
+            "status": "COMPLETE"
+          },
+          "interface": {
+            "path": "board-interface-v1.12.json",
+            "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+            "size": 61228
+          },
+          "kind": "pcb-enclosure-step-inspection-v1",
+          "occurrence_coverage": {
+            "covered_modeled_refs": 106,
+            "expected_modeled_refs": 121,
+            "missing_modeled_refs": [
+              "F2",
+              "J1",
+              "J2",
+              "J3",
+              "J4",
+              "J5",
+              "Q1",
+              "Q2",
+              "Q3",
+              "Q4",
+              "Q5",
+              "Q6",
+              "U3",
+              "U4",
+              "U5"
+            ],
+            "observed_designators": 106,
+            "status": "FAIL",
+            "unmodeled_access_refs": [
+              "SW1"
+            ],
+            "zero_modeled_denominator": false
+          },
+          "schema": 1,
+          "status": "FAIL",
+          "step": {
+            "path": "usb_hub_3s_v2.step",
+            "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+            "size": 2239061
+          }
+        },
+        "step_inspection_file": {
+          "path": "step-inspection.json",
+          "sha256": "94bbf7315bb0bb22ed8c603b48f354785c01c1311a66d25dbd4737df8df07094",
+          "size": 1887
+        }
+      },
+      "findings": [
+        "STEP assembly coverage failed: missing=F2,J1,J2,J3,J4,J5,Q1,Q2,Q3,Q4,Q5,Q6,U3,U4,U5 unmodeled-access=SW1"
+      ],
+      "graded": 1,
+      "name": "exact_solid_clearance",
+      "status": "FAIL",
+      "total": 2
+    },
+    {
+      "evidence": {
+        "load_case": "roof-covered open-sided case, USB-A total 6 A plus USB-C 3 A at hottest expected ambient",
+        "risk": "high",
+        "vent_groups": 4
+      },
+      "findings": [],
+      "graded": 2,
+      "name": "thermal_plan",
+      "status": "PASS",
+      "total": 2
+    },
+    {
+      "evidence": {},
+      "findings": [
+        "operator physical evidence has not been supplied"
+      ],
+      "graded": 0,
+      "name": "physical_evidence",
+      "status": "INCOMPLETE",
+      "total": 4
+    }
+  ],
+  "config": {
+    "path": "source/enclosure-cad-design-v2.yaml",
+    "raw_sha256": "8ec276ff19ff1cdaf5eb991a7ce1e97dc3df3ca0741e39fd3fd90c98dc2def31",
+    "semantic_sha256": "6fd1541bfdecd6e478d26e734f8499b61c209e2f82d4ed87247a1c2da9e82f8e"
+  },
+  "kind": "pcb-enclosure-verification-v1",
+  "schema": 1,
+  "status": "FAIL",
+  "summary": {
+    "failed": 1,
+    "incomplete": 1,
+    "passed": 5,
+    "total": 7
+  }
+}

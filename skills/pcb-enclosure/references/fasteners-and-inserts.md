@@ -2,6 +2,15 @@
 
 Treat insert geometry as part-number-, material-, and printer-specific. Datasheet nominal dimensions seed a coupon; the coupon establishes the production hole.
 
+## Contents
+
+- [Capture the hardware](#capture-the-hardware)
+- [Model the insert pocket](#model-the-insert-pocket)
+- [Select the strategy](#select-the-strategy)
+- [Schema-v2 role groups](#schema-v2-role-groups)
+- [Print and qualify a coupon](#print-and-qualify-a-coupon)
+- [Assembly checks](#assembly-checks)
+
 ## Capture the hardware
 
 Record the exact thread, insert family, installation method, body diameter, flange diameter, length, and manufacturer-recommended hole. Also measure screw head and clearance diameters, head height/recess, available lengths, and required engagement.
@@ -42,6 +51,23 @@ Give every group its actual 3-D screw axes, retained members, thread, screw
 length, minimum engagement, and minimum tip clearance. Board-retention and
 case-closure axes must be disjoint. A visually separate boss is not sufficient
 if its screw line still passes through the PCB mounting hole.
+
+Treat every boss/post-to-floor, boss/post-to-roof, and local screw-seat
+transition that carries closure or retention load as a critical attachment in
+the FDM/structural contract. Measure independent root and member sections and
+declare the overlap plus a real fillet or gusset witness. A large roof or floor
+plane sampled twice is not independent root evidence, and a shallow circular
+lug merely touching a skin must fail the screen even when the combined STL is
+manifold.
+
+The complete screw load chain is: head bearing land, residual thickness below
+any head recess, clearance sleeve/post wall, threaded engagement, tip
+clearance, post or boss body, and the root into its parent plate. Audit every
+link under tightening/preload and external reaction loads. Connector mating,
+hand-tool torque, cable pull/bend, or lid twist can govern a closure root even
+when the screw stack itself is dimensionally valid. Removing a skirt, sidewall,
+lip, or rail requires a fresh torsion/load-path audit; those features may have
+been carrying load even when they were not named as fasteners.
 
 Schema v2 requires `pcb_retained_with_lid_removed: true`. Mechanical intent
 must include a lid-removed state with all board-retention groups still secured

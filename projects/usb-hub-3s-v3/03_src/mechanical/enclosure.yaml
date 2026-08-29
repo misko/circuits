@@ -37,8 +37,8 @@ cad:
   source:
     kind: authored_scad
     path: 03_src/mechanical/usb_hub_3s_v3_case.scad
-    sha256: ca8e79bfbfe403f3e3648a44ea05f6521825e6b68f98fc5cc86049ec81e47a6f
-    size: 12618
+    sha256: c75beaf6a7de110c878768ea279cd14780591c354481e87740aadb84c651570d
+    size: 14647
 geometry:
   topology: split_shell
   xy_clearance_mm: 8.0

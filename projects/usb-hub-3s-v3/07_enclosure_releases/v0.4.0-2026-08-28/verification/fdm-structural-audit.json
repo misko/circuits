@@ -1,0 +1,1468 @@
+{
+  "denominators": {
+    "critical_attachments": 17,
+    "load_cases": 9,
+    "printable_parts": 3,
+    "process_profiles": 1,
+    "structural_probe_assertions": 85
+  },
+  "domains": {
+    "mesh_integrity": {
+      "denominator": 3,
+      "findings": [
+        "self-intersection analysis is not implemented",
+        "local wall/thickness analysis is not implemented"
+      ],
+      "local_thickness_status": "INCOMPLETE",
+      "parts": {
+        "base": {
+          "absolute_volume_mm3": 48136.414384951706,
+          "bbox_mm": {
+            "max": [
+              75.4,
+              56.4,
+              27.0
+            ],
+            "min": [
+              -75.4,
+              -56.4,
+              0.0
+            ]
+          },
+          "components": 1,
+          "degenerate_facets": 0,
+          "edge_manifold": true,
+          "nonmanifold_edges": 0,
+          "orientation_consistent": true,
+          "orientation_mismatches": 0,
+          "sha256": "bd0c426c166135753d0881f8a8ef26b81cdc1ee978164b2d38cb953562d47bdc",
+          "size": 820586,
+          "triangles": 4812
+        },
+        "insert_coupon": {
+          "absolute_volume_mm3": 12169.324659439639,
+          "bbox_mm": {
+            "max": [
+              36.0,
+              12.0,
+              11.725
+            ],
+            "min": [
+              -36.0,
+              -12.0,
+              0.0
+            ]
+          },
+          "components": 1,
+          "degenerate_facets": 0,
+          "edge_manifold": true,
+          "nonmanifold_edges": 0,
+          "orientation_consistent": true,
+          "orientation_mismatches": 0,
+          "sha256": "121c3c5afb5b09f87a2d420661248352bf23ebd1de2037a44828b3a153e2774b",
+          "size": 1289644,
+          "triangles": 7504
+        },
+        "lid": {
+          "absolute_volume_mm3": 35218.10441337285,
+          "bbox_mm": {
+            "max": [
+              75.4,
+              56.4,
+              3.2
+            ],
+            "min": [
+              -75.4,
+              -56.4,
+              1.90735e-07
+            ]
+          },
+          "components": 1,
+          "degenerate_facets": 0,
+          "edge_manifold": true,
+          "nonmanifold_edges": 0,
+          "orientation_consistent": true,
+          "orientation_mismatches": 0,
+          "sha256": "7d4105dd56126a39a8e00d5730909cef45ce3864812d2e13f38a51202ea68b71",
+          "size": 1279625,
+          "triangles": 7224
+        }
+      },
+      "passed": 3,
+      "self_intersection_status": "INCOMPLETE",
+      "status": "INCOMPLETE",
+      "topology_status": "PASS"
+    },
+    "orientation_and_process_contract": {
+      "build_plate_contact_status": "PASS",
+      "build_plate_tolerance_mm": 1e-05,
+      "build_space_bboxes": {
+        "base": {
+          "max": [
+            75.4,
+            56.4,
+            27.0
+          ],
+          "min": [
+            -75.4,
+            -56.4,
+            0.0
+          ]
+        },
+        "insert_coupon": {
+          "max": [
+            36.0,
+            12.0,
+            11.725
+          ],
+          "min": [
+            -36.0,
+            -12.0,
+            0.0
+          ]
+        },
+        "lid": {
+          "max": [
+            75.4,
+            56.4,
+            3.2
+          ],
+          "min": [
+            -75.4,
+            -56.4,
+            1.90735e-07
+          ]
+        }
+      },
+      "build_volume_status": "INCOMPLETE",
+      "declaration_status": "PASS",
+      "denominator": 4,
+      "findings": [
+        "printer build-volume check is unavailable without a pinned printer"
+      ],
+      "layer_normal_load_alignment": [
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "pcb_boss_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "pcb_clamp_and_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mating_west_east"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mating_south"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "pcb_boss_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_cable_pull_and_bend"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_hand_tool_torque_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "pcb_boss_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "pcb_clamp_and_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mating_west_east"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mating_south"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "pcb_boss_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_cable_pull_and_bend"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_hand_tool_torque_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "pcb_boss_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "pcb_clamp_and_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mating_west_east"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mating_south"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "pcb_boss_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_cable_pull_and_bend"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_hand_tool_torque_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "pcb_boss_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "pcb_clamp_and_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mating_west_east"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mating_south"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "pcb_boss_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_cable_pull_and_bend"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "pcb_boss_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_hand_tool_torque_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "case_post_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_closure_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "case_post_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "closure_joint_lateral_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "case_post_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_closure_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "case_post_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "closure_joint_lateral_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "case_post_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_closure_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "case_post_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "closure_joint_lateral_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "case_post_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_closure_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "case_post_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "closure_joint_lateral_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "closure_ear_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_closure_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "closure_ear_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_twist_and_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "closure_ear_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "closure_joint_lateral_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "closure_ear_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_closure_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "closure_ear_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_twist_and_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "closure_ear_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "closure_joint_lateral_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "closure_ear_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_closure_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "closure_ear_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_twist_and_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "closure_ear_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "closure_joint_lateral_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "closure_ear_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_closure_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "closure_ear_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_twist_and_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "closure_ear_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "closure_joint_lateral_service"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "coupon_boss_405",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "insert_coupon_press"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "coupon_boss_415",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "insert_coupon_press"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "coupon_boss_425",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "insert_coupon_press"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "coupon_boss_435",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "insert_coupon_press"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "coupon_boss_445",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "insert_coupon_press"
+        }
+      ],
+      "part_transforms": {
+        "base": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "insert_coupon": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "lid": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "passed": 4,
+      "process_profiles": [
+        "production"
+      ],
+      "status": "INCOMPLETE"
+    },
+    "physical_evidence_boundary": {
+      "consumed": false,
+      "finding": "physical print, fit, fastener, load, and thermal evidence is outside this CAD audit",
+      "governs_cad_readiness": false,
+      "status": "INCOMPLETE"
+    },
+    "slicer_toolpath_evidence": {
+      "declared_support_exceptions": [],
+      "denominator": 1,
+      "findings": [
+        "no canonical slicer/profile/toolpath adapter is bound",
+        "overhang and support-material analysis is not implemented",
+        "unsupported-island and bridge analysis is not implemented",
+        "global plate torsion, stiffness, and distributed load analysis is not implemented"
+      ],
+      "overhang_status": "INCOMPLETE",
+      "passed": 0,
+      "slicer_status": "INCOMPLETE",
+      "status": "INCOMPLETE",
+      "support_status": "INCOMPLETE",
+      "toolpath_status": "INCOMPLETE"
+    },
+    "structural_load_path_screen": {
+      "attachment_count": 17,
+      "attachments": {
+        "case_post_c1": {
+          "exception_id": null,
+          "load_cases": [
+            "case_closure_preload",
+            "closure_joint_lateral_service"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 31.337639788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.00170412
+            },
+            "minimum_area_ratio": 0.48,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.505996794,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 63.43610608,
+              "minimum_area_mm2": 60.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.098466292,
+              "minimum_area_mm2": 30.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 8.99829588,
+              "status": "PASS"
+            }
+          }
+        },
+        "case_post_c2": {
+          "exception_id": null,
+          "load_cases": [
+            "case_closure_preload",
+            "closure_joint_lateral_service"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 31.337639788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.00170412
+            },
+            "minimum_area_ratio": 0.48,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.505996794,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 63.43610608,
+              "minimum_area_mm2": 60.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.098466292,
+              "minimum_area_mm2": 30.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 8.99829588,
+              "status": "PASS"
+            }
+          }
+        },
+        "case_post_c3": {
+          "exception_id": null,
+          "load_cases": [
+            "case_closure_preload",
+            "closure_joint_lateral_service"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 31.337639788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.00170412
+            },
+            "minimum_area_ratio": 0.48,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.505996794,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 63.43610608,
+              "minimum_area_mm2": 60.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.098466292,
+              "minimum_area_mm2": 30.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 8.99829588,
+              "status": "PASS"
+            }
+          }
+        },
+        "case_post_c4": {
+          "exception_id": null,
+          "load_cases": [
+            "case_closure_preload",
+            "closure_joint_lateral_service"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 31.337639788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.00170412
+            },
+            "minimum_area_ratio": 0.48,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.505996794,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 63.43610608,
+              "minimum_area_mm2": 60.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.098466292,
+              "minimum_area_mm2": 30.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 8.99829588,
+              "status": "PASS"
+            }
+          }
+        },
+        "closure_ear_c1": {
+          "exception_id": null,
+          "load_cases": [
+            "case_closure_preload",
+            "lid_twist_and_removal",
+            "closure_joint_lateral_service"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "blended_tab",
+            "material_change": {
+              "area_delta_mm2": 34.037897415,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 9.669364056
+            },
+            "minimum_area_ratio": 1.7,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "registered_parallel",
+              "signed_normal_separation_mm": 16.38477569226405,
+              "tangential_offset_mm": 6.234322163309278e-10,
+              "unoriented_normal_angle_deg": 0.0
+            },
+            "root_member_area_ratio": 2.444603776,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 23.562099154,
+              "minimum_area_mm2": 21.0,
+              "minimum_material_span_mm": 7.5,
+              "net_section_material_span_mm": 8.330635944,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 57.599996569,
+              "minimum_area_mm2": 42.0,
+              "minimum_material_span_mm": 13.0,
+              "net_section_material_span_mm": 18.0,
+              "status": "PASS"
+            }
+          }
+        },
+        "closure_ear_c2": {
+          "exception_id": null,
+          "load_cases": [
+            "case_closure_preload",
+            "lid_twist_and_removal",
+            "closure_joint_lateral_service"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "blended_tab",
+            "material_change": {
+              "area_delta_mm2": 34.037897415,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 9.669364056
+            },
+            "minimum_area_ratio": 1.7,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "registered_parallel",
+              "signed_normal_separation_mm": 16.38477569226405,
+              "tangential_offset_mm": 6.234322163309278e-10,
+              "unoriented_normal_angle_deg": 0.0
+            },
+            "root_member_area_ratio": 2.444603776,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 23.562099154,
+              "minimum_area_mm2": 21.0,
+              "minimum_material_span_mm": 7.5,
+              "net_section_material_span_mm": 8.330635944,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 57.599996569,
+              "minimum_area_mm2": 42.0,
+              "minimum_material_span_mm": 13.0,
+              "net_section_material_span_mm": 18.0,
+              "status": "PASS"
+            }
+          }
+        },
+        "closure_ear_c3": {
+          "exception_id": null,
+          "load_cases": [
+            "case_closure_preload",
+            "lid_twist_and_removal",
+            "closure_joint_lateral_service"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "blended_tab",
+            "material_change": {
+              "area_delta_mm2": 34.037897415,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 9.669364056
+            },
+            "minimum_area_ratio": 1.7,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "registered_parallel",
+              "signed_normal_separation_mm": 16.38477569226405,
+              "tangential_offset_mm": 6.234322163309278e-10,
+              "unoriented_normal_angle_deg": 0.0
+            },
+            "root_member_area_ratio": 2.444603776,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 23.562099154,
+              "minimum_area_mm2": 21.0,
+              "minimum_material_span_mm": 7.5,
+              "net_section_material_span_mm": 8.330635944,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 57.599996569,
+              "minimum_area_mm2": 42.0,
+              "minimum_material_span_mm": 13.0,
+              "net_section_material_span_mm": 18.0,
+              "status": "PASS"
+            }
+          }
+        },
+        "closure_ear_c4": {
+          "exception_id": null,
+          "load_cases": [
+            "case_closure_preload",
+            "lid_twist_and_removal",
+            "closure_joint_lateral_service"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "blended_tab",
+            "material_change": {
+              "area_delta_mm2": 34.037897415,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 9.669364056
+            },
+            "minimum_area_ratio": 1.7,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "registered_parallel",
+              "signed_normal_separation_mm": 16.38477569226405,
+              "tangential_offset_mm": 6.234322163309278e-10,
+              "unoriented_normal_angle_deg": 0.0
+            },
+            "root_member_area_ratio": 2.444603776,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 23.562099154,
+              "minimum_area_mm2": 21.0,
+              "minimum_material_span_mm": 7.5,
+              "net_section_material_span_mm": 8.330635944,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 57.599996569,
+              "minimum_area_mm2": 42.0,
+              "minimum_material_span_mm": 13.0,
+              "net_section_material_span_mm": 18.0,
+              "status": "PASS"
+            }
+          }
+        },
+        "coupon_boss_405": {
+          "exception_id": null,
+          "load_cases": [
+            "insert_coupon_press"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "insert_coupon",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 45.741016597,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.001704382
+            },
+            "minimum_area_ratio": 0.4,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.415939198,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 78.315504873,
+              "minimum_area_mm2": 76.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 10.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.574488276,
+              "minimum_area_mm2": 32.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 9.998295618,
+              "status": "PASS"
+            }
+          }
+        },
+        "coupon_boss_415": {
+          "exception_id": null,
+          "load_cases": [
+            "insert_coupon_press"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "insert_coupon",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 45.871118411,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.001704382
+            },
+            "minimum_area_ratio": 0.4,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.41427871,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 78.315607059,
+              "minimum_area_mm2": 76.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 10.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.444488648,
+              "minimum_area_mm2": 32.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 9.998295618,
+              "status": "PASS"
+            }
+          }
+        },
+        "coupon_boss_425": {
+          "exception_id": null,
+          "load_cases": [
+            "insert_coupon_press"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "insert_coupon",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 46.00125126,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.001704302
+            },
+            "minimum_area_ratio": 0.4,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.412618059,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 78.315739788,
+              "minimum_area_mm2": 76.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 10.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.314488528,
+              "minimum_area_mm2": 32.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 9.998295698,
+              "status": "PASS"
+            }
+          }
+        },
+        "coupon_boss_435": {
+          "exception_id": null,
+          "load_cases": [
+            "insert_coupon_press"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "insert_coupon",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 46.131117317,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.001704382
+            },
+            "minimum_area_ratio": 0.4,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.410958824,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 78.315607059,
+              "minimum_area_mm2": 76.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 10.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.184489742,
+              "minimum_area_mm2": 32.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 9.998295618,
+              "status": "PASS"
+            }
+          }
+        },
+        "coupon_boss_445": {
+          "exception_id": null,
+          "load_cases": [
+            "insert_coupon_press"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "insert_coupon",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 46.261014788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.001704382
+            },
+            "minimum_area_ratio": 0.4,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.409299412,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 78.315504873,
+              "minimum_area_mm2": 76.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 10.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.054490085,
+              "minimum_area_mm2": 32.0,
+              "minimum_material_span_mm": 9.8,
+              "net_section_material_span_mm": 9.998295618,
+              "status": "PASS"
+            }
+          }
+        },
+        "pcb_boss_h1": {
+          "exception_id": null,
+          "load_cases": [
+            "pcb_clamp_and_service",
+            "connector_mating_west_east",
+            "connector_mating_south",
+            "connector_cable_pull_and_bend",
+            "connector_hand_tool_torque_reaction"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 31.337639788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.00170412
+            },
+            "minimum_area_ratio": 0.48,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.505996794,
+            "status": "PASS"
+          },
+          "scope": "board_retention",
+          "sections": {
+            "member": {
+              "area_mm2": 63.43610608,
+              "minimum_area_mm2": 60.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.098466292,
+              "minimum_area_mm2": 30.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 8.99829588,
+              "status": "PASS"
+            }
+          }
+        },
+        "pcb_boss_h2": {
+          "exception_id": null,
+          "load_cases": [
+            "pcb_clamp_and_service",
+            "connector_mating_west_east",
+            "connector_mating_south",
+            "connector_cable_pull_and_bend",
+            "connector_hand_tool_torque_reaction"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 31.337639788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.00170412
+            },
+            "minimum_area_ratio": 0.48,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.505996794,
+            "status": "PASS"
+          },
+          "scope": "board_retention",
+          "sections": {
+            "member": {
+              "area_mm2": 63.43610608,
+              "minimum_area_mm2": 60.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.098466292,
+              "minimum_area_mm2": 30.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 8.99829588,
+              "status": "PASS"
+            }
+          }
+        },
+        "pcb_boss_h3": {
+          "exception_id": null,
+          "load_cases": [
+            "pcb_clamp_and_service",
+            "connector_mating_west_east",
+            "connector_mating_south",
+            "connector_cable_pull_and_bend",
+            "connector_hand_tool_torque_reaction"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 31.337639788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.00170412
+            },
+            "minimum_area_ratio": 0.48,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.505996794,
+            "status": "PASS"
+          },
+          "scope": "board_retention",
+          "sections": {
+            "member": {
+              "area_mm2": 63.43610608,
+              "minimum_area_mm2": 60.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.098466292,
+              "minimum_area_mm2": 30.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 8.99829588,
+              "status": "PASS"
+            }
+          }
+        },
+        "pcb_boss_h4": {
+          "exception_id": null,
+          "load_cases": [
+            "pcb_clamp_and_service",
+            "connector_mating_west_east",
+            "connector_mating_south",
+            "connector_cable_pull_and_bend",
+            "connector_hand_tool_torque_reaction"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 31.337639788,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.00170412
+            },
+            "minimum_area_ratio": 0.48,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.505996794,
+            "status": "PASS"
+          },
+          "scope": "board_retention",
+          "sections": {
+            "member": {
+              "area_mm2": 63.43610608,
+              "minimum_area_mm2": 60.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 32.098466292,
+              "minimum_area_mm2": 30.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 8.99829588,
+              "status": "PASS"
+            }
+          }
+        }
+      },
+      "denominator": 85,
+      "findings": [],
+      "load_case_count": 9,
+      "passed": 85,
+      "qualification_boundary": "critical-section geometry screen only; loads are not quantified and material/print strength is not qualified",
+      "status": "PASS"
+    }
+  },
+  "findings": [
+    "global plate torsion, stiffness, and distributed load analysis is not implemented",
+    "local wall/thickness analysis is not implemented",
+    "no canonical slicer/profile/toolpath adapter is bound",
+    "overhang and support-material analysis is not implemented",
+    "printer build-volume check is unavailable without a pinned printer",
+    "self-intersection analysis is not implemented",
+    "unsupported-island and bridge analysis is not implemented"
+  ],
+  "inputs": {
+    "cad_design": {
+      "design_fingerprint": "67e4dfa5ba83445bee22f9e554c4f46280813018636bfd73b1d1f0ed6c40a33d"
+    },
+    "compiler": {
+      "path": "skills/pcb-enclosure/scripts/fdm_structural_audit.py",
+      "sha256": "248e8474e72624037b7e3b0fd1dfb2c3562a157e40af515f6c7a875320c71437",
+      "size": 85207
+    },
+    "contract": {
+      "sha256": "e5cecc6b97379c28f85a4b5573dd468a398d539efa94be22858701f56628eac7",
+      "size": 23813
+    },
+    "enclosure_common": {
+      "path": "skills/pcb-enclosure/scripts/enclosure_common.py",
+      "sha256": "00b5d4eac53da9ab5ed698d8851c6e800e65c53eabd14ff6e9b78e6552eb862c",
+      "size": 56026
+    },
+    "generation": {
+      "sha256": "f16a2f390ecf88d43852c297a2c4aa2631ff491e945e30a1f7533ce49b7fde8a",
+      "size": 4151
+    },
+    "meshes": [
+      {
+        "part": "base",
+        "sha256": "bd0c426c166135753d0881f8a8ef26b81cdc1ee978164b2d38cb953562d47bdc",
+        "size": 820586
+      },
+      {
+        "part": "lid",
+        "sha256": "7d4105dd56126a39a8e00d5730909cef45ce3864812d2e13f38a51202ea68b71",
+        "size": 1279625
+      },
+      {
+        "part": "insert_coupon",
+        "sha256": "121c3c5afb5b09f87a2d420661248352bf23ebd1de2037a44828b3a153e2774b",
+        "size": 1289644
+      }
+    ]
+  },
+  "kind": "pcb-enclosure-fdm-structural-audit-v1",
+  "maximum_claim": "CAD_READY",
+  "name": "usb-hub-3s-v1.12-roof-only-case",
+  "physical_evidence_consumed": false,
+  "schema": 1,
+  "status": "INCOMPLETE"
+}

@@ -1,0 +1,542 @@
+{
+  "artifact_id": "usb-hub-3s-v3-enclosure",
+  "based_on": {
+    "manifest": {
+      "release_path": "authorities/pcb-release/MANIFEST.txt",
+      "sha256": "2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4",
+      "size": 41456,
+      "source_path": "MANIFEST.txt"
+    },
+    "pcb": {
+      "release_path": "authorities/pcb-release/source/usb_hub_3s_v2.kicad_pcb",
+      "sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+      "size": 2007690,
+      "source_path": "source/usb_hub_3s_v2.kicad_pcb"
+    },
+    "pcb_release": {
+      "project_path": "07_releases/v1.12-2026-07-28",
+      "release_id": "v1.12-2026-07-28"
+    },
+    "step": {
+      "release_path": "authorities/pcb-release/3d/usb_hub_3s_v2.step",
+      "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+      "size": 2239061,
+      "source_path": "3d/usb_hub_3s_v2.step"
+    }
+  },
+  "date": "2026-08-28",
+  "kind": "pcb-enclosure-release-v2",
+  "lifecycle": "immutable_candidate",
+  "payload_count": 79,
+  "payloads": [
+    {
+      "path": "README.md",
+      "sha256": "7674c4110af4bf0e7e4becf4e109ba42164d5298edbdd909b8de3e7f494de528",
+      "size": 5874
+    },
+    {
+      "path": "authorities/enclosure-predecessor/MANIFEST.json",
+      "sha256": "f76862fbd4d470ce92c33924bfc67be779b92a72c9416764db8676fc72e4e11a",
+      "size": 18081
+    },
+    {
+      "path": "authorities/pcb-release/3d/usb_hub_3s_v2.step",
+      "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+      "size": 2239061
+    },
+    {
+      "path": "authorities/pcb-release/MANIFEST.txt",
+      "sha256": "2d6192ebbd5755920d3b2099574455339ab02ba4a4cd3b56905a86ac2ba33ef4",
+      "size": 41456
+    },
+    {
+      "path": "authorities/pcb-release/source/usb_hub_3s_v2.kicad_pcb",
+      "sha256": "2eb04b6b7e526d6fe30c2b3bab399558dc5c34c4c4e254dac6a4d9ffd71125bf",
+      "size": 2007690
+    },
+    {
+      "path": "cad/usb_hub_3s_v3_case.scad",
+      "sha256": "c75beaf6a7de110c878768ea279cd14780591c354481e87740aadb84c651570d",
+      "size": 14647
+    },
+    {
+      "path": "meshes/base.stl",
+      "sha256": "bd0c426c166135753d0881f8a8ef26b81cdc1ee978164b2d38cb953562d47bdc",
+      "size": 820586
+    },
+    {
+      "path": "meshes/insert_coupon.stl",
+      "sha256": "121c3c5afb5b09f87a2d420661248352bf23ebd1de2037a44828b3a153e2774b",
+      "size": 1289644
+    },
+    {
+      "path": "meshes/lid.stl",
+      "sha256": "7d4105dd56126a39a8e00d5730909cef45ce3864812d2e13f38a51202ea68b71",
+      "size": 1279625
+    },
+    {
+      "path": "renders/assembly.png",
+      "sha256": "cb635e37e410a1cba5bcedccd0abd5e9d40fa8202b5c6d0f913cf94b17a2a8f6",
+      "size": 49095
+    },
+    {
+      "path": "renders/base-board.png",
+      "sha256": "4fab15a7b72cf66f359600ce56dc67a54d305cf5c305538bb6034b36dec6c52e",
+      "size": 46741
+    },
+    {
+      "path": "renders/insert-coupon.png",
+      "sha256": "5739f254ce2ef8e2e39641fc73c6ec12c524a78874cda5a1fe6e3792f2052fc4",
+      "size": 33678
+    },
+    {
+      "path": "renders/installed-assembly.png",
+      "sha256": "b04d1bcde67b37049890636c705523b6437d6380d448177a00c15c0e9ae9894c",
+      "size": 44851
+    },
+    {
+      "path": "renders/lid-top.png",
+      "sha256": "b4340f25402fdef72be5f6b8085b9c8b8a91107cb7a4e7dc406fdd721b8adc5d",
+      "size": 12783
+    },
+    {
+      "path": "source/connector-assembly/02_parts/3568/part.yaml",
+      "sha256": "8f2a4b34e261a1ff7a8f211d5441168bbf46a8ff7fed47a15e59b01372f80321",
+      "size": 1376
+    },
+    {
+      "path": "source/connector-assembly/02_parts/KH-AF90DIP-112/part.yaml",
+      "sha256": "c576b71e8e3ccf3486a1c417f886d0e37dd076ba5325127d83f9a8ad19bdcde5",
+      "size": 1815
+    },
+    {
+      "path": "source/connector-assembly/02_parts/KT-0805G/part.yaml",
+      "sha256": "876f0a01e3e061dd045737b1d480d519804f40cabc24fcff63a96f6be2a2b679",
+      "size": 5180
+    },
+    {
+      "path": "source/connector-assembly/02_parts/KT-0805Y/part.yaml",
+      "sha256": "d9cf56a2b03613014b2475fe6c92f024a49f4bf90be94410a95aaf08c8651d68",
+      "size": 5927
+    },
+    {
+      "path": "source/connector-assembly/02_parts/SS12D07VG6-087/part.yaml",
+      "sha256": "dbfb3dd500023c9e44f40c2e81075c459eba86b63720d6078a36347d4a7b9702",
+      "size": 3477
+    },
+    {
+      "path": "source/connector-assembly/02_parts/TYPE-C-31-M-12A/part.yaml",
+      "sha256": "a06034cfdf972116b00a9aa37223bd6dd20a03965b763f806d94475d7cd56b19",
+      "size": 6972
+    },
+    {
+      "path": "source/connector-assembly/02_parts/XT60PW-M/part.yaml",
+      "sha256": "4441d7a6c9eb77db4b29a5a5e3c4fb39dc3d31a29dcbe71303bc4df53cd2ce1a",
+      "size": 1157
+    },
+    {
+      "path": "source/connector-assembly/03_src/floorplan.yaml",
+      "sha256": "d5e4992b193937dfd48b2ecc39ba97836eb240bf9c288fca26008654e24f7daf",
+      "size": 29741
+    },
+    {
+      "path": "source/connector-assembly/03_src/mechanical/reference/usb-hub-wall-lid-unbound-qualitative-xt60-fit-observation-2026-08-27.md",
+      "sha256": "5011f4757fe5135625da669b048ff46eb4dd5ca28e00b849467b5ac2b7d6c958",
+      "size": 784
+    },
+    {
+      "path": "source/connector-assembly/03_src/rules/connector_assemblies.yaml",
+      "sha256": "9ecc4dd7d168e42cc3265d0c535d3c4144dd2062db0e03635b8120b280254ab5",
+      "size": 25338
+    },
+    {
+      "path": "source/enclosure-cad-design-v2.yaml",
+      "sha256": "8ec276ff19ff1cdaf5eb991a7ce1e97dc3df3ca0741e39fd3fd90c98dc2def31",
+      "size": 6230
+    },
+    {
+      "path": "source/enclosure-v2.yaml",
+      "sha256": "2fbae328a43cd50488b94880e00df42924193f7c5f7e7e7c3f2d2d611e6a60f1",
+      "size": 12247
+    },
+    {
+      "path": "source/fdm-structural-contract.yaml",
+      "sha256": "e5cecc6b97379c28f85a4b5573dd468a398d539efa94be22858701f56628eac7",
+      "size": 23813
+    },
+    {
+      "path": "source/mechanical-intent-v2.yaml",
+      "sha256": "a63b24108e1dc363c70fe1956fd7a2902fd5e59bba168b2369075e9679769880",
+      "size": 6150
+    },
+    {
+      "path": "source/reference/obstruction-models.json",
+      "sha256": "594d6ca32e6455f91364c08f0b3a6b2edacd3f77662cc4deae62da8958a5695b",
+      "size": 6571
+    },
+    {
+      "path": "source/reference/obstruction_models/C130056/SON-8_L3.0-W3.0-H1.0-P0.65.step",
+      "sha256": "fe4edffe6c341b4a1972262e087900083e16735d623278a987347963f15dc070",
+      "size": 1972353
+    },
+    {
+      "path": "source/reference/obstruction_models/C130056/SON-8_L3.0-W3.0-P0.65-LS3.0-BL-EP.kicad_mod",
+      "sha256": "2c0752567b86e95cab5f53736278713aa78837b79410fa6e61bc97f1d99684cd",
+      "size": 2473
+    },
+    {
+      "path": "source/reference/obstruction_models/C2760089/PDFN-8_L5.6-W5.2-P1.27-LS6.1-BL.kicad_mod",
+      "sha256": "e6cac692d0fbd576c20025cf1d1e46c53a51e29efbe7049ffc19687dfbe2b656",
+      "size": 3024
+    },
+    {
+      "path": "source/reference/obstruction_models/C2760089/PDFN-8_L5.6-W5.2-P1.27-LS6.1-BL.step",
+      "sha256": "729eeed7ca05d88471b93de3fcdf8f3c5b4e965f970681e7bea3e929d8826795",
+      "size": 1530053
+    },
+    {
+      "path": "source/reference/obstruction_models/C2939728/SW-TH_SS12D07VG4.kicad_mod",
+      "sha256": "da19b177ae6090281827e572dfb8fee70d18114602f41bb46a7c5a9949cc1a7b",
+      "size": 3263
+    },
+    {
+      "path": "source/reference/obstruction_models/C2939728/SW-TH_SS12D07VG4.step",
+      "sha256": "e6711b67698be2771b712dbb6dc1f5191600ab870bc0b45d4f4c9a5ed8070c43",
+      "size": 1648974
+    },
+    {
+      "path": "source/reference/obstruction_models/C404363/DFN-8_L5.2-W6.1-H1.0-P1.27-BL-EP.step",
+      "sha256": "e94dd23646a5de18977d6e9ded6f7809383edec92cc7dbfe11c54c264d18765b",
+      "size": 1584657
+    },
+    {
+      "path": "source/reference/obstruction_models/C404363/DFN-8_L5.2-W6.1-P1.27-BL-EP.kicad_mod",
+      "sha256": "b4100c0bc70b82df1ef9e22196ca241f34259a9877bcca7fd3381bf3ecccc529",
+      "size": 3179
+    },
+    {
+      "path": "source/reference/obstruction_models/C503996/USB-A-TH_USB-A-F-90.kicad_mod",
+      "sha256": "67df7b1fb4b8d82a200a7ce5dbbcf368812163e7ea61ce1a31a6914ad339bf9e",
+      "size": 3941
+    },
+    {
+      "path": "source/reference/obstruction_models/C503996/USB-A-TH_USB-A-F-90.step",
+      "sha256": "b88f072150e164abf5bccfad8ad09eb38ba92e6715453e491bdaf37d7bcdb1a3",
+      "size": 3102252
+    },
+    {
+      "path": "source/reference/obstruction_models/C5337088/USB-C-SMD_TYPE-C-31-M-12A.kicad_mod",
+      "sha256": "f1a7b4bfb29a5668e52abde0e91f35703726d3c3e194b8589fb21045e5ba26a8",
+      "size": 3325
+    },
+    {
+      "path": "source/reference/obstruction_models/C5337088/USB-C-SMD_TYPE-C-31-M-12A.step",
+      "sha256": "fca24d969713ecd0d1eeea5920e0345d09585f96ee261a99c750bbdd0ec0a27a",
+      "size": 2777952
+    },
+    {
+      "path": "source/reference/obstruction_models/C6165170/F2920-1.step",
+      "sha256": "071004dc1bb9780fe246fa6900f817f2d83b526947a1f20847d41c9a16cb67b6",
+      "size": 953729
+    },
+    {
+      "path": "source/reference/obstruction_models/C6165170/F2920.kicad_mod",
+      "sha256": "21498d140927b55d8c251ca20a5857fdbbf8f248210ac48c473aadfd2887c95a",
+      "size": 1807
+    },
+    {
+      "path": "source/reference/obstruction_models/C98732/CONN-TH_XT60PW-M.kicad_mod",
+      "sha256": "f5dd33a9caf67dde1d44bf77bb8004e3951d60a9b1ac1958259bcd68c1f069fc",
+      "size": 3265
+    },
+    {
+      "path": "source/reference/obstruction_models/C98732/CONN-TH_XT60PW-M.step",
+      "sha256": "3b036d033f3037f3bb025b765d33774d9f1a53459046d49200378027d424d01a",
+      "size": 2005370
+    },
+    {
+      "path": "source/reference/supplemental-obstruction-decision.yaml",
+      "sha256": "5342a1282213745cdbe34e82bc471193814b422cadf69be3d7143228714050d6",
+      "size": 2974
+    },
+    {
+      "path": "tooling/build_collision.py",
+      "sha256": "4ba1b3c27f6eb630ef67c33bdaca5d297e3253182bb68a6ce8afb25e308b2d0d",
+      "size": 43658
+    },
+    {
+      "path": "tooling/compose_obstruction_step.py",
+      "sha256": "820ab37091702c20320e19f49980cf898a2547853b7dbcab7866e8e54686f33c",
+      "size": 41209
+    },
+    {
+      "path": "tooling/connector_assembly_contract.py",
+      "sha256": "db0dd73eeb47ebed4d03594b6d945b3f1b1e4d48d5b5b43ab536b1de1117c0f4",
+      "size": 65046
+    },
+    {
+      "path": "tooling/enclosure_common.py",
+      "sha256": "00b5d4eac53da9ab5ed698d8851c6e800e65c53eabd14ff6e9b78e6552eb862c",
+      "size": 56026
+    },
+    {
+      "path": "tooling/enclosure_v2.py",
+      "sha256": "9d4ecfa16eb2207d2a7665655a15a1d5ec15def4bce8ca460602ec386a6a117f",
+      "size": 152263
+    },
+    {
+      "path": "tooling/fdm_structural_audit.py",
+      "sha256": "248e8474e72624037b7e3b0fd1dfb2c3562a157e40af515f6c7a875320c71437",
+      "size": 85207
+    },
+    {
+      "path": "tooling/generate_enclosure.py",
+      "sha256": "0878b07a74e6bdfe41f356b0e6cd972de90a1f62b99e0f3c847eac8fa69f857c",
+      "size": 20856
+    },
+    {
+      "path": "tooling/inspect_step.py",
+      "sha256": "64a7d4b7213c8cea5ae4006576595f0c987ff60780851cf2355570ba57e47329",
+      "size": 14210
+    },
+    {
+      "path": "tooling/pipeline_runtime.py",
+      "sha256": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+      "size": 49746
+    },
+    {
+      "path": "tooling/prepare_obstruction_step.py",
+      "sha256": "771c6968285480529e541bda2e490b47c35bc065ce460d2eb7dba33473a045fd",
+      "size": 10913
+    },
+    {
+      "path": "tooling/process_runner.py",
+      "sha256": "3af7c48b1f7c7583f8a76d2cf4752ab37400a27048f693570dde36d0059d8cf9",
+      "size": 10071
+    },
+    {
+      "path": "tooling/verify_enclosure.py",
+      "sha256": "bb9e9130db2fa9e0310727aaa270ffa94cd84f691d13b457f342e2cc9c53f450",
+      "size": 43037
+    },
+    {
+      "path": "tooling/verify_enclosure_release.py",
+      "sha256": "ebffae8b2e145cbf8d021f50e8d1d6caf29f9c4ad57f772bec92e6ca64ee1c5b",
+      "size": 99273
+    },
+    {
+      "path": "verification/assembled-case.stl",
+      "sha256": "260d5d1f1236d39928d98b2d189ae5311734d17288f5307b7713702063beffee",
+      "size": 2029673
+    },
+    {
+      "path": "verification/board-interface.json",
+      "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+      "size": 61228
+    },
+    {
+      "path": "verification/components.stl",
+      "sha256": "ed4afdd9e2cc2e38c877091ab1d5e510f4f70e635ced04248b248a6b8651b92b",
+      "size": 14567884
+    },
+    {
+      "path": "verification/composite-clearance-intersection.stl",
+      "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445",
+      "size": 181
+    },
+    {
+      "path": "verification/composite-collision.json",
+      "sha256": "3f160cb006b2699436596b3e5dd16a774a0107bf4aaa65ccb7e12c37dbfb54ab",
+      "size": 4074
+    },
+    {
+      "path": "verification/composite-components.stl",
+      "sha256": "c9137171e1362716ec1957402d885fe4272a3d2e74725eec8f3ddae64ec3cea7",
+      "size": 28861184
+    },
+    {
+      "path": "verification/composite-obstructions.step",
+      "sha256": "630b2bc8df188b74376157000921db810fc88f4a45ed41905f4a32da899e9251",
+      "size": 22386695
+    },
+    {
+      "path": "verification/composite-step-inspection.json",
+      "sha256": "05f4d41c0332adc80b29d6fb964821d884fdc63cb47b75795aa2467e33558fbe",
+      "size": 10181
+    },
+    {
+      "path": "verification/connector_assembly_contract.json",
+      "sha256": "1a1b5109eaa912d84138b21184a242c40d2b8c631aa3d52a98356a1e25ac1f79",
+      "size": 52793
+    },
+    {
+      "path": "verification/enclosure.scad",
+      "sha256": "c75beaf6a7de110c878768ea279cd14780591c354481e87740aadb84c651570d",
+      "size": 14647
+    },
+    {
+      "path": "verification/fdm-structural-audit.json",
+      "sha256": "f42fa80ec8c1eb871acceb1c871e6f2a8de3907c4caafc113ea2ad09b79a94fb",
+      "size": 49321
+    },
+    {
+      "path": "verification/generation.json",
+      "sha256": "f16a2f390ecf88d43852c297a2c4aa2631ff491e945e30a1f7533ce49b7fde8a",
+      "size": 4151
+    },
+    {
+      "path": "verification/mechanical-intent-validation-v2.json",
+      "sha256": "2d5c1eea99d2b944742793a7d641a91ebb21fbb96825909a512c85d10e57bc56",
+      "size": 176
+    },
+    {
+      "path": "verification/obstruction-augmentation.json",
+      "sha256": "a9dd0346d23ce5209907c4ae2f062a4660b80909b147d3ed02af19599e99a4cf",
+      "size": 5929
+    },
+    {
+      "path": "verification/scope-statuses.json",
+      "sha256": "78fd0610da15f261c81cbf3bb997c698b87d8e3bf7e3f333585b871d697cf1b0",
+      "size": 160
+    },
+    {
+      "path": "verification/scoped-verdict.json",
+      "sha256": "52d673f60fc787c6b9d137621eb722e0be64f14e6d49e375822f5008abbe4986",
+      "size": 354
+    },
+    {
+      "path": "verification/step-inspection.json",
+      "sha256": "94bbf7315bb0bb22ed8c603b48f354785c01c1311a66d25dbd4737df8df07094",
+      "size": 1887
+    },
+    {
+      "path": "verification/supplemental-obstructions.step",
+      "sha256": "8825fb3436ef628235f7fd3bab6d6cd88a749c3d678b41c6155f5c69874dc820",
+      "size": 8483265
+    },
+    {
+      "path": "verification/v2-validation.json",
+      "sha256": "284ce4018134489db508fbaad71b0e92a0ef45cc0f002414f80467d1145c3253",
+      "size": 9203
+    },
+    {
+      "path": "verification/verification.json",
+      "sha256": "5799dd99127b0dc5b2f8af9177286a0848d6f0bae005b004ecbf49fb6e1f4f42",
+      "size": 14602
+    }
+  ],
+  "predecessor": {
+    "manifest": {
+      "release_path": "authorities/enclosure-predecessor/MANIFEST.json",
+      "sha256": "f76862fbd4d470ce92c33924bfc67be779b92a72c9416764db8676fc72e4e11a",
+      "size": 18081,
+      "source_path": "MANIFEST.json"
+    },
+    "project_path": "07_enclosure_releases/v0.3.0-2026-08-27",
+    "release_id": "v0.3.0-2026-08-27"
+  },
+  "publication": {
+    "immutable_candidate": true,
+    "order_ready": false,
+    "release": true
+  },
+  "release_id": "v0.4.0-2026-08-28",
+  "replay": {
+    "config": {
+      "path": "source/enclosure-v2.yaml",
+      "sha256": "2fbae328a43cd50488b94880e00df42924193f7c5f7e7e7c3f2d2d611e6a60f1",
+      "size": 12247
+    },
+    "root": ".",
+    "tools": [
+      {
+        "path": "tooling/build_collision.py",
+        "role": "collision_builder",
+        "sha256": "4ba1b3c27f6eb630ef67c33bdaca5d297e3253182bb68a6ce8afb25e308b2d0d",
+        "size": 43658
+      },
+      {
+        "path": "tooling/enclosure_v2.py",
+        "role": "compose",
+        "sha256": "9d4ecfa16eb2207d2a7665655a15a1d5ec15def4bce8ca460602ec386a6a117f",
+        "size": 152263
+      },
+      {
+        "path": "tooling/connector_assembly_contract.py",
+        "role": "connector_assembly_contract",
+        "sha256": "db0dd73eeb47ebed4d03594b6d945b3f1b1e4d48d5b5b43ab536b1de1117c0f4",
+        "size": 65046
+      },
+      {
+        "path": "tooling/enclosure_common.py",
+        "role": "enclosure_common",
+        "sha256": "00b5d4eac53da9ab5ed698d8851c6e800e65c53eabd14ff6e9b78e6552eb862c",
+        "size": 56026
+      },
+      {
+        "path": "tooling/generate_enclosure.py",
+        "role": "enclosure_generator",
+        "sha256": "0878b07a74e6bdfe41f356b0e6cd972de90a1f62b99e0f3c847eac8fa69f857c",
+        "size": 20856
+      },
+      {
+        "path": "tooling/fdm_structural_audit.py",
+        "role": "fdm_structural_audit",
+        "sha256": "248e8474e72624037b7e3b0fd1dfb2c3562a157e40af515f6c7a875320c71437",
+        "size": 85207
+      },
+      {
+        "path": "tooling/compose_obstruction_step.py",
+        "role": "obstruction_compositor",
+        "sha256": "820ab37091702c20320e19f49980cf898a2547853b7dbcab7866e8e54686f33c",
+        "size": 41209
+      },
+      {
+        "path": "tooling/pipeline_runtime.py",
+        "role": "pipeline_runtime",
+        "sha256": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+        "size": 49746
+      },
+      {
+        "path": "tooling/process_runner.py",
+        "role": "process_runner",
+        "sha256": "3af7c48b1f7c7583f8a76d2cf4752ab37400a27048f693570dde36d0059d8cf9",
+        "size": 10071
+      },
+      {
+        "path": "tooling/verify_enclosure_release.py",
+        "role": "release_verifier",
+        "sha256": "ebffae8b2e145cbf8d021f50e8d1d6caf29f9c4ad57f772bec92e6ca64ee1c5b",
+        "size": 99273
+      },
+      {
+        "path": "tooling/inspect_step.py",
+        "role": "step_inspector",
+        "sha256": "64a7d4b7213c8cea5ae4006576595f0c987ff60780851cf2355570ba57e47329",
+        "size": 14210
+      },
+      {
+        "path": "tooling/prepare_obstruction_step.py",
+        "role": "supplement_builder",
+        "sha256": "771c6968285480529e541bda2e490b47c35bc065ce460d2eb7dba33473a045fd",
+        "size": 10913
+      },
+      {
+        "path": "tooling/verify_enclosure.py",
+        "role": "verify",
+        "sha256": "bb9e9130db2fa9e0310727aaa270ffa94cd84f691d13b457f342e2cc9c53f450",
+        "size": 43037
+      }
+    ]
+  },
+  "schema": 2,
+  "scopes": {
+    "board_retention": "INCOMPLETE",
+    "connector_access": "INCOMPLETE",
+    "shell": "INCOMPLETE",
+    "thermal": "INCOMPLETE"
+  },
+  "status": "INCOMPLETE",
+  "status_reason": "Reinforced D16-root/D10.8 closure ears pass the exact 17-joint local attachment-section screen and the represented installed collision is empty; pinned slicer/toolpath, whole-plate torsion/stiffness, local-thickness/self-intersection, connector service, physical torque/twist/fit, and thermal evidence remain incomplete.",
+  "version": "v0.4.0"
+}

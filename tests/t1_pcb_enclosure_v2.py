@@ -636,6 +636,26 @@ def t_v2_clean_contract():
     eq(report["scope_readiness_ceilings"]["antenna_accessory"], "INCOMPLETE")
 
 
+@test("schema-v2 validation report is canonical across project relocation")
+def t_v2_validation_report_relocation_clean():
+    fixtures = [_fresh_fixture(), _fresh_fixture()]
+    reports = []
+    for index, fixture in enumerate(fixtures):
+        output = fixture["root"] / f"validation-{index}.json"
+        must_pass(run([
+            *_validate_args(fixture), "--output", output,
+        ]), f"relocated v2 validation {index}")
+        payload = output.read_bytes()
+        check(str(fixture["root"]).encode() not in payload,
+              "validation report leaked its absolute project root")
+        report = json.loads(payload)
+        eq(report["binding_path_base"], ".")
+        eq(report["validator"]["path"],
+           "skills/pcb-enclosure/scripts/enclosure_v2.py")
+        reports.append(payload)
+    eq(reports[0], reports[1], "relocation-stable v2 validation bytes")
+
+
 @test("enclosure schema consumes the fresh shared connector receipt")
 def t_v2_shared_connector_receipt():
     fixture = _fresh_fixture()

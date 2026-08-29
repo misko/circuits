@@ -301,13 +301,20 @@ def package(config_path: Path, root: Path, build_dir: Path, output: Path,
         build_dir, installed_case_record, "generated installed-case mesh")
     installed_command = installed_case_record.get("command")
     generation_engine = generation.get("engine")
+    replay_stable_command = (
+        isinstance(installed_command, list) and len(installed_command) == 8 and
+        installed_command[2] == installed_case_record.get("path") and
+        installed_command[7] == generation.get("source", {}).get("path"))
+    legacy_absolute_command = (
+        isinstance(installed_command, list) and len(installed_command) == 8 and
+        Path(installed_command[2]).resolve() == installed_case_path.resolve() and
+        Path(installed_command[7]).resolve() == source_path.resolve())
     if not isinstance(generation_engine, dict) or \
             not isinstance(installed_command, list) or len(installed_command) != 8 or \
             installed_command[1] != "-o" or \
-            Path(installed_command[2]).resolve() != installed_case_path.resolve() or \
             installed_command[3:7] != ["-D", 'part="installed_case"', "-D",
                                       "show_reference_board=false"] or \
-            Path(installed_command[7]).resolve() != source_path.resolve() or \
+            not (replay_stable_command or legacy_absolute_command) or \
             generation_engine.get("executable") != installed_command[0]:
         raise EnclosureError("generation.json installed_case command is not canonical")
     part_records = generation.get("parts")

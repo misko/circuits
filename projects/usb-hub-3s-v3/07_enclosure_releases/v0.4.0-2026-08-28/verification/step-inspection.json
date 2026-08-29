@@ -1,0 +1,99 @@
+{
+  "geometry": {
+    "assembly_bbox_mm": {
+      "max": [
+        150.0,
+        -20.0,
+        9.2950001
+      ],
+      "min": [
+        20.0,
+        -112.0,
+        -1.1950000000000005
+      ],
+      "size": [
+        130.0,
+        92.0,
+        10.4900001
+      ]
+    },
+    "backend": "cadquery-step-exact",
+    "case_registration_translate_mm_at_board_z0": [
+      -85.0,
+      66.0,
+      -0.0
+    ],
+    "component_mesh": {
+      "path": "components.stl",
+      "sha256": "ed4afdd9e2cc2e38c877091ab1d5e510f4f70e635ced04248b248a6b8651b92b",
+      "size": 14567884
+    },
+    "component_solid_count": 110,
+    "pcb_outline_candidate_indices": [
+      110
+    ],
+    "pcb_related_solid_indices": [
+      110
+    ],
+    "pcb_solid": {
+      "index": 110,
+      "max_mm": [
+        150.0,
+        -20.0,
+        1.51
+      ],
+      "min_mm": [
+        20.0,
+        -112.0,
+        0.0
+      ],
+      "size_mm": [
+        130.0,
+        92.0,
+        1.51
+      ]
+    },
+    "solid_count": 111,
+    "status": "COMPLETE"
+  },
+  "interface": {
+    "path": "board-interface-v1.12.json",
+    "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+    "size": 61228
+  },
+  "kind": "pcb-enclosure-step-inspection-v1",
+  "occurrence_coverage": {
+    "covered_modeled_refs": 106,
+    "expected_modeled_refs": 121,
+    "missing_modeled_refs": [
+      "F2",
+      "J1",
+      "J2",
+      "J3",
+      "J4",
+      "J5",
+      "Q1",
+      "Q2",
+      "Q3",
+      "Q4",
+      "Q5",
+      "Q6",
+      "U3",
+      "U4",
+      "U5"
+    ],
+    "observed_designators": 106,
+    "status": "FAIL",
+    "unmodeled_access_refs": [
+      "SW1"
+    ],
+    "zero_modeled_denominator": false
+  },
+  "schema": 1,
+  "status": "FAIL",
+  "step": {
+    "path": "usb_hub_3s_v2.step",
+    "sha256": "e4c9a9957692a251eff85e058522e2e402ca2b7dea7eb3a532fd4350e7ce6e11",
+    "size": 2239061
+  }
+}

@@ -35,6 +35,28 @@ NEW_RELEASE_STLS = {
         "verification/composite-clearance-intersection.stl",
         "verification/composite-components.stl",
     },
+    "projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.8.0-2026-08-28": {
+        "meshes/base.stl",
+        "meshes/insert_coupon.stl",
+        "meshes/lid.stl",
+        "meshes/rx2_antenna_fit_gauge.stl",
+        "meshes/rx2_antenna_mount.stl",
+        "source/reference/user-antenna-holder-reference.stl",
+        "verification/assembled-case.stl",
+        "verification/clearance-intersection.stl",
+        "verification/reference-meshes/rx2_antenna_reference.stl",
+        "verification/reference-meshes/rx2_cable_reference.stl",
+        "verification/step-components.stl",
+    },
+    "projects/usb-hub-3s-v3/07_enclosure_releases/v0.4.0-2026-08-28": {
+        "meshes/base.stl",
+        "meshes/insert_coupon.stl",
+        "meshes/lid.stl",
+        "verification/assembled-case.stl",
+        "verification/components.stl",
+        "verification/composite-clearance-intersection.stl",
+        "verification/composite-components.stl",
+    },
 }
 
 
@@ -84,12 +106,12 @@ def t_real_fleet():
         if not any(path.startswith(root + "/") for root in NEW_RELEASE_STLS)
     }
     check(len(outside_new_releases) == 80,
-          "the established 80-STL fleet outside the two new release trees "
+          "the established 80-STL fleet outside the four current release trees "
           f"drifted to {len(outside_new_releases)}")
     expected_total = len(outside_new_releases) + added_release_count
-    check(expected_total == 97 and len(tracked) == expected_total,
+    check(expected_total == 115 and len(tracked) == expected_total,
           f"tracked STL census is {len(tracked)}, expected 80 + "
-          f"{added_release_count} = 97")
+          f"{added_release_count} = 114")
     contains(result.stdout, f"tracked_stls={expected_total}",
              "real STL census")
 

@@ -1,0 +1,144 @@
+{
+  "backend": {
+    "cadquery_version": "2.8.0",
+    "name": "cadquery-ocp-brep-common",
+    "ocp_version": "7.9.3.1"
+  },
+  "builder": {
+    "path": "skills/pcb-enclosure/scripts/build_collision.py",
+    "sha256": "4ba1b3c27f6eb630ef67c33bdaca5d297e3253182bb68a6ce8afb25e308b2d0d",
+    "size": 43658
+  },
+  "enclosure_common": {
+    "path": "skills/pcb-enclosure/scripts/enclosure_common.py",
+    "sha256": "00b5d4eac53da9ab5ed698d8851c6e800e65c53eabd14ff6e9b78e6552eb862c",
+    "size": 56026
+  },
+  "inputs": {
+    "assembled_case_mesh": {
+      "canonicalization": "ascii-stl-facet-order-v1",
+      "command": [
+        "/usr/bin/openscad",
+        "-o",
+        "assembled-case.stl",
+        "-D",
+        "part=\"installed_case\"",
+        "-D",
+        "show_reference_board=false",
+        "enclosure.scad"
+      ],
+      "execution": {
+        "kind": "atomic-same-directory-output-v1"
+      },
+      "path": "assembled-case.stl",
+      "selector": "installed_case",
+      "sha256": "260d5d1f1236d39928d98b2d189ae5311734d17288f5307b7713702063beffee",
+      "size": 2029673
+    },
+    "component_mesh": {
+      "path": "composite-components.stl",
+      "sha256": "c9137171e1362716ec1957402d885fe4272a3d2e74725eec8f3ddae64ec3cea7",
+      "size": 28861184
+    },
+    "generation": {
+      "path": "generation.json",
+      "sha256": "f16a2f390ecf88d43852c297a2c4aa2631ff491e945e30a1f7533ce49b7fde8a",
+      "size": 4151
+    },
+    "interface": {
+      "path": "board-interface.json",
+      "sha256": "36e6d236be966f188d18906afcd2b0b3acf0a27dd536a96fb65e923365b7448b",
+      "size": 61228
+    },
+    "step": {
+      "path": "composite-obstructions.step",
+      "sha256": "630b2bc8df188b74376157000921db810fc88f4a45ed41905f4a32da899e9251",
+      "size": 22386695
+    },
+    "step_inspection": {
+      "path": "composite-step-inspection.json",
+      "sha256": "05f4d41c0332adc80b29d6fb964821d884fdc63cb47b75795aa2467e33558fbe",
+      "size": 10181
+    }
+  },
+  "kind": "pcb-enclosure-collision-v1",
+  "pipeline_runtime": {
+    "path": "skills/pcb-design/scripts/pipeline_runtime.py",
+    "sha256": "a87ea14c956fff0a0412595d58c045efa57a3080c9571c4fea335dc9ca2ec5be",
+    "size": 49746
+  },
+  "process_runner": {
+    "path": "skills/kicad-pcb/scripts/process_runner.py",
+    "sha256": "3af7c48b1f7c7583f8a76d2cf4752ab37400a27048f693570dde36d0059d8cf9",
+    "size": 10071
+  },
+  "result": {
+    "classification": "EMPTY",
+    "collision_mesh": {
+      "path": "composite-clearance-intersection.stl",
+      "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445",
+      "size": 181
+    },
+    "exact_brep_volume_mm3": 0,
+    "mesh_metrics": {
+      "absolute_volume_mm3": 0.0,
+      "bbox_mm": {
+        "max": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "min": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "boundary_edges": 0,
+      "component_absolute_volume_mm3": 0.0,
+      "components": 1,
+      "degenerate_facets": 1,
+      "edge_manifold": false,
+      "format": "ascii",
+      "nonmanifold_edges": 1,
+      "orientation_consistent": true,
+      "orientation_mismatches": 0,
+      "path": "composite-clearance-intersection.stl",
+      "sha256": "020532b6db3a2efc8489b2bdfaac88403610ef9550ce3d710de0de7f7cd65445",
+      "signed_volume_mm3": 0.0,
+      "size": 181,
+      "triangles": 1
+    },
+    "representation": "zero-area-marker-for-empty-brep"
+  },
+  "schema": 1,
+  "selection": {
+    "component_solid_count": 244,
+    "pcb_related_solid_count": 14,
+    "step_solid_count": 258
+  },
+  "status": "COMPLETE",
+  "step_inspector": {
+    "path": "skills/pcb-enclosure/scripts/inspect_step.py",
+    "sha256": "64a7d4b7213c8cea5ae4006576595f0c987ff60780851cf2355570ba57e47329",
+    "size": 14210
+  },
+  "transform": {
+    "applied_component_translate_mm": [
+      -85.0,
+      66.0,
+      9.5
+    ],
+    "board_bottom_z_mm": 9.5,
+    "case_registration_translate_mm_at_board_z0": [
+      -85.0,
+      66.0,
+      -0.0
+    ]
+  }
+}

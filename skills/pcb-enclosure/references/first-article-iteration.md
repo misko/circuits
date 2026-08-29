@@ -19,6 +19,15 @@ test whenever an alternate bearing path is plausible. If a perimeter feature
 causes an edge component to become a standoff, remove or relocate that feature
 or change to isolated pillars; do not raise the PCB by resting it on the part.
 
+Before printing, close the contract census for every critical attachment and
+joint, bind each printable part to its production orientation and process, and
+run `fdm_structural_audit.py`. Inspect independent root sections, the member
+section, overlap, and the declared fillet or gusset rather than treating a
+manifold mesh as a structural result. A typed intentional flexure still needs
+its hard stop and matching schema-v2 physical test. Unexecuted local-thickness,
+self-intersection, overhang, slicer/toolpath, or printer-volume checks remain
+explicitly `INCOMPLETE`.
+
 ## Keep retention roles independent
 
 PCB screws retain PCB plus base and remain secured with the lid removed. Case
@@ -73,6 +82,9 @@ to a production tolerance.
 - Keep source, committed authorities, exact generation commands, printable
   part census, stable build paths, and physical-test plan discoverable before
   considering publication.
+- Re-run the FDM/structural audit after every geometry, orientation, process,
+  contract, or mesh change. A stale receipt is not evidence, and a clean
+  mesh-visible screen never promotes print strength or service life by itself.
 - For an immutable enclosure candidate, copy every required tool/import or
   bind it explicitly, replay from the release root, and reopen the staged
   result. A governing `FAIL` remains mutable source work; do not launder it

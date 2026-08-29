@@ -7031,3 +7031,37 @@ the lifecycle/router and strengthen the owning KiCad, JLC and release tools.
   swapping a model, moving/rotating a connector, changing its edge, transform
   or keepout changes the subject and requires fresh approval.
 - recommendation: P1; compose with the existing connector-orientation gate.
+
+## IMP-192 — separate local attachment screening from whole-part FDM qualification
+
+- status: implementing
+- observed: Pluto RX2 eight-way enclosure v0.7 and USB Hub 3S first-article
+  feedback, 2026-08-28
+- evidence: Pluto's manifold, connected lid still joined each screw holder to
+  the roof through an approximately 2.47 mm net throat after its structural
+  perimeter was removed. The USB enclosure's nominal connector opening also
+  omitted the mated termination, cable exit, bend, grip and reaction envelope.
+  Existing mesh checks could report clean geometry without testing either
+  failure class.
+- general rule: every printable has a declared build orientation and process;
+  every loaded boss, post, lug, clip, rail or insert has a closed load-case
+  census and distinct mesh-measured host/root and member sections. Local
+  section PASS is only a conservative attachment screen. It never implies
+  whole-part strength, slicability, fit, thermal behavior or print readiness.
+- landed in this iteration: a strict FDM structural contract, exact printable
+  census, arbitrary-plane root/throat/reinforcement measurements, inverse
+  load-case closure, release-local replay, role-aware fleet audit and hostile
+  barely-attached-joint fixtures. Missing process and physical evidence keeps
+  every successor scope `INCOMPLETE`.
+- remaining work: bind a pinned printer/material/nozzle/layer/slicer profile
+  and immutable toolpath receipt; add whole-mesh self-intersection and local
+  thickness checks; represent global plate/vent-ligament torsion; qualify
+  material allowables; and execute exact-process torque, load/deflection,
+  service-cycle, connector, cable and thermal first-article tests.
+- simple regression cases: a tangent or sliver lug fails despite a manifold
+  STL; identical root/member probes fail; an unused decorative load case
+  fails; an honest reinforced root passes the local screen but remains
+  `INCOMPLETE` without slicer and physical evidence; collision, generation,
+  FDM and printable receipts must bind one exact generated subject.
+- recommendation: P0 for all new enclosure releases; grandfathered releases
+  remain immutable and are regraded `LEGACY/INCOMPLETE`, not silently promoted.

@@ -1,0 +1,17 @@
+{
+  "kind": "pcb-enclosure-v2-validation",
+  "required_scopes": [
+    "shell",
+    "board_retention",
+    "connector_access",
+    "thermal"
+  ],
+  "schema": 2,
+  "scope_readiness_ceilings": {
+    "board_retention": "INCOMPLETE",
+    "connector_access": "INCOMPLETE",
+    "shell": "INCOMPLETE",
+    "thermal": "INCOMPLETE"
+  },
+  "status": "INCOMPLETE"
+}

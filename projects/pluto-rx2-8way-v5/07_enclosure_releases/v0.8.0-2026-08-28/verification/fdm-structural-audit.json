@@ -1,0 +1,1952 @@
+{
+  "denominators": {
+    "critical_attachments": 18,
+    "load_cases": 12,
+    "printable_parts": 5,
+    "process_profiles": 1,
+    "structural_probe_assertions": 90
+  },
+  "domains": {
+    "mesh_integrity": {
+      "denominator": 5,
+      "findings": [
+        "self-intersection analysis is not implemented",
+        "local wall/thickness analysis is not implemented"
+      ],
+      "local_thickness_status": "INCOMPLETE",
+      "parts": {
+        "base": {
+          "absolute_volume_mm3": 24662.559573567403,
+          "bbox_mm": {
+            "max": [
+              56.0,
+              43.5,
+              24.7
+            ],
+            "min": [
+              -56.0,
+              -43.5,
+              0.0
+            ]
+          },
+          "components": 1,
+          "degenerate_facets": 0,
+          "edge_manifold": true,
+          "nonmanifold_edges": 0,
+          "orientation_consistent": true,
+          "orientation_mismatches": 0,
+          "sha256": "02724639c263df6d619e9fedfa3e5b1d44e049230097f2b2c43e11e01421cd6a",
+          "size": 1576372,
+          "triangles": 9012
+        },
+        "insert_coupon": {
+          "absolute_volume_mm3": 6104.179776948441,
+          "bbox_mm": {
+            "max": [
+              27.0,
+              10.0,
+              6.0
+            ],
+            "min": [
+              -27.0,
+              -10.0,
+              0.0
+            ]
+          },
+          "components": 1,
+          "degenerate_facets": 0,
+          "edge_manifold": true,
+          "nonmanifold_edges": 0,
+          "orientation_consistent": true,
+          "orientation_mismatches": 0,
+          "sha256": "d81727855a0aa2ace7bdb2cf98e2eed7f2eac0e12dd9b86b2ab6ed8ddc946429",
+          "size": 1162772,
+          "triangles": 6816
+        },
+        "lid": {
+          "absolute_volume_mm3": 22182.2535854116,
+          "bbox_mm": {
+            "max": [
+              56.0,
+              43.5,
+              7.4
+            ],
+            "min": [
+              -56.0,
+              -43.5,
+              5.72205e-07
+            ]
+          },
+          "components": 1,
+          "degenerate_facets": 0,
+          "edge_manifold": true,
+          "nonmanifold_edges": 0,
+          "orientation_consistent": true,
+          "orientation_mismatches": 0,
+          "sha256": "1cbe5cdbb292f9c65834a2bbc4684b866234f94a3430d0d2a7f444624224f707",
+          "size": 3138635,
+          "triangles": 17204
+        },
+        "rx2_antenna_fit_gauge": {
+          "absolute_volume_mm3": 7658.31286512404,
+          "bbox_mm": {
+            "max": [
+              37.0,
+              7.0,
+              12.0
+            ],
+            "min": [
+              -37.0,
+              -9.0,
+              0.0
+            ]
+          },
+          "components": 1,
+          "degenerate_facets": 0,
+          "edge_manifold": true,
+          "nonmanifold_edges": 0,
+          "orientation_consistent": true,
+          "orientation_mismatches": 0,
+          "sha256": "d32f0125d56dd256915008d8c77fd78526506d589a96a342ef37f955cede6bc8",
+          "size": 1489170,
+          "triangles": 8740
+        },
+        "rx2_antenna_mount": {
+          "absolute_volume_mm3": 14938.489983530888,
+          "bbox_mm": {
+            "max": [
+              32.0,
+              13.0,
+              13.6
+            ],
+            "min": [
+              -32.0,
+              -24.0,
+              5.72205e-07
+            ]
+          },
+          "components": 1,
+          "degenerate_facets": 0,
+          "edge_manifold": true,
+          "nonmanifold_edges": 0,
+          "orientation_consistent": true,
+          "orientation_mismatches": 0,
+          "sha256": "665dd923586cb9e85e9a884c8b0e5a9e3c5b870fbeca8996da11fed5665c6bf2",
+          "size": 834677,
+          "triangles": 4836
+        }
+      },
+      "passed": 5,
+      "self_intersection_status": "INCOMPLETE",
+      "status": "INCOMPLETE",
+      "topology_status": "PASS"
+    },
+    "orientation_and_process_contract": {
+      "build_plate_contact_status": "PASS",
+      "build_plate_tolerance_mm": 1e-05,
+      "build_space_bboxes": {
+        "base": {
+          "max": [
+            56.0,
+            43.5,
+            24.7
+          ],
+          "min": [
+            -56.0,
+            -43.5,
+            0.0
+          ]
+        },
+        "insert_coupon": {
+          "max": [
+            27.0,
+            10.0,
+            6.0
+          ],
+          "min": [
+            -27.0,
+            -10.0,
+            0.0
+          ]
+        },
+        "lid": {
+          "max": [
+            56.0,
+            43.5,
+            7.4
+          ],
+          "min": [
+            -56.0,
+            -43.5,
+            5.72205e-07
+          ]
+        },
+        "rx2_antenna_fit_gauge": {
+          "max": [
+            37.0,
+            7.0,
+            12.0
+          ],
+          "min": [
+            -37.0,
+            -9.0,
+            0.0
+          ]
+        },
+        "rx2_antenna_mount": {
+          "max": [
+            32.0,
+            13.0,
+            13.6
+          ],
+          "min": [
+            -32.0,
+            -24.0,
+            5.72205e-07
+          ]
+        }
+      },
+      "build_volume_status": "INCOMPLETE",
+      "declaration_status": "PASS",
+      "denominator": 6,
+      "findings": [
+        "printer build-volume check is unavailable without a pinned printer"
+      ],
+      "layer_normal_load_alignment": [
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "pcb_retention"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_pcb_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mate_unmate_ns"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_pcb_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mate_unmate_ew"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_cable_pull_bend"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "sma_hand_tool_torque"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "pcb_retention"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_pcb_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mate_unmate_ns"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_pcb_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mate_unmate_ew"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_cable_pull_bend"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "sma_hand_tool_torque"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "pcb_retention"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_pcb_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mate_unmate_ns"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_pcb_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mate_unmate_ew"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_cable_pull_bend"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "sma_hand_tool_torque"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "pcb_retention"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_pcb_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mate_unmate_ns"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_pcb_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_mate_unmate_ew"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "connector_cable_pull_bend"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "sma_hand_tool_torque"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_pcb_h4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_twist"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_twist"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_twist"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_twist"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "base_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "base_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_twist"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_twist"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_twist"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c3",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_preload"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "case_twist"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "lid_removal"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_case_c4",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_mount_m1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_mount_m1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_mount_m1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_mount_m2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "lid_mount_m2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "lid_mount_m2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "print_warp"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "mount_column_m1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "mount_column_m1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "mount_column_m1",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_insertion"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "mount_column_m2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_reaction"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "mount_column_m2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "mount_column_m2",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_insertion"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "mount_rail_left",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_insertion"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "mount_rail_left",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 1.0,
+          "attachment": "mount_rail_right",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_insertion"
+        },
+        {
+          "absolute_cosine_to_layer_normal": 0.0,
+          "attachment": "mount_rail_right",
+          "interpretation": "informational only; no project threshold is declared",
+          "load_case": "antenna_lateral"
+        }
+      ],
+      "part_transforms": {
+        "base": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "insert_coupon": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "lid": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "rx2_antenna_fit_gauge": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "rx2_antenna_mount": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            1.0,
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "passed": 6,
+      "process_profiles": [
+        "petg_04_02"
+      ],
+      "status": "INCOMPLETE"
+    },
+    "physical_evidence_boundary": {
+      "consumed": false,
+      "finding": "physical print, fit, fastener, load, and thermal evidence is outside this CAD audit",
+      "governs_cad_readiness": false,
+      "status": "INCOMPLETE"
+    },
+    "slicer_toolpath_evidence": {
+      "declared_support_exceptions": [],
+      "denominator": 1,
+      "findings": [
+        "no canonical slicer/profile/toolpath adapter is bound",
+        "overhang and support-material analysis is not implemented",
+        "unsupported-island and bridge analysis is not implemented",
+        "global plate torsion, stiffness, and distributed load analysis is not implemented"
+      ],
+      "overhang_status": "INCOMPLETE",
+      "passed": 0,
+      "slicer_status": "INCOMPLETE",
+      "status": "INCOMPLETE",
+      "support_status": "INCOMPLETE",
+      "toolpath_status": "INCOMPLETE"
+    },
+    "structural_load_path_screen": {
+      "attachment_count": 18,
+      "attachments": {
+        "base_case_c1": {
+          "exception_id": null,
+          "load_cases": [
+            "case_preload",
+            "case_twist",
+            "lid_removal",
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 8.238841649,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 5.875724545
+            },
+            "minimum_area_ratio": 1.1,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.129715172,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 63.51486504,
+              "minimum_area_mm2": 62.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 71.753706689,
+              "minimum_area_mm2": 70.0,
+              "minimum_material_span_mm": 14.0,
+              "net_section_material_span_mm": 14.875724545,
+              "status": "PASS"
+            }
+          }
+        },
+        "base_case_c2": {
+          "exception_id": null,
+          "load_cases": [
+            "case_preload",
+            "case_twist",
+            "lid_removal",
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 8.251160298,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 5.885960974
+            },
+            "minimum_area_ratio": 1.1,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.129909121,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 63.51486504,
+              "minimum_area_mm2": 62.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 71.766025338,
+              "minimum_area_mm2": 70.0,
+              "minimum_material_span_mm": 14.0,
+              "net_section_material_span_mm": 14.885960974,
+              "status": "PASS"
+            }
+          }
+        },
+        "base_case_c3": {
+          "exception_id": null,
+          "load_cases": [
+            "case_preload",
+            "case_twist",
+            "lid_removal",
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 8.251160298,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 5.885960974
+            },
+            "minimum_area_ratio": 1.1,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.129909121,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 63.51486504,
+              "minimum_area_mm2": 62.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 71.766025338,
+              "minimum_area_mm2": 70.0,
+              "minimum_material_span_mm": 14.0,
+              "net_section_material_span_mm": 14.885960974,
+              "status": "PASS"
+            }
+          }
+        },
+        "base_case_c4": {
+          "exception_id": null,
+          "load_cases": [
+            "case_preload",
+            "case_twist",
+            "lid_removal",
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 8.238841649,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 5.875724545
+            },
+            "minimum_area_ratio": 1.1,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.129715172,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 63.51486504,
+              "minimum_area_mm2": 62.0,
+              "minimum_material_span_mm": 8.8,
+              "net_section_material_span_mm": 9.0,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 71.753706689,
+              "minimum_area_mm2": 70.0,
+              "minimum_material_span_mm": 14.0,
+              "net_section_material_span_mm": 14.875724545,
+              "status": "PASS"
+            }
+          }
+        },
+        "base_pcb_h1": {
+          "exception_id": null,
+          "load_cases": [
+            "pcb_retention",
+            "connector_mate_unmate_ns",
+            "connector_mate_unmate_ew",
+            "connector_cable_pull_bend",
+            "sma_hand_tool_torque",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 10.737108058,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 8.092235351
+            },
+            "minimum_area_ratio": 1.25,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.298078892,
+            "status": "PASS"
+          },
+          "scope": "board_retention",
+          "sections": {
+            "member": {
+              "area_mm2": 36.0210278,
+              "minimum_area_mm2": 34.0,
+              "minimum_material_span_mm": 3.6,
+              "net_section_material_span_mm": 3.75,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 46.758135858,
+              "minimum_area_mm2": 45.0,
+              "minimum_material_span_mm": 11.5,
+              "net_section_material_span_mm": 11.842235351,
+              "status": "PASS"
+            }
+          }
+        },
+        "base_pcb_h2": {
+          "exception_id": null,
+          "load_cases": [
+            "pcb_retention",
+            "connector_mate_unmate_ns",
+            "connector_mate_unmate_ew",
+            "connector_cable_pull_bend",
+            "sma_hand_tool_torque",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 10.737108058,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 8.092235351
+            },
+            "minimum_area_ratio": 1.25,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.298078892,
+            "status": "PASS"
+          },
+          "scope": "board_retention",
+          "sections": {
+            "member": {
+              "area_mm2": 36.0210278,
+              "minimum_area_mm2": 34.0,
+              "minimum_material_span_mm": 3.6,
+              "net_section_material_span_mm": 3.75,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 46.758135858,
+              "minimum_area_mm2": 45.0,
+              "minimum_material_span_mm": 11.5,
+              "net_section_material_span_mm": 11.842235351,
+              "status": "PASS"
+            }
+          }
+        },
+        "base_pcb_h3": {
+          "exception_id": null,
+          "load_cases": [
+            "pcb_retention",
+            "connector_mate_unmate_ns",
+            "connector_mate_unmate_ew",
+            "connector_cable_pull_bend",
+            "sma_hand_tool_torque",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 10.737108058,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 8.092235351
+            },
+            "minimum_area_ratio": 1.25,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.298078892,
+            "status": "PASS"
+          },
+          "scope": "board_retention",
+          "sections": {
+            "member": {
+              "area_mm2": 36.0210278,
+              "minimum_area_mm2": 34.0,
+              "minimum_material_span_mm": 3.6,
+              "net_section_material_span_mm": 3.75,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 46.758135858,
+              "minimum_area_mm2": 45.0,
+              "minimum_material_span_mm": 11.5,
+              "net_section_material_span_mm": 11.842235351,
+              "status": "PASS"
+            }
+          }
+        },
+        "base_pcb_h4": {
+          "exception_id": null,
+          "load_cases": [
+            "pcb_retention",
+            "connector_mate_unmate_ns",
+            "connector_mate_unmate_ew",
+            "connector_cable_pull_bend",
+            "sma_hand_tool_torque",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "base",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 10.737108058,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 8.092235351
+            },
+            "minimum_area_ratio": 1.25,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.298078892,
+            "status": "PASS"
+          },
+          "scope": "board_retention",
+          "sections": {
+            "member": {
+              "area_mm2": 36.0210278,
+              "minimum_area_mm2": 34.0,
+              "minimum_material_span_mm": 3.6,
+              "net_section_material_span_mm": 3.75,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 46.758135858,
+              "minimum_area_mm2": 45.0,
+              "minimum_material_span_mm": 11.5,
+              "net_section_material_span_mm": 11.842235351,
+              "status": "PASS"
+            }
+          }
+        },
+        "lid_case_c1": {
+          "exception_id": null,
+          "load_cases": [
+            "case_preload",
+            "case_twist",
+            "lid_removal",
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 0.40664288,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.0
+            },
+            "minimum_area_ratio": 1,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "registered_parallel",
+              "signed_normal_separation_mm": 7.526349824655348,
+              "tangential_offset_mm": 3.971173308124492e-09,
+              "unoriented_normal_angle_deg": 0.0
+            },
+            "root_member_area_ratio": 1.003925123,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 103.600044951,
+              "minimum_area_mm2": 95.0,
+              "minimum_material_span_mm": 12.5,
+              "net_section_material_span_mm": 14.000007157,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 104.006687831,
+              "minimum_area_mm2": 103.0,
+              "minimum_material_span_mm": 14.0,
+              "net_section_material_span_mm": 14.000007157,
+              "status": "PASS"
+            }
+          }
+        },
+        "lid_case_c2": {
+          "exception_id": null,
+          "load_cases": [
+            "case_preload",
+            "case_twist",
+            "lid_removal",
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 1.43998248,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 0.0
+            },
+            "minimum_area_ratio": 1,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "registered_parallel",
+              "signed_normal_separation_mm": 7.526349824655348,
+              "tangential_offset_mm": 3.971173308124492e-09,
+              "unoriented_normal_angle_deg": 0.0
+            },
+            "root_member_area_ratio": 1.013899439,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 103.600044951,
+              "minimum_area_mm2": 95.0,
+              "minimum_material_span_mm": 12.5,
+              "net_section_material_span_mm": 14.000007157,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 105.040027431,
+              "minimum_area_mm2": 103.0,
+              "minimum_material_span_mm": 14.0,
+              "net_section_material_span_mm": 14.000007157,
+              "status": "PASS"
+            }
+          }
+        },
+        "lid_case_c3": {
+          "exception_id": null,
+          "load_cases": [
+            "case_preload",
+            "case_twist",
+            "lid_removal",
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "blended_tab",
+            "material_change": {
+              "area_delta_mm2": 10.045549486,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 1.348397905
+            },
+            "minimum_area_ratio": 0.8,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "registered_parallel",
+              "signed_normal_separation_mm": 16.592144220353987,
+              "tangential_offset_mm": 1.1308661328010548e-08,
+              "unoriented_normal_angle_deg": 0.0
+            },
+            "root_member_area_ratio": 0.899866482,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 100.321547326,
+              "minimum_area_mm2": 95.0,
+              "minimum_material_span_mm": 12.5,
+              "net_section_material_span_mm": 13.355599622,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 90.27599784,
+              "minimum_area_mm2": 87.5,
+              "minimum_material_span_mm": 11.9,
+              "net_section_material_span_mm": 12.007201717,
+              "status": "PASS"
+            }
+          }
+        },
+        "lid_case_c4": {
+          "exception_id": null,
+          "load_cases": [
+            "case_preload",
+            "case_twist",
+            "lid_removal",
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "blended_tab",
+            "material_change": {
+              "area_delta_mm2": 10.045549486,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 1.348397905
+            },
+            "minimum_area_ratio": 0.8,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "registered_parallel",
+              "signed_normal_separation_mm": 16.592144220353987,
+              "tangential_offset_mm": 1.1308661328010548e-08,
+              "unoriented_normal_angle_deg": 0.0
+            },
+            "root_member_area_ratio": 0.899866482,
+            "status": "PASS"
+          },
+          "scope": "shell",
+          "sections": {
+            "member": {
+              "area_mm2": 100.321547326,
+              "minimum_area_mm2": 95.0,
+              "minimum_material_span_mm": 12.5,
+              "net_section_material_span_mm": 13.355599622,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 90.27599784,
+              "minimum_area_mm2": 87.5,
+              "minimum_material_span_mm": 11.9,
+              "net_section_material_span_mm": 12.007201717,
+              "status": "PASS"
+            }
+          }
+        },
+        "lid_mount_m1": {
+          "exception_id": null,
+          "load_cases": [
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 1.293412241,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 1.757749578
+            },
+            "minimum_area_ratio": 1,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.019300936,
+            "status": "PASS"
+          },
+          "scope": "antenna_accessory",
+          "sections": {
+            "member": {
+              "area_mm2": 67.012927069,
+              "minimum_area_mm2": 64.0,
+              "minimum_material_span_mm": 5.6,
+              "net_section_material_span_mm": 5.924669143,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 68.30633931,
+              "minimum_area_mm2": 65.0,
+              "minimum_material_span_mm": 7.5,
+              "net_section_material_span_mm": 7.682418721,
+              "status": "PASS"
+            }
+          }
+        },
+        "lid_mount_m2": {
+          "exception_id": null,
+          "load_cases": [
+            "antenna_reaction",
+            "antenna_lateral",
+            "print_warp"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "lid",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "gusset",
+            "material_change": {
+              "area_delta_mm2": 1.293412241,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 1.757749578
+            },
+            "minimum_area_ratio": 1,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 1.019300936,
+            "status": "PASS"
+          },
+          "scope": "antenna_accessory",
+          "sections": {
+            "member": {
+              "area_mm2": 67.012927069,
+              "minimum_area_mm2": 64.0,
+              "minimum_material_span_mm": 5.6,
+              "net_section_material_span_mm": 5.924669143,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 68.30633931,
+              "minimum_area_mm2": 65.0,
+              "minimum_material_span_mm": 7.5,
+              "net_section_material_span_mm": 7.682418721,
+              "status": "PASS"
+            }
+          }
+        },
+        "mount_column_m1": {
+          "exception_id": null,
+          "load_cases": [
+            "antenna_reaction",
+            "antenna_lateral",
+            "antenna_insertion"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "rx2_antenna_mount",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 15.038145098,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 1.408e-06
+            },
+            "minimum_area_ratio": 0.8,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.816144021,
+            "status": "PASS"
+          },
+          "scope": "antenna_accessory",
+          "sections": {
+            "member": {
+              "area_mm2": 81.793070735,
+              "minimum_area_mm2": 79.0,
+              "minimum_material_span_mm": 5.5,
+              "net_section_material_span_mm": 5.7,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 66.754925637,
+              "minimum_area_mm2": 65.0,
+              "minimum_material_span_mm": 5.5,
+              "net_section_material_span_mm": 5.700001408,
+              "status": "PASS"
+            }
+          }
+        },
+        "mount_column_m2": {
+          "exception_id": null,
+          "load_cases": [
+            "antenna_reaction",
+            "antenna_lateral",
+            "antenna_insertion"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "rx2_antenna_mount",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "continuous_section",
+            "material_change": {
+              "area_delta_mm2": 15.038145098,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 1.408e-06
+            },
+            "minimum_area_ratio": 0.8,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.816144021,
+            "status": "PASS"
+          },
+          "scope": "antenna_accessory",
+          "sections": {
+            "member": {
+              "area_mm2": 81.793070735,
+              "minimum_area_mm2": 79.0,
+              "minimum_material_span_mm": 5.5,
+              "net_section_material_span_mm": 5.7,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 66.754925637,
+              "minimum_area_mm2": 65.0,
+              "minimum_material_span_mm": 5.5,
+              "net_section_material_span_mm": 5.700001408,
+              "status": "PASS"
+            }
+          }
+        },
+        "mount_rail_left": {
+          "exception_id": "rail_left_flexure",
+          "load_cases": [
+            "antenna_insertion",
+            "antenna_lateral"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "rx2_antenna_mount",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "blended_tab",
+            "material_change": {
+              "area_delta_mm2": 29.994891531,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 1.4
+            },
+            "minimum_area_ratio": 0.4,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.431859928,
+            "status": "PASS"
+          },
+          "scope": "antenna_accessory",
+          "sections": {
+            "member": {
+              "area_mm2": 52.794888098,
+              "minimum_area_mm2": 38.0,
+              "minimum_material_span_mm": 1.9,
+              "net_section_material_span_mm": 3.4,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 22.799996567,
+              "minimum_area_mm2": 22.0,
+              "minimum_material_span_mm": 1.9,
+              "net_section_material_span_mm": 2.0,
+              "status": "PASS"
+            }
+          }
+        },
+        "mount_rail_right": {
+          "exception_id": "rail_right_flexure",
+          "load_cases": [
+            "antenna_insertion",
+            "antenna_lateral"
+          ],
+          "overlap": {
+            "disposition": "section_proved",
+            "reason": null,
+            "section_id": "root"
+          },
+          "part": "rx2_antenna_mount",
+          "reinforcement": {
+            "independent_section_measurement": true,
+            "kind": "blended_tab",
+            "material_change": {
+              "area_delta_mm2": 29.994891531,
+              "independent": true,
+              "minimum_area_delta_mm2": 0.08,
+              "minimum_span_delta_mm": 0.2,
+              "span_delta_mm": 1.4
+            },
+            "minimum_area_ratio": 0.4,
+            "plane_independence": {
+              "minimum_linear_delta_mm": 0.2,
+              "relation": "materially_nonparallel",
+              "signed_normal_separation_mm": null,
+              "tangential_offset_mm": null,
+              "unoriented_normal_angle_deg": 90.0
+            },
+            "root_member_area_ratio": 0.431859928,
+            "status": "PASS"
+          },
+          "scope": "antenna_accessory",
+          "sections": {
+            "member": {
+              "area_mm2": 52.794888098,
+              "minimum_area_mm2": 38.0,
+              "minimum_material_span_mm": 1.9,
+              "net_section_material_span_mm": 3.4,
+              "status": "PASS"
+            },
+            "root": {
+              "area_mm2": 22.799996567,
+              "minimum_area_mm2": 22.0,
+              "minimum_material_span_mm": 1.9,
+              "net_section_material_span_mm": 2.0,
+              "status": "PASS"
+            }
+          }
+        }
+      },
+      "denominator": 90,
+      "findings": [],
+      "load_case_count": 12,
+      "passed": 90,
+      "qualification_boundary": "critical-section geometry screen only; loads are not quantified and material/print strength is not qualified",
+      "status": "PASS"
+    }
+  },
+  "findings": [
+    "global plate torsion, stiffness, and distributed load analysis is not implemented",
+    "local wall/thickness analysis is not implemented",
+    "no canonical slicer/profile/toolpath adapter is bound",
+    "overhang and support-material analysis is not implemented",
+    "printer build-volume check is unavailable without a pinned printer",
+    "self-intersection analysis is not implemented",
+    "unsupported-island and bridge analysis is not implemented"
+  ],
+  "inputs": {
+    "cad_design": {
+      "design_fingerprint": "2eedcf4bd70c04c102a6efeed50efdecc4a6ba12d7aee7e4dfd8f3f242a30fd4"
+    },
+    "compiler": {
+      "path": "skills/pcb-enclosure/scripts/fdm_structural_audit.py",
+      "sha256": "248e8474e72624037b7e3b0fd1dfb2c3562a157e40af515f6c7a875320c71437",
+      "size": 85207
+    },
+    "contract": {
+      "sha256": "99a6d2d70b18b7cbbfe8d40baaa5a5300617feb2467aa26a62e59417225a71b7",
+      "size": 29777
+    },
+    "enclosure_common": {
+      "path": "skills/pcb-enclosure/scripts/enclosure_common.py",
+      "sha256": "00b5d4eac53da9ab5ed698d8851c6e800e65c53eabd14ff6e9b78e6552eb862c",
+      "size": 56026
+    },
+    "generation": {
+      "sha256": "ea90779e56ce8f499cc6787db4c463463fa5d908a3941c2c75d6018bd31ae1e0",
+      "size": 5764
+    },
+    "meshes": [
+      {
+        "part": "base",
+        "sha256": "02724639c263df6d619e9fedfa3e5b1d44e049230097f2b2c43e11e01421cd6a",
+        "size": 1576372
+      },
+      {
+        "part": "lid",
+        "sha256": "1cbe5cdbb292f9c65834a2bbc4684b866234f94a3430d0d2a7f444624224f707",
+        "size": 3138635
+      },
+      {
+        "part": "insert_coupon",
+        "sha256": "d81727855a0aa2ace7bdb2cf98e2eed7f2eac0e12dd9b86b2ab6ed8ddc946429",
+        "size": 1162772
+      },
+      {
+        "part": "rx2_antenna_mount",
+        "sha256": "665dd923586cb9e85e9a884c8b0e5a9e3c5b870fbeca8996da11fed5665c6bf2",
+        "size": 834677
+      },
+      {
+        "part": "rx2_antenna_fit_gauge",
+        "sha256": "d32f0125d56dd256915008d8c77fd78526506d589a96a342ef37f955cede6bc8",
+        "size": 1489170
+      }
+    ]
+  },
+  "kind": "pcb-enclosure-fdm-structural-audit-v1",
+  "maximum_claim": "CAD_READY",
+  "name": "pluto-rx2-8way-v5-split-shell",
+  "physical_evidence_consumed": false,
+  "schema": 1,
+  "status": "INCOMPLETE"
+}

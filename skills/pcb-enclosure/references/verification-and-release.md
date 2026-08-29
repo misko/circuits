@@ -65,6 +65,13 @@ reports a denominator for every check. `package_enclosure.py` requires the
 closed seven-check census, reruns verification against current bytes, and
 refuses changed generation or evidence receipts.
 
+For new candidates, `fdm_structural_audit.py` is an additional, separate
+current-policy receipt. It checks the exact declared printable census, rigid
+build transforms/build-plate contact, and mesh-visible critical sections.
+Topology and section results do not close self-intersection, local thickness,
+printer volume, overhang/support, slicer/toolpath, strength, fit, or physical
+evidence; each unexecuted fact remains named `INCOMPLETE`.
+
 ## Exact STEP and final-position collision
 
 Run `inspect_step.py` on the bound STEP and interface. With CadQuery/OCP it
@@ -195,6 +202,41 @@ optionally add `--project-root` to compare its local authority copies with the
 current immutable PCB parent. Never write enclosure artifacts under
 `07_releases/` or reseal a PCB because its enclosure changed. See
 `release-stream.md` for the complete workspace and manifest contract.
+
+A config with `manufacturing_audit` additionally copies its contract under
+`source/`, receipt/generation/collision and generation source under
+`verification/`, and printables under `meshes/`, then supplies exact replay roles
+`compose=tooling/enclosure_v2.py`,
+`verify=tooling/verify_enclosure.py`,
+`fdm_structural_audit=tooling/fdm_structural_audit.py` and
+`enclosure_common=tooling/enclosure_common.py`,
+`collision_builder=tooling/build_collision.py`,
+`step_inspector=tooling/inspect_step.py`,
+`enclosure_generator=tooling/generate_enclosure.py`,
+`process_runner=tooling/process_runner.py`, and
+`pipeline_runtime=tooling/pipeline_runtime.py`. Publisher and reopen select
+only those manifest-bound bytes, regenerate every printable and installed-case
+byte, independently recompute STEP component selection, replay the exact BRep
+collision, reproduce the FDM receipt, and freshly reproduce the complete
+schema-v1 `verification/verification.json` with the exact
+`verify=tooling/verify_enclosure.py` role. Private staging atomically replaces
+a stale generic report with only that exact replay output before constructing
+the manifest; immutable release reopen is read-only and rejects any mismatch.
+External
+composition additionally requires
+`obstruction_compositor=tooling/compose_obstruction_step.py`.
+Stage canonically regenerates `v2-validation.json`,
+`mechanical-intent-validation-v2.json`, `scope-statuses.json`, and
+`scoped-verdict.json` from the release-local config and selected
+`compose=tooling/enclosure_v2.py`; reopen derives and compares their exact
+contents. These reports contain release-root-relative authorities and never
+temporary absolute paths.
+After all replays and authority checks, reopen performs a final regular-tree
+rescan and requires the exact path/hash/size census to match the entry census.
+Stage repeats that census immediately before its atomic no-replace rename, so
+a late extra, removal, or content change cannot enter a successful release.
+Predecessor releases without this additive mapping stay `INCOMPLETE` under
+current policy; never rewrite them.
 
 ## Process and output safety
 

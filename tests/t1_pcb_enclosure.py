@@ -523,6 +523,9 @@ def t_verify_clean_subject():
     report = json.loads(fixture["report"].read_text())
     eq(report["summary"], {"failed": 0, "incomplete": 1, "passed": 6,
                            "total": 7}, "verification denominators")
+    eq(report["config"]["path"],
+       fixture["config"].relative_to(fixture["root"]).as_posix(),
+       "verification config uses a replay-stable subject-relative path")
     eq(report["checks"][-1]["name"], "physical_evidence")
 
 
@@ -1026,6 +1029,26 @@ def t_verify_unproven_installed_case_bites():
     _write_json(fixture["collision_report"], collision)
     must_fail(run(_verify_args(fixture)), "verify_enclosure unproven case",
               "generated installed-case mesh: file differs from its receipt")
+    _assert_only_failed(fixture, "exact_solid_clearance")
+
+
+@test("collision and printable checks must bind one exact generation receipt",
+      kind="known_bad", gate="verify_enclosure.py")
+def t_verify_split_generation_bites():
+    fixture = _fresh_fixture()
+    generation_path = fixture["build"] / "generation.json"
+    alternate_path = fixture["build"] / "alternate-generation.json"
+    alternate = json.loads(generation_path.read_text())
+    alternate["engine"]["version"] = \
+        "same geometry, different receipt bytes"
+    _write_json(alternate_path, alternate)
+    collision = json.loads(fixture["collision_report"].read_text())
+    collision["inputs"]["generation"] = _binding(
+        fixture["build"], alternate_path)
+    collision["inputs"]["assembled_case_mesh"] = alternate["installed_case"]
+    _write_json(fixture["collision_report"], collision)
+    must_fail(run(_verify_args(fixture)), "verify split generation authority",
+              "collision evidence binds a different generation receipt")
     _assert_only_failed(fixture, "exact_solid_clearance")
 
 

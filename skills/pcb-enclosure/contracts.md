@@ -21,14 +21,16 @@ board project.
 | `scripts/extract_board_interface.py` | exact KiCad interface extraction |
 | `scripts/generate_enclosure.py` | deterministic v1 CAD generation and assembly-contract receipt |
 | `scripts/inspect_step.py` | exact STEP inspection and component audit export |
-| `scripts/build_collision.py` | receipted final installed-position collision evidence |
+| `scripts/build_collision.py` | full-census final-position BRep collision receipt, canonical inspector regrade, and pinned hermetic replay |
 | `scripts/render_enclosure.py` | visual-review render only |
 | `scripts/verify_enclosure.py` | schema-v1 geometry/readiness verification |
 | `scripts/package_enclosure.py` | freshly regraded portable v1 candidate package |
 | `scripts/enclosure_v2.py` | mechanical-intent/config/evidence validation and conservative scoped aggregation |
 | `scripts/stage_enclosure_release.py` | atomic no-replace publication below `07_enclosure_releases/` |
-| `scripts/verify_enclosure_release.py` | immutable enclosure-release census, authority, status, and replay-path verification |
+| `scripts/verify_enclosure_release.py` | immutable release census plus exact generator, inspector, collision, FDM, and external-composition replay closure |
 | `scripts/enclosure_layout_audit.py` | fleet audit for canonical authored, generated, review, and immutable-release paths |
+| `scripts/fdm_structural_audit.py` | strict printable census, build orientation, mesh-section load-path screen, evidence boundaries, and deterministic receipt |
+| `scripts/fdm_audit_fleet.py` | read-only current-policy/legacy release census over declared printable payloads only |
 | `references/**` | commission, schemas, topology, access, motion, fastener, FDM, evidence, and independent-release guidance |
 | `assets/enclosure-engine.scad` | reusable OpenSCAD engine with closed part selectors and independent-fastener geometry |
 | `assets/*.template.yaml` | mechanical-intent and physical-evidence authoring templates |
@@ -58,6 +60,10 @@ an independent `subprocess.run` or `Popen` path.
 - `tests/t1_enclosure_layout.py` proves project enclosure sources, reference
   STLs, generated artifacts, physical reviews, and releases cannot cross their
   canonical filesystem boundaries.
+- `tests/t1_pcb_enclosure_fdm.py` covers clean reinforced and Pluto-style
+  shallow-root fixtures, rigid orientation, nonvacuous structural probes,
+  stale bindings, post-publication regrade, v2/helper replay closure, and the
+  role-aware fleet denominator.
 - `scripts/contracts_audit.py` enforces coverage and project-isolation rules.
 - `skill-creator/scripts/quick_validate.py` validates skill metadata and
   structure.

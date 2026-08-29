@@ -65,6 +65,7 @@ SUITES=(
   t1_pcb_enclosure_engine.py
   t1_pcb_enclosure_safety.py
   t1_pcb_enclosure_v2.py
+  t1_pcb_enclosure_fdm.py
   t1_enclosure_release.py
   t1_enclosure_layout.py
   t1_pluto_enclosure_v2_canary.py
