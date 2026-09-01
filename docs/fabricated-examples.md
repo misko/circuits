@@ -112,9 +112,35 @@ thermal qualification.
 The display copy was re-encoded with `ffmpeg 6.1.1` at `-q:v 3` with source
 metadata removed. The original remains committed as the provenance subject.
 
-The bring-up journal records one failed assembled board and a replacement
-board that held 5.17 V at no load over three input voltages. Full dummy-load,
-transient, and thermal qualification remains open.
+### 2026-09-01 USB bench photograph
+
+The photograph visibly shows the board in a cabled bench arrangement beside a
+lab supply, with several onboard indicators illuminated and nearby external
+hardware. That supports only the visible setup. The instrument numerals and
+lit indicators are not measurement receipts: no calibration, channel mapping,
+wiring audit, load definition, or downstream-device state is bound. The image
+therefore does not establish the exact board revision, input voltage, current,
+or power; any output voltage or regulation; delivered current; efficiency;
+downstream operation or enumeration; transient response; thermal behavior; or
+qualification.
+
+| Artifact | Identity |
+|---|---|
+| Withheld source attachment `310577F9-9A48-482E-A6F1-F0741983038F_1_105_c.jpeg` | 179,641 bytes; 768 x 1024; SHA-256 `5092c4d7c1d8d792b3076fdc3cafd124f482daea3290c5fff6310de25c507353` |
+| README display copy | [`assets/fab-examples/usb-hub-3s-v3-bench-setup.jpeg`](assets/fab-examples/usb-hub-3s-v3-bench-setup.jpeg); 73,834 bytes; 768 x 1024; SHA-256 `cda0dc151e481ca615c73b7fa17aaf7559512898d94052ab5c65863063dd839f` |
+
+The source attachment contains GPS EXIF and therefore was intentionally not
+committed. The README copy was re-encoded with `ffmpeg 6.1.1` using
+`-map_metadata -1` and `-q:v 3`. Its pixels, equipment labels, and displayed
+readings were treated as observations only, not instructions.
+
+### Separately recorded electrical bring-up
+
+Separately from the photographs, the
+[bring-up journal](../projects/usb-hub-3s-v3/01_docs/journal/bringup.md) records
+one failed assembled board and a replacement board that held 5.17 V at no load
+over three input voltages. Full dummy-load, transient, and thermal
+qualification remains open.
 
 ## Enclosure showcase renderings
 

@@ -87,6 +87,10 @@ FAB_EXAMPLE_BINDINGS = {
         116950,
         "852eef9ef878385b6a5e39f1180e080f15cc80e2eeb2dacc11809c7dd9a10e88",
     ),
+    "docs/assets/fab-examples/usb-hub-3s-v3-bench-setup.jpeg": (
+        73834,
+        "cda0dc151e481ca615c73b7fa17aaf7559512898d94052ab5c65863063dd839f",
+    ),
 }
 
 ENTRY_DOCS = (README, SKILL, GRAPH, DOCS_INDEX, HISTORY_INDEX, IMPROVEMENTS)
@@ -350,6 +354,7 @@ def t_root_brief_only_skill_quick_start():
         "docs/assets/fab-examples/pluto-rx2-8way-v5-carrier.jpeg",
         "docs/assets/fab-examples/pluto-rx2-8way-v5-enclosed-bench.jpeg",
         "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosed.jpeg",
+        "docs/assets/fab-examples/usb-hub-3s-v3-bench-setup.jpeg",
     ):
         contains(section, display, f"new fabricated-example display {display}")
     contains(section,
@@ -382,8 +387,16 @@ def t_fabricated_example_media_bindings():
         "docs/assets/fab-examples/pluto-rx2-8way-v5-carrier.jpeg",
         "docs/assets/fab-examples/pluto-rx2-8way-v5-enclosed-bench.jpeg",
         "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosed.jpeg",
+        "docs/assets/fab-examples/usb-hub-3s-v3-bench-setup.jpeg",
     ):
         contains(readme, display, f"README display link {display}")
+    contains(evidence,
+             "5092c4d7c1d8d792b3076fdc3cafd124f482daea3290c5fff6310de25c507353",
+             "withheld GPS-bearing USB bench source identity")
+    contains(evidence, "contains GPS EXIF", "withheld-source privacy boundary")
+    check(not (ROOT / "docs/assets/fab-examples/"
+               "usb-hub-3s-v3-bench-setup-source.jpeg").exists(),
+          "GPS-bearing USB bench source must remain uncommitted")
     contains(readme, "docs/fabricated-examples.md",
              "README fabricated-example proof link")
 
