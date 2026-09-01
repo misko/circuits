@@ -393,6 +393,12 @@ def t_prompt_to_device_scope_is_truthful():
     readme = README.read_text()
     skill = SKILL.read_text()
     improvements = IMPROVEMENTS.read_text()
+    check(readme.startswith("# prompt2device\n"),
+          "root README does not use the lowercase project name")
+    contains(readme, "https://github.com/misko/prompt2device.git",
+             "canonical repository clone URL")
+    check("github.com/misko/circuits" not in readme,
+          "root README still names the pre-rename repository URL")
     contains(readme, "**Prompt to device:**", "root product mission")
     for artifact in ("schematic PDF", "Gerbers", "drill files", "BOM", "CPL",
                      "PCB renders", "STEP assembly", "printable STLs"):

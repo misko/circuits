@@ -1,4 +1,4 @@
-# circuits
+# prompt2device
 
 **Prompt to device:** give an agent a plain-language hardware brief, work
 through explicit design, review, and physical-test cycles, and finish with the
@@ -92,7 +92,7 @@ twin are forward work, tracked by
 
 ## What this repository is
 
-`circuits` is a code-first prompt-to-device engineering system. It turns a
+`prompt2device` is a code-first prompt-to-device engineering system. It turns a
 user brief into generated KiCad source, bounded routing candidates,
 independently graded fabrication evidence, immutable releases, printable
 enclosures, and measured first-article records.
@@ -107,8 +107,8 @@ Clone the repository, create a branch, and save the user's original request as
 a UTF-8 text file:
 
 ```bash
-git clone https://github.com/misko/circuits.git
-cd circuits
+git clone https://github.com/misko/prompt2device.git
+cd prompt2device
 git switch -c codex/my-board
 ```
 
