@@ -25,9 +25,10 @@ Exact provenance and claim limits are in
 |---|---|---|
 | **Prompt** | [“we want a high speed 8 antenna switching board that can be programmed by the rpi4 and run with a pluto+”](archived_projects/pluto-rx2-8way/01_docs/BRIEF.md#original-prompt) | [“Please from scratch start a new project, and lets design a board that takes 3S lipo XT60 power as input , and outputs 3 x USB A ports (2.5A max) and 1 x USB C port (6A max).”](archived_projects/usb-power-3s/01_docs/BRIEF.md#original-prompt) |
 | **PCB rendering** | [![Rendered Pluto RX2 eight-way v5 PCB](projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/final_iso_3200.png)](projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/final_iso_3200.png) | [![Rendered usb-hub-3s-v3 v1.12 PCB](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png)](projects/usb-hub-3s-v3/07_releases/v1.12-2026-07-28/verification/twin_iso_nw.png) |
-| **Enclosure rendering** | [![Rendered Pluto RX2 eight-way v5 enclosure](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/renders/closed-assembly.png)](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/renders/closed-assembly.png) | [![Rendered usb-hub-3s-v3 v1.12 enclosure candidate](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosure-candidate.png)](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosure-candidate.png) |
+| **Enclosure rendering** | [![Installed assembly rendering of the Pluto RX2 eight-way v5 enclosure v0.8.0](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.8.0-2026-08-28/renders/installed-assembly.png)](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.8.0-2026-08-28/renders/installed-assembly.png) | [![Installed assembly rendering of the USB Hub 3S v3 enclosure v0.4.0](projects/usb-hub-3s-v3/07_enclosure_releases/v0.4.0-2026-08-28/renders/installed-assembly.png)](projects/usb-hub-3s-v3/07_enclosure_releases/v0.4.0-2026-08-28/renders/installed-assembly.png) |
 | **Fabricated board** | [![Fabricated Pluto RX2 eight-way v5 board with eight switched antennas and one reference antenna installed](docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg)](docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg) | [![Fabricated usb-hub-3s-v3 board during bench bring-up](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg)](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg) |
-| **Board in enclosure** | _Photo pending._ | _Photo pending._ |
+| **Board in enclosure** | [![Fabricated Pluto RX2 eight-way v5 selector PCB installed in its open printed carrier](docs/assets/fab-examples/pluto-rx2-8way-v5-carrier.jpeg)](docs/assets/fab-examples/pluto-rx2-8way-v5-carrier.jpeg) | [![USB Hub 3S v3 board shown open beside a second unit assembled in its printed enclosure](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosed.jpeg)](docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosed.jpeg) |
+| **Bench setup** | [![Pluto RX2 eight-way v5 selector and antenna fixture assembled in printed enclosures for a cabled bench setup](docs/assets/fab-examples/pluto-rx2-8way-v5-enclosed-bench.jpeg)](docs/assets/fab-examples/pluto-rx2-8way-v5-enclosed-bench.jpeg) | — |
 
 [`pluto-rx2-8way-v5`](projects/pluto-rx2-8way-v5/) is the fabricated
 eight-way RF switch board. Its immutable PCB design archive is
@@ -35,11 +36,11 @@ eight-way RF switch board. Its immutable PCB design archive is
 with a sealed
 [3D PCB render](projects/pluto-rx2-8way-v5/07_releases/v0.2.1-2026-08-14/verification/final_iso_3200.png),
 and its independently versioned
-[`v0.5.0-2026-08-26` enclosure](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/)
+[`v0.8.0-2026-08-28` enclosure](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.8.0-2026-08-28/)
 has a corresponding
-[assembly render](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.5.0-2026-08-26/renders/closed-assembly.png).
-That enclosure remains an honest `INCOMPLETE` candidate pending printed
-seating and retention tests.
+[installed-assembly render](projects/pluto-rx2-8way-v5/07_enclosure_releases/v0.8.0-2026-08-28/renders/installed-assembly.png).
+That enclosure remains an honest `INCOMPLETE` candidate pending sliced and
+printed fit, retention, connector-service, and thermal tests.
 The PCB archive itself predates fabrication and still records
 `DO-NOT-ORDER`; RF first-article measurements remain open.
 The current human-readable engineering study is
@@ -54,14 +55,14 @@ records physical v1.12 boards and the replacement assembly's successful
 no-load regulation checks; full load, transient, and thermal qualification is
 still open.
 
-The exact v1.12 board also has a new
-[three-part printable enclosure source candidate](projects/usb-hub-3s-v3/03_src/mechanical/README.md)
-with a foundation base whose only raised features are dedicated PCB and case
-pillars, an independently fastened one-piece four-skirt lid, and an insert-fit
-coupon. It deliberately remains mutable source—not an enclosure release—until
-the 15 component bodies omitted by the sealed STEP, the unmodeled switch, real
-connector mating hardware, printed fit, and closed-case thermal behavior are
-resolved.
+The exact v1.12 board also has an independently versioned
+[`v0.4.0-2026-08-28` enclosure](projects/usb-hub-3s-v3/07_enclosure_releases/v0.4.0-2026-08-28/)
+with a corresponding
+[installed-assembly render](projects/usb-hub-3s-v3/07_enclosure_releases/v0.4.0-2026-08-28/renders/installed-assembly.png).
+Its [authored source and replay instructions](projects/usb-hub-3s-v3/03_src/mechanical/README.md)
+remain mutable, while the release is an immutable `INCOMPLETE` candidate:
+structural and collision screens pass, but printed fit, connector service,
+retention, and thermal evidence remain open.
 
 ### 3. Follow the prompt-to-device loop
 

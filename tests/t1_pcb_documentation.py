@@ -63,6 +63,30 @@ FAB_EXAMPLE_BINDINGS = {
         63394,
         "c19ff717bf85ce3bb9bfc22bebc7f0ebc3dbd40e1368c0d7f676a578ea906cac",
     ),
+    "docs/assets/fab-examples/pluto-rx2-8way-v5-enclosed-bench-source.jpeg": (
+        684360,
+        "e144891bd7e6e5d3aa427b855963c9504cfaedbe044f47f8bce8a9e5e67aa94a",
+    ),
+    "docs/assets/fab-examples/pluto-rx2-8way-v5-enclosed-bench.jpeg": (
+        168184,
+        "ba417aa83430fd290da02fe65c627f3d445ced2da32a0be08ff7a94054713c6a",
+    ),
+    "docs/assets/fab-examples/pluto-rx2-8way-v5-carrier-source.jpeg": (
+        515742,
+        "2ba98be77ff4f3e3a1ef471d578eae56891d9bb1af31f5a754a46cacba6bd4d9",
+    ),
+    "docs/assets/fab-examples/pluto-rx2-8way-v5-carrier.jpeg": (
+        146132,
+        "8d7b6c784e6ab98e3aa5e519b680aef8102bb2b893d1b2d35c19420bda5ef553",
+    ),
+    "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosed-source.jpeg": (
+        628314,
+        "3db0d0a31341ef156f177042d421b29c71ddb0ec450a8b8a74175eccef3d0203",
+    ),
+    "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosed.jpeg": (
+        116950,
+        "852eef9ef878385b6a5e39f1180e080f15cc80e2eeb2dacc11809c7dd9a10e88",
+    ),
 }
 
 ENTRY_DOCS = (README, SKILL, GRAPH, DOCS_INDEX, HISTORY_INDEX, IMPROVEMENTS)
@@ -294,7 +318,7 @@ def t_root_brief_only_skill_quick_start():
     contains(section, "1× USB-C output at 5 V / 5 A",
              "brief-only USB-C requirement")
     for row in ("Prompt", "PCB rendering", "Enclosure rendering",
-                "Fabricated board", "Board in enclosure"):
+                "Fabricated board", "Board in enclosure", "Bench setup"):
         contains(section, row, f"showcase row {row}")
     contains(section,
              "we want a high speed 8 antenna switching board that can be "
@@ -313,14 +337,29 @@ def t_root_brief_only_skill_quick_start():
     contains(section, "twin_iso_nw.png", "fabricated example hero render")
     contains(section, "final_iso_3200.png", "Pluto PCB render")
     contains(section,
-             "usb-hub-3s-v3-v1.12-enclosure-candidate.png",
-             "USB enclosure candidate render")
-    eq(section.count("_Photo pending._"), 2,
+             "projects/pluto-rx2-8way-v5/07_enclosure_releases/"
+             "v0.8.0-2026-08-28/renders/installed-assembly.png",
+             "current Pluto enclosure render")
+    contains(section,
+             "projects/usb-hub-3s-v3/07_enclosure_releases/"
+             "v0.4.0-2026-08-28/renders/installed-assembly.png",
+             "current USB enclosure render")
+    eq(section.count("_Photo pending._"), 0,
        "board-in-enclosure photo placeholders")
+    for display in (
+        "docs/assets/fab-examples/pluto-rx2-8way-v5-carrier.jpeg",
+        "docs/assets/fab-examples/pluto-rx2-8way-v5-enclosed-bench.jpeg",
+        "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosed.jpeg",
+    ):
+        contains(section, display, f"new fabricated-example display {display}")
     contains(section,
              "projects/usb-hub-3s-v3/03_src/mechanical/README.md",
-             "USB hub enclosure source candidate")
-    contains(section, "not an enclosure release",
+             "USB hub enclosure source")
+    contains(section,
+             "projects/usb-hub-3s-v3/07_enclosure_releases/"
+             "v0.4.0-2026-08-28/",
+             "USB hub enclosure release")
+    contains(section, "immutable `INCOMPLETE` candidate",
              "USB hub enclosure readiness boundary")
 
 
@@ -340,6 +379,9 @@ def t_fabricated_example_media_bindings():
     for display in (
         "docs/assets/fab-examples/pluto-rx2-8way-v5-fabricated.jpeg",
         "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-bringup.jpeg",
+        "docs/assets/fab-examples/pluto-rx2-8way-v5-carrier.jpeg",
+        "docs/assets/fab-examples/pluto-rx2-8way-v5-enclosed-bench.jpeg",
+        "docs/assets/fab-examples/usb-hub-3s-v3-v1.12-enclosed.jpeg",
     ):
         contains(readme, display, f"README display link {display}")
     contains(readme, "docs/fabricated-examples.md",
